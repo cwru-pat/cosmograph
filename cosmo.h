@@ -18,12 +18,19 @@
 
 namespace cosmo
 {
+
+#include "defines.h"
+
 typedef float real_t;
 typedef unsigned int idx_t;
 
-#include "utils/Timer.h"
+#include "utils/math.h"
 
+#include "utils/Timer.h"
 TimerManager _timer;
+
+#include "wave.h"
+
 
 } /* namespace cosmo */
 

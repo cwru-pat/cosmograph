@@ -8,15 +8,13 @@ int main(int argc, char **argv)
 {
   _timer["MAIN"].start();
 
-  const idx_t N = 1000000;
 
-  real_t v = 0;
   _timer["loop"].start();
-  for(idx_t i=0; i < N; ++i) {
-    v += i;
-  }
+  WAVE wave;
+  wave.init();
+  wave.step();
   _timer["loop"].stop();
-  cout << "v: " << v << endl;
+
 
   _timer["MAIN"].stop();
 
