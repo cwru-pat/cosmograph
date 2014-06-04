@@ -49,7 +49,7 @@ public:
     }
 
 
-    /* switch field with field_p */
+    /* switch field <--> field_p */
     real_t * swap = phi_p;
     phi_p = phi;
     phi = swap;

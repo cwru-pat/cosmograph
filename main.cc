@@ -8,13 +8,16 @@ int main(int argc, char **argv)
 {
   _timer["MAIN"].start();
 
+  const idx_t n = 10;
 
-  _timer["loop"].start();
   WAVE wave;
   wave.init();
-  wave.step();
-  _timer["loop"].stop();
 
+  _timer["loop"].start();
+  for(idx_t i=0; i < n; ++i) {
+    wave.step();
+  }
+  _timer["loop"].stop();
 
   _timer["MAIN"].stop();
 
