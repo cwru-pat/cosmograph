@@ -48,6 +48,7 @@ public:
       www[index] = www_p[index] + dt*lap_phi_p + dt*dt/2.0*lap_www_p;
     }
 
+    //step_boundary()
 
     /* switch field <--> field_p */
     real_t * swap = phi_p;
@@ -58,6 +59,19 @@ public:
     www_p = www;
     www = swap;
   }
+
+  // void step_boundary()
+  // {
+  //   real_t lap_phi_p, lap_www_p;
+  //   idx_t index, i, j, k;
+
+  //   // evolve fields
+  //   INTERNAL_LOOP3(i, j, k)
+  //   {
+
+  //   }
+  // }
+
 
   real_t derivative_stencil(idx_t i, idx_t j, idx_t k, int d, real_t *field)
   {
