@@ -20,7 +20,8 @@ inline real_t derivative_stencil(const idx_t &i, const idx_t &j,
   }
 }
 
-inline real_t lap_stencil(const idx_t &i, const idx_t &j, const idx_t &k, real_t *field)
+inline real_t lap_stencil(const idx_t &i, const idx_t &j, const idx_t &k,
+    real_t *field)
 {
   return (
       - 6.0*field[INDEX(i,j,k)]
