@@ -19,11 +19,10 @@
 namespace cosmo
 {
 
-#include "defines.h"
-
 typedef float real_t;
 typedef unsigned int idx_t;
 
+#include "defines.h"
 #include "utils/math.h"
 
 #include "utils/Timer.h"
