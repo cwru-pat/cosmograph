@@ -1,6 +1,5 @@
 
 #include "cosmo.h"
-#include "Wave.h"
 #include "utils/Timer.h"
 
 using namespace std;
@@ -18,6 +17,7 @@ int main(int argc, char **argv)
   _timer["loop"].start();
   for(idx_t i=0; i < n; ++i) {
     wave.step();
+    wave.dump_strip("phi", 1, N/2, N/2);
   }
   _timer["loop"].stop();
 

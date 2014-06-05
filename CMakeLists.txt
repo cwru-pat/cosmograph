@@ -10,4 +10,4 @@ set(CMAKE_CXX_FLAGS "${CC_OPTS} ${OPT_LEVEL} ${WARNINGS}")
 file(GLOB COSMO_SOURCES *.cc utils/*.cc)
 
 add_executable(cosmo ${COSMO_SOURCES})
-target_link_libraries(cosmo m rt)
+target_link_libraries(cosmo m rt z)

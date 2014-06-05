@@ -34,16 +34,11 @@ class BSSN
   real_t Gammaz;
 
 public:
-  person() : age(5) { }
-  void print() const;
+  
 };
 
-
-public:
   BSSN() {};
-
   
-
 };
 
 #endif

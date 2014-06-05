@@ -7,6 +7,7 @@
 #include <cstring>
 #include <ctime>
 #include <cmath>
+#include <zlib.h>
 
 /* C++ includes */
 #include <iostream>
@@ -21,11 +22,14 @@ namespace cosmo
 {
 
 typedef float real_t;
-typedef unsigned int idx_t;
+typedef long int idx_t;
 
 #include "defines.h"
-#include "utils/math.h"
 
 } /* namespace cosmo */
+
+#include "utils/math.h"
+#include "utils/io.h"
+#include "Wave.h"
 
 #endif
