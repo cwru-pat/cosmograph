@@ -4,6 +4,8 @@
 #define N 256
 #define dt 0.1
 
+#define RESTRICT __restrict__
+
 #define INDEX(i,j,k) (((i+N)%N)*N*N + ((j+N)%N)*N + (k+N)%N)
 
 #define LOOP3(i,j,k) \
