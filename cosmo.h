@@ -12,6 +12,7 @@
 #include <iostream>
 #include <iomanip>
 #include <fstream>
+#include <algorithm>
 #include <string>
 #include <sstream>
 #include <map>
@@ -24,12 +25,6 @@ typedef unsigned int idx_t;
 
 #include "defines.h"
 #include "utils/math.h"
-
-#include "utils/Timer.h"
-TimerManager _timer;
-
-#include "wave.h"
-
 
 } /* namespace cosmo */
 
