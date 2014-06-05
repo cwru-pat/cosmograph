@@ -17,8 +17,8 @@ public:
 
 private:
   /* wave equation fields */
-  real_t *phi, *phi_p;
-  real_t *www, *www_p;
+  real_t *RESTRICT phi, *RESTRICT phi_p;
+  real_t *RESTRICT www, *RESTRICT www_p;
 };
 
 }
