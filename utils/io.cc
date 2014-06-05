@@ -9,8 +9,7 @@ void dump_strip(real_t *field, int axis, idx_t n1, idx_t n2)
   char filename[] = "strip.dat.gz";
   char data[20];
 
-  gzFile *datafile;
-  datafile = (gzFile *)gzopen(filename, "ab");
+  gzFile datafile = gzopen(filename, "ab");
   if(datafile == Z_NULL) {
     printf("Error opening file: %s\n", filename);
     return;
@@ -41,8 +40,8 @@ void dump_strip(real_t *field, int axis, idx_t n1, idx_t n2)
       break;
   }
 
-  gzwrite(datafile, "\n", strlen("\n")); 
- 
+  gzwrite(datafile, "\n", strlen("\n"));
+
   gzclose(datafile);
 
   return;
