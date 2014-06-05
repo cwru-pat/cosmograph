@@ -1,6 +1,6 @@
 
 all: main.cc
-	g++ main.cc -lm -lrt -ffast-math -O3
+	g++ -march=native -ffast-math -O3  main.cc -lm -lrt
 
 clean:
 	rm -f a.out
