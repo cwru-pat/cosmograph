@@ -34,8 +34,6 @@ inline real_t lap_stencil(const idx_t &i, const idx_t &j, const idx_t &k,
 
 void Wave::step()
 {
-  idx_t i, j, k;
-
   // evolve fields
   INTERNAL_LOOP3(i, j, k)
   {
@@ -76,7 +74,6 @@ Wave::Wave()
   www   = new real_t[N*N*N];
   www_p = new real_t[N*N*N];
 
-  idx_t i,j,k;
   LOOP3(i, j, k)
   {
     phi[i] = 0;
