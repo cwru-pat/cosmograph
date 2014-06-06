@@ -19,29 +19,28 @@
       for(idx_t k=1; k<N-1; ++k)
 
 
-#define RK4_ARRAY_CREATE(name) real_t name, name_p, name_p_p, name_p_p_p
+#define RK4_ARRAY_CREATE(name) \
+        real_t name, name_p, name_i;
 
 #define RK4_ARRAY_ALLOC(name) \
         name       = new real_t[N*N*N]; \
         name_p     = new real_t[N*N*N]; \
-        name_p_p   = new real_t[N*N*N]; \
-        name_p_p_p = new real_t[N*N*N];
+        name_i     = new real_t[N*N*N];
 
 #define RK4_ARRAY_DELETE(name) \
         delete [] name;        \
         delete [] name_p;      \
-        delete [] name_p_p;    \
-        delete [] name_p_p_p;
+        delete [] name_i;
 
-#define RK4_ARRAY_ADDMAP(name)            \
-        fields["name"]       = name;      \
-        fields["name_p"]     = name_p;    \
-        fields["name_p_p"]   = name_p_p;  \
-        fields["name_p_p_p"] = name_p_p_p;
+// RK4 has a diagonal tableau, so we only need to compute
+// the coefficients one at a time ("_i" arrays), given the
+// values in the previous step ("_p" arrays).
+#define RK4_ARRAY_ADDMAP(name)        \
+        fields["name"]   = name;      \
+        fields["name_p"] = name_p;    \
+        fields["name_i"] = name_i;
 
-#define RK4_ARRAY_CYCLE(name)            \
-        std::swap(name_p_p, name_p_p_p); \
-        std::swap(name_p, name_p_p);     \
+#define RK4_ARRAY_CYCLE(name) \
         std::swap(name, name_p);
 
 #define BSSN_APPLY_TO_FIELDS(function)  \
