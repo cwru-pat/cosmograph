@@ -4,41 +4,30 @@
 /** BSSN class **/
 class BSSN
 {
-  /* arrays for storing fields */
-
-  // unitary metric, gamma_ij
-  real_t gammaxx;
-  real_t gammaxy;
-  real_t gammayy;
-  real_t gammayz;
-  real_t gammazz;
-  real_t gammaxz;
-
-  // conformal factor
-  real_t W;
-
-  // A
-  real_t Axx;
-  real_t Axy;
-  real_t Ayy;
-  real_t Ayz;
-  real_t Azz;
-  real_t Axz;
-
-  // ext. curv.
-  real_t K;
-
-  // christoffel derivative
-  real_t Gammax;
-  real_t Gammay;
-  real_t Gammaz;
+  /* create arrays for storing fields */
+  BSSN_APPLY_TO_FIELDS(RK4_ARRAY_CREATE);
 
 public:
-  
-};
+  BSSN()
+  {
+    BSSN_APPLY_TO_FIELDS(RK4_ARRAY_ALLOC);
+    BSSN_APPLY_TO_FIELDS(RK4_ARRAY_ADDMAP);
+  }
 
-  BSSN() {};
+  ~BSSN()
+  {
+    BSSN_APPLY_TO_FIELDS(RK4_ARRAY_DELETE);
+  }
   
+  void step() {
+    LOOP3(i, j, k)
+    {
+      /* evolve stuff... */
+    }
+
+    BSSN_APPLY_TO_FIELDS(RK4_ARRAY_CYCLE);
+  }
+
 };
 
 #endif
