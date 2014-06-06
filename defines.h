@@ -20,25 +20,25 @@
 
 
 #define RK4_ARRAY_CREATE(name) \
-        real_t name, name_p, name_i;
+        real_t * name, * name##_p, * name_##i;
 
 #define RK4_ARRAY_ALLOC(name) \
         name       = new real_t[N*N*N]; \
-        name_p     = new real_t[N*N*N]; \
-        name_i     = new real_t[N*N*N];
+        name##_p   = new real_t[N*N*N]; \
+        name##_i   = new real_t[N*N*N];
 
 #define RK4_ARRAY_DELETE(name) \
         delete [] name;        \
-        delete [] name_p;      \
-        delete [] name_i;
+        delete [] name##_p;    \
+        delete [] name##_i;
 
 // RK4 has a diagonal tableau, so we only need to compute
 // the coefficients one at a time ("_i" arrays), given the
 // values in the previous step ("_p" arrays).
-#define RK4_ARRAY_ADDMAP(name)        \
-        fields["name"]   = name;      \
-        fields["name_p"] = name_p;    \
-        fields["name_i"] = name_i;
+#define RK4_ARRAY_ADDMAP(name)          \
+        fields[#name]   = name;         \
+        fields[#name "_p"] = name##_p;  \
+        fields[#name "_i"] = name##_i;
 
 #define RK4_ARRAY_CYCLE(name) \
         std::swap(name, name_p);
