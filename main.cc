@@ -1,6 +1,5 @@
 
 #include "cosmo.h"
-#include "utils/Timer.h"
 
 using namespace std;
 using namespace cosmo;
