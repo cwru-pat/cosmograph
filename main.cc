@@ -9,6 +9,8 @@ int main(int argc, char **argv)
   TimerManager _timer;
   _timer["MAIN"].start();
 
+  ConfigParser _config("config.txt");
+
   const idx_t n = 10;
 
   Wave wave;

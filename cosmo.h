@@ -31,6 +31,7 @@ typedef long int idx_t;
 #include "utils/math.h"
 #include "utils/io.h"
 #include "utils/Timer.h"
+#include "utils/ConfigParser.h"
 #include "Wave.h"
 
 #endif
