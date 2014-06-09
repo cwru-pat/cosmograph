@@ -403,6 +403,17 @@ public:
         D3D3phi -2.0*d3phi*d3phi + gamma33*(expression)
       );
 
+    /* remove trace... */ 
+    trace = gammai11*ricciTF11 + gammai22*ricciTF22 + gammai33*ricciTF33
+        + 2.0*(gammai12*ricciTF12 + gammai13*ricciTF13 + gammai23*ricciTF23);
+    
+    ricciTF11 -= (1/3.0)*gamma11*trace;
+    ricciTF12 -= (1/3.0)*gamma12*trace;
+    ricciTF13 -= (1/3.0)*gamma13*trace;
+    ricciTF22 -= (1/3.0)*gamma22*trace;
+    ricciTF23 -= (1/3.0)*gamma23*trace;
+    ricciTF33 -= (1/3.0)*gamma33*trace;
+
   }
 
   void calculateDDalpha(idx_t idx)
