@@ -34,4 +34,6 @@ typedef long int idx_t;
 #include "utils/ConfigParser.h"
 #include "Wave.h"
 
+#include "bssn.h"
+
 #endif

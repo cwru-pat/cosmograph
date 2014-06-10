@@ -4,7 +4,7 @@
 namespace cosmo
 {
 
-void dump_strip(real_t *field, int axis, idx_t n1, idx_t n2)
+void io_dump_strip(real_t *field, int axis, idx_t n1, idx_t n2)
 {
   char filename[] = "strip.dat.gz";
   char data[20];

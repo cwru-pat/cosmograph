@@ -15,8 +15,8 @@ void Wave::step()
   {
     index = INDEX(i,j,k);
 
-    lap_phi_p = cosmo::lap_stencil(i, j, k, phi_p);
-    lap_www_p = cosmo::lap_stencil(i, j, k, www_p);
+    lap_phi_p = lap_stencil(i, j, k, phi_p);
+    lap_www_p = lap_stencil(i, j, k, www_p);
 
     phi[index] = phi_p[index] + dt*www_p[index] + dt*dt/2.0*lap_phi_p;
     www[index] = www_p[index] + dt*lap_phi_p + dt*dt/2.0*lap_www_p;
@@ -41,7 +41,7 @@ void Wave::init()
 
 void Wave::dump_strip(std::string field, int axis, idx_t n1, idx_t n2)
 {
-  cosmo::dump_strip(fields[field], axis, n1, n2);
+  io_dump_strip(fields[field], axis, n1, n2);
 }
 
 /* Wave constructor */

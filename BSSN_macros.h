@@ -1,6 +1,9 @@
 #ifndef BSSN_MACROS
 #define BSSN_MACROS
 
+namespace cosmo
+{
+
 // applying functions to lots of vars
 
 #define BSSN_APPLY_TO_FIELDS(function)  \
@@ -63,50 +66,53 @@
 
 // BSSN & metric calculations
 
-#define BSSN_CALCULATE_CHRISTOFFEL(I, J, K) G##I##J##K## = 0.5*( \
-    gammai##I##1 * (d##J##g##K##1 + d##K##g##J##1 - d1g##J##K##) + \
-    gammai##I##2 * (d##J##g##K##2 + d##K##g##J##2 - d2g##J##K##) + \
-    gammai##I##3 * (d##J##g##K##3 + d##K##g##J##3 - d3g##J##K##) \
+#define BSSN_CALCULATE_CHRISTOFFEL(I, J, K) paq.G##I##J##K = 0.5*( \
+    paq.gammai##I##1 * (paq.d##J##g##K##1 + paq.d##K##g##J##1 - paq.d1g##J##K) + \
+    paq.gammai##I##2 * (paq.d##J##g##K##2 + paq.d##K##g##J##2 - paq.d2g##J##K) + \
+    paq.gammai##I##3 * (paq.d##J##g##K##3 + paq.d##K##g##J##3 - paq.d3g##J##K) \
   )
 
-#define BSSN_CALCULATE_DGAMMAI(I, J, K) d##I##gi##J##K## = der(gammai##J##K##, I, idx);
+#define BSSN_CALCULATE_DGAMMAI(I, J, K) paq.d##I##gi##J##K = der(gammai##J##K##_a, I, &paq);
 
-#define BSSN_CALCULATE_DGAMMA(I, J, K) d##I##g##J##K## = der(gamma##J##K##, I, idx);
+#define BSSN_CALCULATE_DGAMMA(I, J, K) paq.d##I##g##J##K = der(gamma##J##K##_a, I, &paq);
 
 // needs the gamma*ldlphi vars defined:
-#define BSSN_CALCULATE_DIDJALPHA(I, J) D##I##D##J##a = dder(alpha, I, J, idx) - ( \
-        (G1##I##J## + 2.0*( (1==I)*d##J##phi + (1==J)*d##I##phi - gamma##I##J##*gamma1ldlphi))*d1a + \
-        (G2##I##J## + 2.0*( (2==I)*d##J##phi + (2==J)*d##I##phi - gamma##I##J##*gamma2ldlphi))*d2a + \
-        (G3##I##J## + 2.0*( (3==I)*d##J##phi + (3==J)*d##I##phi - gamma##I##J##*gamma3ldlphi))*d3a \
+#define BSSN_CALCULATE_DIDJALPHA(I, J) paq.D##I##D##J##a = dder(alpha_a, I, J, &paq) - ( \
+        (paq.G1##I##J + 2.0*( (1==I)*paq.d##J##phi + (1==J)*paq.d##I##phi - paq.gamma##I##J*gamma1ldlphi))*paq.d1a + \
+        (paq.G2##I##J + 2.0*( (2==I)*paq.d##J##phi + (2==J)*paq.d##I##phi - paq.gamma##I##J*gamma2ldlphi))*paq.d2a + \
+        (paq.G3##I##J + 2.0*( (3==I)*paq.d##J##phi + (3==J)*paq.d##I##phi - paq.gamma##I##J*gamma3ldlphi))*paq.d3a \
       );
 
 // unitary piece only:
-#define BSSN_CALCULATE_RICCITF_UNITARY(I, J) ricciTF##I##J## = ( \
+#define BSSN_CALCULATE_RICCITF_UNITARY(I, J) paq.ricciTF##I##J = ( \
         - 0.5*( \
-          gammai11*d1d1g##I##J## + gammai22*d2d2g##I##J## + gammai33*d3d3g##I##J## \
-          + 2.0*(gammai12*d1d2g##I##J## + gammai13*d1d3g##I##J## + gammai23*d2d3g##I##J##) \
+          paq.gammai11*paq.d1d1g##I##J + paq.gammai22*paq.d2d2g##I##J + paq.gammai33*paq.d3d3g##I##J \
+          + 2.0*(paq.gammai12*paq.d1d2g##I##J + paq.gammai13*paq.d1d3g##I##J + paq.gammai23*paq.d2d3g##I##J) \
         ) \
         + 0.5*( \
-          gamma1##I##*der(Gamma1, J, idx) + gamma2##I##*der(Gamma2, J, idx) + gamma3##I##*der(Gamma3, J, idx) + \
-          gamma1##J##*der(Gamma1, I, idx) + gamma2##J##*der(Gamma2, I, idx) + gamma3##J##*der(Gamma3, I, idx) \
+          paq.gamma1##I*der(Gamma1_a, J, &paq) + paq.gamma2##I*der(Gamma2_a, J, &paq) + paq.gamma3##I*der(Gamma3_a, J, &paq) + \
+          paq.gamma1##J*der(Gamma1_a, I, &paq) + paq.gamma2##J*der(Gamma2_a, I, &paq) + paq.gamma3##J*der(Gamma3_a, I, &paq) \
         ) \
         - 0.5*( \
-          d1g##I##1*d##J##gi11 + d2g##I##2*d##J##gi22 + d3g##I##3*d##J##gi33 + 2.0*(d1g##I##2*d##J##gi12 + d1g##I##3*d##J##gi13 + d2g##I##3*d##J##gi23) + \
-          d1g##J##1*d##I##gi11 + d2g##J##2*d##I##gi22 + d3g##J##3*d##I##gi33 + 2.0*(d1g##J##2*d##I##gi12 + d1g##J##3*d##I##gi13 + d2g##J##3*d##I##gi23) \
-          - Gamma1*d1g##I##J## - Gamma2*d2g##I##J## - Gamma3*d3g##I##J## \
+          paq.d1g##I##1*paq.d##J##gi11 + paq.d2g##I##2*paq.d##J##gi22 + paq.d3g##I##3*paq.d##J##gi33 \
+            + 2.0*(paq.d1g##I##2*paq.d##J##gi12 + paq.d1g##I##3*paq.d##J##gi13 + paq.d2g##I##3*paq.d##J##gi23) + \
+          paq.d1g##J##1*paq.d##I##gi11 + paq.d2g##J##2*paq.d##I##gi22 + paq.d3g##J##3*paq.d##I##gi33 \
+            + 2.0*(paq.d1g##J##2*paq.d##I##gi12 + paq.d1g##J##3*paq.d##I##gi13 + paq.d2g##J##3*paq.d##I##gi23) \
+          - paq.Gamma1*paq.d1g##I##J - paq.Gamma2*paq.d2g##I##J - paq.Gamma3*paq.d3g##I##J \
         ) \
         - ( \
-          G1##I##1*G1##J##1 + G2##I##2*G2##J##2 + G3##I##3*G3##J##3 + 2.0*(G1##I##2*G2##J##1 + G1##I##3*G3##J##1 + G2##I##3*G3##J##2) \
+          paq.G1##I##1*paq.G1##J##1 + paq.G2##I##2*paq.G2##J##2 + paq.G3##I##3*paq.G3##J##3 \
+            + 2.0*(paq.G1##I##2*paq.G2##J##1 + paq.G1##I##3*paq.G3##J##1 + paq.G2##I##3*paq.G3##J##2) \
         ) \
       );
 
 #define BSSN_CALCULATE_DIDJGAMMA_PERMS(I, J) \
-    d##I##d##J##g11 = dder(gamma11, I, J, idx);      \
-    d##I##d##J##g12 = dder(gamma12, I, J, idx);      \
-    d##I##d##J##g13 = dder(gamma13, I, J, idx);      \
-    d##I##d##J##g22 = dder(gamma22, I, J, idx);      \
-    d##I##d##J##g23 = dder(gamma23, I, J, idx);      \
-    d##I##d##J##g33 = dder(gamma33, I, J, idx); 
+    paq.d##I##d##J##g11 = dder(gamma11_a, I, J, &paq);      \
+    paq.d##I##d##J##g12 = dder(gamma12_a, I, J, &paq);      \
+    paq.d##I##d##J##g13 = dder(gamma13_a, I, J, &paq);      \
+    paq.d##I##d##J##g22 = dder(gamma22_a, I, J, &paq);      \
+    paq.d##I##d##J##g23 = dder(gamma23_a, I, J, &paq);      \
+    paq.d##I##d##J##g33 = dder(gamma33_a, I, J, &paq)
 
 
 // standard ordering of indexes for tensor components
@@ -220,5 +226,7 @@
 #define d3d2g21 d2d3g12
 #define d3d2g31 d2d3g13
 #define d3d2g32 d2d3g23
+
+}
 
 #endif

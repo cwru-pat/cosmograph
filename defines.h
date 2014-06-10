@@ -20,31 +20,31 @@
 
 
 #define RK4_ARRAY_CREATE(name) \
-        real_t * name, * name##_p, * name_##i;
+        real_t * name##_a, * name##_p, * name##_i
 
 #define RK4_ARRAY_ALLOC(name) \
-        name       = new real_t[N*N*N]; \
+        name##_a   = new real_t[N*N*N]; \
         name##_p   = new real_t[N*N*N]; \
-        name##_i   = new real_t[N*N*N];
+        name##_i   = new real_t[N*N*N]
 
 #define RK4_ARRAY_DELETE(name) \
-        delete [] name;        \
+        delete [] name##_a;    \
         delete [] name##_p;    \
-        delete [] name##_i;
+        delete [] name##_i
 
-#define DECLARE_REAL_T(name) real_t name;
+#define DECLARE_REAL_T(name) real_t name
 
-#define SET_LOCAL_VALUES(name) name = name##[idx];
+#define SET_LOCAL_VALUES(name) paq.name = name##_a[paq.idx]
 
 // RK4 has a diagonal tableau, so we only need to compute
 // the coefficients one at a time ("_i" arrays), given the
 // values in the previous step ("_p" arrays).
 #define RK4_ARRAY_ADDMAP(name)          \
-        fields[#name]   = name;         \
+        fields[#name "_a"] = name##_a;  \
         fields[#name "_p"] = name##_p;  \
-        fields[#name "_i"] = name##_i;
+        fields[#name "_i"] = name##_i
 
 #define RK4_ARRAY_CYCLE(name) \
-        std::swap(name, name_p);
+        std::swap(name##_a, name##_p)
 
 #endif

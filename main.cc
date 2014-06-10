@@ -11,14 +11,13 @@ int main(int argc, char **argv)
 
   ConfigParser _config("config.txt");
 
-  const idx_t n = 10;
+  const idx_t n = 1;
 
-  Wave wave;
+  BSSN simulation;
 
   _timer["loop"].start();
   for(idx_t i=0; i < n; ++i) {
-    wave.step();
-    wave.dump_strip("phi", 1, N/2, N/2);
+    simulation.step();
   }
   _timer["loop"].stop();
 
