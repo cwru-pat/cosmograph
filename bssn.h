@@ -1,6 +1,8 @@
 #ifndef COSMO_BSSN
 #define COSMO_BSSN
 
+#include BSSN_macros.h
+
 /** BSSN class **/
 class BSSN
 {
@@ -27,6 +29,11 @@ class BSSN
         // normal derivatives of
         real_t d1phi, d2phi, d3phi;
 
+      // Christoffel symbols
+      real_t G111, G112, G113, G122, G123, G133,
+             G211, G212, G213, G222, G223, G233,
+             G311, G312, G313, G322, G323, G333;
+
       // derivatives of the metric, d_i g_jk
       real_t d1g11, d1g12, d1g13, d1g22, d1g23, d1g33,
              d2g11, d2g12, d2g13, d2g22, d2g23, d2g33,
@@ -45,7 +52,7 @@ class BSSN
              d2d3g11, d2d3g12, d2d3g13, d2d3g22, d2d3g23, d2d3g33,
              d3d3g11, d3d3g12, d3d3g13, d3d3g22, d3d3g23, d3d3g33;
 
-    /* End Local variables */
+    /* End local variable declarations */
 
 public:
   BSSN()
@@ -83,25 +90,10 @@ public:
   /* Calculate metric derivatives */
   inline void calculate_dgamma(idx_t idx)
   {
-    d1g11 = der(d1g11, 1, idx);
-    d1g12 = der(d1g12, 1, idx);
-    d1g13 = der(d1g13, 1, idx);
-    d1g22 = der(d1g22, 1, idx);
-    d1g23 = der(d1g23, 1, idx);
-    d1g33 = der(d1g33, 1, idx);
-    d2g11 = der(d2g11, 2, idx);
-    d2g12 = der(d2g12, 2, idx);
-    d2g13 = der(d2g13, 2, idx);
-    d2g22 = der(d2g22, 2, idx);
-    d2g23 = der(d2g23, 2, idx);
-    d2g33 = der(d2g33, 2, idx);
-    d3g11 = der(d3g11, 3, idx);
-    d3g12 = der(d3g12, 3, idx);
-    d3g13 = der(d3g13, 3, idx);
-    d3g22 = der(d3g22, 3, idx);
-    d3g23 = der(d3g23, 3, idx);
-    d3g33 = der(d3g33, 3, idx);
-             
+    BSSN_APPLY_TO_JK_PERMS(1, BSSN_CALCULATE_DGAMMA);
+    BSSN_APPLY_TO_JK_PERMS(2, BSSN_CALCULATE_DGAMMA);
+    BSSN_APPLY_TO_JK_PERMS(3, BSSN_CALCULATE_DGAMMA);
+
     d1d1g11 = dder(gamma11, 1, 1, idx); 
     d1d1g12 = dder(gamma12, 1, 1, idx); 
     d1d1g13 = dder(gamma13, 1, 1, idx); 
@@ -142,127 +134,24 @@ public:
     d3d3g13 = dder(gamma13, 3, 3, idx); 
     d3d3g22 = dder(gamma22, 3, 3, idx); 
     d3d3g23 = dder(gamma23, 3, 3, idx); 
-    d3d3g33 = dder(gamma33, 3, 3, idx); 
+    d3d3g33 = dder(gamma33, 3, 3, idx);
 
   }
 
   /* Calculate metric derivatives */
   inline void calculate_dgammai(idx_t idx)
   {
-    d1gi11 = der(d1gi11, 1, idx);
-    d1gi12 = der(d1gi12, 1, idx);
-    d1gi13 = der(d1gi13, 1, idx);
-    d1gi22 = der(d1gi22, 1, idx);
-    d1gi23 = der(d1gi23, 1, idx);
-    d1gi33 = der(d1gi33, 1, idx);
-    d2gi11 = der(d2gi11, 2, idx);
-    d2gi12 = der(d2gi12, 2, idx);
-    d2gi13 = der(d2gi13, 2, idx);
-    d2gi22 = der(d2gi22, 2, idx);
-    d2gi23 = der(d2gi23, 2, idx);
-    d2gi33 = der(d2gi33, 2, idx);
-    d3gi11 = der(d3gi11, 3, idx);
-    d3gi12 = der(d3gi12, 3, idx);
-    d3gi13 = der(d3gi13, 3, idx);
-    d3gi22 = der(d3gi22, 3, idx);
-    d3gi23 = der(d3gi23, 3, idx);
-    d3gi33 = der(d3gi33, 3, idx);
+    BSSN_APPLY_TO_JK_PERMS(1, BSSN_CALCULATE_DGAMMAI);
+    BSSN_APPLY_TO_JK_PERMS(2, BSSN_CALCULATE_DGAMMAI);
+    BSSN_APPLY_TO_JK_PERMS(3, BSSN_CALCULATE_DGAMMAI);
   }
 
   inline void calculate_christoffels(idx_t idx)
   {
-    // christoffel symbols: \Gamma^i_{jk} = Gijk  
-    // Perhaps optimize this some after making sure it works
-    G111 = 0.5*(
-        gammai11 * (d1g11 + d1g11 - d1g11) +
-        gammai12 * (d1g12 + d1g12 - d2g11) +
-        gammai13 * (d1g13 + d1g13 - d3g11)
-      );
-    G112 = 0.5*(
-        gammai11 * (d2g11 + d1g21 - d1g12) +
-        gammai12 * (d2g12 + d1g22 - d2g12) +
-        gammai13 * (d2g13 + d1g23 - d3g12)
-      );
-    G113 = 0.5*(
-        gammai11 * (d3g11 + d1g31 - d1g13) +
-        gammai12 * (d3g12 + d1g32 - d2g13) +
-        gammai13 * (d3g13 + d1g33 - d3g13)
-      );
-    G122 = 0.5*(
-        gammai11 * (d2g21 + d2g21 - d1g22) +
-        gammai12 * (d2g22 + d2g22 - d2g22) +
-        gammai13 * (d2g23 + d2g23 - d3g22)
-      );
-    G123 = 0.5*(
-        gammai11 * (d3g21 + d2g31 - d1g23) +
-        gammai12 * (d3g22 + d2g32 - d2g23) +
-        gammai13 * (d3g23 + d2g33 - d3g23)
-      );
-    G133 = 0.5*(
-        gammai11 * (d3g31 + d3g31 - d1g33) +
-        gammai12 * (d3g32 + d3g32 - d2g33) +
-        gammai13 * (d3g33 + d3g33 - d3g33)
-      );
-    G211 = 0.5*(
-        gammai21 * (d1g11 + d1g11 - d1g11) +
-        gammai22 * (d1g12 + d1g12 - d2g11) +
-        gammai23 * (d1g13 + d1g13 - d3g11)
-      );
-    G212 = 0.5*(
-        gammai21 * (d2g11 + d1g21 - d1g12) +
-        gammai22 * (d2g12 + d1g22 - d2g12) +
-        gammai23 * (d2g13 + d1g23 - d3g12)
-      );
-    G213 = 0.5*(
-        gammai21 * (d3g11 + d1g31 - d1g13) +
-        gammai22 * (d3g12 + d1g32 - d2g13) +
-        gammai23 * (d3g13 + d1g33 - d3g13)
-      );
-    G222 = 0.5*(
-        gammai21 * (d2g21 + d2g21 - d1g22) +
-        gammai22 * (d2g22 + d2g22 - d2g22) +
-        gammai23 * (d2g23 + d2g23 - d3g22)
-      );
-    G223 = 0.5*(
-        gammai21 * (d3g21 + d2g31 - d1g23) +
-        gammai22 * (d3g22 + d2g32 - d2g23) +
-        gammai23 * (d3g23 + d2g33 - d3g23)
-      );
-    G233 = 0.5*(
-        gammai21 * (d3g31 + d3g31 - d1g33) +
-        gammai22 * (d3g32 + d3g32 - d2g33) +
-        gammai23 * (d3g33 + d3g33 - d3g33)
-      );
-    G311 = 0.5*(
-        gammai31 * (d1g11 + d1g11 - d1g11) +
-        gammai32 * (d1g12 + d1g12 - d2g11) +
-        gammai33 * (d1g13 + d1g13 - d3g11)
-      );
-    G312 = 0.5*(
-        gammai31 * (d2g11 + d1g21 - d1g12) +
-        gammai32 * (d2g12 + d1g22 - d2g12) +
-        gammai33 * (d2g13 + d1g23 - d3g12)
-      );
-    G313 = 0.5*(
-        gammai31 * (d3g11 + d1g31 - d1g13) +
-        gammai32 * (d3g12 + d1g32 - d2g13) +
-        gammai33 * (d3g13 + d1g33 - d3g13)
-      );
-    G322 = 0.5*(
-        gammai31 * (d2g21 + d2g21 - d1g22) +
-        gammai32 * (d2g22 + d2g22 - d2g22) +
-        gammai33 * (d2g23 + d2g23 - d3g22)
-      );
-    G323 = 0.5*(
-        gammai31 * (d3g21 + d2g31 - d1g23) +
-        gammai32 * (d3g22 + d2g32 - d2g23) +
-        gammai33 * (d3g23 + d2g33 - d3g23)
-      );
-    G333 = 0.5*(
-        gammai31 * (d3g31 + d3g31 - d1g33) +
-        gammai32 * (d3g32 + d3g32 - d2g33) +
-        gammai33 * (d3g33 + d3g33 - d3g33)
-      );
+    // christoffel symbols: \Gamma^i_{jk} = Gijk
+    BSSN_APPLY_TO_JK_PERMS(1, BSSN_CALCULATE_CHRISTOFFEL);
+    BSSN_APPLY_TO_JK_PERMS(2, BSSN_CALCULATE_CHRISTOFFEL);
+    BSSN_APPLY_TO_JK_PERMS(3, BSSN_CALCULATE_CHRISTOFFEL);
   }
 
   /* Calculate trace-free ricci tensor components */
@@ -418,29 +307,59 @@ public:
 
   void calculateDDalpha(idx_t idx)
   {
+    // normal derivatives of alpha
+    d1a = der(alpha, 1, idx);
+    d2a = der(alpha, 2, idx);
+    d3a = der(alpha, 3, idx);
 
+    // double covariant derivatives, using normal metric
+    D1D1a = dder(alpha, 1, 1, idx) - (G111*d1a + G211*d2a + G311*d3a);
+    D1D2a = dder(alpha, 1, 2, idx) - (G112*d1a + G212*d2a + G312*d3a);
+    D1D3a = dder(alpha, 1, 3, idx) - (G113*d1a + G213*d2a + G313*d3a);
+    D2D2a = dder(alpha, 2, 2, idx) - (G122*d1a + G222*d2a + G322*d3a);
+    D2D3a = dder(alpha, 2, 3, idx) - (G123*d1a + G223*d2a + G323*d3a);
+    D3D3a = dder(alpha, 3, 3, idx) - (G133*d1a + G233*d2a + G333*d3a);
   }
 
-  /*
-   * Time-evolution functions for all the variables
-   */
+  void calculateDDalpha(idx_t idx)
+  {
+    // normal derivatives of alpha
+    d1a = der(alpha, 1, idx);
+    d2a = der(alpha, 2, idx);
+    d3a = der(alpha, 3, idx);
 
-  // gamma (unit determinant metric)
-  real_t dt_gamma11(idx_t idx) { return BSSN_GAMMA_EQUATION(1, 1, idx); }
-  real_t dt_gamma12(idx_t idx) { return BSSN_GAMMA_EQUATION(1, 2, idx); }
-  real_t dt_gamma13(idx_t idx) { return BSSN_GAMMA_EQUATION(1, 3, idx); }
-  real_t dt_gamma22(idx_t idx) { return BSSN_GAMMA_EQUATION(2, 2, idx); }
-  real_t dt_gamma23(idx_t idx) { return BSSN_GAMMA_EQUATION(2, 3, idx); }
-  real_t dt_gamma33(idx_t idx) { return BSSN_GAMMA_EQUATION(3, 3, idx); }
-
-  real_t dt_A11(idx_t idx) { return BSSN_A_EQUATION(1, 1, idx); }
-  real_t dt_A12(idx_t idx) { return BSSN_A_EQUATION(1, 2, idx); }
-  real_t dt_A13(idx_t idx) { return BSSN_A_EQUATION(1, 3, idx); }
-  real_t dt_A22(idx_t idx) { return BSSN_A_EQUATION(2, 2, idx); }
-  real_t dt_A23(idx_t idx) { return BSSN_A_EQUATION(2, 3, idx); }
-  real_t dt_A33(idx_t idx) { return BSSN_A_EQUATION(3, 3, idx); }
-
-
+    // double covariant derivatives - use non-unitary metric - extra pieces!
+    D1D1a = dder(alpha, 1, 1, idx) - (
+        (G111 + 2.0*( (1==1)*d1phi + (1==1)*d1phi - gamma11*(gammai11*d1phi + gammai12*d2phi + gammai13*d3phi)))*d1a + 
+        (G211 + 2.0*( (2==1)*d1phi + (2==1)*d1phi - gamma11*(gammai21*d1phi + gammai22*d2phi + gammai23*d3phi)))*d2a + 
+        (G311 + 2.0*( (3==1)*d1phi + (3==1)*d1phi - gamma11*(gammai31*d1phi + gammai32*d2phi + gammai33*d3phi)))*d3a
+      );
+    D1D2a = dder(alpha, 1, 2, idx) - (
+        (G112 + 2.0*( (1==1)*d2phi + (1==2)*d1phi - gamma12*(gammai11*d1phi + gammai12*d2phi + gammai13*d3phi)))*d1a + 
+        (G212 + 2.0*( (2==1)*d2phi + (2==2)*d1phi - gamma12*(gammai21*d1phi + gammai22*d2phi + gammai23*d3phi)))*d2a + 
+        (G312 + 2.0*( (3==1)*d2phi + (3==2)*d1phi - gamma12*(gammai31*d1phi + gammai32*d2phi + gammai33*d3phi)))*d3a
+      );
+    D1D3a = dder(alpha, 1, 3, idx) - (
+        (G113 + 2.0*( (1==1)*d3phi + (1==3)*d1phi - gamma13*(gammai11*d1phi + gammai12*d2phi + gammai13*d3phi)))*d1a + 
+        (G213 + 2.0*( (2==1)*d3phi + (2==3)*d1phi - gamma13*(gammai21*d1phi + gammai22*d2phi + gammai23*d3phi)))*d2a + 
+        (G313 + 2.0*( (3==1)*d3phi + (3==3)*d1phi - gamma13*(gammai31*d1phi + gammai32*d2phi + gammai33*d3phi)))*d3a
+      );
+    D2D2a = dder(alpha, 2, 2, idx) - (
+        (G122 + 2.0*( (1==2)*d2phi + (1==2)*d2phi - gamma22*(gammai11*d1phi + gammai12*d2phi + gammai13*d3phi)))*d1a + 
+        (G222 + 2.0*( (2==2)*d2phi + (2==2)*d2phi - gamma22*(gammai21*d1phi + gammai22*d2phi + gammai23*d3phi)))*d2a + 
+        (G322 + 2.0*( (3==2)*d2phi + (3==2)*d2phi - gamma22*(gammai31*d1phi + gammai32*d2phi + gammai33*d3phi)))*d3a
+      );
+    D2D3a = dder(alpha, 2, 3, idx) - (
+        (G123 + 2.0*( (1==2)*d3phi + (1==3)*d2phi - gamma23*(gammai11*d1phi + gammai12*d2phi + gammai13*d3phi)))*d1a + 
+        (G223 + 2.0*( (2==2)*d3phi + (2==3)*d2phi - gamma23*(gammai21*d1phi + gammai22*d2phi + gammai23*d3phi)))*d2a + 
+        (G323 + 2.0*( (3==2)*d3phi + (3==3)*d2phi - gamma23*(gammai31*d1phi + gammai32*d2phi + gammai33*d3phi)))*d3a
+      );
+    D3D3a = dder(alpha, 3, 3, idx) - (
+        (G133 + 2.0*( (1==3)*d3phi + (1==3)*d3phi - gamma33*(gammai11*d1phi + gammai12*d2phi + gammai13*d3phi)))*d1a + 
+        (G233 + 2.0*( (2==3)*d3phi + (2==3)*d3phi - gamma33*(gammai21*d1phi + gammai22*d2phi + gammai23*d3phi)))*d2a + 
+        (G333 + 2.0*( (3==3)*d3phi + (3==3)*d3phi - gamma33*(gammai31*d1phi + gammai32*d2phi + gammai33*d3phi)))*d3a
+      );
+  }
 
 
 };
