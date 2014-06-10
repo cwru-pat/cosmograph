@@ -18,7 +18,8 @@ typedef struct {
 
   // derivatives of \alpha
     // covariant double-derivatives 
-    real_t D1D1a, D1D2a, D1D3a, D2D2a, D2D3a, D3D3a;
+    real_t D1D1aTF, D1D2aTF, D1D3aTF, D2D2aTF, D2D3aTF, D3D3aTF;
+    real_t DDaTR;
     // normal derivatives of
     real_t d1a, d2a, d3a;
 
@@ -110,12 +111,13 @@ public:
       calculate_dgamma();
       calculate_ddgamma();
       calculate_dgammai();
+      calculate_dalpha_dphi();
       // Christoffels depend on metric & derivs.
       calculate_christoffels();
       // Ricci, DDa, DDw depend on christoffels, metric, and derivs
       calculateRicciTF();
       calculateDDphi();
-      calculateDDalpha();
+      calculateDDalphaTF();
 
       /* evolve stuff... */
       /*...*/
@@ -166,6 +168,19 @@ public:
     BSSN_APPLY_TO_IJK_PERMS(BSSN_CALCULATE_CHRISTOFFEL)
   }
 
+  inline void calculate_dalpha_dphi()
+  {
+    // normal derivatives of phi
+    paq.d1phi = der(phi_a, 1, &paq);
+    paq.d2phi = der(phi_a, 2, &paq);
+    paq.d3phi = der(phi_a, 3, &paq);
+
+    // normal derivatives of alpha
+    paq.d1a = der(alpha_a, 1, &paq);
+    paq.d2a = der(alpha_a, 2, &paq);
+    paq.d3a = der(alpha_a, 3, &paq);
+  }
+
   /* Calculate trace-free ricci tensor components */
   void calculateRicciTF()
   {
@@ -205,11 +220,6 @@ public:
 
   void calculateDDphi()
   {
-    // normal derivatives of alpha
-    paq.d1phi = der(phi_a, 1, &paq);
-    paq.d2phi = der(phi_a, 2, &paq);
-    paq.d3phi = der(phi_a, 3, &paq);
-
     // double covariant derivatives, using normal metric
     paq.D1D1phi = dder(phi_a, 1, 1, &paq) - (paq.G111*paq.d1phi + paq.G211*paq.d2phi + paq.G311*paq.d3phi);
     paq.D1D2phi = dder(phi_a, 1, 2, &paq) - (paq.G112*paq.d1phi + paq.G212*paq.d2phi + paq.G312*paq.d3phi);
@@ -219,22 +229,62 @@ public:
     paq.D3D3phi = dder(phi_a, 3, 3, &paq) - (paq.G133*paq.d1phi + paq.G233*paq.d2phi + paq.G333*paq.d3phi);
   }
 
-  void calculateDDalpha()
+  void calculateDDalphaTF()
   {
-    // normal derivatives of alpha
-    paq.d1a = der(alpha_a, 1, &paq);
-    paq.d2a = der(alpha_a, 2, &paq);
-    paq.d3a = der(alpha_a, 3, &paq);
-
     // double covariant derivatives - use non-unitary metric - extra pieces that depend on phi!
-    // these are needed for the BSSN_CALCULATE_DIDJALPHA macro
+    // the gamma*ldlphi are needed for the BSSN_CALCULATE_DIDJALPHA macro
     real_t gamma1ldlphi = paq.gammai11*paq.d1phi + paq.gammai12*paq.d2phi + paq.gammai13*paq.d3phi;
     real_t gamma2ldlphi = paq.gammai21*paq.d1phi + paq.gammai22*paq.d2phi + paq.gammai23*paq.d3phi;
     real_t gamma3ldlphi = paq.gammai31*paq.d1phi + paq.gammai32*paq.d2phi + paq.gammai33*paq.d3phi;
     BSSN_APPLY_TO_IJ_PERMS(BSSN_CALCULATE_DIDJALPHA)
 
+    // subtract trace
+    paq.DDaTR = paq.gammai11*paq.D1D1aTF + paq.gammai22*paq.D2D2aTF + paq.gammai33*paq.D3D3aTF
+        + 2.0*(paq.gammai12*paq.D1D2aTF + paq.gammai13*paq.D1D3aTF + paq.gammai23*paq.D2D3aTF);
+    
+    paq.D1D1aTF -= (1/3.0)*paq.gamma11*paq.DDaTR;
+    paq.D1D2aTF -= (1/3.0)*paq.gamma12*paq.DDaTR;
+    paq.D1D3aTF -= (1/3.0)*paq.gamma13*paq.DDaTR;
+    paq.D2D2aTF -= (1/3.0)*paq.gamma22*paq.DDaTR;
+    paq.D2D3aTF -= (1/3.0)*paq.gamma23*paq.DDaTR;
+    paq.D3D3aTF -= (1/3.0)*paq.gamma33*paq.DDaTR;
   }
 
+  real_t dt_gamma11() { return BSSN_DT_GAMMAIJ(1, 1); }
+  real_t dt_gamma12() { return BSSN_DT_GAMMAIJ(1, 2); }
+  real_t dt_gamma13() { return BSSN_DT_GAMMAIJ(1, 3); }
+  real_t dt_gamma22() { return BSSN_DT_GAMMAIJ(2, 2); }
+  real_t dt_gamma23() { return BSSN_DT_GAMMAIJ(2, 3); }
+  real_t dt_gamma33() { return BSSN_DT_GAMMAIJ(3, 3); }
+
+  real_t dt_A11() { return BSSN_DT_AIJ(1, 1); }
+  real_t dt_A12() { return BSSN_DT_AIJ(1, 2); }
+  real_t dt_A13() { return BSSN_DT_AIJ(1, 3); }
+  real_t dt_A22() { return BSSN_DT_AIJ(2, 2); }
+  real_t dt_A23() { return BSSN_DT_AIJ(2, 3); }
+  real_t dt_A33() { return BSSN_DT_AIJ(3, 3); }
+
+  real_t dt_K()
+  {
+    return (
+      - paq.DDaTR
+      + paq.alpha*(
+          0 /******************** Write out A_ij * A^ij ***********************/
+          + (1.0/3.0)*paq.K*paq.K
+        )
+      + paq.beta1*der(K_a, 1, &paq) + paq.beta2*der(K_a, 2, &paq) + paq.beta3*der(K_a, 3, &paq)
+    );
+  }
+
+  real_t dt_phi()
+  {
+    return (
+      1.0/6.0*(der(beta1_a, 1, &paq) + der(beta2_a, 2, &paq) + der(beta3_a, 3, &paq) - paq.alpha*paq.K)
+      + paq.beta1*paq.d1phi + paq.beta2*paq.d2phi + paq.beta3*paq.d3phi
+    );
+  }
+
+  /******************** Need Gamma^I equations ***********************/
 
 };
 

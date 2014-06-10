@@ -4,67 +4,72 @@
 namespace cosmo
 {
 
-// applying functions to lots of vars
+/*
+ * applying functions to lots of vars
+ */
 
 #define BSSN_APPLY_TO_FIELDS(function)  \
-        function(gamma11);              \
-        function(gamma12);              \
-        function(gamma13);              \
-        function(gamma22);              \
-        function(gamma23);              \
-        function(gamma33);              \
-        function(gammai11);             \
-        function(gammai12);             \
-        function(gammai13);             \
-        function(gammai22);             \
-        function(gammai23);             \
-        function(gammai33);             \
-        function(phi);                  \
-        function(A11);                  \
-        function(A12);                  \
-        function(A13);                  \
-        function(A22);                  \
-        function(A23);                  \
-        function(A33);                  \
-        function(K);                    \
-        function(Gamma1);               \
-        function(Gamma2);               \
-        function(Gamma3);               \
-        function(beta1);                \
-        function(beta2);                \
-        function(beta3);                \
-        function(alpha);
+  function(gamma11);              \
+  function(gamma12);              \
+  function(gamma13);              \
+  function(gamma22);              \
+  function(gamma23);              \
+  function(gamma33);              \
+  function(gammai11);             \
+  function(gammai12);             \
+  function(gammai13);             \
+  function(gammai22);             \
+  function(gammai23);             \
+  function(gammai33);             \
+  function(phi);                  \
+  function(A11);                  \
+  function(A12);                  \
+  function(A13);                  \
+  function(A22);                  \
+  function(A23);                  \
+  function(A33);                  \
+  function(K);                    \
+  function(Gamma1);               \
+  function(Gamma2);               \
+  function(Gamma3);               \
+  function(beta1);                \
+  function(beta2);                \
+  function(beta3);                \
+  function(alpha);
 
 #define BSSN_APPLY_TO_IJ_PERMS(function) \
-        function(1, 1);                  \
-        function(1, 2);                  \
-        function(1, 3);                  \
-        function(2, 2);                  \
-        function(2, 3);                  \
-        function(3, 3);
+  function(1, 1);                  \
+  function(1, 2);                  \
+  function(1, 3);                  \
+  function(2, 2);                  \
+  function(2, 3);                  \
+  function(3, 3);
 
 // apply when the "I" index is special, e.g., d_i g_{jk}
 #define BSSN_APPLY_TO_IJK_PERMS(function)   \
-        function(1, 1, 1);                  \
-        function(1, 1, 2);                  \
-        function(1, 1, 3);                  \
-        function(1, 2, 2);                  \
-        function(1, 2, 3);                  \
-        function(1, 3, 3);                  \
-        function(2, 1, 1);                  \
-        function(2, 1, 2);                  \
-        function(2, 1, 3);                  \
-        function(2, 2, 2);                  \
-        function(2, 2, 3);                  \
-        function(2, 3, 3);                  \
-        function(3, 1, 1);                  \
-        function(3, 1, 2);                  \
-        function(3, 1, 3);                  \
-        function(3, 2, 2);                  \
-        function(3, 2, 3);                  \
-        function(3, 3, 3);                  \
+  function(1, 1, 1);                  \
+  function(1, 1, 2);                  \
+  function(1, 1, 3);                  \
+  function(1, 2, 2);                  \
+  function(1, 2, 3);                  \
+  function(1, 3, 3);                  \
+  function(2, 1, 1);                  \
+  function(2, 1, 2);                  \
+  function(2, 1, 3);                  \
+  function(2, 2, 2);                  \
+  function(2, 2, 3);                  \
+  function(2, 3, 3);                  \
+  function(3, 1, 1);                  \
+  function(3, 1, 2);                  \
+  function(3, 1, 3);                  \
+  function(3, 2, 2);                  \
+  function(3, 2, 3);                  \
+  function(3, 3, 3);                  \
 
-// BSSN & metric calculations
+
+/*
+ * Aux. variable calculations
+ */
 
 #define BSSN_CALCULATE_CHRISTOFFEL(I, J, K) paq.G##I##J##K = 0.5*( \
     paq.gammai##I##1 * (paq.d##J##g##K##1 + paq.d##K##g##J##1 - paq.d1g##J##K) + \
@@ -77,45 +82,73 @@ namespace cosmo
 #define BSSN_CALCULATE_DGAMMA(I, J, K) paq.d##I##g##J##K = der(gamma##J##K##_a, I, &paq);
 
 // needs the gamma*ldlphi vars defined:
-#define BSSN_CALCULATE_DIDJALPHA(I, J) paq.D##I##D##J##a = dder(alpha_a, I, J, &paq) - ( \
-        (paq.G1##I##J + 2.0*( (1==I)*paq.d##J##phi + (1==J)*paq.d##I##phi - paq.gamma##I##J*gamma1ldlphi))*paq.d1a + \
-        (paq.G2##I##J + 2.0*( (2==I)*paq.d##J##phi + (2==J)*paq.d##I##phi - paq.gamma##I##J*gamma2ldlphi))*paq.d2a + \
-        (paq.G3##I##J + 2.0*( (3==I)*paq.d##J##phi + (3==J)*paq.d##I##phi - paq.gamma##I##J*gamma3ldlphi))*paq.d3a \
-      );
+#define BSSN_CALCULATE_DIDJALPHA(I, J) paq.D##I##D##J##aTF = dder(alpha_a, I, J, &paq) - ( \
+    (paq.G1##I##J + 2.0*( (1==I)*paq.d##J##phi + (1==J)*paq.d##I##phi - paq.gamma##I##J*gamma1ldlphi))*paq.d1a + \
+    (paq.G2##I##J + 2.0*( (2==I)*paq.d##J##phi + (2==J)*paq.d##I##phi - paq.gamma##I##J*gamma2ldlphi))*paq.d2a + \
+    (paq.G3##I##J + 2.0*( (3==I)*paq.d##J##phi + (3==J)*paq.d##I##phi - paq.gamma##I##J*gamma3ldlphi))*paq.d3a \
+  );
 
 // unitary piece only:
 #define BSSN_CALCULATE_RICCITF_UNITARY(I, J) paq.ricciTF##I##J = ( \
-        - 0.5*( \
-          paq.gammai11*paq.d1d1g##I##J + paq.gammai22*paq.d2d2g##I##J + paq.gammai33*paq.d3d3g##I##J \
-          + 2.0*(paq.gammai12*paq.d1d2g##I##J + paq.gammai13*paq.d1d3g##I##J + paq.gammai23*paq.d2d3g##I##J) \
-        ) \
-        + 0.5*( \
-          paq.gamma1##I*der(Gamma1_a, J, &paq) + paq.gamma2##I*der(Gamma2_a, J, &paq) + paq.gamma3##I*der(Gamma3_a, J, &paq) + \
-          paq.gamma1##J*der(Gamma1_a, I, &paq) + paq.gamma2##J*der(Gamma2_a, I, &paq) + paq.gamma3##J*der(Gamma3_a, I, &paq) \
-        ) \
-        - 0.5*( \
-          paq.d1g##I##1*paq.d##J##gi11 + paq.d2g##I##2*paq.d##J##gi22 + paq.d3g##I##3*paq.d##J##gi33 \
-            + 2.0*(paq.d1g##I##2*paq.d##J##gi12 + paq.d1g##I##3*paq.d##J##gi13 + paq.d2g##I##3*paq.d##J##gi23) + \
-          paq.d1g##J##1*paq.d##I##gi11 + paq.d2g##J##2*paq.d##I##gi22 + paq.d3g##J##3*paq.d##I##gi33 \
-            + 2.0*(paq.d1g##J##2*paq.d##I##gi12 + paq.d1g##J##3*paq.d##I##gi13 + paq.d2g##J##3*paq.d##I##gi23) \
-          - paq.Gamma1*paq.d1g##I##J - paq.Gamma2*paq.d2g##I##J - paq.Gamma3*paq.d3g##I##J \
-        ) \
-        - ( \
-          paq.G1##I##1*paq.G1##J##1 + paq.G2##I##2*paq.G2##J##2 + paq.G3##I##3*paq.G3##J##3 \
-            + 2.0*(paq.G1##I##2*paq.G2##J##1 + paq.G1##I##3*paq.G3##J##1 + paq.G2##I##3*paq.G3##J##2) \
-        ) \
-      );
+    - 0.5*( \
+      paq.gammai11*paq.d1d1g##I##J + paq.gammai22*paq.d2d2g##I##J + paq.gammai33*paq.d3d3g##I##J \
+      + 2.0*(paq.gammai12*paq.d1d2g##I##J + paq.gammai13*paq.d1d3g##I##J + paq.gammai23*paq.d2d3g##I##J) \
+    ) \
+    + 0.5*( \
+      paq.gamma1##I*der(Gamma1_a, J, &paq) + paq.gamma2##I*der(Gamma2_a, J, &paq) + paq.gamma3##I*der(Gamma3_a, J, &paq) + \
+      paq.gamma1##J*der(Gamma1_a, I, &paq) + paq.gamma2##J*der(Gamma2_a, I, &paq) + paq.gamma3##J*der(Gamma3_a, I, &paq) \
+    ) \
+    - 0.5*( \
+      paq.d1g##I##1*paq.d##J##gi11 + paq.d2g##I##2*paq.d##J##gi22 + paq.d3g##I##3*paq.d##J##gi33 \
+        + 2.0*(paq.d1g##I##2*paq.d##J##gi12 + paq.d1g##I##3*paq.d##J##gi13 + paq.d2g##I##3*paq.d##J##gi23) + \
+      paq.d1g##J##1*paq.d##I##gi11 + paq.d2g##J##2*paq.d##I##gi22 + paq.d3g##J##3*paq.d##I##gi33 \
+        + 2.0*(paq.d1g##J##2*paq.d##I##gi12 + paq.d1g##J##3*paq.d##I##gi13 + paq.d2g##J##3*paq.d##I##gi23) \
+      - paq.Gamma1*paq.d1g##I##J - paq.Gamma2*paq.d2g##I##J - paq.Gamma3*paq.d3g##I##J \
+    ) \
+    - ( \
+      paq.G1##I##1*paq.G1##J##1 + paq.G2##I##2*paq.G2##J##2 + paq.G3##I##3*paq.G3##J##3 \
+        + 2.0*(paq.G1##I##2*paq.G2##J##1 + paq.G1##I##3*paq.G3##J##1 + paq.G2##I##3*paq.G3##J##2) \
+    ) \
+  );
 
-#define BSSN_CALCULATE_DIDJGAMMA_PERMS(I, J) \
-    paq.d##I##d##J##g11 = dder(gamma11_a, I, J, &paq);      \
-    paq.d##I##d##J##g12 = dder(gamma12_a, I, J, &paq);      \
-    paq.d##I##d##J##g13 = dder(gamma13_a, I, J, &paq);      \
-    paq.d##I##d##J##g22 = dder(gamma22_a, I, J, &paq);      \
-    paq.d##I##d##J##g23 = dder(gamma23_a, I, J, &paq);      \
-    paq.d##I##d##J##g33 = dder(gamma33_a, I, J, &paq)
+#define BSSN_CALCULATE_DIDJGAMMA_PERMS(I, J)              \
+  paq.d##I##d##J##g11 = dder(gamma11_a, I, J, &paq);      \
+  paq.d##I##d##J##g12 = dder(gamma12_a, I, J, &paq);      \
+  paq.d##I##d##J##g13 = dder(gamma13_a, I, J, &paq);      \
+  paq.d##I##d##J##g22 = dder(gamma22_a, I, J, &paq);      \
+  paq.d##I##d##J##g23 = dder(gamma23_a, I, J, &paq);      \
+  paq.d##I##d##J##g33 = dder(gamma33_a, I, J, &paq)
 
 
-// standard ordering of indexes for tensor components
+/*
+ * Evolution equations for indexed components
+ */
+
+#define BSSN_DT_GAMMAIJ(I, J) ( \
+    - 2.0*paq.alpha*paq.A##I##J \
+    + paq.gamma##I##1*der(beta1_a, J, &paq) + paq.gamma##I##2*der(beta2_a, J, &paq) + paq.gamma##I##3*der(beta3_a, J, &paq) \
+    + paq.gamma##J##1*der(beta1_a, I, &paq) + paq.gamma##J##2*der(beta2_a, I, &paq) + paq.gamma##J##3*der(beta3_a, I, &paq) \
+    - (2.0/3.0)*paq.gamma##I##J*(der(beta1_a, 1, &paq) + der(beta2_a, 2, &paq) + der(beta3_a, 3, &paq)) \
+  )
+
+#define BSSN_DT_AIJ(I, J) ( \
+    exp(-4.0*paq.phi)*(paq.alpha*paq.ricciTF##I##J - paq.D##I##D##J##aTF) \
+    + paq.alpha*(paq.K*paq.A##I##J - 2.0*( \
+        paq.gammai11*paq.A##I##1*paq.A##J##1 + paq.gammai22*paq.A##I##2*paq.A##J##2 + paq.gammai33*paq.A##I##3*paq.A##J##3 \
+        + 2.0*(paq.gammai12*paq.A##I##1*paq.A##J##2 + paq.gammai13*paq.A##I##1*paq.A##J##3 + paq.gammai23*paq.A##I##2*paq.A##J##3) \
+      )) \
+    + paq.beta1*der(A##I##J##_a, 1, &paq) + paq.beta2*der(A##I##J##_a, 2, &paq) + paq.beta3*der(A##I##J##_a, 3, &paq) \
+    + paq.A##I##1*der(beta1_a, J, &paq) + paq.A##I##2*der(beta2_a, J, &paq) + paq.A##I##3*der(beta3_a, J, &paq) \
+    + paq.A##J##1*der(beta1_a, I, &paq) + paq.A##J##2*der(beta2_a, I, &paq) + paq.A##J##3*der(beta3_a, I, &paq) \
+    - (2.0/3.0)*paq.A##I##J*(der(beta1_a, 1, &paq) + der(beta2_a, 2, &paq) + der(beta3_a, 3, &paq)) \
+  )
+
+
+
+
+/*
+ * Enforce standard ordering of indexes for tensor components
+ */
 
 // actual fields:
 #define gamma21 gamma12
@@ -135,9 +168,9 @@ namespace cosmo
 #define ricciTF32 ricciTF23
 
 // covariant double-derivatives of alpha
-#define D2D1a D1D2a
-#define D3D1a D1D3a
-#define D3D2a D2D3a
+#define D2D1aTF D1D2aTF
+#define D3D1aTF D1D3aTF
+#define D3D2aTF D2D3aTF
 
 // covariant double-derivatives of phi
 #define D2D1phi D1D2phi
