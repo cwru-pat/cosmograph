@@ -32,6 +32,10 @@
         delete [] name##_p;    \
         delete [] name##_i;
 
+#define DECLARE_REAL_T(name) real_t name;
+
+#define SET_LOCAL_VALUES(name) name = name##[idx];
+
 // RK4 has a diagonal tableau, so we only need to compute
 // the coefficients one at a time ("_i" arrays), given the
 // values in the previous step ("_p" arrays).

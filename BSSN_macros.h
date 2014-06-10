@@ -32,22 +32,34 @@
         function(beta3);                \
         function(alpha);
 
-#define BSSN_APPLY_TO_IJ_PERMS(function, more_args) \
-        function(1, 1, more_args);                  \
-        function(1, 2, more_args);                  \
-        function(1, 3, more_args);                  \
-        function(2, 2, more_args);                  \
-        function(2, 3, more_args);                  \
-        function(3, 3, more_args);
+#define BSSN_APPLY_TO_IJ_PERMS(function) \
+        function(1, 1);                  \
+        function(1, 2);                  \
+        function(1, 3);                  \
+        function(2, 2);                  \
+        function(2, 3);                  \
+        function(3, 3);
 
-#define BSSN_APPLY_TO_JK_PERMS(more_args, function) \
-        function(more_args, 1, 1);                  \
-        function(more_args, 1, 2);                  \
-        function(more_args, 1, 3);                  \
-        function(more_args, 2, 2);                  \
-        function(more_args, 2, 3);                  \
-        function(more_args, 3, 3);
-
+// apply when the "I" index is special, e.g., d_i g_{jk}
+#define BSSN_APPLY_TO_IJK_PERMS(function)   \
+        function(1, 1, 1);                  \
+        function(1, 1, 2);                  \
+        function(1, 1, 3);                  \
+        function(1, 2, 2);                  \
+        function(1, 2, 3);                  \
+        function(1, 3, 3);                  \
+        function(2, 1, 1);                  \
+        function(2, 1, 2);                  \
+        function(2, 1, 3);                  \
+        function(2, 2, 2);                  \
+        function(2, 2, 3);                  \
+        function(2, 3, 3);                  \
+        function(3, 1, 1);                  \
+        function(3, 1, 2);                  \
+        function(3, 1, 3);                  \
+        function(3, 2, 2);                  \
+        function(3, 2, 3);                  \
+        function(3, 3, 3);                  \
 
 // BSSN & metric calculations
 
@@ -60,6 +72,13 @@
 #define BSSN_CALCULATE_DGAMMAI(I, J, K) d##I##gi##J##K## = der(gammai##J##K##, I, idx);
 
 #define BSSN_CALCULATE_DGAMMA(I, J, K) d##I##g##J##K## = der(gamma##J##K##, I, idx);
+
+// needs the gamma*ldlphi vars defined
+#define BSSN_CALCULATE_DIDJALPHA(I, J) D##I##D##J##a = dder(alpha, I, J, idx) - ( \
+        (G1##I##J## + 2.0*( (1==I)*d##J##phi + (1==J)*d##I##phi - gamma##I##J##*gamma1ldlphi))*d1a + \
+        (G2##I##J## + 2.0*( (2==I)*d##J##phi + (2==J)*d##I##phi - gamma##I##J##*gamma2ldlphi))*d2a + \
+        (G3##I##J## + 2.0*( (3==I)*d##J##phi + (3==J)*d##I##phi - gamma##I##J##*gamma3ldlphi))*d3a \
+      );
 
 // standard ordering of indexes for tensor components
 

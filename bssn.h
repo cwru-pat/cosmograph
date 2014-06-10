@@ -52,6 +52,9 @@ class BSSN
              d2d3g11, d2d3g12, d2d3g13, d2d3g22, d2d3g23, d2d3g33,
              d3d3g11, d3d3g12, d3d3g13, d3d3g22, d3d3g23, d3d3g33;
 
+      // local copies of current field values
+      BSSN_APPLY_TO_FIELDS(DECLARE_REAL_T);
+
     /* End local variable declarations */
 
 public:
@@ -76,23 +79,28 @@ public:
     BSSN_APPLY_TO_FIELDS(RK4_ARRAY_CYCLE);
   }
 
+  /* set current local field values */
+  inline void calculate_gammai(idx_t idx)
+  {
+    BSSN_APPLY_TO_FIELDS(SET_LOCAL_VALUES);
+  }
+
   /* Calculate inverse metric components */
   inline void calculate_gammai(idx_t idx)
   {
-    gammai11[idx] = gamma22[idx]*gamma33[idx] - gamma23[idx]*gamma23[idx];
-    gammai12[idx] = gamma13[idx]*gamma23[idx] - gamma12[idx]*gamma33[idx];
-    gammai13[idx] = gamma12[idx]*gamma23[idx] - gamma13[idx]*gamma22[idx];
-    gammai22[idx] = gamma11[idx]*gamma33[idx] - gamma13[idx]*gamma13[idx];
-    gammai23[idx] = gamma12[idx]*gamma13[idx] - gamma23[idx]*gamma11[idx];
-    gammai33[idx] = gamma11[idx]*gamma22[idx] - gamma12[idx]*gamma12[idx];
+    // gamma is unitary, so this is actually simple:
+    gammai11 = gamma22*gamma33 - gamma23*gamma23;
+    gammai12 = gamma13*gamma23 - gamma12*gamma33;
+    gammai13 = gamma12*gamma23 - gamma13*gamma22;
+    gammai22 = gamma11*gamma33 - gamma13*gamma13;
+    gammai23 = gamma12*gamma13 - gamma23*gamma11;
+    gammai33 = gamma11*gamma22 - gamma12*gamma12;
   }
 
   /* Calculate metric derivatives */
   inline void calculate_dgamma(idx_t idx)
   {
-    BSSN_APPLY_TO_JK_PERMS(1, BSSN_CALCULATE_DGAMMA);
-    BSSN_APPLY_TO_JK_PERMS(2, BSSN_CALCULATE_DGAMMA);
-    BSSN_APPLY_TO_JK_PERMS(3, BSSN_CALCULATE_DGAMMA);
+    BSSN_APPLY_TO_IJK_PERMS(BSSN_CALCULATE_DGAMMA);
 
     d1d1g11 = dder(gamma11, 1, 1, idx); 
     d1d1g12 = dder(gamma12, 1, 1, idx); 
@@ -141,17 +149,13 @@ public:
   /* Calculate metric derivatives */
   inline void calculate_dgammai(idx_t idx)
   {
-    BSSN_APPLY_TO_JK_PERMS(1, BSSN_CALCULATE_DGAMMAI);
-    BSSN_APPLY_TO_JK_PERMS(2, BSSN_CALCULATE_DGAMMAI);
-    BSSN_APPLY_TO_JK_PERMS(3, BSSN_CALCULATE_DGAMMAI);
+    BSSN_APPLY_TO_IJK_PERMS(BSSN_CALCULATE_DGAMMAI);
   }
 
   inline void calculate_christoffels(idx_t idx)
   {
     // christoffel symbols: \Gamma^i_{jk} = Gijk
-    BSSN_APPLY_TO_JK_PERMS(1, BSSN_CALCULATE_CHRISTOFFEL);
-    BSSN_APPLY_TO_JK_PERMS(2, BSSN_CALCULATE_CHRISTOFFEL);
-    BSSN_APPLY_TO_JK_PERMS(3, BSSN_CALCULATE_CHRISTOFFEL);
+    BSSN_APPLY_TO_IJK_PERMS(BSSN_CALCULATE_CHRISTOFFEL);
   }
 
   /* Calculate trace-free ricci tensor components */
@@ -273,24 +277,12 @@ public:
     );
 
     /* phi-piece */
-    ricciTF11 += -2.0*(
-        D1D1phi -2.0*d1phi*d1phi + gamma11*(expression)
-      );
-    ricciTF12 += -2.0*(
-        D1D2phi -2.0*d1phi*d2phi + gamma12*(expression)
-      );
-    ricciTF13 += -2.0*(
-        D1D3phi -2.0*d1phi*d3phi + gamma13*(expression)
-      );
-    ricciTF22 += -2.0*(
-        D2D2phi -2.0*d2phi*d2phi + gamma22*(expression)
-      );
-    ricciTF23 += -2.0*(
-        D2D3phi -2.0*d2phi*d3phi + gamma23*(expression)
-      );
-    ricciTF33 += -2.0*(
-        D3D3phi -2.0*d3phi*d3phi + gamma33*(expression)
-      );
+    ricciTF11 += -2.0*( D1D1phi -2.0*d1phi*d1phi + gamma11*(expression) );
+    ricciTF12 += -2.0*( D1D2phi -2.0*d1phi*d2phi + gamma12*(expression) );
+    ricciTF13 += -2.0*( D1D3phi -2.0*d1phi*d3phi + gamma13*(expression) );
+    ricciTF22 += -2.0*( D2D2phi -2.0*d2phi*d2phi + gamma22*(expression) );
+    ricciTF23 += -2.0*( D2D3phi -2.0*d2phi*d3phi + gamma23*(expression) );
+    ricciTF33 += -2.0*( D3D3phi -2.0*d3phi*d3phi + gamma33*(expression) );
 
     /* remove trace... */ 
     trace = gammai11*ricciTF11 + gammai22*ricciTF22 + gammai33*ricciTF33
@@ -329,36 +321,12 @@ public:
     d3a = der(alpha, 3, idx);
 
     // double covariant derivatives - use non-unitary metric - extra pieces that depend on phi!
-    D1D1a = dder(alpha, 1, 1, idx) - (
-        (G111 + 2.0*( (1==1)*d1phi + (1==1)*d1phi - gamma11*(gammai11*d1phi + gammai12*d2phi + gammai13*d3phi)))*d1a + 
-        (G211 + 2.0*( (2==1)*d1phi + (2==1)*d1phi - gamma11*(gammai21*d1phi + gammai22*d2phi + gammai23*d3phi)))*d2a + 
-        (G311 + 2.0*( (3==1)*d1phi + (3==1)*d1phi - gamma11*(gammai31*d1phi + gammai32*d2phi + gammai33*d3phi)))*d3a
-      );
-    D1D2a = dder(alpha, 1, 2, idx) - (
-        (G112 + 2.0*( (1==1)*d2phi + (1==2)*d1phi - gamma12*(gammai11*d1phi + gammai12*d2phi + gammai13*d3phi)))*d1a + 
-        (G212 + 2.0*( (2==1)*d2phi + (2==2)*d1phi - gamma12*(gammai21*d1phi + gammai22*d2phi + gammai23*d3phi)))*d2a + 
-        (G312 + 2.0*( (3==1)*d2phi + (3==2)*d1phi - gamma12*(gammai31*d1phi + gammai32*d2phi + gammai33*d3phi)))*d3a
-      );
-    D1D3a = dder(alpha, 1, 3, idx) - (
-        (G113 + 2.0*( (1==1)*d3phi + (1==3)*d1phi - gamma13*(gammai11*d1phi + gammai12*d2phi + gammai13*d3phi)))*d1a + 
-        (G213 + 2.0*( (2==1)*d3phi + (2==3)*d1phi - gamma13*(gammai21*d1phi + gammai22*d2phi + gammai23*d3phi)))*d2a + 
-        (G313 + 2.0*( (3==1)*d3phi + (3==3)*d1phi - gamma13*(gammai31*d1phi + gammai32*d2phi + gammai33*d3phi)))*d3a
-      );
-    D2D2a = dder(alpha, 2, 2, idx) - (
-        (G122 + 2.0*( (1==2)*d2phi + (1==2)*d2phi - gamma22*(gammai11*d1phi + gammai12*d2phi + gammai13*d3phi)))*d1a + 
-        (G222 + 2.0*( (2==2)*d2phi + (2==2)*d2phi - gamma22*(gammai21*d1phi + gammai22*d2phi + gammai23*d3phi)))*d2a + 
-        (G322 + 2.0*( (3==2)*d2phi + (3==2)*d2phi - gamma22*(gammai31*d1phi + gammai32*d2phi + gammai33*d3phi)))*d3a
-      );
-    D2D3a = dder(alpha, 2, 3, idx) - (
-        (G123 + 2.0*( (1==2)*d3phi + (1==3)*d2phi - gamma23*(gammai11*d1phi + gammai12*d2phi + gammai13*d3phi)))*d1a + 
-        (G223 + 2.0*( (2==2)*d3phi + (2==3)*d2phi - gamma23*(gammai21*d1phi + gammai22*d2phi + gammai23*d3phi)))*d2a + 
-        (G323 + 2.0*( (3==2)*d3phi + (3==3)*d2phi - gamma23*(gammai31*d1phi + gammai32*d2phi + gammai33*d3phi)))*d3a
-      );
-    D3D3a = dder(alpha, 3, 3, idx) - (
-        (G133 + 2.0*( (1==3)*d3phi + (1==3)*d3phi - gamma33*(gammai11*d1phi + gammai12*d2phi + gammai13*d3phi)))*d1a + 
-        (G233 + 2.0*( (2==3)*d3phi + (2==3)*d3phi - gamma33*(gammai21*d1phi + gammai22*d2phi + gammai23*d3phi)))*d2a + 
-        (G333 + 2.0*( (3==3)*d3phi + (3==3)*d3phi - gamma33*(gammai31*d1phi + gammai32*d2phi + gammai33*d3phi)))*d3a
-      );
+    // these are needed for the BSSN_CALCULATE_DIDJALPHA macro
+    real_t gamma1ldlphi = gammai11*d1phi + gammai12*d2phi + gammai13*d3phi;
+    real_t gamma2ldlphi = gammai21*d1phi + gammai22*d2phi + gammai23*d3phi;
+    real_t gamma3ldlphi = gammai31*d1phi + gammai32*d2phi + gammai33*d3phi;
+    BSSN_APPLY_TO_IJ_PERMS(BSSN_CALCULATE_DIDJALPHA);
+
   }
 
 
