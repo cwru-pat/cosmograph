@@ -305,20 +305,20 @@ public:
 
   }
 
-  void calculateDDalpha(idx_t idx)
+  void calculateDDphi(idx_t idx)
   {
     // normal derivatives of alpha
-    d1a = der(alpha, 1, idx);
-    d2a = der(alpha, 2, idx);
-    d3a = der(alpha, 3, idx);
+    d1phi = der(phi, 1, idx);
+    d2phi = der(phi, 2, idx);
+    d3phi = der(phi, 3, idx);
 
     // double covariant derivatives, using normal metric
-    D1D1a = dder(alpha, 1, 1, idx) - (G111*d1a + G211*d2a + G311*d3a);
-    D1D2a = dder(alpha, 1, 2, idx) - (G112*d1a + G212*d2a + G312*d3a);
-    D1D3a = dder(alpha, 1, 3, idx) - (G113*d1a + G213*d2a + G313*d3a);
-    D2D2a = dder(alpha, 2, 2, idx) - (G122*d1a + G222*d2a + G322*d3a);
-    D2D3a = dder(alpha, 2, 3, idx) - (G123*d1a + G223*d2a + G323*d3a);
-    D3D3a = dder(alpha, 3, 3, idx) - (G133*d1a + G233*d2a + G333*d3a);
+    D1D1phi = dder(phi, 1, 1, idx) - (G111*d1phi + G211*d2phi + G311*d3phi);
+    D1D2phi = dder(phi, 1, 2, idx) - (G112*d1phi + G212*d2phi + G312*d3phi);
+    D1D3phi = dder(phi, 1, 3, idx) - (G113*d1phi + G213*d2phi + G313*d3phi);
+    D2D2phi = dder(phi, 2, 2, idx) - (G122*d1phi + G222*d2phi + G322*d3phi);
+    D2D3phi = dder(phi, 2, 3, idx) - (G123*d1phi + G223*d2phi + G323*d3phi);
+    D3D3phi = dder(phi, 3, 3, idx) - (G133*d1phi + G233*d2phi + G333*d3phi);
   }
 
   void calculateDDalpha(idx_t idx)
@@ -328,7 +328,7 @@ public:
     d2a = der(alpha, 2, idx);
     d3a = der(alpha, 3, idx);
 
-    // double covariant derivatives - use non-unitary metric - extra pieces!
+    // double covariant derivatives - use non-unitary metric - extra pieces that depend on phi!
     D1D1a = dder(alpha, 1, 1, idx) - (
         (G111 + 2.0*( (1==1)*d1phi + (1==1)*d1phi - gamma11*(gammai11*d1phi + gammai12*d2phi + gammai13*d3phi)))*d1a + 
         (G211 + 2.0*( (2==1)*d1phi + (2==1)*d1phi - gamma11*(gammai21*d1phi + gammai22*d2phi + gammai23*d3phi)))*d2a + 
