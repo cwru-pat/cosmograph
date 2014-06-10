@@ -73,12 +73,41 @@
 
 #define BSSN_CALCULATE_DGAMMA(I, J, K) d##I##g##J##K## = der(gamma##J##K##, I, idx);
 
-// needs the gamma*ldlphi vars defined
+// needs the gamma*ldlphi vars defined:
 #define BSSN_CALCULATE_DIDJALPHA(I, J) D##I##D##J##a = dder(alpha, I, J, idx) - ( \
         (G1##I##J## + 2.0*( (1==I)*d##J##phi + (1==J)*d##I##phi - gamma##I##J##*gamma1ldlphi))*d1a + \
         (G2##I##J## + 2.0*( (2==I)*d##J##phi + (2==J)*d##I##phi - gamma##I##J##*gamma2ldlphi))*d2a + \
         (G3##I##J## + 2.0*( (3==I)*d##J##phi + (3==J)*d##I##phi - gamma##I##J##*gamma3ldlphi))*d3a \
       );
+
+// unitary piece only:
+#define BSSN_CALCULATE_RICCITF_UNITARY(I, J) ricciTF##I##J## = ( \
+        - 0.5*( \
+          gammai11*d1d1g##I##J## + gammai22*d2d2g##I##J## + gammai33*d3d3g##I##J## \
+          + 2.0*(gammai12*d1d2g##I##J## + gammai13*d1d3g##I##J## + gammai23*d2d3g##I##J##) \
+        ) \
+        + 0.5*( \
+          gamma1##I##*der(Gamma1, J, idx) + gamma2##I##*der(Gamma2, J, idx) + gamma3##I##*der(Gamma3, J, idx) + \
+          gamma1##J##*der(Gamma1, I, idx) + gamma2##J##*der(Gamma2, I, idx) + gamma3##J##*der(Gamma3, I, idx) \
+        ) \
+        - 0.5*( \
+          d1g##I##1*d##J##gi11 + d2g##I##2*d##J##gi22 + d3g##I##3*d##J##gi33 + 2.0*(d1g##I##2*d##J##gi12 + d1g##I##3*d##J##gi13 + d2g##I##3*d##J##gi23) + \
+          d1g##J##1*d##I##gi11 + d2g##J##2*d##I##gi22 + d3g##J##3*d##I##gi33 + 2.0*(d1g##J##2*d##I##gi12 + d1g##J##3*d##I##gi13 + d2g##J##3*d##I##gi23) \
+          - Gamma1*d1g##I##J## - Gamma2*d2g##I##J## - Gamma3*d3g##I##J## \
+        ) \
+        - ( \
+          G1##I##1*G1##J##1 + G2##I##2*G2##J##2 + G3##I##3*G3##J##3 + 2.0*(G1##I##2*G2##J##1 + G1##I##3*G3##J##1 + G2##I##3*G3##J##2) \
+        ) \
+      );
+
+#define BSSN_CALCULATE_DIDJGAMMA_PERMS(I, J) \
+    d##I##d##J##g11 = dder(gamma11, I, J, idx);      \
+    d##I##d##J##g12 = dder(gamma12, I, J, idx);      \
+    d##I##d##J##g13 = dder(gamma13, I, J, idx);      \
+    d##I##d##J##g22 = dder(gamma22, I, J, idx);      \
+    d##I##d##J##g23 = dder(gamma23, I, J, idx);      \
+    d##I##d##J##g33 = dder(gamma33, I, J, idx); 
+
 
 // standard ordering of indexes for tensor components
 
