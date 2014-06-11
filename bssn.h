@@ -269,7 +269,8 @@ public:
     return (
       - paq.DDaTR
       + paq.alpha*(
-          0 /******************** Write out A_ij * A^ij ***********************/
+          paq.A11*paq.A11 + paq.A22*paq.A22 + paq.A33*paq.A33
+          + 2.0*(paq.A12*paq.A12 + paq.A13*paq.A13 + paq.A23*paq.A23)
           + (1.0/3.0)*paq.K*paq.K
         )
       + paq.beta1*der(K_a, 1, &paq) + paq.beta2*der(K_a, 2, &paq) + paq.beta3*der(K_a, 3, &paq)
@@ -284,7 +285,9 @@ public:
     );
   }
 
-  /******************** Need Gamma^I equations ***********************/
+  real_t dt_GAMMA1() { return BSSN_DT_GAMMAI(1); }
+  real_t dt_GAMMA2() { return BSSN_DT_GAMMAI(2); }
+  real_t dt_GAMMA3() { return BSSN_DT_GAMMAI(3); }
 
 };
 

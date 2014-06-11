@@ -143,8 +143,9 @@ namespace cosmo
     - (2.0/3.0)*paq.A##I##J*(der(beta1_a, 1, &paq) + der(beta2_a, 2, &paq) + der(beta3_a, 3, &paq)) \
   )
 
-
-
+#define BSSN_DT_GAMMAI(I) (
+    
+  )
 
 /*
  * Enforce standard ordering of indexes for tensor components
