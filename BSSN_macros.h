@@ -81,6 +81,11 @@ namespace cosmo
 
 #define BSSN_CALCULATE_DGAMMA(I, J, K) paq.d##I##g##J##K = der(gamma##J##K##_a, I, &paq);
 
+#define BSSN_CALCULATE_ACONT(I, J) paq.Acont##I##J = ( \
+    paq.gammai##I##1*paq.gamma##J##1*paq.A11 + paq.gammai##I##2*paq.gamma##J##2*paq.A22 + paq.gammai##I##3*paq.gamma##J##3*paq.A33 + \
+    2.0*(paq.gammai##I##1*paq.gamma##J##2*paq.A12 + paq.gammai##I##1*paq.gamma##J##3*paq.A13 + paq.gammai##I##2*paq.gamma##J##3*paq.A23) \
+  );
+
 // needs the gamma*ldlphi vars defined:
 #define BSSN_CALCULATE_DIDJALPHA(I, J) paq.D##I##D##J##aTF = dder(alpha_a, I, J, &paq) - ( \
     (paq.G1##I##J + 2.0*( (1==I)*paq.d##J##phi + (1==J)*paq.d##I##phi - paq.gamma##I##J*gamma1ldlphi))*paq.d1a + \
@@ -134,8 +139,8 @@ namespace cosmo
 #define BSSN_DT_AIJ(I, J) ( \
     exp(-4.0*paq.phi)*(paq.alpha*paq.ricciTF##I##J - paq.D##I##D##J##aTF) \
     + paq.alpha*(paq.K*paq.A##I##J - 2.0*( \
-        paq.gammai11*paq.A##I##1*paq.A##J##1 + paq.gammai22*paq.A##I##2*paq.A##J##2 + paq.gammai33*paq.A##I##3*paq.A##J##3 \
-        + 2.0*(paq.gammai12*paq.A##I##1*paq.A##J##2 + paq.gammai13*paq.A##I##1*paq.A##J##3 + paq.gammai23*paq.A##I##2*paq.A##J##3) \
+        paq.Acont11*paq.A11 + paq.Acont22*paq.A22 + paq.Acont33*paq.A33 \
+        + 2.0*(paq.Acont12*paq.A12 + paq.Acont13*paq.A13 + paq.Acont23*paq.A23) \
       )) \
     + paq.beta1*der(A##I##J##_a, 1, &paq) + paq.beta2*der(A##I##J##_a, 2, &paq) + paq.beta3*der(A##I##J##_a, 3, &paq) \
     + paq.A##I##1*der(beta1_a, J, &paq) + paq.A##I##2*der(beta2_a, J, &paq) + paq.A##I##3*der(beta3_a, J, &paq) \
@@ -143,8 +148,26 @@ namespace cosmo
     - (2.0/3.0)*paq.A##I##J*(der(beta1_a, 1, &paq) + der(beta2_a, 2, &paq) + der(beta3_a, 3, &paq)) \
   )
 
-#define BSSN_DT_GAMMAI(I) (
-    
+#define BSSN_DT_GAMMAI(I) ( \
+    - 2.0*(paq.A##I##1*paq.d1a + paq.A##I##2*paq.d2a + paq.A##I##3*paq.d3a) \
+    + 2.0*paq.alpha*( \
+        paq.G##I##11*paq.Acont11 + paq.G##I##22*paq.Acont22 + paq.G##I##33*paq.Acont33 \
+          + 2.0*(paq.G##I##12*paq.Acont12 + paq.G##I##13*paq.Acont13 + paq.G##I##23*paq.Acont23) \
+        - (2.0/3.0) * (paq.gammai##I##1*der(K_a, 1, &paq) + paq.gammai##I##2*der(K_a, 2, &paq) + paq.gammai##I##3*der(K_a, 3, &paq)) \
+        + 6.0 * (paq.Acont##I##1*paq.d1phi + paq.Acont##I##2*paq.d2phi + paq.Acont##I##2*paq.d2phi) \
+      ) \
+    + paq.beta1*der(Gamma##I##_a, 1, &paq) + paq.beta2*der(Gamma##I##_a, 2, &paq) + paq.beta3*der(Gamma##I##_a, 3, &paq) \
+    - paq.Gamma1*der(beta##I##_a, 1, &paq) + paq.Gamma2*der(beta##I##_a, 2, &paq) + paq.Gamma3*der(beta##I##_a, 3, &paq) \
+    + (2.0/3.0) * paq.Gamma##I * (der(beta1_a, 1, &paq) + der(beta2_a, 2, &paq) + der(beta3_a, 3, &paq)) \
+    + (1.0/3.0) * ( \
+        paq.gammai##I##1*dder(beta1_a, 1, 1, &paq) + paq.gammai##I##1*dder(beta2_a, 2, 1, &paq) + paq.gammai##I##1*dder(beta3_a, 3, 1, &paq) +  \
+        paq.gammai##I##2*dder(beta1_a, 1, 2, &paq) + paq.gammai##I##2*dder(beta2_a, 2, 2, &paq) + paq.gammai##I##2*dder(beta3_a, 3, 2, &paq) +  \
+        paq.gammai##I##3*dder(beta1_a, 1, 3, &paq) + paq.gammai##I##3*dder(beta2_a, 2, 3, &paq) + paq.gammai##I##3*dder(beta3_a, 3, 3, &paq) \
+      ) \
+    + ( \
+        paq.gammai11*dder(beta##I##_a, 1, 1, &paq) + paq.gammai22*dder(beta##I##_a, 2, 2, &paq) + paq.gammai33*dder(beta##I##_a, 3, 3, &paq) \
+        + 2.0*(paq.gammai12*dder(beta##I##_a, 1, 2, &paq) + paq.gammai13*dder(beta##I##_a, 1, 3, &paq) + paq.gammai23*dder(beta##I##_a, 2, 3, &paq)) \
+      ) \
   )
 
 /*
@@ -177,6 +200,11 @@ namespace cosmo
 #define D2D1phi D1D2phi
 #define D3D1phi D1D3phi
 #define D3D2phi D2D3phi
+
+// Inverse ext. curvature
+#define Acont21 Acont12
+#define Acont31 Acont13
+#define Acont32 Acont23
 
 // christoffel symbols
 #define G121 G112

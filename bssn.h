@@ -29,6 +29,9 @@ typedef struct {
     // normal derivatives of
     real_t d1phi, d2phi, d3phi;
 
+  // Contravariant (upstairs index) ext. curvature
+  real_t Acont11, Acont12, Acont13, Acont22, Acont23, Acont33;
+
   // Christoffel symbols
   real_t G111, G112, G113, G122, G123, G133,
          G211, G212, G213, G222, G223, G233,
@@ -108,6 +111,7 @@ public:
       /* calculate needed quantities (need the inverse metric everywhere first) */
       set_local_vals();
       // gammas & derivs first
+      calculate_Acont();
       calculate_dgamma();
       calculate_ddgamma();
       calculate_dgammai();
@@ -143,6 +147,11 @@ public:
   inline void set_local_vals()
   {
     BSSN_APPLY_TO_FIELDS(SET_LOCAL_VALUES)
+  }
+
+  inline void calculate_Acont()
+  {
+    BSSN_APPLY_TO_IJ_PERMS(BSSN_CALCULATE_ACONT)
   }
 
   /* Calculate metric derivatives */
