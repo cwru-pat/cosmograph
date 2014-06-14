@@ -16,10 +16,10 @@ void Wave::step()
     index = INDEX(i,j,k);
 
     lap_phi_p = lap_stencil(i, j, k, phi_p);
-    lap_www_p = lap_stencil(i, j, k, www_p);
+    //lap_www_p = lap_stencil(i, j, k, www_p);
 
-    phi[index] = phi_p[index] + dt*www_p[index] + dt*dt/2.0*lap_phi_p;
-    www[index] = www_p[index] + dt*lap_phi_p + dt*dt/2.0*lap_www_p;
+    phi[index] = phi_p[index] + dt*www_p[index]/* + dt*dt/2.0*lap_phi_p*/;
+    www[index] = www_p[index] + dt*lap_phi_p/* + dt*dt/2.0*lap_www_p*/;
   }
 
   /* swap buffers */
@@ -27,7 +27,7 @@ void Wave::step()
   std::swap(www, www_p);
 }
 
-/* Initial conditions... will eventually be more complicated. */
+/* Initial conditions */
 void Wave::init()
 {
   LOOP3(i, j, k)

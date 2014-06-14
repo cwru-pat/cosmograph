@@ -1,6 +1,8 @@
 #ifndef COSMO_BSSN
 #define COSMO_BSSN
 
+#include "cosmo.h"
+
 namespace cosmo
 {
 
@@ -163,12 +165,12 @@ public:
 
   inline real_t der(real_t *field, int d, PointData *paq)
   {
-    return 0.0;
+    return derivative_stencil(paq->i, paq->j, paq->k, d, field);
   }
 
   inline real_t dder(real_t *field, int d1, int d2, PointData *paq)
   {
-    return 0.0;
+    return double_derivative(paq->i, paq->j, paq->k, d1, d2, field);
   }
 
   /* set current local field values */
@@ -333,7 +335,7 @@ public:
   real_t ev_beta3(PointData *paq) { return 0; }
 
   /* calculate needed quantities (need the inverse metric set everywhere first) */
-  inline void set_paq_values(int i, int j, int k, PointData *paq)
+  inline void set_paq_values(idx_t i, idx_t j, idx_t k, PointData *paq)
   {
     set_paq_index(i, j, k, paq);
     set_local_vals(paq);
@@ -351,7 +353,7 @@ public:
     calculateDDalphaTF(paq);
   }
 
-  inline void set_paq_index(int i, int j, int k, PointData *paq)
+  inline void set_paq_index(idx_t i, idx_t j, idx_t k, PointData *paq)
   {
     paq->i = i;
     paq->i = j;

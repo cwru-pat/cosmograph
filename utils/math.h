@@ -30,6 +30,51 @@ inline real_t derivative_stencil(idx_t i, idx_t j, idx_t k, int d,
       return field[INDEX(i,j,k+1)] - field[INDEX(i,j,k-1)];
       break;
   }
+
+  /* XXX */
+  return 0;
+}
+
+inline real_t double_derivative_stencil(idx_t i, idx_t j, idx_t k, int d,
+    real_t *field)
+{
+  switch (d) {
+    case 1:
+      return field[INDEX(i+1,j,k)] + field[INDEX(i-1,j,k)] - 2.0*field[INDEX(i,j,k)];
+      break;
+    case 2:
+      return field[INDEX(i,j+1,k)] + field[INDEX(i,j-1,k)] - 2.0*field[INDEX(i,j,k)];
+      break;
+    case 3:
+      return field[INDEX(i,j,k+1)] + field[INDEX(i,j,k-1)] - 2.0*field[INDEX(i,j,k)];
+      break;
+  }
+
+  /* XXX */
+  return 0;
+}
+
+inline real_t double_derivative(idx_t i, idx_t j, idx_t k, int d1, int d2,
+    real_t *field)
+{
+  if(d1 == d2) {
+    return double_derivative_stencil(i, j, k, d1, field);
+  } else {
+    switch (d1) {
+      case 1:
+        return derivative_stencil(i+1, j, k, d2, field) - derivative_stencil(i-1, j, k, d2, field);
+        break;
+      case 2:
+        return derivative_stencil(i, j+1, k, d2, field) - derivative_stencil(i, j-1, k, d2, field);
+        break;
+      case 3:
+        return derivative_stencil(i, j, k+1, d2, field) - derivative_stencil(i, j, k-1, d2, field);
+        break;
+    }
+  }
+
+  /* XXX */
+  return 0;
 }
 
 }
