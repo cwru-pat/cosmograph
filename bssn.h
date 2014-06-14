@@ -91,15 +91,17 @@ public:
     // First RK step: add in k_1 coeff
     LOOP3(i, j, k)
     {
-      set_paq_values(i, j, k, paq);
+      set_paq_values(i, j, k, &paq);
 
       // evolve fields: arr_c = arr_p + dt/2*k_1
         // arr_c[idx] = arr_p[idx] + dt/2.0*evfn(arr_a);
+        BSSN_COMPUTE_RK_STEP(0.5);
         // algebraically calculate gammai values in _c register
-        compute_gammai_in_c();
+        BSSN_COMPUTE_GAMMAI(_c);
 
       // add computation to _f array: arr_f = arr_p + dt/2*k_1
-        // arr_f += arr_a
+        // arr_f += arr_c
+        BSSN_ADD_C_TO_F(1.0);
     }
     // swap _c <-> _a registers
     BSSN_SWAP_ARRAYS(_c, _a);
@@ -107,15 +109,17 @@ public:
     // Calculate k_2 coeff (using k_1 values now in _a register):
     LOOP3(i, j, k)
     {
-      set_paq_values(i, j, k, paq);
+      set_paq_values(i, j, k, &paq);
 
       // evolve fields: arr_c = arr_p + dt/2*k_2
         // arr_c[idx] = arr_p[idx] + dt/2.0*evfn(arr_a);
+        BSSN_COMPUTE_RK_STEP(0.5);
         // algebraically calculate gammai values in _c register
-        compute_gammai_in_c();
+        BSSN_COMPUTE_GAMMAI(_c);
 
       // add computation to _f array: arr_f = 3*arr_p + dt/2*(k_1 + 2*k_2)
-        // arr_f += 2.0*arr_a
+        // arr_f += 2.0*arr_c
+        BSSN_ADD_C_TO_F(2.0);
     }
     // swap _c <-> _a
     BSSN_SWAP_ARRAYS(_c, _a);
@@ -123,15 +127,17 @@ public:
     // Calculate k_3 coeff (using k_2 values now in _a register):
     LOOP3(i, j, k)
     {
-      set_paq_values(i, j, k, paq);
+      set_paq_values(i, j, k, &paq);
 
       // evolve fields: arr_c = arr_p + dt*k_3
         // arr_c[idx] = arr_p[idx] + dt*evfn(arr_a);
+        BSSN_COMPUTE_RK_STEP(1.0);
         // algebraically calculate gammai values in _c register
-        compute_gammai_in_c();
-        
+        BSSN_COMPUTE_GAMMAI(_c);
+
       // add computation to _f array: arr_f = 4*arr_p + dt/2*(k_1 + 2*k_2 + 2*k_3)
         // arr_f += arr_c
+        BSSN_ADD_C_TO_F(1.0);
     }
     // swap _c <-> _a
     BSSN_SWAP_ARRAYS(_c, _a);
@@ -139,12 +145,14 @@ public:
     // Add in k_4 contribution to _f register and "weight" correctly:
     LOOP3(i, j, k)
     {
-      set_paq_values(i, j, k, paq);
+      set_paq_values(i, j, k, &paq);
 
       // evolve fields and add to _f register:
       // arr_f = arr_p + dt/6*(k_1 + 2*k_2 + 2*k_3 + k_4)
         // arr_f = (1.0/3.0)*(arr_f - arr_p) + (1.0/6.0)*evfn(arr_a)
-        // algebraically calculate gammai and add in
+      
+      // calculate gamma_i in _f register
+      BSSN_COMPUTE_GAMMAI(_f);
     }
     // arr_f register now holds "final" calculation; move back to _p register:
     // swap _f <-> _p
@@ -161,17 +169,6 @@ public:
   inline real_t dder(real_t *field, int d1, int d2, PointData *paq)
   {
     return 0.0;
-  }
-
-  /* Calculate inverse metric components in the _c register */
-  inline void compute_gammai_in_c(PointData *paq)
-  {
-    gammai11_c[paq->idx] = gamma22_c[paq->idx]*gamma33_c[paq->idx] - gamma23_c[paq->idx]*gamma23_c[paq->idx];
-    gammai12_c[paq->idx] = gamma13_c[paq->idx]*gamma23_c[paq->idx] - gamma12_c[paq->idx]*gamma33_c[paq->idx];
-    gammai13_c[paq->idx] = gamma12_c[paq->idx]*gamma23_c[paq->idx] - gamma13_c[paq->idx]*gamma22_c[paq->idx];
-    gammai22_c[paq->idx] = gamma11_c[paq->idx]*gamma33_c[paq->idx] - gamma13_c[paq->idx]*gamma13_c[paq->idx];
-    gammai23_c[paq->idx] = gamma12_c[paq->idx]*gamma13_c[paq->idx] - gamma23_c[paq->idx]*gamma11_c[paq->idx];
-    gammai33_c[paq->idx] = gamma11_c[paq->idx]*gamma22_c[paq->idx] - gamma12_c[paq->idx]*gamma12_c[paq->idx];
   }
 
   /* set current local field values */
@@ -325,9 +322,15 @@ public:
     );
   }
 
-  real_t ev_GAMMA1(PointData *paq) { return BSSN_DT_GAMMAI(1); }
-  real_t ev_GAMMA2(PointData *paq) { return BSSN_DT_GAMMAI(2); }
-  real_t ev_GAMMA3(PointData *paq) { return BSSN_DT_GAMMAI(3); }
+  real_t ev_Gamma1(PointData *paq) { return BSSN_DT_GAMMAI(1); }
+  real_t ev_Gamma2(PointData *paq) { return BSSN_DT_GAMMAI(2); }
+  real_t ev_Gamma3(PointData *paq) { return BSSN_DT_GAMMAI(3); }
+
+  // static gauge for now:
+  real_t ev_alpha(PointData *paq) { return 0; }
+  real_t ev_beta1(PointData *paq) { return 0; }
+  real_t ev_beta2(PointData *paq) { return 0; }
+  real_t ev_beta3(PointData *paq) { return 0; }
 
   /* calculate needed quantities (need the inverse metric set everywhere first) */
   inline void set_paq_values(int i, int j, int k, PointData *paq)

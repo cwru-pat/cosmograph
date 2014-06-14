@@ -21,17 +21,17 @@
 
 
 #define RK4_ARRAY_CREATE(name) \
-        real_t * name##_a, * name##_k, * name##_p, * name##_f
+        real_t * name##_a, * name##_c, * name##_p, * name##_f
 
 #define RK4_ARRAY_ALLOC(name) \
         name##_a   = new real_t[N*N*N]; \
-        name##_k   = new real_t[N*N*N]; \
+        name##_c   = new real_t[N*N*N]; \
         name##_p   = new real_t[N*N*N]; \
         name##_f   = new real_t[N*N*N]
 
 #define RK4_ARRAY_DELETE(name) \
         delete [] name##_a;    \
-        delete [] name##_k;    \
+        delete [] name##_c;    \
         delete [] name##_p;    \
         delete [] name##_f
 
@@ -41,11 +41,11 @@
 
 // RK4 method, using 4 "registers".  One for the "_p"revious step data, one
 // for the data being "_a"ctively used for calculation, one for the
-// Runge-"_k"utta coefficient being calculated, and lastly the "_f"inal
+// Runge-Kutta "_c"oefficient being calculated, and lastly the "_f"inal
 // result of the calculation.
  #define RK4_ARRAY_ADDMAP(name)          \
         fields[#name "_a"] = name##_a;  \
-        fields[#name "_k"] = name##_k;  \
+        fields[#name "_c"] = name##_c;  \
         fields[#name "_p"] = name##_p;  \
         fields[#name "_f"] = name##_f
 
