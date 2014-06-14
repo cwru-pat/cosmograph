@@ -83,6 +83,76 @@ public:
     BSSN_APPLY_TO_FIELDS(RK4_ARRAY_DELETE)
   }
 
+  void step() {
+
+    // Init arr_a with _p values
+    BSSN_COPY_ARRAYS(_p, _a);
+
+    // First RK step: add in k_1 coeff
+    LOOP3(i, j, k)
+    {
+      set_paq_values(i, j, k, paq);
+
+      // evolve fields: arr_c = arr_p + dt/2*k_1
+        // arr_c[idx] = arr_p[idx] + dt/2.0*evfn(arr_a);
+        // algebraically calculate gammai values in _c register
+        compute_gammai_in_c();
+
+      // add computation to _f array: arr_f = arr_p + dt/2*k_1
+        // arr_f += arr_a
+    }
+    // swap _c <-> _a registers
+    BSSN_SWAP_ARRAYS(_c, _a);
+
+    // Calculate k_2 coeff (using k_1 values now in _a register):
+    LOOP3(i, j, k)
+    {
+      set_paq_values(i, j, k, paq);
+
+      // evolve fields: arr_c = arr_p + dt/2*k_2
+        // arr_c[idx] = arr_p[idx] + dt/2.0*evfn(arr_a);
+        // algebraically calculate gammai values in _c register
+        compute_gammai_in_c();
+
+      // add computation to _f array: arr_f = 3*arr_p + dt/2*(k_1 + 2*k_2)
+        // arr_f += 2.0*arr_a
+    }
+    // swap _c <-> _a
+    BSSN_SWAP_ARRAYS(_c, _a);
+
+    // Calculate k_3 coeff (using k_2 values now in _a register):
+    LOOP3(i, j, k)
+    {
+      set_paq_values(i, j, k, paq);
+
+      // evolve fields: arr_c = arr_p + dt*k_3
+        // arr_c[idx] = arr_p[idx] + dt*evfn(arr_a);
+        // algebraically calculate gammai values in _c register
+        compute_gammai_in_c();
+        
+      // add computation to _f array: arr_f = 4*arr_p + dt/2*(k_1 + 2*k_2 + 2*k_3)
+        // arr_f += arr_c
+    }
+    // swap _c <-> _a
+    BSSN_SWAP_ARRAYS(_c, _a);
+
+    // Add in k_4 contribution to _f register and "weight" correctly:
+    LOOP3(i, j, k)
+    {
+      set_paq_values(i, j, k, paq);
+
+      // evolve fields and add to _f register:
+      // arr_f = arr_p + dt/6*(k_1 + 2*k_2 + 2*k_3 + k_4)
+        // arr_f = (1.0/3.0)*(arr_f - arr_p) + (1.0/6.0)*evfn(arr_a)
+        // algebraically calculate gammai and add in
+    }
+    // arr_f register now holds "final" calculation; move back to _p register:
+    // swap _f <-> _p
+    BSSN_SWAP_ARRAYS(_f, _p);
+
+    // done!
+  }
+
   inline real_t der(real_t *field, int d, PointData *paq)
   {
     return 0.0;
@@ -93,210 +163,198 @@ public:
     return 0.0;
   }
 
-  void step() {
-
-    // calculate the inverse metric first:
-    LOOP3(i, j, k)
-    {
-      calculate_gammai();
-    }
-
-    LOOP3(i, j, k)
-    {
-      paq.i = i;
-      paq.i = j;
-      paq.i = k;
-      paq.idx = INDEX(i,j,k);
-
-      /* calculate needed quantities (need the inverse metric everywhere first) */
-      set_local_vals();
-      // gammas & derivs first
-      calculate_Acont();
-      calculate_dgamma();
-      calculate_ddgamma();
-      calculate_dgammai();
-      calculate_dalpha_dphi();
-      // Christoffels depend on metric & derivs.
-      calculate_christoffels();
-      // Ricci, DDa, DDw depend on christoffels, metric, and derivs
-      calculateRicciTF();
-      calculateDDphi();
-      calculateDDalphaTF();
-
-      /* evolve stuff... */
-      /*...*/
-      
-    }
-
-    BSSN_APPLY_TO_FIELDS(RK4_ARRAY_CYCLE)
-  }
-
-  /* Calculate inverse metric components */
-  inline void calculate_gammai()
+  /* Calculate inverse metric components in the _c register */
+  inline void compute_gammai_in_c(PointData *paq)
   {
-    // gamma is unitary, so this is actually simple:
-    paq.gammai11 = paq.gamma22*paq.gamma33 - paq.gamma23*paq.gamma23;
-    paq.gammai12 = paq.gamma13*paq.gamma23 - paq.gamma12*paq.gamma33;
-    paq.gammai13 = paq.gamma12*paq.gamma23 - paq.gamma13*paq.gamma22;
-    paq.gammai22 = paq.gamma11*paq.gamma33 - paq.gamma13*paq.gamma13;
-    paq.gammai23 = paq.gamma12*paq.gamma13 - paq.gamma23*paq.gamma11;
-    paq.gammai33 = paq.gamma11*paq.gamma22 - paq.gamma12*paq.gamma12;
+    gammai11_c[paq->idx] = gamma22_c[paq->idx]*gamma33_c[paq->idx] - gamma23_c[paq->idx]*gamma23_c[paq->idx];
+    gammai12_c[paq->idx] = gamma13_c[paq->idx]*gamma23_c[paq->idx] - gamma12_c[paq->idx]*gamma33_c[paq->idx];
+    gammai13_c[paq->idx] = gamma12_c[paq->idx]*gamma23_c[paq->idx] - gamma13_c[paq->idx]*gamma22_c[paq->idx];
+    gammai22_c[paq->idx] = gamma11_c[paq->idx]*gamma33_c[paq->idx] - gamma13_c[paq->idx]*gamma13_c[paq->idx];
+    gammai23_c[paq->idx] = gamma12_c[paq->idx]*gamma13_c[paq->idx] - gamma23_c[paq->idx]*gamma11_c[paq->idx];
+    gammai33_c[paq->idx] = gamma11_c[paq->idx]*gamma22_c[paq->idx] - gamma12_c[paq->idx]*gamma12_c[paq->idx];
   }
 
   /* set current local field values */
-  inline void set_local_vals()
+  inline void set_local_vals(PointData *paq)
   {
     BSSN_APPLY_TO_FIELDS(SET_LOCAL_VALUES)
   }
 
-  inline void calculate_Acont()
+  inline void calculate_Acont(PointData *paq)
   {
     BSSN_APPLY_TO_IJ_PERMS(BSSN_CALCULATE_ACONT)
   }
 
   /* Calculate metric derivatives */
-  inline void calculate_dgamma()
+  inline void calculate_dgamma(PointData *paq)
   {
     BSSN_APPLY_TO_IJK_PERMS(BSSN_CALCULATE_DGAMMA)
   }
 
-  inline void calculate_ddgamma()
+  inline void calculate_ddgamma(PointData *paq)
   {
     BSSN_APPLY_TO_IJ_PERMS(BSSN_CALCULATE_DIDJGAMMA_PERMS)
   }
 
   /* Calculate metric derivatives */
-  inline void calculate_dgammai()
+  inline void calculate_dgammai(PointData *paq)
   {
     BSSN_APPLY_TO_IJK_PERMS(BSSN_CALCULATE_DGAMMAI);
   }
 
-  inline void calculate_christoffels()
+  inline void calculate_christoffels(PointData *paq)
   {
     // christoffel symbols: \Gamma^i_{jk} = Gijk
     BSSN_APPLY_TO_IJK_PERMS(BSSN_CALCULATE_CHRISTOFFEL)
   }
 
-  inline void calculate_dalpha_dphi()
+  inline void calculate_dalpha_dphi(PointData *paq)
   {
     // normal derivatives of phi
-    paq.d1phi = der(phi_a, 1, &paq);
-    paq.d2phi = der(phi_a, 2, &paq);
-    paq.d3phi = der(phi_a, 3, &paq);
+    paq->d1phi = der(phi_a, 1, paq);
+    paq->d2phi = der(phi_a, 2, paq);
+    paq->d3phi = der(phi_a, 3, paq);
 
     // normal derivatives of alpha
-    paq.d1a = der(alpha_a, 1, &paq);
-    paq.d2a = der(alpha_a, 2, &paq);
-    paq.d3a = der(alpha_a, 3, &paq);
+    paq->d1a = der(alpha_a, 1, paq);
+    paq->d2a = der(alpha_a, 2, paq);
+    paq->d3a = der(alpha_a, 3, paq);
   }
 
   /* Calculate trace-free ricci tensor components */
-  void calculateRicciTF()
+  void calculateRicciTF(PointData *paq)
   {
     // unitary pieces
     BSSN_APPLY_TO_IJ_PERMS(BSSN_CALCULATE_RICCITF_UNITARY)
 
     real_t expression = (
-      paq.gammai11*(paq.D1D1phi - 2.0*paq.d1phi*paq.d1phi)
-      + paq.gammai22*(paq.D2D2phi - 2.0*paq.d2phi*paq.d2phi)
-      + paq.gammai33*(paq.D3D3phi - 2.0*paq.d3phi*paq.d3phi)
+      paq->gammai11*(paq->D1D1phi - 2.0*paq->d1phi*paq->d1phi)
+      + paq->gammai22*(paq->D2D2phi - 2.0*paq->d2phi*paq->d2phi)
+      + paq->gammai33*(paq->D3D3phi - 2.0*paq->d3phi*paq->d3phi)
       + 2.0*(
-        paq.gammai12*(paq.D1D2phi - 2.0*paq.d1phi*paq.d2phi)
-        + paq.gammai13*(paq.D1D3phi - 2.0*paq.d1phi*paq.d3phi)
-        + paq.gammai23*(paq.D2D3phi - 2.0*paq.d2phi*paq.d3phi)
+        paq->gammai12*(paq->D1D2phi - 2.0*paq->d1phi*paq->d2phi)
+        + paq->gammai13*(paq->D1D3phi - 2.0*paq->d1phi*paq->d3phi)
+        + paq->gammai23*(paq->D2D3phi - 2.0*paq->d2phi*paq->d3phi)
       )
     );
 
     /* phi-piece */
-    paq.ricciTF11 += -2.0*( paq.D1D1phi -2.0*paq.d1phi*paq.d1phi + paq.gamma11*(expression) );
-    paq.ricciTF12 += -2.0*( paq.D1D2phi -2.0*paq.d1phi*paq.d2phi + paq.gamma12*(expression) );
-    paq.ricciTF13 += -2.0*( paq.D1D3phi -2.0*paq.d1phi*paq.d3phi + paq.gamma13*(expression) );
-    paq.ricciTF22 += -2.0*( paq.D2D2phi -2.0*paq.d2phi*paq.d2phi + paq.gamma22*(expression) );
-    paq.ricciTF23 += -2.0*( paq.D2D3phi -2.0*paq.d2phi*paq.d3phi + paq.gamma23*(expression) );
-    paq.ricciTF33 += -2.0*( paq.D3D3phi -2.0*paq.d3phi*paq.d3phi + paq.gamma33*(expression) );
+    paq->ricciTF11 += -2.0*( paq->D1D1phi -2.0*paq->d1phi*paq->d1phi + paq->gamma11*(expression) );
+    paq->ricciTF12 += -2.0*( paq->D1D2phi -2.0*paq->d1phi*paq->d2phi + paq->gamma12*(expression) );
+    paq->ricciTF13 += -2.0*( paq->D1D3phi -2.0*paq->d1phi*paq->d3phi + paq->gamma13*(expression) );
+    paq->ricciTF22 += -2.0*( paq->D2D2phi -2.0*paq->d2phi*paq->d2phi + paq->gamma22*(expression) );
+    paq->ricciTF23 += -2.0*( paq->D2D3phi -2.0*paq->d2phi*paq->d3phi + paq->gamma23*(expression) );
+    paq->ricciTF33 += -2.0*( paq->D3D3phi -2.0*paq->d3phi*paq->d3phi + paq->gamma33*(expression) );
 
     /* remove trace... */ 
-    paq.trace = paq.gammai11*paq.ricciTF11 + paq.gammai22*paq.ricciTF22 + paq.gammai33*paq.ricciTF33
-        + 2.0*(paq.gammai12*paq.ricciTF12 + paq.gammai13*paq.ricciTF13 + paq.gammai23*paq.ricciTF23);
+    paq->trace = paq->gammai11*paq->ricciTF11 + paq->gammai22*paq->ricciTF22 + paq->gammai33*paq->ricciTF33
+        + 2.0*(paq->gammai12*paq->ricciTF12 + paq->gammai13*paq->ricciTF13 + paq->gammai23*paq->ricciTF23);
     
-    paq.ricciTF11 -= (1/3.0)*paq.gamma11*paq.trace;
-    paq.ricciTF12 -= (1/3.0)*paq.gamma12*paq.trace;
-    paq.ricciTF13 -= (1/3.0)*paq.gamma13*paq.trace;
-    paq.ricciTF22 -= (1/3.0)*paq.gamma22*paq.trace;
-    paq.ricciTF23 -= (1/3.0)*paq.gamma23*paq.trace;
-    paq.ricciTF33 -= (1/3.0)*paq.gamma33*paq.trace;
+    paq->ricciTF11 -= (1/3.0)*paq->gamma11*paq->trace;
+    paq->ricciTF12 -= (1/3.0)*paq->gamma12*paq->trace;
+    paq->ricciTF13 -= (1/3.0)*paq->gamma13*paq->trace;
+    paq->ricciTF22 -= (1/3.0)*paq->gamma22*paq->trace;
+    paq->ricciTF23 -= (1/3.0)*paq->gamma23*paq->trace;
+    paq->ricciTF33 -= (1/3.0)*paq->gamma33*paq->trace;
   }
 
-  void calculateDDphi()
+  void calculateDDphi(PointData *paq)
   {
     // double covariant derivatives, using normal metric
-    paq.D1D1phi = dder(phi_a, 1, 1, &paq) - (paq.G111*paq.d1phi + paq.G211*paq.d2phi + paq.G311*paq.d3phi);
-    paq.D1D2phi = dder(phi_a, 1, 2, &paq) - (paq.G112*paq.d1phi + paq.G212*paq.d2phi + paq.G312*paq.d3phi);
-    paq.D1D3phi = dder(phi_a, 1, 3, &paq) - (paq.G113*paq.d1phi + paq.G213*paq.d2phi + paq.G313*paq.d3phi);
-    paq.D2D2phi = dder(phi_a, 2, 2, &paq) - (paq.G122*paq.d1phi + paq.G222*paq.d2phi + paq.G322*paq.d3phi);
-    paq.D2D3phi = dder(phi_a, 2, 3, &paq) - (paq.G123*paq.d1phi + paq.G223*paq.d2phi + paq.G323*paq.d3phi);
-    paq.D3D3phi = dder(phi_a, 3, 3, &paq) - (paq.G133*paq.d1phi + paq.G233*paq.d2phi + paq.G333*paq.d3phi);
+    paq->D1D1phi = dder(phi_a, 1, 1, paq) - (paq->G111*paq->d1phi + paq->G211*paq->d2phi + paq->G311*paq->d3phi);
+    paq->D1D2phi = dder(phi_a, 1, 2, paq) - (paq->G112*paq->d1phi + paq->G212*paq->d2phi + paq->G312*paq->d3phi);
+    paq->D1D3phi = dder(phi_a, 1, 3, paq) - (paq->G113*paq->d1phi + paq->G213*paq->d2phi + paq->G313*paq->d3phi);
+    paq->D2D2phi = dder(phi_a, 2, 2, paq) - (paq->G122*paq->d1phi + paq->G222*paq->d2phi + paq->G322*paq->d3phi);
+    paq->D2D3phi = dder(phi_a, 2, 3, paq) - (paq->G123*paq->d1phi + paq->G223*paq->d2phi + paq->G323*paq->d3phi);
+    paq->D3D3phi = dder(phi_a, 3, 3, paq) - (paq->G133*paq->d1phi + paq->G233*paq->d2phi + paq->G333*paq->d3phi);
   }
 
-  void calculateDDalphaTF()
+  void calculateDDalphaTF(PointData *paq)
   {
     // double covariant derivatives - use non-unitary metric - extra pieces that depend on phi!
     // the gamma*ldlphi are needed for the BSSN_CALCULATE_DIDJALPHA macro
-    real_t gamma1ldlphi = paq.gammai11*paq.d1phi + paq.gammai12*paq.d2phi + paq.gammai13*paq.d3phi;
-    real_t gamma2ldlphi = paq.gammai21*paq.d1phi + paq.gammai22*paq.d2phi + paq.gammai23*paq.d3phi;
-    real_t gamma3ldlphi = paq.gammai31*paq.d1phi + paq.gammai32*paq.d2phi + paq.gammai33*paq.d3phi;
+    real_t gamma1ldlphi = paq->gammai11*paq->d1phi + paq->gammai12*paq->d2phi + paq->gammai13*paq->d3phi;
+    real_t gamma2ldlphi = paq->gammai21*paq->d1phi + paq->gammai22*paq->d2phi + paq->gammai23*paq->d3phi;
+    real_t gamma3ldlphi = paq->gammai31*paq->d1phi + paq->gammai32*paq->d2phi + paq->gammai33*paq->d3phi;
     BSSN_APPLY_TO_IJ_PERMS(BSSN_CALCULATE_DIDJALPHA)
 
     // subtract trace
-    paq.DDaTR = paq.gammai11*paq.D1D1aTF + paq.gammai22*paq.D2D2aTF + paq.gammai33*paq.D3D3aTF
-        + 2.0*(paq.gammai12*paq.D1D2aTF + paq.gammai13*paq.D1D3aTF + paq.gammai23*paq.D2D3aTF);
+    paq->DDaTR = paq->gammai11*paq->D1D1aTF + paq->gammai22*paq->D2D2aTF + paq->gammai33*paq->D3D3aTF
+        + 2.0*(paq->gammai12*paq->D1D2aTF + paq->gammai13*paq->D1D3aTF + paq->gammai23*paq->D2D3aTF);
     
-    paq.D1D1aTF -= (1/3.0)*paq.gamma11*paq.DDaTR;
-    paq.D1D2aTF -= (1/3.0)*paq.gamma12*paq.DDaTR;
-    paq.D1D3aTF -= (1/3.0)*paq.gamma13*paq.DDaTR;
-    paq.D2D2aTF -= (1/3.0)*paq.gamma22*paq.DDaTR;
-    paq.D2D3aTF -= (1/3.0)*paq.gamma23*paq.DDaTR;
-    paq.D3D3aTF -= (1/3.0)*paq.gamma33*paq.DDaTR;
+    paq->D1D1aTF -= (1/3.0)*paq->gamma11*paq->DDaTR;
+    paq->D1D2aTF -= (1/3.0)*paq->gamma12*paq->DDaTR;
+    paq->D1D3aTF -= (1/3.0)*paq->gamma13*paq->DDaTR;
+    paq->D2D2aTF -= (1/3.0)*paq->gamma22*paq->DDaTR;
+    paq->D2D3aTF -= (1/3.0)*paq->gamma23*paq->DDaTR;
+    paq->D3D3aTF -= (1/3.0)*paq->gamma33*paq->DDaTR;
   }
 
-  real_t dt_gamma11() { return BSSN_DT_GAMMAIJ(1, 1); }
-  real_t dt_gamma12() { return BSSN_DT_GAMMAIJ(1, 2); }
-  real_t dt_gamma13() { return BSSN_DT_GAMMAIJ(1, 3); }
-  real_t dt_gamma22() { return BSSN_DT_GAMMAIJ(2, 2); }
-  real_t dt_gamma23() { return BSSN_DT_GAMMAIJ(2, 3); }
-  real_t dt_gamma33() { return BSSN_DT_GAMMAIJ(3, 3); }
+  real_t ev_gamma11(PointData *paq) { return BSSN_DT_GAMMAIJ(1, 1); }
+  real_t ev_gamma12(PointData *paq) { return BSSN_DT_GAMMAIJ(1, 2); }
+  real_t ev_gamma13(PointData *paq) { return BSSN_DT_GAMMAIJ(1, 3); }
+  real_t ev_gamma22(PointData *paq) { return BSSN_DT_GAMMAIJ(2, 2); }
+  real_t ev_gamma23(PointData *paq) { return BSSN_DT_GAMMAIJ(2, 3); }
+  real_t ev_gamma33(PointData *paq) { return BSSN_DT_GAMMAIJ(3, 3); }
 
-  real_t dt_A11() { return BSSN_DT_AIJ(1, 1); }
-  real_t dt_A12() { return BSSN_DT_AIJ(1, 2); }
-  real_t dt_A13() { return BSSN_DT_AIJ(1, 3); }
-  real_t dt_A22() { return BSSN_DT_AIJ(2, 2); }
-  real_t dt_A23() { return BSSN_DT_AIJ(2, 3); }
-  real_t dt_A33() { return BSSN_DT_AIJ(3, 3); }
+  real_t ev_A11(PointData *paq) { return BSSN_DT_AIJ(1, 1); }
+  real_t ev_A12(PointData *paq) { return BSSN_DT_AIJ(1, 2); }
+  real_t ev_A13(PointData *paq) { return BSSN_DT_AIJ(1, 3); }
+  real_t ev_A22(PointData *paq) { return BSSN_DT_AIJ(2, 2); }
+  real_t ev_A23(PointData *paq) { return BSSN_DT_AIJ(2, 3); }
+  real_t ev_A33(PointData *paq) { return BSSN_DT_AIJ(3, 3); }
 
-  real_t dt_K()
+  real_t ev_K(PointData *paq)
   {
     return (
-      - paq.DDaTR
-      + paq.alpha*(
-          paq.A11*paq.A11 + paq.A22*paq.A22 + paq.A33*paq.A33
-          + 2.0*(paq.A12*paq.A12 + paq.A13*paq.A13 + paq.A23*paq.A23)
-          + (1.0/3.0)*paq.K*paq.K
+      - paq->DDaTR
+      + paq->alpha*(
+          paq->A11*paq->A11 + paq->A22*paq->A22 + paq->A33*paq->A33
+          + 2.0*(paq->A12*paq->A12 + paq->A13*paq->A13 + paq->A23*paq->A23)
+          + (1.0/3.0)*paq->K*paq->K
         )
-      + paq.beta1*der(K_a, 1, &paq) + paq.beta2*der(K_a, 2, &paq) + paq.beta3*der(K_a, 3, &paq)
+      + paq->beta1*der(K_a, 1, paq) + paq->beta2*der(K_a, 2, paq) + paq->beta3*der(K_a, 3, paq)
     );
   }
 
-  real_t dt_phi()
+  real_t ev_phi(PointData *paq)
   {
     return (
-      1.0/6.0*(der(beta1_a, 1, &paq) + der(beta2_a, 2, &paq) + der(beta3_a, 3, &paq) - paq.alpha*paq.K)
-      + paq.beta1*paq.d1phi + paq.beta2*paq.d2phi + paq.beta3*paq.d3phi
+      1.0/6.0*(der(beta1_a, 1, paq) + der(beta2_a, 2, paq) + der(beta3_a, 3, paq) - paq->alpha*paq->K)
+      + paq->beta1*paq->d1phi + paq->beta2*paq->d2phi + paq->beta3*paq->d3phi
     );
   }
 
-  real_t dt_GAMMA1() { return BSSN_DT_GAMMAI(1); }
-  real_t dt_GAMMA2() { return BSSN_DT_GAMMAI(2); }
-  real_t dt_GAMMA3() { return BSSN_DT_GAMMAI(3); }
+  real_t ev_GAMMA1(PointData *paq) { return BSSN_DT_GAMMAI(1); }
+  real_t ev_GAMMA2(PointData *paq) { return BSSN_DT_GAMMAI(2); }
+  real_t ev_GAMMA3(PointData *paq) { return BSSN_DT_GAMMAI(3); }
+
+  /* calculate needed quantities (need the inverse metric set everywhere first) */
+  inline void set_paq_values(int i, int j, int k, PointData *paq)
+  {
+    set_paq_index(i, j, k, paq);
+    set_local_vals(paq);
+    // gammas & derivs first
+    calculate_Acont(paq);
+    calculate_dgamma(paq);
+    calculate_ddgamma(paq);
+    calculate_dgammai(paq);
+    calculate_dalpha_dphi(paq);
+    // Christoffels depend on metric & derivs.
+    calculate_christoffels(paq);
+    // Ricci, DDa, DDw depend on christoffels, metric, and derivs
+    calculateRicciTF(paq);
+    calculateDDphi(paq);
+    calculateDDalphaTF(paq);
+  }
+
+  inline void set_paq_index(int i, int j, int k, PointData *paq)
+  {
+    paq->i = i;
+    paq->i = j;
+    paq->i = k;
+    paq->idx = INDEX(i,j,k);
+  }
 
 };
 

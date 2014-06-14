@@ -2,6 +2,7 @@
 #define COSMO_DEFINES
 
 #define N 256
+#define POINTS (N*N*N)
 #define dt 0.1
 
 #define RESTRICT __restrict__
@@ -20,31 +21,32 @@
 
 
 #define RK4_ARRAY_CREATE(name) \
-        real_t * name##_a, * name##_p, * name##_i
+        real_t * name##_a, * name##_k, * name##_p, * name##_f
 
 #define RK4_ARRAY_ALLOC(name) \
         name##_a   = new real_t[N*N*N]; \
+        name##_k   = new real_t[N*N*N]; \
         name##_p   = new real_t[N*N*N]; \
-        name##_i   = new real_t[N*N*N]
+        name##_f   = new real_t[N*N*N]
 
 #define RK4_ARRAY_DELETE(name) \
         delete [] name##_a;    \
+        delete [] name##_k;    \
         delete [] name##_p;    \
-        delete [] name##_i
+        delete [] name##_f
 
 #define DECLARE_REAL_T(name) real_t name
 
-#define SET_LOCAL_VALUES(name) paq.name = name##_a[paq.idx]
+#define SET_LOCAL_VALUES(name) paq->name = name##_a[paq->idx]
 
-// RK4 has a diagonal tableau, so we only need to compute
-// the coefficients one at a time ("_i" arrays), given the
-// values in the previous step ("_p" arrays).
-#define RK4_ARRAY_ADDMAP(name)          \
+// RK4 method, using 4 "registers".  One for the "_p"revious step data, one
+// for the data being "_a"ctively used for calculation, one for the
+// Runge-"_k"utta coefficient being calculated, and lastly the "_f"inal
+// result of the calculation.
+ #define RK4_ARRAY_ADDMAP(name)          \
         fields[#name "_a"] = name##_a;  \
+        fields[#name "_k"] = name##_k;  \
         fields[#name "_p"] = name##_p;  \
-        fields[#name "_i"] = name##_i
-
-#define RK4_ARRAY_CYCLE(name) \
-        std::swap(name##_a, name##_p)
+        fields[#name "_f"] = name##_f
 
 #endif
