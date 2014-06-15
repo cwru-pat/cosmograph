@@ -60,6 +60,9 @@ typedef struct {
   // local copies of current field values
   BSSN_APPLY_TO_FIELDS(DECLARE_REAL_T)
 
+  // local copies of adjacent current field values for fast derivatives
+  BSSN_APPLY_TO_FIELDS(DECLARE_ADJACENT_REAL_T)
+
 } PointData;
 
 
@@ -77,8 +80,71 @@ public:
   BSSN();
   ~BSSN();
 
-  real_t der(real_t *field, int d, PointData *paq);
-  real_t dder(real_t *field, int d1, int d2, PointData *paq);
+  inline real_t der(real_t field_adj[3][3][3], int d)
+  {
+    switch (d) {
+      case 1:
+        return field_adj[2][1][1] - field_adj[0][1][1];
+        break;
+      case 2:
+        return field_adj[1][2][1] - field_adj[1][0][1];
+        break;
+      case 3:
+        return field_adj[1][1][2] - field_adj[1][1][0];
+        break;
+    }
+
+    /* XXX */
+    return 0;
+  }
+
+  inline real_t dder(real_t field_adj[3][3][3], int d1, int d2)
+  {
+    switch (d1) {
+      case 1:
+        switch (d2) {
+          case 1:
+            return field_adj[0][1][1] + field_adj[2][1][1] - 2.0*field_adj[1][1][1];
+            break;
+          case 2:
+            return field_adj[0][0][1] + field_adj[2][2][1] - field_adj[0][2][1] - field_adj[2][0][1];
+            break;
+          case 3:
+            return field_adj[0][1][0] + field_adj[2][1][2] - field_adj[0][1][2] - field_adj[2][1][0];
+            break;
+        }
+        break;
+      case 2:
+        switch (d2) {
+          case 1:
+            return field_adj[0][0][1] + field_adj[2][2][1] - field_adj[0][2][1] - field_adj[2][0][1];
+            break;
+          case 2:
+            return field_adj[1][0][1] + field_adj[1][2][1] - 2.0*field_adj[1][1][1];
+            break;
+          case 3:
+            return field_adj[1][0][0] + field_adj[1][2][2] - field_adj[1][0][2] - field_adj[1][2][0];
+            break;
+        }
+        break;
+      case 3:
+        switch (d2) {
+          case 1:
+            return field_adj[0][1][0] + field_adj[2][1][2] - field_adj[0][1][2] - field_adj[2][1][0];
+            break;
+          case 2:
+            return field_adj[1][0][0] + field_adj[1][2][2] - field_adj[1][0][2] - field_adj[1][2][0];
+            break;
+          case 3:
+            return field_adj[1][1][0] + field_adj[1][1][2] - 2.0*field_adj[1][1][1];
+            break;
+        }
+        break;
+    }
+
+    /* XXX */
+    return 0.0;
+  }
   
 
   /* set current local field values */
@@ -118,14 +184,14 @@ public:
   inline void calculate_dalpha_dphi(PointData *paq)
   {
     // normal derivatives of phi
-    paq->d1phi = der(phi_a, 1, paq);
-    paq->d2phi = der(phi_a, 2, paq);
-    paq->d3phi = der(phi_a, 3, paq);
+    paq->d1phi = der(paq->phi_adj, 1);
+    paq->d2phi = der(paq->phi_adj, 2);
+    paq->d3phi = der(paq->phi_adj, 3);
 
     // normal derivatives of alpha
-    paq->d1a = der(alpha_a, 1, paq);
-    paq->d2a = der(alpha_a, 2, paq);
-    paq->d3a = der(alpha_a, 3, paq);
+    paq->d1a = der(paq->alpha_adj, 1);
+    paq->d2a = der(paq->alpha_adj, 2);
+    paq->d3a = der(paq->alpha_adj, 3);
   }
 
   /* Calculate trace-free ricci tensor components */

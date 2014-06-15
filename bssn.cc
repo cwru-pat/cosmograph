@@ -94,17 +94,6 @@ void BSSN::step()
   // done!
 }
 
-real_t BSSN::der(real_t *field, int d, PointData *paq)
-{
-  return derivative_stencil(paq->i, paq->j, paq->k, d, field);
-}
-
-real_t BSSN::dder(real_t *field, int d1, int d2, PointData *paq)
-{
-  return double_derivative(paq->i, paq->j, paq->k, d1, d2, field);
-}
-
-
 void BSSN::calculateRicciTF(PointData *paq)
 {
   // unitary pieces
@@ -122,12 +111,12 @@ void BSSN::calculateRicciTF(PointData *paq)
   );
 
   /* phi-piece */
-  paq->ricciTF11 += -2.0*( paq->D1D1phi -2.0*paq->d1phi*paq->d1phi + paq->gamma11*(expression) );
-  paq->ricciTF12 += -2.0*( paq->D1D2phi -2.0*paq->d1phi*paq->d2phi + paq->gamma12*(expression) );
-  paq->ricciTF13 += -2.0*( paq->D1D3phi -2.0*paq->d1phi*paq->d3phi + paq->gamma13*(expression) );
-  paq->ricciTF22 += -2.0*( paq->D2D2phi -2.0*paq->d2phi*paq->d2phi + paq->gamma22*(expression) );
-  paq->ricciTF23 += -2.0*( paq->D2D3phi -2.0*paq->d2phi*paq->d3phi + paq->gamma23*(expression) );
-  paq->ricciTF33 += -2.0*( paq->D3D3phi -2.0*paq->d3phi*paq->d3phi + paq->gamma33*(expression) );
+  paq->ricciTF11 += -2.0*( paq->D1D1phi - 2.0*paq->d1phi*paq->d1phi + paq->gamma11*(expression) );
+  paq->ricciTF12 += -2.0*( paq->D1D2phi - 2.0*paq->d1phi*paq->d2phi + paq->gamma12*(expression) );
+  paq->ricciTF13 += -2.0*( paq->D1D3phi - 2.0*paq->d1phi*paq->d3phi + paq->gamma13*(expression) );
+  paq->ricciTF22 += -2.0*( paq->D2D2phi - 2.0*paq->d2phi*paq->d2phi + paq->gamma22*(expression) );
+  paq->ricciTF23 += -2.0*( paq->D2D3phi - 2.0*paq->d2phi*paq->d3phi + paq->gamma23*(expression) );
+  paq->ricciTF33 += -2.0*( paq->D3D3phi - 2.0*paq->d3phi*paq->d3phi + paq->gamma33*(expression) );
 
   /* remove trace... */ 
   paq->trace = paq->gammai11*paq->ricciTF11 + paq->gammai22*paq->ricciTF22 + paq->gammai33*paq->ricciTF33
@@ -144,12 +133,12 @@ void BSSN::calculateRicciTF(PointData *paq)
 void BSSN::calculateDDphi(PointData *paq)
 {
   // double covariant derivatives, using normal metric
-  paq->D1D1phi = dder(phi_a, 1, 1, paq) - (paq->G111*paq->d1phi + paq->G211*paq->d2phi + paq->G311*paq->d3phi);
-  paq->D1D2phi = dder(phi_a, 1, 2, paq) - (paq->G112*paq->d1phi + paq->G212*paq->d2phi + paq->G312*paq->d3phi);
-  paq->D1D3phi = dder(phi_a, 1, 3, paq) - (paq->G113*paq->d1phi + paq->G213*paq->d2phi + paq->G313*paq->d3phi);
-  paq->D2D2phi = dder(phi_a, 2, 2, paq) - (paq->G122*paq->d1phi + paq->G222*paq->d2phi + paq->G322*paq->d3phi);
-  paq->D2D3phi = dder(phi_a, 2, 3, paq) - (paq->G123*paq->d1phi + paq->G223*paq->d2phi + paq->G323*paq->d3phi);
-  paq->D3D3phi = dder(phi_a, 3, 3, paq) - (paq->G133*paq->d1phi + paq->G233*paq->d2phi + paq->G333*paq->d3phi);
+  paq->D1D1phi = dder(paq->phi_adj, 1, 1) - (paq->G111*paq->d1phi + paq->G211*paq->d2phi + paq->G311*paq->d3phi);
+  paq->D1D2phi = dder(paq->phi_adj, 1, 2) - (paq->G112*paq->d1phi + paq->G212*paq->d2phi + paq->G312*paq->d3phi);
+  paq->D1D3phi = dder(paq->phi_adj, 1, 3) - (paq->G113*paq->d1phi + paq->G213*paq->d2phi + paq->G313*paq->d3phi);
+  paq->D2D2phi = dder(paq->phi_adj, 2, 2) - (paq->G122*paq->d1phi + paq->G222*paq->d2phi + paq->G322*paq->d3phi);
+  paq->D2D3phi = dder(paq->phi_adj, 2, 3) - (paq->G123*paq->d1phi + paq->G223*paq->d2phi + paq->G323*paq->d3phi);
+  paq->D3D3phi = dder(paq->phi_adj, 3, 3) - (paq->G133*paq->d1phi + paq->G233*paq->d2phi + paq->G333*paq->d3phi);
 }
 
 void BSSN::calculateDDalphaTF(PointData *paq)
@@ -196,14 +185,14 @@ real_t BSSN::ev_K(PointData *paq)
         + 2.0*(paq->A12*paq->A12 + paq->A13*paq->A13 + paq->A23*paq->A23)
         + (1.0/3.0)*paq->K*paq->K
       )
-    + paq->beta1*der(K_a, 1, paq) + paq->beta2*der(K_a, 2, paq) + paq->beta3*der(K_a, 3, paq)
+    + paq->beta1*der(paq->K_adj, 1) + paq->beta2*der(paq->K_adj, 2) + paq->beta3*der(paq->K_adj, 3)
   );
 }
 
 real_t BSSN::ev_phi(PointData *paq)
 {
   return (
-    1.0/6.0*(der(beta1_a, 1, paq) + der(beta2_a, 2, paq) + der(beta3_a, 3, paq) - paq->alpha*paq->K)
+    1.0/6.0*(der(paq->beta1_adj, 1) + der(paq->beta2_adj, 2) + der(paq->beta3_adj, 3) - paq->alpha*paq->K)
     + paq->beta1*paq->d1phi + paq->beta2*paq->d2phi + paq->beta3*paq->d3phi
   );
 }
