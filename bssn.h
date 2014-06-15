@@ -150,7 +150,43 @@ public:
   /* set current local field values */
   inline void set_local_vals(PointData *paq)
   {
-    BSSN_APPLY_TO_FIELDS(SET_LOCAL_VALUES)
+    // Need full mixed 2nd derivatives for all of these
+    SET_LOCAL_VALUES_PFE(gamma11);
+    SET_LOCAL_VALUES_PFE(gamma12);
+    SET_LOCAL_VALUES_PFE(gamma13);
+    SET_LOCAL_VALUES_PFE(gamma22);
+    SET_LOCAL_VALUES_PFE(gamma23);
+    SET_LOCAL_VALUES_PFE(gamma33);
+    SET_LOCAL_VALUES_PFE(phi);
+    SET_LOCAL_VALUES_PFE(K);
+
+    SET_LOCAL_VALUES_PFE(beta1);
+    SET_LOCAL_VALUES_PFE(beta2);
+    SET_LOCAL_VALUES_PFE(beta3);
+    
+    SET_LOCAL_VALUES_PFE(alpha);
+
+    // It might be faster to compute these at each step,
+    //  rather than pulling them out of memory?
+    // only first-derivatives here, at least.
+    SET_LOCAL_VALUES_PF(gammai11);
+    SET_LOCAL_VALUES_PF(gammai12);
+    SET_LOCAL_VALUES_PF(gammai13);
+    SET_LOCAL_VALUES_PF(gammai22);
+    SET_LOCAL_VALUES_PF(gammai23);
+    SET_LOCAL_VALUES_PF(gammai33);
+
+    // adjacent values of these aren't needed (no derivatives taken)
+    SET_LOCAL_VALUES_P(Gamma1);
+    SET_LOCAL_VALUES_P(Gamma2);
+    SET_LOCAL_VALUES_P(Gamma3);
+    SET_LOCAL_VALUES_P(A11);
+    SET_LOCAL_VALUES_P(A12);
+    SET_LOCAL_VALUES_P(A13);
+    SET_LOCAL_VALUES_P(A22);
+    SET_LOCAL_VALUES_P(A23);
+    SET_LOCAL_VALUES_P(A33);
+
   }
 
   inline void calculate_Acont(PointData *paq)

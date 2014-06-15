@@ -39,17 +39,19 @@
 
 #define DECLARE_ADJACENT_REAL_T(name) real_t name##_adj[3][3][3]
 
-#define SET_LOCAL_VALUES(name) \
+// full 3x3 array (probably not needed ever?)
+// Points, Faces, Edges, and Corners
+#define SET_LOCAL_VALUES_PFEC(name) \
     paq->name = name##_a[paq->idx];                                              \
-  /*paq->name##_adj[0][0][0] = name##_a[INDEX(paq->i-1, paq->j-1, paq->k-1 )];*/ \
+    paq->name##_adj[0][0][0] = name##_a[INDEX(paq->i-1, paq->j-1, paq->k-1 )];   \
     paq->name##_adj[0][0][1] = name##_a[INDEX(paq->i-1, paq->j-1, paq->k   )];   \
-  /*paq->name##_adj[0][0][2] = name##_a[INDEX(paq->i-1, paq->j-1, paq->k+1 )];*/ \
+    paq->name##_adj[0][0][2] = name##_a[INDEX(paq->i-1, paq->j-1, paq->k+1 )];   \
     paq->name##_adj[0][1][0] = name##_a[INDEX(paq->i-1, paq->j,   paq->k-1 )];   \
     paq->name##_adj[0][1][1] = name##_a[INDEX(paq->i-1, paq->j,   paq->k   )];   \
     paq->name##_adj[0][1][2] = name##_a[INDEX(paq->i-1, paq->j,   paq->k+1 )];   \
-  /*paq->name##_adj[0][2][0] = name##_a[INDEX(paq->i-1, paq->j+1, paq->k-1 )];*/ \
+    paq->name##_adj[0][2][0] = name##_a[INDEX(paq->i-1, paq->j+1, paq->k-1 )];   \
     paq->name##_adj[0][2][1] = name##_a[INDEX(paq->i-1, paq->j+1, paq->k   )];   \
-  /*paq->name##_adj[0][2][2] = name##_a[INDEX(paq->i-1, paq->j+1, paq->k+1 )];*/ \
+    paq->name##_adj[0][2][2] = name##_a[INDEX(paq->i-1, paq->j+1, paq->k+1 )];   \
     paq->name##_adj[1][0][0] = name##_a[INDEX(paq->i,   paq->j-1, paq->k-1 )];   \
     paq->name##_adj[1][0][1] = name##_a[INDEX(paq->i,   paq->j-1, paq->k   )];   \
     paq->name##_adj[1][0][2] = name##_a[INDEX(paq->i,   paq->j-1, paq->k+1 )];   \
@@ -59,15 +61,53 @@
     paq->name##_adj[1][2][0] = name##_a[INDEX(paq->i,   paq->j+1, paq->k-1 )];   \
     paq->name##_adj[1][2][1] = name##_a[INDEX(paq->i,   paq->j+1, paq->k   )];   \
     paq->name##_adj[1][2][2] = name##_a[INDEX(paq->i,   paq->j+1, paq->k+1 )];   \
-  /*paq->name##_adj[2][0][0] = name##_a[INDEX(paq->i+1, paq->j-1, paq->k-1 )];*/ \
+    paq->name##_adj[2][0][0] = name##_a[INDEX(paq->i+1, paq->j-1, paq->k-1 )];   \
     paq->name##_adj[2][0][1] = name##_a[INDEX(paq->i+1, paq->j-1, paq->k   )];   \
-  /*paq->name##_adj[2][0][2] = name##_a[INDEX(paq->i+1, paq->j-1, paq->k+1 )];*/ \
+    paq->name##_adj[2][0][2] = name##_a[INDEX(paq->i+1, paq->j-1, paq->k+1 )];   \
     paq->name##_adj[2][1][0] = name##_a[INDEX(paq->i+1, paq->j,   paq->k-1 )];   \
     paq->name##_adj[2][1][1] = name##_a[INDEX(paq->i+1, paq->j,   paq->k   )];   \
     paq->name##_adj[2][1][2] = name##_a[INDEX(paq->i+1, paq->j,   paq->k+1 )];   \
-  /*paq->name##_adj[2][2][0] = name##_a[INDEX(paq->i+1, paq->j+1, paq->k-1 )];*/ \
+    paq->name##_adj[2][2][0] = name##_a[INDEX(paq->i+1, paq->j+1, paq->k-1 )];   \
     paq->name##_adj[2][2][1] = name##_a[INDEX(paq->i+1, paq->j+1, paq->k   )];   \
-  /*paq->name##_adj[2][2][2] = name##_a[INDEX(paq->i+1, paq->j+1, paq->k+1 )];*/
+    paq->name##_adj[2][2][2] = name##_a[INDEX(paq->i+1, paq->j+1, paq->k+1 )];
+
+// Points, Faces, and Edges only
+#define SET_LOCAL_VALUES_PFE(name) \
+    paq->name = name##_a[paq->idx];                                              \
+    paq->name##_adj[0][0][1] = name##_a[INDEX(paq->i-1, paq->j-1, paq->k   )];   \
+    paq->name##_adj[0][1][0] = name##_a[INDEX(paq->i-1, paq->j,   paq->k-1 )];   \
+    paq->name##_adj[0][1][1] = name##_a[INDEX(paq->i-1, paq->j,   paq->k   )];   \
+    paq->name##_adj[0][1][2] = name##_a[INDEX(paq->i-1, paq->j,   paq->k+1 )];   \
+    paq->name##_adj[0][2][1] = name##_a[INDEX(paq->i-1, paq->j+1, paq->k   )];   \
+    paq->name##_adj[1][0][0] = name##_a[INDEX(paq->i,   paq->j-1, paq->k-1 )];   \
+    paq->name##_adj[1][0][1] = name##_a[INDEX(paq->i,   paq->j-1, paq->k   )];   \
+    paq->name##_adj[1][0][2] = name##_a[INDEX(paq->i,   paq->j-1, paq->k+1 )];   \
+    paq->name##_adj[1][1][0] = name##_a[INDEX(paq->i,   paq->j,   paq->k-1 )];   \
+    paq->name##_adj[1][1][1] = name##_a[INDEX(paq->i,   paq->j,   paq->k   )];   \
+    paq->name##_adj[1][1][2] = name##_a[INDEX(paq->i,   paq->j,   paq->k+1 )];   \
+    paq->name##_adj[1][2][0] = name##_a[INDEX(paq->i,   paq->j+1, paq->k-1 )];   \
+    paq->name##_adj[1][2][1] = name##_a[INDEX(paq->i,   paq->j+1, paq->k   )];   \
+    paq->name##_adj[1][2][2] = name##_a[INDEX(paq->i,   paq->j+1, paq->k+1 )];   \
+    paq->name##_adj[2][0][1] = name##_a[INDEX(paq->i+1, paq->j-1, paq->k   )];   \
+    paq->name##_adj[2][1][0] = name##_a[INDEX(paq->i+1, paq->j,   paq->k-1 )];   \
+    paq->name##_adj[2][1][1] = name##_a[INDEX(paq->i+1, paq->j,   paq->k   )];   \
+    paq->name##_adj[2][1][2] = name##_a[INDEX(paq->i+1, paq->j,   paq->k+1 )];   \
+    paq->name##_adj[2][2][1] = name##_a[INDEX(paq->i+1, paq->j+1, paq->k   )];
+
+// Points and Faces only
+#define SET_LOCAL_VALUES_PF(name) \
+    paq->name = name##_a[paq->idx];                                              \
+    paq->name##_adj[0][1][1] = name##_a[INDEX(paq->i-1, paq->j,   paq->k   )];   \
+    paq->name##_adj[1][0][1] = name##_a[INDEX(paq->i,   paq->j-1, paq->k   )];   \
+    paq->name##_adj[1][1][0] = name##_a[INDEX(paq->i,   paq->j,   paq->k-1 )];   \
+    paq->name##_adj[1][1][1] = name##_a[INDEX(paq->i,   paq->j,   paq->k   )];   \
+    paq->name##_adj[1][1][2] = name##_a[INDEX(paq->i,   paq->j,   paq->k+1 )];   \
+    paq->name##_adj[1][2][1] = name##_a[INDEX(paq->i,   paq->j+1, paq->k   )];   \
+    paq->name##_adj[2][1][1] = name##_a[INDEX(paq->i+1, paq->j,   paq->k   )];   \
+
+// Point only
+#define SET_LOCAL_VALUES_P(name) \
+    paq->name = name##_a[paq->idx];
 
 // RK4 method, using 4 "registers".  One for the "_p"revious step data, one
 // for the data being "_a"ctively used for calculation, one for the
