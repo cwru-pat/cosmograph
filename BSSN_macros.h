@@ -15,12 +15,6 @@ namespace cosmo
   function(gamma22);                    \
   function(gamma23);                    \
   function(gamma33);                    \
-  function(gammai11);                   \
-  function(gammai12);                   \
-  function(gammai13);                   \
-  function(gammai22);                   \
-  function(gammai23);                   \
-  function(gammai33);                   \
   function(phi);                        \
   function(A11);                        \
   function(A12);                        \
@@ -74,12 +68,6 @@ namespace cosmo
   std::swap(gamma22##reg_prefix_1, gamma22##reg_prefix_2);      \
   std::swap(gamma23##reg_prefix_1, gamma23##reg_prefix_2);      \
   std::swap(gamma33##reg_prefix_1, gamma33##reg_prefix_2);      \
-  std::swap(gammai11##reg_prefix_1, gammai11##reg_prefix_2);    \
-  std::swap(gammai12##reg_prefix_1, gammai12##reg_prefix_2);    \
-  std::swap(gammai13##reg_prefix_1, gammai13##reg_prefix_2);    \
-  std::swap(gammai22##reg_prefix_1, gammai22##reg_prefix_2);    \
-  std::swap(gammai23##reg_prefix_1, gammai23##reg_prefix_2);    \
-  std::swap(gammai33##reg_prefix_1, gammai33##reg_prefix_2);    \
   std::swap(phi##reg_prefix_1, phi##reg_prefix_2);              \
   std::swap(A11##reg_prefix_1, A11##reg_prefix_2);              \
   std::swap(A12##reg_prefix_1, A12##reg_prefix_2);              \
@@ -103,12 +91,6 @@ namespace cosmo
   std::copy(gamma22##reg_prefix_from,  gamma22##reg_prefix_from + POINTS,  gamma22##reg_prefix_to  ); \
   std::copy(gamma23##reg_prefix_from,  gamma23##reg_prefix_from + POINTS,  gamma23##reg_prefix_to  ); \
   std::copy(gamma33##reg_prefix_from,  gamma33##reg_prefix_from + POINTS,  gamma33##reg_prefix_to  ); \
-  std::copy(gammai11##reg_prefix_from, gammai11##reg_prefix_from + POINTS, gammai11##reg_prefix_to ); \
-  std::copy(gammai12##reg_prefix_from, gammai12##reg_prefix_from + POINTS, gammai12##reg_prefix_to ); \
-  std::copy(gammai13##reg_prefix_from, gammai13##reg_prefix_from + POINTS, gammai13##reg_prefix_to ); \
-  std::copy(gammai22##reg_prefix_from, gammai22##reg_prefix_from + POINTS, gammai22##reg_prefix_to ); \
-  std::copy(gammai23##reg_prefix_from, gammai23##reg_prefix_from + POINTS, gammai23##reg_prefix_to ); \
-  std::copy(gammai33##reg_prefix_from, gammai33##reg_prefix_from + POINTS, gammai33##reg_prefix_to ); \
   std::copy(phi##reg_prefix_from,      phi##reg_prefix_from + POINTS,      phi##reg_prefix_to      ); \
   std::copy(A11##reg_prefix_from,      A11##reg_prefix_from + POINTS,      A11##reg_prefix_to      ); \
   std::copy(A12##reg_prefix_from,      A12##reg_prefix_from + POINTS,      A12##reg_prefix_to      ); \
@@ -201,13 +183,15 @@ namespace cosmo
  * Aux. variable calculations
  */
 
-#define BSSN_COMPUTE_GAMMAI(reg) \
-  gammai11##reg[paq.idx] = gamma22##reg[paq.idx]*gamma33##reg[paq.idx] - gamma23##reg[paq.idx]*gamma23##reg[paq.idx]; \
-  gammai12##reg[paq.idx] = gamma13##reg[paq.idx]*gamma23##reg[paq.idx] - gamma12##reg[paq.idx]*gamma33##reg[paq.idx]; \
-  gammai13##reg[paq.idx] = gamma12##reg[paq.idx]*gamma23##reg[paq.idx] - gamma13##reg[paq.idx]*gamma22##reg[paq.idx]; \
-  gammai22##reg[paq.idx] = gamma11##reg[paq.idx]*gamma33##reg[paq.idx] - gamma13##reg[paq.idx]*gamma13##reg[paq.idx]; \
-  gammai23##reg[paq.idx] = gamma12##reg[paq.idx]*gamma13##reg[paq.idx] - gamma23##reg[paq.idx]*gamma11##reg[paq.idx]; \
-  gammai33##reg[paq.idx] = gamma11##reg[paq.idx]*gamma22##reg[paq.idx] - gamma12##reg[paq.idx]*gamma12##reg[paq.idx];
+#define BSSN_COMPUTE_LOCAL_GAMMAI_PF(IJ, f1, f2, f3, f4) \
+  paq->gammai##IJ = paq->gamma##f1*paq->gamma##f2 - paq->gamma##f3*paq->gamma##f4; \
+  paq->gammai##IJ##_adj[0][1][1] = paq->gamma##f1##_adj[0][1][1]*paq->gamma##f2##_adj[0][1][1] - paq->gamma##f3##_adj[0][1][1]*paq->gamma##f4##_adj[0][1][1]; \
+  paq->gammai##IJ##_adj[1][0][1] = paq->gamma##f1##_adj[1][0][1]*paq->gamma##f2##_adj[1][0][1] - paq->gamma##f3##_adj[1][0][1]*paq->gamma##f4##_adj[1][0][1]; \
+  paq->gammai##IJ##_adj[1][1][0] = paq->gamma##f1##_adj[1][1][0]*paq->gamma##f2##_adj[1][1][0] - paq->gamma##f3##_adj[1][1][0]*paq->gamma##f4##_adj[1][1][0]; \
+  paq->gammai##IJ##_adj[1][1][1] = paq->gamma##f1##_adj[1][1][1]*paq->gamma##f2##_adj[1][1][1] - paq->gamma##f3##_adj[1][1][1]*paq->gamma##f4##_adj[1][1][1]; \
+  paq->gammai##IJ##_adj[1][1][2] = paq->gamma##f1##_adj[1][1][2]*paq->gamma##f2##_adj[1][1][2] - paq->gamma##f3##_adj[1][1][2]*paq->gamma##f4##_adj[1][1][2]; \
+  paq->gammai##IJ##_adj[1][2][1] = paq->gamma##f1##_adj[1][2][1]*paq->gamma##f2##_adj[1][2][1] - paq->gamma##f3##_adj[1][2][1]*paq->gamma##f4##_adj[1][2][1]; \
+  paq->gammai##IJ##_adj[2][1][1] = paq->gamma##f1##_adj[2][1][1]*paq->gamma##f2##_adj[2][1][1] - paq->gamma##f3##_adj[2][1][1]*paq->gamma##f4##_adj[2][1][1];
 
 #define BSSN_CALCULATE_CHRISTOFFEL(I, J, K) paq->G##I##J##K = 0.5*( \
     paq->gammai##I##1 * (paq->d##J##g##K##1 + paq->d##K##g##J##1 - paq->d1g##J##K) + \
