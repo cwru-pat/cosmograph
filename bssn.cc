@@ -92,27 +92,33 @@ void BSSN::init()
   {
     paq.idx = INDEX(i,j,k);
 
-    gamma11_p[paq.idx]  = 0.0;
+    gamma11_p[paq.idx]  = 1.1;
     gamma12_p[paq.idx]  = 0.0;
     gamma13_p[paq.idx]  = 0.0;
-    gamma22_p[paq.idx]  = 0.0;
+    gamma22_p[paq.idx]  = 1.0;
     gamma23_p[paq.idx]  = 0.0;
-    gamma33_p[paq.idx]  = 0.0;
-    phi_p[paq.idx]      = 0.0;
+    gamma33_p[paq.idx]  = 1.0/1.1;
+    
+    phi_p[paq.idx]      = 1.0;
+    
     A11_p[paq.idx]      = 0.0;
     A12_p[paq.idx]      = 0.0;
     A13_p[paq.idx]      = 0.0;
     A22_p[paq.idx]      = 0.0;
     A23_p[paq.idx]      = 0.0;
     A33_p[paq.idx]      = 0.0;
+
     K_p[paq.idx]        = 0.0;
+
     Gamma1_p[paq.idx]   = 0.0;
     Gamma2_p[paq.idx]   = 0.0;
     Gamma3_p[paq.idx]   = 0.0;
+
     beta1_p[paq.idx]    = 0.0;
     beta2_p[paq.idx]    = 0.0;
     beta3_p[paq.idx]    = 0.0;
-    alpha_p[paq.idx]    = 0.0;
+
+    alpha_p[paq.idx]    = 1.0;
   }
 }
 

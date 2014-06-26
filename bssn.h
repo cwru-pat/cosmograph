@@ -25,6 +25,11 @@ typedef struct {
     // normal derivatives of
     real_t d1a, d2a, d3a;
 
+  // derivatives of \beta
+    real_t d1beta1, d1beta2, d1beta3,
+           d2beta1, d2beta2, d2beta3,
+           d3beta1, d3beta2, d3beta3;
+
   // derivatives of phi
     // covariant double-derivatives 
     real_t D1D1phi, D1D2phi, D1D3phi, D2D2phi, D2D3phi, D3D3phi;
@@ -87,6 +92,8 @@ public:
 
   real_t der(real_t field_adj[3][3][3], int d)
   {
+   // return 0;
+    
     switch (d) {
       case 1:
         return field_adj[2][1][1] - field_adj[0][1][1];
@@ -105,6 +112,8 @@ public:
 
   real_t dder(real_t field_adj[3][3][3], int d1, int d2)
   {
+    //return 0;
+
     switch (d1) {
       case 1:
         switch (d2) {
@@ -235,6 +244,19 @@ public:
     paq->d3a = der(paq->alpha_adj, 3);
   }
 
+  void calculate_dbeta(PointData *paq)
+  {
+    paq->d1beta1 = der(paq->beta1_adj, 1);
+    paq->d1beta2 = der(paq->beta2_adj, 1);
+    paq->d1beta3 = der(paq->beta3_adj, 1);
+    paq->d2beta1 = der(paq->beta1_adj, 2);
+    paq->d2beta2 = der(paq->beta2_adj, 2);
+    paq->d2beta3 = der(paq->beta3_adj, 2);
+    paq->d3beta1 = der(paq->beta1_adj, 3);
+    paq->d3beta2 = der(paq->beta2_adj, 3);
+    paq->d3beta3 = der(paq->beta3_adj, 3);
+  }
+
   /* Calculate trace-free ricci tensor components */
   void calculateRicciTF(PointData *paq)
   {
@@ -363,6 +385,7 @@ public:
     calculate_dgamma(paq);
     calculate_ddgamma(paq);
     calculate_dgammai(paq);
+    calculate_dbeta(paq);
     calculate_dalpha_dphi(paq);
     // Christoffels depend on metric & derivs.
     calculate_christoffels(paq);

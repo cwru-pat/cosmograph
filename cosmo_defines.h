@@ -1,7 +1,7 @@
 #ifndef COSMO_DEFINES
 #define COSMO_DEFINES
 
-#define N 256
+#define N 128
 #define POINTS (N*N*N)
 #define dt 0.1
 
@@ -63,7 +63,7 @@
 
 // Points, Faces, and Edges only
 #define SET_LOCAL_VALUES_PFE(name) \
-    paq->name = name##_a[paq->idx];                                              \
+    paq->name = name##_a[paq->idx];                \
     paq->name##_adj[0][0][1] = name##_a[idx001];   \
     paq->name##_adj[0][1][0] = name##_a[idx010];   \
     paq->name##_adj[0][1][1] = name##_a[idx011];   \
@@ -86,7 +86,7 @@
 
 // Points and Faces only
 #define SET_LOCAL_VALUES_PF(name) \
-    paq->name = name##_a[paq->idx];                                              \
+    paq->name = name##_a[paq->idx];                \
     paq->name##_adj[0][1][1] = name##_a[idx011];   \
     paq->name##_adj[1][0][1] = name##_a[idx101];   \
     paq->name##_adj[1][1][0] = name##_a[idx110];   \

@@ -253,9 +253,9 @@ namespace cosmo
 
 #define BSSN_DT_GAMMAIJ(I, J) ( \
     - 2.0*paq->alpha*paq->A##I##J \
-    + paq->gamma##I##1*der(paq->beta1_adj, J) + paq->gamma##I##2*der(paq->beta2_adj, J) + paq->gamma##I##3*der(paq->beta3_adj, J) \
-    + paq->gamma##J##1*der(paq->beta1_adj, I) + paq->gamma##J##2*der(paq->beta2_adj, I) + paq->gamma##J##3*der(paq->beta3_adj, I) \
-    - (2.0/3.0)*paq->gamma##I##J*(der(paq->beta1_adj, 1) + der(paq->beta2_adj, 2) + der(paq->beta3_adj, 3)) \
+    + paq->gamma##I##1*paq->d##J##beta1 + paq->gamma##I##2*paq->d##J##beta2 + paq->gamma##I##3*paq->d##J##beta3 \
+    + paq->gamma##J##1*paq->d##I##beta1 + paq->gamma##J##2*paq->d##I##beta2 + paq->gamma##J##3*paq->d##I##beta3 \
+    - (2.0/3.0)*paq->gamma##I##J*(paq->d1beta1 + paq->d2beta2 + paq->d3beta3) \
   )
 
 #define BSSN_DT_AIJ(I, J) ( \
@@ -265,9 +265,9 @@ namespace cosmo
         + 2.0*(paq->Acont12*paq->A12 + paq->Acont13*paq->A13 + paq->Acont23*paq->A23) \
       )) \
     + paq->beta1*der(paq->A##I##J##_adj, 1) + paq->beta2*der(paq->A##I##J##_adj, 2) + paq->beta3*der(paq->A##I##J##_adj, 3) \
-    + paq->A##I##1*der(paq->beta1_adj, J) + paq->A##I##2*der(paq->beta2_adj, J) + paq->A##I##3*der(paq->beta3_adj, J) \
-    + paq->A##J##1*der(paq->beta1_adj, I) + paq->A##J##2*der(paq->beta2_adj, I) + paq->A##J##3*der(paq->beta3_adj, I) \
-    - (2.0/3.0)*paq->A##I##J*(der(paq->beta1_adj, 1) + der(paq->beta2_adj, 2) + der(paq->beta3_adj, 3)) \
+    + paq->A##I##1*paq->d##J##beta1 + paq->A##I##2*paq->d##J##beta2 + paq->A##I##3*paq->d##J##beta3 \
+    + paq->A##J##1*paq->d##I##beta1 + paq->A##J##2*paq->d##I##beta2 + paq->A##J##3*paq->d##I##beta3 \
+    - (2.0/3.0)*paq->A##I##J*(paq->d1beta1 + paq->d2beta2 + paq->d3beta3) \
   )
 
 #define BSSN_DT_GAMMAI(I) ( \
@@ -279,8 +279,8 @@ namespace cosmo
         + 6.0 * (paq->Acont##I##1*paq->d1phi + paq->Acont##I##2*paq->d2phi + paq->Acont##I##2*paq->d2phi) \
       ) \
     + paq->beta1*der(paq->Gamma##I##_adj, 1) + paq->beta2*der(paq->Gamma##I##_adj, 2) + paq->beta3*der(paq->Gamma##I##_adj, 3) \
-    - paq->Gamma1*der(paq->beta##I##_adj, 1) + paq->Gamma2*der(paq->beta##I##_adj, 2) + paq->Gamma3*der(paq->beta##I##_adj, 3) \
-    + (2.0/3.0) * paq->Gamma##I * (der(paq->beta1_adj, 1) + der(paq->beta2_adj, 2) + der(paq->beta3_adj, 3)) \
+    - paq->Gamma1*paq->d1beta##I + paq->Gamma2*paq->d2beta##I + paq->Gamma3*paq->d3beta##I \
+    + (2.0/3.0) * paq->Gamma##I * (paq->d1beta1 + paq->d2beta2 + paq->d3beta3) \
     + (1.0/3.0) * ( \
         paq->gammai##I##1*dder(paq->beta1_adj, 1, 1) + paq->gammai##I##1*dder(paq->beta2_adj, 2, 1) + paq->gammai##I##1*dder(paq->beta3_adj, 3, 1) +  \
         paq->gammai##I##2*dder(paq->beta1_adj, 1, 2) + paq->gammai##I##2*dder(paq->beta2_adj, 2, 2) + paq->gammai##I##2*dder(paq->beta3_adj, 3, 2) +  \
