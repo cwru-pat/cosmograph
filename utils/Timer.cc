@@ -1,6 +1,8 @@
 
 #include "Timer.h"
 
+#include <iomanip>
+
 namespace cosmo
 {
 

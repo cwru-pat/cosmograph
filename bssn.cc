@@ -1,5 +1,6 @@
 
 #include "bssn.h"
+#include "globals.h"
 
 namespace cosmo
 {
@@ -17,7 +18,7 @@ BSSN::~BSSN()
 
 void BSSN::step()
 {
-
+  _timer["step"].start();
   // Init _a register with _p values, _f with 0
   BSSN_COPY_ARRAYS(_p, _a);
   LOOP3(i, j, k)
@@ -95,6 +96,7 @@ void BSSN::step()
   BSSN_SWAP_ARRAYS(_f, _p);
 
   // done!
+  _timer["step"].stop();
 }
 
 void BSSN::init()

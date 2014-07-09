@@ -5,18 +5,17 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include <ctime>
 #include <cmath>
 #include <zlib.h>
 
 /* C++ includes */
 #include <iostream>
 #include <iomanip>
+#include <map>
 #include <fstream>
 #include <algorithm>
 #include <string>
 #include <sstream>
-#include <map>
 
 
 namespace cosmo
@@ -31,8 +30,8 @@ typedef long int idx_t;
 
 #include "utils/math.h"
 #include "utils/io.h"
-#include "utils/Timer.h"
 #include "utils/ConfigParser.h"
+#include "utils/Timer.h"
 #include "Wave.h"
 
 #include "bssn.h"

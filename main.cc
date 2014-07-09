@@ -1,12 +1,16 @@
 
 #include "cosmo.h"
+#include "globals.h"
 
 using namespace std;
 using namespace cosmo;
 
+/* global definitions */
+TimerManager _timer;
+ConfigParser _config;
+
 int main(int argc, char **argv)
 {
-  TimerManager _timer;
   _timer["MAIN"].start();
 
   // read in config file
@@ -17,7 +21,7 @@ int main(int argc, char **argv)
   }
   else
   {
-    ConfigParser _config(argv[1]);
+    _config.parse(argv[1]);
   }
 
   // Create simulation
@@ -34,7 +38,6 @@ int main(int argc, char **argv)
   // evolve simulation
   _timer["loop"].start();
   for(idx_t i=0; i < 10; ++i) {
-    
     cout << "  phi_p = "     << bssnSim.fields["phi_p"][0]
          << "; K_p = "       << bssnSim.fields["K_p"][0]
          << "; A11_p = "     << bssnSim.fields["A11_p"][0]

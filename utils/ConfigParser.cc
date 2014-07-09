@@ -1,10 +1,22 @@
 
 #include "ConfigParser.h"
 
+#include <iostream>
+#include <iomanip>
+#include <fstream>
+
 namespace cosmo
 {
+ConfigParser::ConfigParser()
+{
+}
 
 ConfigParser::ConfigParser(std::string fname)
+{
+  parse(fname);
+}
+
+void ConfigParser::parse(std::string fname)
 {
   /* param = val */
   std::string param;
