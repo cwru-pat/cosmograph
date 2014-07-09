@@ -20,7 +20,7 @@ ConfigParser::ConfigParser(std::string fname)
 
   fin >> param >> eq >> val;
   while(fin) {
-    std::cout << "params[" << param << "] = " << val << std::endl;
+    std::cout << "config[" << param << "] = " << val << std::endl;
     config[param] = val;
     fin >> param >> eq >> val;
   }

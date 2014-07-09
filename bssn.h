@@ -6,7 +6,7 @@
 namespace cosmo
 {
 
-#include "BSSN_macros.h"
+#include "bssn_macros.h"
 
 typedef struct {
 
@@ -96,13 +96,13 @@ public:
     
     switch (d) {
       case 1:
-        return field_adj[2][1][1] - field_adj[0][1][1];
+        return (field_adj[2][1][1] - field_adj[0][1][1])/dx/2.0;
         break;
       case 2:
-        return field_adj[1][2][1] - field_adj[1][0][1];
+        return (field_adj[1][2][1] - field_adj[1][0][1])/dx/2.0;
         break;
       case 3:
-        return field_adj[1][1][2] - field_adj[1][1][0];
+        return (field_adj[1][1][2] - field_adj[1][1][0])/dx/2.0;
         break;
     }
 
@@ -118,39 +118,39 @@ public:
       case 1:
         switch (d2) {
           case 1:
-            return field_adj[0][1][1] + field_adj[2][1][1] - 2.0*field_adj[1][1][1];
+            return (field_adj[0][1][1] + field_adj[2][1][1] - 2.0*field_adj[1][1][1])/dx/dx;
             break;
           case 2:
-            return field_adj[0][0][1] + field_adj[2][2][1] - field_adj[0][2][1] - field_adj[2][0][1];
+            return (field_adj[0][0][1] + field_adj[2][2][1] - field_adj[0][2][1] - field_adj[2][0][1])/dx/dx/4.0;
             break;
           case 3:
-            return field_adj[0][1][0] + field_adj[2][1][2] - field_adj[0][1][2] - field_adj[2][1][0];
+            return (field_adj[0][1][0] + field_adj[2][1][2] - field_adj[0][1][2] - field_adj[2][1][0])/dx/dx/4.0;
             break;
         }
         break;
       case 2:
         switch (d2) {
           case 1:
-            return field_adj[0][0][1] + field_adj[2][2][1] - field_adj[0][2][1] - field_adj[2][0][1];
+            return (field_adj[0][0][1] + field_adj[2][2][1] - field_adj[0][2][1] - field_adj[2][0][1])/dx/dx/4.0;
             break;
           case 2:
-            return field_adj[1][0][1] + field_adj[1][2][1] - 2.0*field_adj[1][1][1];
+            return (field_adj[1][0][1] + field_adj[1][2][1] - 2.0*field_adj[1][1][1])/dx/dx;
             break;
           case 3:
-            return field_adj[1][0][0] + field_adj[1][2][2] - field_adj[1][0][2] - field_adj[1][2][0];
+            return (field_adj[1][0][0] + field_adj[1][2][2] - field_adj[1][0][2] - field_adj[1][2][0])/dx/dx/4.0;
             break;
         }
         break;
       case 3:
         switch (d2) {
           case 1:
-            return field_adj[0][1][0] + field_adj[2][1][2] - field_adj[0][1][2] - field_adj[2][1][0];
+            return (field_adj[0][1][0] + field_adj[2][1][2] - field_adj[0][1][2] - field_adj[2][1][0])/dx/dx/4.0;
             break;
           case 2:
-            return field_adj[1][0][0] + field_adj[1][2][2] - field_adj[1][0][2] - field_adj[1][2][0];
+            return (field_adj[1][0][0] + field_adj[1][2][2] - field_adj[1][0][2] - field_adj[1][2][0])/dx/dx/4.0;
             break;
           case 3:
-            return field_adj[1][1][0] + field_adj[1][1][2] - 2.0*field_adj[1][1][1];
+            return (field_adj[1][1][0] + field_adj[1][1][2] - 2.0*field_adj[1][1][1])/dx/dx;
             break;
         }
         break;
@@ -190,16 +190,16 @@ public:
     BSSN_COMPUTE_LOCAL_GAMMAI_PF(23, 12, 13, 23, 11);
     BSSN_COMPUTE_LOCAL_GAMMAI_PF(33, 11, 22, 12, 12);
 
-    // adjacent values of these aren't needed (no derivatives taken)
-    SET_LOCAL_VALUES_P(Gamma1);
-    SET_LOCAL_VALUES_P(Gamma2);
-    SET_LOCAL_VALUES_P(Gamma3);
-    SET_LOCAL_VALUES_P(A11);
-    SET_LOCAL_VALUES_P(A12);
-    SET_LOCAL_VALUES_P(A13);
-    SET_LOCAL_VALUES_P(A22);
-    SET_LOCAL_VALUES_P(A23);
-    SET_LOCAL_VALUES_P(A33);
+    // adjacent values only
+    SET_LOCAL_VALUES_PF(Gamma1);
+    SET_LOCAL_VALUES_PF(Gamma2);
+    SET_LOCAL_VALUES_PF(Gamma3);
+    SET_LOCAL_VALUES_PF(A11);
+    SET_LOCAL_VALUES_PF(A12);
+    SET_LOCAL_VALUES_PF(A13);
+    SET_LOCAL_VALUES_PF(A22);
+    SET_LOCAL_VALUES_PF(A23);
+    SET_LOCAL_VALUES_PF(A33);
 
   }
 
@@ -285,13 +285,13 @@ public:
     /* remove trace... */ 
     paq->trace = paq->gammai11*paq->ricciTF11 + paq->gammai22*paq->ricciTF22 + paq->gammai33*paq->ricciTF33
         + 2.0*(paq->gammai12*paq->ricciTF12 + paq->gammai13*paq->ricciTF13 + paq->gammai23*paq->ricciTF23);
-    
-    paq->ricciTF11 -= (1/3.0)*paq->gamma11*paq->trace;
-    paq->ricciTF12 -= (1/3.0)*paq->gamma12*paq->trace;
-    paq->ricciTF13 -= (1/3.0)*paq->gamma13*paq->trace;
-    paq->ricciTF22 -= (1/3.0)*paq->gamma22*paq->trace;
-    paq->ricciTF23 -= (1/3.0)*paq->gamma23*paq->trace;
-    paq->ricciTF33 -= (1/3.0)*paq->gamma33*paq->trace;
+  
+    paq->ricciTF11 -= (1.0/3.0)*paq->gamma11*paq->trace;
+    paq->ricciTF12 -= (1.0/3.0)*paq->gamma12*paq->trace;
+    paq->ricciTF13 -= (1.0/3.0)*paq->gamma13*paq->trace;
+    paq->ricciTF22 -= (1.0/3.0)*paq->gamma22*paq->trace;
+    paq->ricciTF23 -= (1.0/3.0)*paq->gamma23*paq->trace;
+    paq->ricciTF33 -= (1.0/3.0)*paq->gamma33*paq->trace;
   }
 
   void calculateDDphi(PointData *paq)
@@ -375,8 +375,8 @@ public:
   void set_paq_values(idx_t i, idx_t j, idx_t k, PointData *paq)
   {
     paq->i = i;
-    paq->i = j;
-    paq->i = k;
+    paq->j = j;
+    paq->k = k;
     paq->idx = INDEX(i,j,k);
 
     set_local_vals(paq);

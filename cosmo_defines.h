@@ -1,9 +1,10 @@
 #ifndef COSMO_DEFINES
 #define COSMO_DEFINES
 
-#define N 128
+#define N 32
 #define POINTS (N*N*N)
 #define dt 0.1
+#define dx 1.0
 
 #define RESTRICT __restrict__
 
@@ -103,7 +104,7 @@
 // for the data being "_a"ctively used for calculation, one for the
 // Runge-Kutta "_c"oefficient being calculated, and lastly the "_f"inal
 // result of the calculation.
- #define RK4_ARRAY_ADDMAP(name)          \
+ #define RK4_ARRAY_ADDMAP(name)         \
         fields[#name "_a"] = name##_a;  \
         fields[#name "_c"] = name##_c;  \
         fields[#name "_p"] = name##_p;  \

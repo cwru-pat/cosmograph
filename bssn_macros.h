@@ -58,31 +58,30 @@ namespace cosmo
   function(3, 1, 3);                  \
   function(3, 2, 2);                  \
   function(3, 2, 3);                  \
-  function(3, 3, 3);                  \
+  function(3, 3, 3);
 
-
-#define BSSN_SWAP_ARRAYS(reg_prefix_1, reg_prefix_2)            \
-  std::swap(gamma11##reg_prefix_1, gamma11##reg_prefix_2);      \
-  std::swap(gamma12##reg_prefix_1, gamma12##reg_prefix_2);      \
-  std::swap(gamma13##reg_prefix_1, gamma13##reg_prefix_2);      \
-  std::swap(gamma22##reg_prefix_1, gamma22##reg_prefix_2);      \
-  std::swap(gamma23##reg_prefix_1, gamma23##reg_prefix_2);      \
-  std::swap(gamma33##reg_prefix_1, gamma33##reg_prefix_2);      \
-  std::swap(phi##reg_prefix_1, phi##reg_prefix_2);              \
-  std::swap(A11##reg_prefix_1, A11##reg_prefix_2);              \
-  std::swap(A12##reg_prefix_1, A12##reg_prefix_2);              \
-  std::swap(A13##reg_prefix_1, A13##reg_prefix_2);              \
-  std::swap(A22##reg_prefix_1, A22##reg_prefix_2);              \
-  std::swap(A23##reg_prefix_1, A23##reg_prefix_2);              \
-  std::swap(A33##reg_prefix_1, A33##reg_prefix_2);              \
-  std::swap(K##reg_prefix_1, K##reg_prefix_2);                  \
-  std::swap(Gamma1##reg_prefix_1, Gamma1##reg_prefix_2);        \
-  std::swap(Gamma2##reg_prefix_1, Gamma2##reg_prefix_2);        \
-  std::swap(Gamma3##reg_prefix_1, Gamma3##reg_prefix_2);        \
-  std::swap(beta1##reg_prefix_1, beta1##reg_prefix_2);          \
-  std::swap(beta2##reg_prefix_1, beta2##reg_prefix_2);          \
-  std::swap(beta3##reg_prefix_1, beta3##reg_prefix_2);          \
-  std::swap(alpha##reg_prefix_1, alpha##reg_prefix_2);
+#define BSSN_SWAP_ARRAYS(reg_prefix_1, reg_prefix_2)         \
+  std::swap(gamma11##reg_prefix_1, gamma11##reg_prefix_2);   \
+  std::swap(gamma12##reg_prefix_1, gamma12##reg_prefix_2);   \
+  std::swap(gamma13##reg_prefix_1, gamma13##reg_prefix_2);   \
+  std::swap(gamma22##reg_prefix_1, gamma22##reg_prefix_2);   \
+  std::swap(gamma23##reg_prefix_1, gamma23##reg_prefix_2);   \
+  std::swap(gamma33##reg_prefix_1, gamma33##reg_prefix_2);   \
+  std::swap(phi##reg_prefix_1,     phi##reg_prefix_2);       \
+  std::swap(A11##reg_prefix_1,     A11##reg_prefix_2);       \
+  std::swap(A12##reg_prefix_1,     A12##reg_prefix_2);       \
+  std::swap(A13##reg_prefix_1,     A13##reg_prefix_2);       \
+  std::swap(A22##reg_prefix_1,     A22##reg_prefix_2);       \
+  std::swap(A23##reg_prefix_1,     A23##reg_prefix_2);       \
+  std::swap(A33##reg_prefix_1,     A33##reg_prefix_2);       \
+  std::swap(K##reg_prefix_1,       K##reg_prefix_2);         \
+  std::swap(Gamma1##reg_prefix_1,  Gamma1##reg_prefix_2);    \
+  std::swap(Gamma2##reg_prefix_1,  Gamma2##reg_prefix_2);    \
+  std::swap(Gamma3##reg_prefix_1,  Gamma3##reg_prefix_2);    \
+  std::swap(beta1##reg_prefix_1,   beta1##reg_prefix_2);     \
+  std::swap(beta2##reg_prefix_1,   beta2##reg_prefix_2);     \
+  std::swap(beta3##reg_prefix_1,   beta3##reg_prefix_2);     \
+  std::swap(alpha##reg_prefix_1,   alpha##reg_prefix_2);
 
 #define BSSN_COPY_ARRAYS(reg_prefix_from, reg_prefix_to)        \
   std::copy(gamma11##reg_prefix_from,  gamma11##reg_prefix_from + POINTS,  gamma11##reg_prefix_to  ); \
@@ -107,76 +106,100 @@ namespace cosmo
   std::copy(beta3##reg_prefix_from,    beta3##reg_prefix_from + POINTS,    beta3##reg_prefix_to    ); \
   std::copy(alpha##reg_prefix_from,    alpha##reg_prefix_from + POINTS,    alpha##reg_prefix_to    );
 
+#define BSSN_ZERO_ARRAY(reg, index) \
+  gamma11##reg[idx] = 0;            \
+  gamma12##reg[idx] = 0;            \
+  gamma13##reg[idx] = 0;            \
+  gamma22##reg[idx] = 0;            \
+  gamma23##reg[idx] = 0;            \
+  gamma33##reg[idx] = 0;            \
+  phi##reg[idx]     = 0;            \
+  A11##reg[idx]     = 0;            \
+  A12##reg[idx]     = 0;            \
+  A13##reg[idx]     = 0;            \
+  A22##reg[idx]     = 0;            \
+  A23##reg[idx]     = 0;            \
+  A33##reg[idx]     = 0;            \
+  K##reg[idx]       = 0;            \
+  Gamma1##reg[idx]  = 0;            \
+  Gamma2##reg[idx]  = 0;            \
+  Gamma3##reg[idx]  = 0;            \
+  beta1##reg[idx]   = 0;            \
+  beta2##reg[idx]   = 0;            \
+  beta3##reg[idx]   = 0;            \
+  alpha##reg[idx]   = 0;
+
+
 // arr_c[idx] = arr_p[idx] + dt*mult*evfn(arr_a);
 #define BSSN_COMPUTE_RK_STEP(mult) \
-  gamma11_c[paq.idx] = gamma11_c[paq.idx] + dt*mult*ev_gamma11(&paq); \
-  gamma12_c[paq.idx] = gamma12_c[paq.idx] + dt*mult*ev_gamma12(&paq); \
-  gamma13_c[paq.idx] = gamma13_c[paq.idx] + dt*mult*ev_gamma13(&paq); \
-  gamma22_c[paq.idx] = gamma22_c[paq.idx] + dt*mult*ev_gamma22(&paq); \
-  gamma23_c[paq.idx] = gamma23_c[paq.idx] + dt*mult*ev_gamma23(&paq); \
-  gamma33_c[paq.idx] = gamma33_c[paq.idx] + dt*mult*ev_gamma33(&paq); \
-  phi_c[paq.idx]     = phi_c[paq.idx]     + dt*mult*ev_phi(&paq);     \
-  A11_c[paq.idx]     = A11_c[paq.idx]     + dt*mult*ev_A11(&paq);     \
-  A12_c[paq.idx]     = A12_c[paq.idx]     + dt*mult*ev_A12(&paq);     \
-  A13_c[paq.idx]     = A13_c[paq.idx]     + dt*mult*ev_A13(&paq);     \
-  A22_c[paq.idx]     = A22_c[paq.idx]     + dt*mult*ev_A22(&paq);     \
-  A23_c[paq.idx]     = A23_c[paq.idx]     + dt*mult*ev_A23(&paq);     \
-  A33_c[paq.idx]     = A33_c[paq.idx]     + dt*mult*ev_A33(&paq);     \
-  K_c[paq.idx]       = K_c[paq.idx]       + dt*mult*ev_K(&paq);       \
-  Gamma1_c[paq.idx]  = Gamma1_c[paq.idx]  + dt*mult*ev_Gamma1(&paq);  \
-  Gamma2_c[paq.idx]  = Gamma2_c[paq.idx]  + dt*mult*ev_Gamma2(&paq);  \
-  Gamma3_c[paq.idx]  = Gamma3_c[paq.idx]  + dt*mult*ev_Gamma3(&paq);  \
-  beta1_c[paq.idx]   = beta1_c[paq.idx]   + dt*mult*ev_beta1(&paq);   \
-  beta2_c[paq.idx]   = beta2_c[paq.idx]   + dt*mult*ev_beta2(&paq);   \
-  beta3_c[paq.idx]   = beta3_c[paq.idx]   + dt*mult*ev_beta3(&paq);   \
-  alpha_c[paq.idx]   = alpha_c[paq.idx]   + dt*mult*ev_alpha(&paq);
+  gamma11_c[paq.idx] = gamma11_p[paq.idx] + dt*mult*ev_gamma11(&paq); \
+  gamma12_c[paq.idx] = gamma12_p[paq.idx] + dt*mult*ev_gamma12(&paq); \
+  gamma13_c[paq.idx] = gamma13_p[paq.idx] + dt*mult*ev_gamma13(&paq); \
+  gamma22_c[paq.idx] = gamma22_p[paq.idx] + dt*mult*ev_gamma22(&paq); \
+  gamma23_c[paq.idx] = gamma23_p[paq.idx] + dt*mult*ev_gamma23(&paq); \
+  gamma33_c[paq.idx] = gamma33_p[paq.idx] + dt*mult*ev_gamma33(&paq); \
+  phi_c[paq.idx]     = phi_p[paq.idx]     + dt*mult*ev_phi(&paq);     \
+  A11_c[paq.idx]     = A11_p[paq.idx]     + dt*mult*ev_A11(&paq);     \
+  A12_c[paq.idx]     = A12_p[paq.idx]     + dt*mult*ev_A12(&paq);     \
+  A13_c[paq.idx]     = A13_p[paq.idx]     + dt*mult*ev_A13(&paq);     \
+  A22_c[paq.idx]     = A22_p[paq.idx]     + dt*mult*ev_A22(&paq);     \
+  A23_c[paq.idx]     = A23_p[paq.idx]     + dt*mult*ev_A23(&paq);     \
+  A33_c[paq.idx]     = A33_p[paq.idx]     + dt*mult*ev_A33(&paq);     \
+  K_c[paq.idx]       = K_p[paq.idx]       + dt*mult*ev_K(&paq);       \
+  Gamma1_c[paq.idx]  = Gamma1_p[paq.idx]  + dt*mult*ev_Gamma1(&paq);  \
+  Gamma2_c[paq.idx]  = Gamma2_p[paq.idx]  + dt*mult*ev_Gamma2(&paq);  \
+  Gamma3_c[paq.idx]  = Gamma3_p[paq.idx]  + dt*mult*ev_Gamma3(&paq);  \
+  beta1_c[paq.idx]   = beta1_p[paq.idx]   + dt*mult*ev_beta1(&paq);   \
+  beta2_c[paq.idx]   = beta2_p[paq.idx]   + dt*mult*ev_beta2(&paq);   \
+  beta3_c[paq.idx]   = beta3_p[paq.idx]   + dt*mult*ev_beta3(&paq);   \
+  alpha_c[paq.idx]   = alpha_p[paq.idx]   + dt*mult*ev_alpha(&paq);
 
 #define BSSN_ADD_C_TO_F(mult) \
-  gamma11_f[paq.idx] += mult*gamma11_p[paq.idx];  \
-  gamma12_f[paq.idx] += mult*gamma12_p[paq.idx];  \
-  gamma13_f[paq.idx] += mult*gamma13_p[paq.idx];  \
-  gamma22_f[paq.idx] += mult*gamma22_p[paq.idx];  \
-  gamma23_f[paq.idx] += mult*gamma23_p[paq.idx];  \
-  gamma33_f[paq.idx] += mult*gamma33_p[paq.idx];  \
-  phi_f[paq.idx]     += mult*phi_p[paq.idx];      \
-  A11_f[paq.idx]     += mult*A11_p[paq.idx];      \
-  A12_f[paq.idx]     += mult*A12_p[paq.idx];      \
-  A13_f[paq.idx]     += mult*A13_p[paq.idx];      \
-  A22_f[paq.idx]     += mult*A22_p[paq.idx];      \
-  A23_f[paq.idx]     += mult*A23_p[paq.idx];      \
-  A33_f[paq.idx]     += mult*A33_p[paq.idx];      \
-  K_f[paq.idx]       += mult*K_p[paq.idx];        \
-  Gamma1_f[paq.idx]  += mult*Gamma1_p[paq.idx];   \
-  Gamma2_f[paq.idx]  += mult*Gamma2_p[paq.idx];   \
-  Gamma3_f[paq.idx]  += mult*Gamma3_p[paq.idx];   \
-  beta1_f[paq.idx]   += mult*beta1_p[paq.idx];    \
-  beta2_f[paq.idx]   += mult*beta2_p[paq.idx];    \
-  beta3_f[paq.idx]   += mult*beta3_p[paq.idx];    \
-  alpha_f[paq.idx]   += mult*alpha_p[paq.idx];
+  gamma11_f[paq.idx] += mult*gamma11_c[paq.idx];  \
+  gamma12_f[paq.idx] += mult*gamma12_c[paq.idx];  \
+  gamma13_f[paq.idx] += mult*gamma13_c[paq.idx];  \
+  gamma22_f[paq.idx] += mult*gamma22_c[paq.idx];  \
+  gamma23_f[paq.idx] += mult*gamma23_c[paq.idx];  \
+  gamma33_f[paq.idx] += mult*gamma33_c[paq.idx];  \
+  phi_f[paq.idx]     += mult*phi_c[paq.idx];      \
+  A11_f[paq.idx]     += mult*A11_c[paq.idx];      \
+  A12_f[paq.idx]     += mult*A12_c[paq.idx];      \
+  A13_f[paq.idx]     += mult*A13_c[paq.idx];      \
+  A22_f[paq.idx]     += mult*A22_c[paq.idx];      \
+  A23_f[paq.idx]     += mult*A23_c[paq.idx];      \
+  A33_f[paq.idx]     += mult*A33_c[paq.idx];      \
+  K_f[paq.idx]       += mult*K_c[paq.idx];        \
+  Gamma1_f[paq.idx]  += mult*Gamma1_c[paq.idx];   \
+  Gamma2_f[paq.idx]  += mult*Gamma2_c[paq.idx];   \
+  Gamma3_f[paq.idx]  += mult*Gamma3_c[paq.idx];   \
+  beta1_f[paq.idx]   += mult*beta1_c[paq.idx];    \
+  beta2_f[paq.idx]   += mult*beta2_c[paq.idx];    \
+  beta3_f[paq.idx]   += mult*beta3_c[paq.idx];    \
+  alpha_f[paq.idx]   += mult*alpha_c[paq.idx];
 
 // arr_f = (1.0/3.0)*(arr_f - arr_p) + (1.0/6.0)*evfn(arr_a)
 #define BSSN_FINAL_RK4_STEP() \
-  gamma11_f[paq.idx] = (1.0/3.0)*(gamma11_f[paq.idx] - gamma11_p[paq.idx]) + (1.0/6.0)*ev_gamma11(&paq); \
-  gamma12_f[paq.idx] = (1.0/3.0)*(gamma12_f[paq.idx] - gamma12_p[paq.idx]) + (1.0/6.0)*ev_gamma12(&paq); \
-  gamma13_f[paq.idx] = (1.0/3.0)*(gamma13_f[paq.idx] - gamma13_p[paq.idx]) + (1.0/6.0)*ev_gamma13(&paq); \
-  gamma22_f[paq.idx] = (1.0/3.0)*(gamma22_f[paq.idx] - gamma22_p[paq.idx]) + (1.0/6.0)*ev_gamma22(&paq); \
-  gamma23_f[paq.idx] = (1.0/3.0)*(gamma23_f[paq.idx] - gamma23_p[paq.idx]) + (1.0/6.0)*ev_gamma23(&paq); \
-  gamma33_f[paq.idx] = (1.0/3.0)*(gamma33_f[paq.idx] - gamma33_p[paq.idx]) + (1.0/6.0)*ev_gamma33(&paq); \
-  phi_f[paq.idx]     = (1.0/3.0)*(phi_f[paq.idx]     - phi_p[paq.idx])     + (1.0/6.0)*ev_phi(&paq);     \
-  A11_f[paq.idx]     = (1.0/3.0)*(A11_f[paq.idx]     - A11_p[paq.idx])     + (1.0/6.0)*ev_A11(&paq);     \
-  A12_f[paq.idx]     = (1.0/3.0)*(A12_f[paq.idx]     - A12_p[paq.idx])     + (1.0/6.0)*ev_A12(&paq);     \
-  A13_f[paq.idx]     = (1.0/3.0)*(A13_f[paq.idx]     - A13_p[paq.idx])     + (1.0/6.0)*ev_A13(&paq);     \
-  A22_f[paq.idx]     = (1.0/3.0)*(A22_f[paq.idx]     - A22_p[paq.idx])     + (1.0/6.0)*ev_A22(&paq);     \
-  A23_f[paq.idx]     = (1.0/3.0)*(A23_f[paq.idx]     - A23_p[paq.idx])     + (1.0/6.0)*ev_A23(&paq);     \
-  A33_f[paq.idx]     = (1.0/3.0)*(A33_f[paq.idx]     - A33_p[paq.idx])     + (1.0/6.0)*ev_A33(&paq);     \
-  K_f[paq.idx]       = (1.0/3.0)*(K_f[paq.idx]       - K_p[paq.idx])       + (1.0/6.0)*ev_K(&paq);       \
-  Gamma1_f[paq.idx]  = (1.0/3.0)*(Gamma1_f[paq.idx]  - Gamma1_p[paq.idx])  + (1.0/6.0)*ev_Gamma1(&paq);  \
-  Gamma2_f[paq.idx]  = (1.0/3.0)*(Gamma2_f[paq.idx]  - Gamma2_p[paq.idx])  + (1.0/6.0)*ev_Gamma2(&paq);  \
-  Gamma3_f[paq.idx]  = (1.0/3.0)*(Gamma3_f[paq.idx]  - Gamma3_p[paq.idx])  + (1.0/6.0)*ev_Gamma3(&paq);  \
-  beta1_f[paq.idx]   = (1.0/3.0)*(beta1_f[paq.idx]   - beta1_p[paq.idx])   + (1.0/6.0)*ev_beta1(&paq);   \
-  beta2_f[paq.idx]   = (1.0/3.0)*(beta2_f[paq.idx]   - beta2_p[paq.idx])   + (1.0/6.0)*ev_beta2(&paq);   \
-  beta3_f[paq.idx]   = (1.0/3.0)*(beta3_f[paq.idx]   - beta3_p[paq.idx])   + (1.0/6.0)*ev_beta3(&paq);   \
-  alpha_f[paq.idx]   = (1.0/3.0)*(alpha_f[paq.idx]   - alpha_p[paq.idx])   + (1.0/6.0)*ev_alpha(&paq);
+  gamma11_f[paq.idx] = (1.0/3.0)*(gamma11_f[paq.idx] - gamma11_p[paq.idx]) + (1.0/6.0)*dt*ev_gamma11(&paq); \
+  gamma12_f[paq.idx] = (1.0/3.0)*(gamma12_f[paq.idx] - gamma12_p[paq.idx]) + (1.0/6.0)*dt*ev_gamma12(&paq); \
+  gamma13_f[paq.idx] = (1.0/3.0)*(gamma13_f[paq.idx] - gamma13_p[paq.idx]) + (1.0/6.0)*dt*ev_gamma13(&paq); \
+  gamma22_f[paq.idx] = (1.0/3.0)*(gamma22_f[paq.idx] - gamma22_p[paq.idx]) + (1.0/6.0)*dt*ev_gamma22(&paq); \
+  gamma23_f[paq.idx] = (1.0/3.0)*(gamma23_f[paq.idx] - gamma23_p[paq.idx]) + (1.0/6.0)*dt*ev_gamma23(&paq); \
+  gamma33_f[paq.idx] = (1.0/3.0)*(gamma33_f[paq.idx] - gamma33_p[paq.idx]) + (1.0/6.0)*dt*ev_gamma33(&paq); \
+  phi_f[paq.idx]     = (1.0/3.0)*(phi_f[paq.idx]     - phi_p[paq.idx])     + (1.0/6.0)*dt*ev_phi(&paq);     \
+  A11_f[paq.idx]     = (1.0/3.0)*(A11_f[paq.idx]     - A11_p[paq.idx])     + (1.0/6.0)*dt*ev_A11(&paq);     \
+  A12_f[paq.idx]     = (1.0/3.0)*(A12_f[paq.idx]     - A12_p[paq.idx])     + (1.0/6.0)*dt*ev_A12(&paq);     \
+  A13_f[paq.idx]     = (1.0/3.0)*(A13_f[paq.idx]     - A13_p[paq.idx])     + (1.0/6.0)*dt*ev_A13(&paq);     \
+  A22_f[paq.idx]     = (1.0/3.0)*(A22_f[paq.idx]     - A22_p[paq.idx])     + (1.0/6.0)*dt*ev_A22(&paq);     \
+  A23_f[paq.idx]     = (1.0/3.0)*(A23_f[paq.idx]     - A23_p[paq.idx])     + (1.0/6.0)*dt*ev_A23(&paq);     \
+  A33_f[paq.idx]     = (1.0/3.0)*(A33_f[paq.idx]     - A33_p[paq.idx])     + (1.0/6.0)*dt*ev_A33(&paq);     \
+  K_f[paq.idx]       = (1.0/3.0)*(K_f[paq.idx]       - K_p[paq.idx])       + (1.0/6.0)*dt*ev_K(&paq);       \
+  Gamma1_f[paq.idx]  = (1.0/3.0)*(Gamma1_f[paq.idx]  - Gamma1_p[paq.idx])  + (1.0/6.0)*dt*ev_Gamma1(&paq);  \
+  Gamma2_f[paq.idx]  = (1.0/3.0)*(Gamma2_f[paq.idx]  - Gamma2_p[paq.idx])  + (1.0/6.0)*dt*ev_Gamma2(&paq);  \
+  Gamma3_f[paq.idx]  = (1.0/3.0)*(Gamma3_f[paq.idx]  - Gamma3_p[paq.idx])  + (1.0/6.0)*dt*ev_Gamma3(&paq);  \
+  beta1_f[paq.idx]   = (1.0/3.0)*(beta1_f[paq.idx]   - beta1_p[paq.idx])   + (1.0/6.0)*dt*ev_beta1(&paq);   \
+  beta2_f[paq.idx]   = (1.0/3.0)*(beta2_f[paq.idx]   - beta2_p[paq.idx])   + (1.0/6.0)*dt*ev_beta2(&paq);   \
+  beta3_f[paq.idx]   = (1.0/3.0)*(beta3_f[paq.idx]   - beta3_p[paq.idx])   + (1.0/6.0)*dt*ev_beta3(&paq);   \
+  alpha_f[paq.idx]   = (1.0/3.0)*(alpha_f[paq.idx]   - alpha_p[paq.idx])   + (1.0/6.0)*dt*ev_alpha(&paq);
 
 
 /*
@@ -238,12 +261,12 @@ namespace cosmo
     ) \
   );
 
-#define BSSN_CALCULATE_DIDJGAMMA_PERMS(I, J)              \
-  paq->d##I##d##J##g11 = dder(paq->gamma11_adj, I, J);      \
-  paq->d##I##d##J##g12 = dder(paq->gamma12_adj, I, J);      \
-  paq->d##I##d##J##g13 = dder(paq->gamma13_adj, I, J);      \
-  paq->d##I##d##J##g22 = dder(paq->gamma22_adj, I, J);      \
-  paq->d##I##d##J##g23 = dder(paq->gamma23_adj, I, J);      \
+#define BSSN_CALCULATE_DIDJGAMMA_PERMS(I, J)           \
+  paq->d##I##d##J##g11 = dder(paq->gamma11_adj, I, J); \
+  paq->d##I##d##J##g12 = dder(paq->gamma12_adj, I, J); \
+  paq->d##I##d##J##g13 = dder(paq->gamma13_adj, I, J); \
+  paq->d##I##d##J##g22 = dder(paq->gamma22_adj, I, J); \
+  paq->d##I##d##J##g23 = dder(paq->gamma23_adj, I, J); \
   paq->d##I##d##J##g33 = dder(paq->gamma33_adj, I, J)
 
 

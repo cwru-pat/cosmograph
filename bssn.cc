@@ -18,8 +18,13 @@ BSSN::~BSSN()
 void BSSN::step()
 {
 
-  // Init arr_a with _p values
+  // Init _a register with _p values, _f with 0
   BSSN_COPY_ARRAYS(_p, _a);
+  LOOP3(i, j, k)
+  {
+    idx_t idx = INDEX(i, j, k);
+    BSSN_ZERO_ARRAY(_f, idx);
+  }
 
   // First RK step: add in k_1 coeff
   LOOP3(i, j, k)
@@ -37,6 +42,7 @@ void BSSN::step()
   // swap _c <-> _a registers
   BSSN_SWAP_ARRAYS(_c, _a);
 
+
   // Calculate k_2 coeff (using k_1 values now in _a register):
   LOOP3(i, j, k)
   {
@@ -52,6 +58,7 @@ void BSSN::step()
   }
   // swap _c <-> _a
   BSSN_SWAP_ARRAYS(_c, _a);
+
 
   // Calculate k_3 coeff (using k_2 values now in _a register):
   LOOP3(i, j, k)
@@ -69,6 +76,7 @@ void BSSN::step()
   // swap _c <-> _a
   BSSN_SWAP_ARRAYS(_c, _a);
 
+
   // Add in k_4 contribution to _f register and "weight" correctly:
   LOOP3(i, j, k)
   {
@@ -76,9 +84,12 @@ void BSSN::step()
 
     // evolve fields and add to _f register:
     // arr_f = arr_p + dt/6*(k_1 + 2*k_2 + 2*k_3 + k_4)
-//TODO: // arr_f = (1.0/3.0)*(arr_f - arr_p) + (1.0/6.0)*evfn(arr_a)
+    //       = (1.0/3.0)*(arr_f - arr_p) + (1.0/6.0)*evfn(arr_a)
+    BSSN_FINAL_RK4_STEP();
 
   }
+
+
   // arr_f register now holds "final" calculation; move back to _p register:
   // swap _f <-> _p
   BSSN_SWAP_ARRAYS(_f, _p);

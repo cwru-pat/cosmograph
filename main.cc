@@ -9,15 +9,41 @@ int main(int argc, char **argv)
   TimerManager _timer;
   _timer["MAIN"].start();
 
-  ConfigParser _config("config.txt");
+  // read in config file
+  if(argc != 2)
+  {
+    cout << "Error: please supply exactly one config filename as an argument.\n";
+    return EXIT_FAILURE;
+  }
+  else
+  {
+    ConfigParser _config(argv[1]);
+  }
 
-  const idx_t n = 1;
+  // Create simulation
+  BSSN bssnSim;
 
-  BSSN simulation;
+  // initial conditions
+  _timer["init"].start();
+  bssnSim.init();
+  _timer["init"].stop();
+  _timer["output"].start();
+  //io_dump_strip(bssnSim.fields["alpha_p"], 1, 1, 1);
+  _timer["output"].stop();
 
+  // evolve simulation
   _timer["loop"].start();
-  for(idx_t i=0; i < n; ++i) {
-    simulation.step();
+  for(idx_t i=0; i < 10; ++i) {
+    
+    cout << "  phi_p = "     << bssnSim.fields["phi_p"][0]
+         << "; K_p = "       << bssnSim.fields["K_p"][0]
+         << "; A11_p = "     << bssnSim.fields["A11_p"][0]
+         << "; gamma11_p = " << bssnSim.fields["gamma11_p"][0]
+         << "; Gamma1_p = "  << bssnSim.fields["Gamma1_p"][0]
+         << " \n";
+
+    bssnSim.step();
+
   }
   _timer["loop"].stop();
 
