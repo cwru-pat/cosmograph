@@ -1,9 +1,6 @@
 #ifndef BSSN_MACROS
 #define BSSN_MACROS
 
-namespace cosmo
-{
-
 /*
  * applying functions to lots of vars
  */
@@ -29,7 +26,17 @@ namespace cosmo
   function(beta1);                      \
   function(beta2);                      \
   function(beta3);                      \
-  function(alpha);
+  function(alpha);                      \
+  function(T00);                        \
+  function(T01);                        \
+  function(T02);                        \
+  function(T03);                        \
+  function(T11);                        \
+  function(T12);                        \
+  function(T13);                        \
+  function(T22);                        \
+  function(T23);                        \
+  function(T33);
 
 #define BSSN_APPLY_TO_IJ_PERMS(function) \
   function(1, 1);                  \
@@ -433,7 +440,5 @@ namespace cosmo
 #define d3d2g21 d2d3g12
 #define d3d2g31 d2d3g13
 #define d3d2g32 d2d3g23
-
-}
 
 #endif

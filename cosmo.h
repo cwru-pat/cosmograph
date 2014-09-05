@@ -35,5 +35,6 @@ typedef long int idx_t;
 #include "Wave.h"
 
 #include "bssn.h"
+#include "hydro.h"
 
 #endif

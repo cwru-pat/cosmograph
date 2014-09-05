@@ -1,5 +1,6 @@
 
 #include "Wave.h"
+#include "globals.h"
 
 namespace cosmo
 {

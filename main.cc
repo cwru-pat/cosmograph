@@ -26,26 +26,57 @@ int main(int argc, char **argv)
 
   // Create simulation
   BSSN bssnSim;
+  Hydro hydroSim(&bssnSim); // one fluid
 
   // initial conditions
   _timer["init"].start();
   bssnSim.init();
+  hydroSim.init();
   _timer["init"].stop();
-  _timer["output"].start();
-  //io_dump_strip(bssnSim.fields["alpha_p"], 1, 1, 1);
-  _timer["output"].stop();
+
 
   // evolve simulation
   _timer["loop"].start();
-  for(idx_t i=0; i < 10; ++i) {
-    cout << "  phi_p = "     << bssnSim.fields["phi_p"][0]
-         << "; K_p = "       << bssnSim.fields["K_p"][0]
-         << "; A11_p = "     << bssnSim.fields["A11_p"][0]
-         << "; gamma11_p = " << bssnSim.fields["gamma11_p"][0]
-         << "; Gamma1_p = "  << bssnSim.fields["Gamma1_p"][0]
+  for(idx_t i=0; i < 50; ++i) {
+
+    cout << "  gamma11_p = " << bssnSim.fields["gamma11_p"][0]
+         << "; phi_p = " << bssnSim.fields["phi_p"][0]
+         << "; K_p = " << bssnSim.fields["K_p"][0]
          << " \n";
 
-    bssnSim.step();
+    // Run RK steps explicitly here (ties together BSSN + Hydro stuff).
+    // See bssn class or hydro class for more explanatory comments.
+    bssnSim.stepInit();
+
+    // First RK step
+    LOOP3(i, j, k)
+    {
+      bssnSim.K1CalcPt(i, j, k);
+    }
+    bssnSim.regSwap_c_a();
+
+    // Second RK step
+    LOOP3(i, j, k)
+    {
+      bssnSim.K2CalcPt(i, j, k);
+    }
+    bssnSim.regSwap_c_a();
+
+    // Third RK step
+    LOOP3(i, j, k)
+    {
+      bssnSim.K3CalcPt(i, j, k);
+    }
+    bssnSim.regSwap_c_a();
+
+    // Fourth RK step
+    LOOP3(i, j, k)
+    {
+      bssnSim.K4CalcPt(i, j, k);
+    }
+
+    // Wrap up
+    bssnSim.stepTerm();
 
   }
   _timer["loop"].stop();

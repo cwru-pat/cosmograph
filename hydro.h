@@ -2,13 +2,20 @@
 #define COSMO_HYDRO
 
 #include "cosmo.h"
+#include "globals.h"
+
+#include "hydro_macros.h"
 
 namespace cosmo
 {
 
+class BSSN;
+
 typedef struct {
 
   idx_t i, j, k, idx;
+
+
 
 } HydroData;
 
@@ -19,46 +26,72 @@ class Hydro
   /* local values */
   HydroData paq;
 
+  /* Reference to sim of GR Fields */
+  BSSN *bssnSim;
+
+  /* Fluid fields */
+  HYDRO_APPLY_TO_FIELDS(RK4_ARRAY_CREATE)
+
 public:
   std::map <std::string, real_t *> fields;
 
-  BSSN();
-  ~BSSN();
-
-  real_t der(real_t field_adj[3][3][3], int d)
+  Hydro(BSSN *bssnSimRef)
   {
-   // return 0;
-    
-    switch (d) {
-      case 1:
-        return field_adj[2][1][1] - field_adj[0][1][1];
-        break;
-      case 2:
-        return field_adj[1][2][1] - field_adj[1][0][1];
-        break;
-      case 3:
-        return field_adj[1][1][2] - field_adj[1][1][0];
-        break;
-    }
+    HYDRO_APPLY_TO_FIELDS(RK4_ARRAY_ALLOC)
+    HYDRO_APPLY_TO_FIELDS(RK4_ARRAY_ADDMAP)
 
-    /* XXX */
-    return 0;
+    bssnSim = bssnSimRef;
+  }
+  ~Hydro()
+  {
+    HYDRO_APPLY_TO_FIELDS(RK4_ARRAY_DELETE)
   }
 
   /* set current local field values */
-  void set_local_vals(PointData *paq)
+  void set_local_vals()
   {
 
   }
 
-  // calculate needed quantities (need the inverse metric set everywhere first)
-  void set_paq_values(idx_t i, idx_t j, idx_t k, PointData *paq)
+  void extract_primitive_variables()
+  {
+    
+  }
+
+  /* set conserved values (constructed from other quantities) */
+  void set_flux_src_vals()
+  {
+    idx_t idx;
+
+    // flux values
+    LOOP3(i, j, k)
+    {
+      // idx = INDEX(i, j, k);
+      
+      // F0_1[idx] = U0_1[idx]*v_1
+
+
+    }
+
+
+  }
+
+  // calculate needed quantities
+  void set_paq_values(idx_t i, idx_t j, idx_t k)
+  {
+    
+  }
+
+  void step()
   {
 
   }
 
-  void step();
-  void init();
+  void init()
+  {
+    // initialize values
+
+  }
 
 };
 

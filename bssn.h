@@ -2,11 +2,12 @@
 #define COSMO_BSSN
 
 #include "cosmo.h"
+#include "globals.h"
+
+#include "bssn_macros.h"
 
 namespace cosmo
 {
-
-#include "bssn_macros.h"
 
 typedef struct {
 
@@ -73,6 +74,9 @@ typedef struct {
   // local copies of adjacent current field values for fast derivatives
   BSSN_APPLY_TO_FIELDS(DECLARE_ADJACENT_REAL_T)
 
+  // source?
+  real_t rho; // energy density
+
 } PointData;
 
 
@@ -89,6 +93,19 @@ public:
 
   BSSN();
   ~BSSN();
+
+  void regSwap_c_a();
+
+  void stepInit();
+  void K1Calc();
+  void K1CalcPt(idx_t i, idx_t j, idx_t k);
+  void K2Calc();
+  void K2CalcPt(idx_t i, idx_t j, idx_t k);
+  void K3Calc();
+  void K3CalcPt(idx_t i, idx_t j, idx_t k);
+  void K4Calc();
+  void K4CalcPt(idx_t i, idx_t j, idx_t k);
+  void stepTerm();
 
   real_t der(real_t field_adj[3][3][3], int d)
   {
@@ -200,7 +217,6 @@ public:
     SET_LOCAL_VALUES_PF(A22);
     SET_LOCAL_VALUES_PF(A23);
     SET_LOCAL_VALUES_PF(A33);
-
   }
 
   void calculate_Acont(PointData *paq)
@@ -350,6 +366,7 @@ public:
           + (1.0/3.0)*paq->K*paq->K
         )
       + paq->beta1*der(paq->K_adj, 1) + paq->beta2*der(paq->K_adj, 2) + paq->beta3*der(paq->K_adj, 3)
+      + 4.0*PI*paq->alpha*paq->rho
     );
   }
 
@@ -379,7 +396,13 @@ public:
     paq->k = k;
     paq->idx = INDEX(i,j,k);
 
+    // source terms?
+    paq->rho = -3.0/PI/8.0;
+
+    // draw data from cache
     set_local_vals(paq);
+
+    // pre-compute re-used quantities
     // gammas & derivs first
     calculate_Acont(paq);
     calculate_dgamma(paq);

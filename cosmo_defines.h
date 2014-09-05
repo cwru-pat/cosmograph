@@ -1,10 +1,12 @@
 #ifndef COSMO_DEFINES
 #define COSMO_DEFINES
 
-#define N 32
+#define N 16
 #define POINTS (N*N*N)
 #define dt 0.1
 #define dx 1.0
+
+#define PI (4.0*atan(1.0))
 
 #define RESTRICT __restrict__
 
