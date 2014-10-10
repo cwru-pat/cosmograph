@@ -36,6 +36,8 @@ class Hydro
 
   /* Fluid fields */
   HYDRO_APPLY_TO_FIELDS(GEN2_ARRAY_CREATE)
+  HYDRO_APPLY_TO_FLUXES(FLUX_ARRAY_CREATE)
+  HYDRO_APPLY_TO_SOURCES(GEN1_ARRAY_CREATE)
 
 public:
   std::map <std::string, real_t *> fields;
@@ -43,13 +45,20 @@ public:
   Hydro(BSSN *bssnSimRef)
   {
     HYDRO_APPLY_TO_FIELDS(GEN2_ARRAY_ALLOC)
+    HYDRO_APPLY_TO_FLUXES(FLUX_ARRAY_ALLOC)
+    HYDRO_APPLY_TO_SOURCES(GEN1_ARRAY_ALLOC)
+
     HYDRO_APPLY_TO_FIELDS(GEN2_ARRAY_ADDMAP)
+    HYDRO_APPLY_TO_FLUXES(FLUX_ARRAY_ADDMAP)
+    HYDRO_APPLY_TO_SOURCES(GEN1_ARRAY_ADDMAP)
 
     bssnSim = bssnSimRef;
   }
   ~Hydro()
   {
     HYDRO_APPLY_TO_FIELDS(GEN2_ARRAY_DELETE)
+    HYDRO_APPLY_TO_FLUXES(FLUX_ARRAY_DELETE)
+    HYDRO_APPLY_TO_FIELDS(GEN1_ARRAY_DELETE)
   }
 
   /* set current local field values */
@@ -69,13 +78,16 @@ void set_paq_values(idx_t i, idx_t j, idx_t k, HydroData *paq)
 
   void WENO_step()
   {
-    set_flux_src_terms();
+    set_primitives();
     // actual step
+    // foreach point
+    //  calculate fluxes
+    //  evolve system
   }
 
-  void set_flux_src_terms()
+  void set_primitives()
   {
-//    LOOP
+    LOOP3(i, j, k)
     {
 
     }

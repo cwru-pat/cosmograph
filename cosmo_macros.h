@@ -11,6 +11,7 @@
 #define RESTRICT __restrict__
 
 #define INDEX(i,j,k) (((i+N)%N)*N*N + ((j+N)%N)*N + (k+N)%N)
+#define F_INDEX(i,j,k,d) (((i+N)%N)*N*N*3 + ((j+N)%N)*N*3 + (k+N)%N*3 + d) /* index 'd' last for now? */
 
 #define LOOP3(i,j,k) \
   for(idx_t i=0; i<N; ++i) \
@@ -113,20 +114,50 @@
 
 
 // A GEN2 method; any method needing 2 registers.
-// Sets up a "_p" (previous) and "_f" (final) register.
+// Sets up a "_p" (previous) and "_a" (active) register.
 #define GEN2_ARRAY_ADDMAP(name)         \
         fields[#name "_p"] = name##_p;  \
-        fields[#name "_f"] = name##_f
+        fields[#name "_a"] = name##_a
 
 #define GEN2_ARRAY_CREATE(name) \
-        real_t * name##_p, * name##_f
+        real_t * name##_p, * name##_a
 
 #define GEN2_ARRAY_ALLOC(name) \
         name##_p   = new real_t[N*N*N]; \
-        name##_f   = new real_t[N*N*N]
+        name##_a   = new real_t[N*N*N]
 
 #define GEN2_ARRAY_DELETE(name) \
         delete [] name##_p;    \
-        delete [] name##_f
+        delete [] name##_a
+
+
+// A GEN1 method; just declares one register.
+// Sets up an "_a" (active) register.
+#define GEN1_ARRAY_ADDMAP(name)         \
+        fields[#name "_a"] = name##_a
+
+#define GEN1_ARRAY_CREATE(name) \
+        real_t * name##_a
+
+#define GEN1_ARRAY_ALLOC(name) \
+        name##_a   = new real_t[N*N*N]
+
+#define GEN1_ARRAY_DELETE(name) \
+        delete [] name##_a
+
+
+// A FLUX method; just declares one register.
+// Sets up a "_a" (active) register.
+#define FLUX_ARRAY_ADDMAP(name)         \
+        fields[#name "_a"] = name##_a
+
+#define FLUX_ARRAY_CREATE(name) \
+        real_t * name##_a
+
+#define FLUX_ARRAY_ALLOC(name) \
+        name##_a   = new real_t[N*N*N*3]
+
+#define FLUX_ARRAY_DELETE(name) \
+        delete [] name##_a
 
 #endif
