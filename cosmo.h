@@ -24,7 +24,7 @@ namespace cosmo
 typedef float real_t;
 typedef long int idx_t;
 
-#include "cosmo_defines.h"
+#include "cosmo_macros.h"
 
 } /* namespace cosmo */
 

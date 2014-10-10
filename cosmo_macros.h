@@ -22,22 +22,6 @@
     for(idx_t j=1; j<N-1; ++j) \
       for(idx_t k=1; k<N-1; ++k)
 
-
-#define RK4_ARRAY_CREATE(name) \
-        real_t * name##_a, * name##_c, * name##_p, * name##_f
-
-#define RK4_ARRAY_ALLOC(name) \
-        name##_a   = new real_t[N*N*N]; \
-        name##_c   = new real_t[N*N*N]; \
-        name##_p   = new real_t[N*N*N]; \
-        name##_f   = new real_t[N*N*N]
-
-#define RK4_ARRAY_DELETE(name) \
-        delete [] name##_a;    \
-        delete [] name##_c;    \
-        delete [] name##_p;    \
-        delete [] name##_f
-
 #define DECLARE_REAL_T(name) real_t name
 
 #define DECLARE_ADJACENT_REAL_T(name) real_t name##_adj[3][3][3]
@@ -111,5 +95,38 @@
         fields[#name "_c"] = name##_c;  \
         fields[#name "_p"] = name##_p;  \
         fields[#name "_f"] = name##_f
+
+#define RK4_ARRAY_CREATE(name) \
+        real_t * name##_a, * name##_c, * name##_p, * name##_f
+
+#define RK4_ARRAY_ALLOC(name) \
+        name##_a   = new real_t[N*N*N]; \
+        name##_c   = new real_t[N*N*N]; \
+        name##_p   = new real_t[N*N*N]; \
+        name##_f   = new real_t[N*N*N]
+
+#define RK4_ARRAY_DELETE(name) \
+        delete [] name##_a;    \
+        delete [] name##_c;    \
+        delete [] name##_p;    \
+        delete [] name##_f
+
+
+// A GEN2 method; any method needing 2 registers.
+// Sets up a "_p" (previous) and "_f" (final) register.
+#define GEN2_ARRAY_ADDMAP(name)         \
+        fields[#name "_p"] = name##_p;  \
+        fields[#name "_f"] = name##_f
+
+#define GEN2_ARRAY_CREATE(name) \
+        real_t * name##_p, * name##_f
+
+#define GEN2_ARRAY_ALLOC(name) \
+        name##_p   = new real_t[N*N*N]; \
+        name##_f   = new real_t[N*N*N]
+
+#define GEN2_ARRAY_DELETE(name) \
+        delete [] name##_p;    \
+        delete [] name##_f
 
 #endif

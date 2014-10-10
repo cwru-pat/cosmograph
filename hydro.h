@@ -15,6 +15,11 @@ typedef struct {
 
   idx_t i, j, k, idx;
 
+  // local copies of current field values
+  HYDRO_APPLY_TO_FIELDS(DECLARE_REAL_T)
+
+  // local copies of adjacent current field values for fast derivatives
+  HYDRO_APPLY_TO_FIELDS(DECLARE_ADJACENT_REAL_T)
 
 
 } HydroData;
@@ -30,49 +35,55 @@ class Hydro
   BSSN *bssnSim;
 
   /* Fluid fields */
-  HYDRO_APPLY_TO_FIELDS(RK4_ARRAY_CREATE)
+  HYDRO_APPLY_TO_FIELDS(GEN2_ARRAY_CREATE)
 
 public:
   std::map <std::string, real_t *> fields;
 
   Hydro(BSSN *bssnSimRef)
   {
-    HYDRO_APPLY_TO_FIELDS(RK4_ARRAY_ALLOC)
-    HYDRO_APPLY_TO_FIELDS(RK4_ARRAY_ADDMAP)
+    HYDRO_APPLY_TO_FIELDS(GEN2_ARRAY_ALLOC)
+    HYDRO_APPLY_TO_FIELDS(GEN2_ARRAY_ADDMAP)
 
     bssnSim = bssnSimRef;
   }
   ~Hydro()
   {
-    HYDRO_APPLY_TO_FIELDS(RK4_ARRAY_DELETE)
+    HYDRO_APPLY_TO_FIELDS(GEN2_ARRAY_DELETE)
   }
 
   /* set current local field values */
-  void set_local_vals()
+void set_paq_values(idx_t i, idx_t j, idx_t k, HydroData *paq)
   {
+    paq->i = i;
+    paq->j = j;
+    paq->k = k;
+    paq->idx = INDEX(i,j,k);
+
+    // draw data from cache
+    //set_local_vals(paq);
+
+    // pre-compute re-used quantities
 
   }
 
-  void extract_primitive_variables()
+  void WENO_step()
   {
-    
+    set_flux_src_terms();
+    // actual step
+  }
+
+  void set_flux_src_terms()
+  {
+//    LOOP
+    {
+
+    }
   }
 
   /* set conserved values (constructed from other quantities) */
-  void set_flux_src_vals()
+  void set_bssn_src_vals(idx_t idx)
   {
-    idx_t idx;
-
-    // flux values
-    LOOP3(i, j, k)
-    {
-      // idx = INDEX(i, j, k);
-      
-      // F0_1[idx] = U0_1[idx]*v_1
-
-
-    }
-
 
   }
 

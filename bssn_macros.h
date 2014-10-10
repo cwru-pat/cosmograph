@@ -26,17 +26,7 @@
   function(beta1);                      \
   function(beta2);                      \
   function(beta3);                      \
-  function(alpha);                      \
-  function(T00);                        \
-  function(T01);                        \
-  function(T02);                        \
-  function(T03);                        \
-  function(T11);                        \
-  function(T12);                        \
-  function(T13);                        \
-  function(T22);                        \
-  function(T23);                        \
-  function(T33);
+  function(alpha);
 
 #define BSSN_APPLY_TO_IJ_PERMS(function) \
   function(1, 1);                  \
