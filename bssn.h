@@ -86,11 +86,12 @@ class BSSN
 {
   /* arrays for storing fields */
   BSSN_APPLY_TO_FIELDS(RK4_ARRAY_CREATE)
-  /* local values */
-  BSSNData paq;
 
 public:
   std::map <std::string, real_t *> fields;
+
+  /* local values */
+  BSSNData paq;
 
   BSSN();
   ~BSSN();

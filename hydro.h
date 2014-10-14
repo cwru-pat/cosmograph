@@ -15,13 +15,6 @@ typedef struct {
 
   idx_t i, j, k, idx;
 
-  // local copies of current field values
-  HYDRO_APPLY_TO_FIELDS(DECLARE_REAL_T)
-
-  // local copies of adjacent current field values for fast derivatives
-  HYDRO_APPLY_TO_FIELDS(DECLARE_ADJACENT_REAL_T)
-
-
 } HydroData;
 
 
@@ -30,6 +23,9 @@ class Hydro
 {
   /* local values */
   HydroData paq;
+
+  /* equation of state "w" value */
+  real_t w_EOS;
 
   /* Reference to sim of GR Fields */
   BSSN *bssnSim;
@@ -61,31 +57,41 @@ public:
     HYDRO_APPLY_TO_FIELDS(GEN1_ARRAY_DELETE)
   }
 
-  /* set current local field values */
-void set_paq_values(idx_t i, idx_t j, idx_t k, HydroData *paq)
+  // assumes 
+  void WENOStepPt()
   {
-    paq->i = i;
-    paq->j = j;
-    paq->k = k;
-    paq->idx = INDEX(i,j,k);
+    setPrimitivesPt();
+    set_WENO_fluxes();
+    set_sources();
 
-    // draw data from cache
-    //set_local_vals(paq);
-
-    // pre-compute re-used quantities
+    // next - perform actual evolution (finite volume method)
 
   }
 
-  void WENO_step()
+  void setPrimitivesPt()
   {
-    set_primitives();
-    // actual step
-    // foreach point
-    //  calculate fluxes
-    //  evolve system
+    BSSNData *paq = bssnSim.paq;
+
+    real_t W; /* lorentz factor */
+    real_t g; /* metric determinant */
+
+
+    g = exp(4*paq->phi);
+
+    /* W = (gamma^ij S_j S_j / D^2 / (1+w^2) + 1)^1/2 */
+    W = sqrt(
+        1 + (
+           gi11*US1[idx]*US1[idx] + gi22*US2[idx]*US2[idx] + gi33*US3[idx]*US3[idx]
+            + 2*gi12*US1[idx]*US2[idx] + 2*gi13*US1[idx]*US3[idx] + 2*gi23*US2[idx]*US3[idx]
+          ) / UD[idx] / (1 + w_EOS*w_EOS)
+        );
+
+    /* \rho = D / */
+
+
   }
 
-  void set_primitives()
+  void set_WENO_fluxes()
   {
     LOOP3(i, j, k)
     {
@@ -93,21 +99,12 @@ void set_paq_values(idx_t i, idx_t j, idx_t k, HydroData *paq)
     }
   }
 
-  /* set conserved values (constructed from other quantities) */
-  void set_bssn_src_vals(idx_t idx)
+  void set_sources()
   {
+    LOOP3(i, j, k)
+    {
 
-  }
-
-  // calculate needed quantities
-  void set_paq_values(idx_t i, idx_t j, idx_t k)
-  {
-    
-  }
-
-  void step()
-  {
-
+    }
   }
 
   void init()

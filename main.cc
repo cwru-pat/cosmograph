@@ -45,7 +45,7 @@ int main(int argc, char **argv)
          << " \n";
 
     // Run RK steps explicitly here (ties together BSSN + Hydro stuff).
-    // See bssn class or hydro class for more explanatory comments.
+    // See bssn class or hydro class for more comments.
     bssnSim.stepInit();
 
     // First RK step
