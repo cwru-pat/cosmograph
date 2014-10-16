@@ -17,14 +17,13 @@
 #include <string>
 #include <sstream>
 
+#include "cosmo_macros.h"
 
 namespace cosmo
 {
 
 typedef float real_t;
 typedef long int idx_t;
-
-#include "cosmo_macros.h"
 
 } /* namespace cosmo */
 
@@ -35,6 +34,7 @@ typedef long int idx_t;
 #include "Wave.h"
 
 #include "bssn.h"
+#include "bssn_data.h"
 #include "hydro.h"
 
 #endif

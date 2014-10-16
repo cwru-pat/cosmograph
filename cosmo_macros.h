@@ -1,7 +1,7 @@
 #ifndef COSMO_DEFINES
 #define COSMO_DEFINES
 
-#define N 16
+#define N 32
 #define POINTS (N*N*N)
 #define dt 0.1
 #define dx 1.0
@@ -10,7 +10,13 @@
 
 #define RESTRICT __restrict__
 
-#define INDEX(i,j,k) (((i+N)%N)*N*N + ((j+N)%N)*N + (k+N)%N)
+// standard index
+#define INDEX(i,j,k) ( ((i+N)%N)*N*N + ((j+N)%N)*N + (k+N)%N )
+// fragmented columns index - seems to be slower than standard indexing anyways
+// #define XCP 4 // must evenly divide into N!
+// #define YCP 4 // must evenly divide into N!
+// #define INDEX(i,j,k) ( (((i+N)%N)/XCP)*N*N*XCP + N*( ((i+N)%N)%XCP + (((j+N)%N)/YCP)*YCP*XCP ) + ((j+N)%N)%YCP + ((k+N)%N)*YCP )
+
 #define F_INDEX(i,j,k,d) (((i+N)%N)*N*N*3 + ((j+N)%N)*N*3 + (k+N)%N*3 + d) /* index 'd' last for now? */
 
 #define LOOP3(i,j,k) \

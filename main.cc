@@ -26,7 +26,7 @@ int main(int argc, char **argv)
 
   // Create simulation
   BSSN bssnSim;
-  Hydro hydroSim(&bssnSim); // one fluid
+  Hydro hydroSim; // one fluid
 
   // initial conditions
   _timer["init"].start();
@@ -37,11 +37,11 @@ int main(int argc, char **argv)
 
   // evolve simulation
   _timer["loop"].start();
-  for(idx_t i=0; i < 50; ++i) {
+  for(idx_t i=0; i < 5; ++i) {
 
-    cout << "  gamma11_p = " << bssnSim.fields["gamma11_p"][0]
-         << "; phi_p = " << bssnSim.fields["phi_p"][0]
-         << "; K_p = " << bssnSim.fields["K_p"][0]
+    cout << "  gamma11_f = " << bssnSim.fields["gamma11_f"][0]
+         << "; phi_f = " << bssnSim.fields["phi_f"][0]
+         << "; K_f = " << bssnSim.fields["K_f"][0]
          << " \n";
 
     // Run RK steps explicitly here (ties together BSSN + Hydro stuff).
@@ -54,6 +54,9 @@ int main(int argc, char **argv)
       bssnSim.K1CalcPt(i, j, k);
     }
     bssnSim.regSwap_c_a();
+
+hydroSim.setPrimitivesPt(& bssnSim.paq);
+
 
     // Second RK step
     LOOP3(i, j, k)
