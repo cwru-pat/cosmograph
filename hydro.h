@@ -62,27 +62,24 @@ public:
 
   }
 
-  void setPrimitivesPt(cosmo::BSSNData *paq)
+  void setPrimitivesPt(BSSNData *paq)
   {
-    //pq = (*bssnSim).paq;
+    real_t W; /* lorentz factor */
+    real_t g; /* metric determinant */
+    idx_t idx = paq->idx;
 
-    // printf("%g poop\n", (*paq).phi);
-
-    //real_t W; /* lorentz factor */
-    //real_t g; /* metric determinant */
-
-    //g = exp(4*paq->phi);
+    g = exp(4*paq->phi);
 
     /* W = (gamma^ij S_j S_j / D^2 / (1+w^2) + 1)^1/2 */
-    // W = sqrt(
-    //     1 + (
-    //        paq->gammai11*US1[idx]*US1[idx] + paq->gammai22*US2[idx]*US2[idx] + paq->gammai33*US3[idx]*US3[idx]
-    //         + 2*paq->gammai12*US1[idx]*US2[idx] + 2*paq->gammai13*US1[idx]*US3[idx] + 2*paq->gammai23*US2[idx]*US3[idx]
-    //       ) / UD[idx] / (1 + w_EOS*w_EOS)
-    //     );
+    W = sqrt(
+        1 + (
+           paq->gammai11*US1_a[idx]*US1_a[idx] + paq->gammai22*US2_a[idx]*US2_a[idx] + paq->gammai33*US3_a[idx]*US3_a[idx]
+            + 2*paq->gammai12*US1_a[idx]*US2_a[idx] + 2*paq->gammai13*US1_a[idx]*US3_a[idx] + 2*paq->gammai23*US2_a[idx]*US3_a[idx]
+          ) / UD_a[idx] / (1 + w_EOS*w_EOS)
+        );
 
-    /* \rho = D / */
-
+    /* \rho = D / gamma^1/2 / W */
+    r_a[idx] = UD_a[idx] / sqrt(g) / W;
 
   }
 

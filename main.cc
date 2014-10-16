@@ -26,6 +26,8 @@ int main(int argc, char **argv)
 
   // Create simulation
   BSSN bssnSim;
+  BSSNData b_paq; // data structure associated with bssn sim
+
   Hydro hydroSim; // one fluid
 
   // initial conditions
@@ -51,31 +53,31 @@ int main(int argc, char **argv)
     // First RK step
     LOOP3(i, j, k)
     {
-      bssnSim.K1CalcPt(i, j, k);
+      bssnSim.K1CalcPt(i, j, k, &b_paq);
     }
     bssnSim.regSwap_c_a();
 
-hydroSim.setPrimitivesPt(& bssnSim.paq);
+    hydroSim.setPrimitivesPt(&b_paq);
 
 
     // Second RK step
     LOOP3(i, j, k)
     {
-      bssnSim.K2CalcPt(i, j, k);
+      bssnSim.K2CalcPt(i, j, k, &b_paq);
     }
     bssnSim.regSwap_c_a();
 
     // Third RK step
     LOOP3(i, j, k)
     {
-      bssnSim.K3CalcPt(i, j, k);
+      bssnSim.K3CalcPt(i, j, k, &b_paq);
     }
     bssnSim.regSwap_c_a();
 
     // Fourth RK step
     LOOP3(i, j, k)
     {
-      bssnSim.K4CalcPt(i, j, k);
+      bssnSim.K4CalcPt(i, j, k, &b_paq);
     }
 
     // Wrap up

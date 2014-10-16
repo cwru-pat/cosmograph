@@ -19,75 +19,72 @@ class BSSN
 public:
   std::map <std::string, real_t *> fields;
 
-  /* local values */
-  cosmo::BSSNData paq;
-
   BSSN();
   ~BSSN();
 
   void regSwap_c_a();
 
   void stepInit();
-  void K1Calc();
-  void K1CalcPt(idx_t i, idx_t j, idx_t k);
-  void K2Calc();
-  void K2CalcPt(idx_t i, idx_t j, idx_t k);
-  void K3Calc();
-  void K3CalcPt(idx_t i, idx_t j, idx_t k);
-  void K4Calc();
-  void K4CalcPt(idx_t i, idx_t j, idx_t k);
+  void K1Calc(BSSNData *paq);
+  void K1CalcPt(idx_t i, idx_t j, idx_t k, BSSNData *paq);
+  void K2Calc(BSSNData *paq);
+  void K2CalcPt(idx_t i, idx_t j, idx_t k, BSSNData *paq);
+  void K3Calc(BSSNData *paq);
+  void K3CalcPt(idx_t i, idx_t j, idx_t k, BSSNData *paq);
+  void K4Calc(BSSNData *paq);
+  void K4CalcPt(idx_t i, idx_t j, idx_t k, BSSNData *paq);
   void stepTerm();
 
   real_t der(real_t field_adj[3][3][3], int d);
   real_t dder(real_t field_adj[3][3][3], int d1, int d2);
   
   /* set current local field values */
-  void set_local_vals(cosmo::BSSNData *paq);
-  void calculate_Acont(cosmo::BSSNData *paq);
+  void set_local_vals(BSSNData *paq);
+  void calculate_Acont(BSSNData *paq);
 
   /* Calculate metric derivatives */
-  void calculate_dgamma(cosmo::BSSNData *paq);
-  void calculate_ddgamma(cosmo::BSSNData *paq);
+  void calculate_dgamma(BSSNData *paq);
+  void calculate_ddgamma(BSSNData *paq);
 
   /* Calculate metric derivatives */
-  void calculate_dgammai(cosmo::BSSNData *paq);
-  void calculate_christoffels(cosmo::BSSNData *paq);
-  void calculate_dalpha_dphi(cosmo::BSSNData *paq);
-  void calculate_dbeta(cosmo::BSSNData *paq);
+  void calculate_dgammai(BSSNData *paq);
+  void calculate_christoffels(BSSNData *paq);
+  void calculate_dalpha_dphi(BSSNData *paq);
+  void calculate_dbeta(BSSNData *paq);
 
   /* Calculate trace-free ricci tensor components */
-  void calculateRicciTF(cosmo::BSSNData *paq);
-  void calculateDDphi(cosmo::BSSNData *paq);
-  void calculateDDalphaTF(cosmo::BSSNData *paq);
+  void calculateRicciTF(BSSNData *paq);
+  void calculateDDphi(BSSNData *paq);
+  void calculateDDalphaTF(BSSNData *paq);
 
   /* Evolution functions */
-  real_t ev_gamma11(cosmo::BSSNData *paq);
-  real_t ev_gamma12(cosmo::BSSNData *paq);
-  real_t ev_gamma13(cosmo::BSSNData *paq);
-  real_t ev_gamma22(cosmo::BSSNData *paq);
-  real_t ev_gamma23(cosmo::BSSNData *paq);
-  real_t ev_gamma33(cosmo::BSSNData *paq);
-  real_t ev_A11(cosmo::BSSNData *paq);
-  real_t ev_A12(cosmo::BSSNData *paq);
-  real_t ev_A13(cosmo::BSSNData *paq);
-  real_t ev_A22(cosmo::BSSNData *paq);
-  real_t ev_A23(cosmo::BSSNData *paq);
-  real_t ev_A33(cosmo::BSSNData *paq);
-  real_t ev_K(cosmo::BSSNData *paq);
-  real_t ev_phi(cosmo::BSSNData *paq);
-  real_t ev_Gamma1(cosmo::BSSNData *paq);
-  real_t ev_Gamma2(cosmo::BSSNData *paq);
-  real_t ev_Gamma3(cosmo::BSSNData *paq);
+  real_t ev_gamma11(BSSNData *paq);
+  real_t ev_gamma12(BSSNData *paq);
+  real_t ev_gamma13(BSSNData *paq);
+  real_t ev_gamma22(BSSNData *paq);
+  real_t ev_gamma23(BSSNData *paq);
+  real_t ev_gamma33(BSSNData *paq);
+  real_t ev_A11(BSSNData *paq);
+  real_t ev_A12(BSSNData *paq);
+  real_t ev_A13(BSSNData *paq);
+  real_t ev_A22(BSSNData *paq);
+  real_t ev_A23(BSSNData *paq);
+  real_t ev_A33(BSSNData *paq);
+  real_t ev_K(BSSNData *paq);
+  real_t ev_phi(BSSNData *paq);
+  real_t ev_Gamma1(BSSNData *paq);
+  real_t ev_Gamma2(BSSNData *paq);
+  real_t ev_Gamma3(BSSNData *paq);
   // static gauge for now:
-  real_t ev_alpha(cosmo::BSSNData *paq) { return 0; }
-  real_t ev_beta1(cosmo::BSSNData *paq) { return 0; }
-  real_t ev_beta2(cosmo::BSSNData *paq) { return 0; }
-  real_t ev_beta3(cosmo::BSSNData *paq) { return 0; }
+  real_t ev_alpha(BSSNData *paq) { return 0; }
+  real_t ev_beta1(BSSNData *paq) { return 0; }
+  real_t ev_beta2(BSSNData *paq) { return 0; }
+  real_t ev_beta3(BSSNData *paq) { return 0; }
 
   // calculate needed quantities (need the inverse metric set everywhere first)
-  void set_paq_values(idx_t i, idx_t j, idx_t k, cosmo::BSSNData *paq);
+  void set_paq_values(idx_t i, idx_t j, idx_t k, BSSNData *paq);
 
-  void step();
+  void step(BSSNData *paq);
   void init();
 
 };
