@@ -35,6 +35,8 @@ typedef long int idx_t;
 
 #include "bssn.h"
 #include "bssn_data.h"
+
 #include "hydro.h"
+#include "hydro_data.h"
 
 #endif

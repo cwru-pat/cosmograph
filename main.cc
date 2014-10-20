@@ -29,6 +29,7 @@ int main(int argc, char **argv)
   BSSNData b_paq; // data structure associated with bssn sim
 
   Hydro hydroSim; // one fluid
+  HydroData h_paq;
 
   // initial conditions
   _timer["init"].start();
@@ -50,35 +51,42 @@ int main(int argc, char **argv)
     // See bssn class or hydro class for more comments.
     bssnSim.stepInit();
 
-    // First RK step
+    // First RK step; Hydro Step
     LOOP3(i, j, k)
     {
       bssnSim.K1CalcPt(i, j, k, &b_paq);
+
+      // hydro acts upon _a array here
+      hydroSim.setPrimitivesPt(&b_paq, &h_paq);
+      hydroSim.setFluxesPt(&b_paq, &h_paq);
+
     }
     bssnSim.regSwap_c_a();
 
-    hydroSim.setPrimitivesPt(&b_paq);
+    // Subsequent BSSN steps
+      // Second RK step
+      LOOP3(i, j, k)
+      {
+        bssnSim.K2CalcPt(i, j, k, &b_paq);
+      }
+      bssnSim.regSwap_c_a();
+      // Third RK step
+      LOOP3(i, j, k)
+      {
+        bssnSim.K3CalcPt(i, j, k, &b_paq);
+      }
+      bssnSim.regSwap_c_a();
+      // Fourth RK step
+      LOOP3(i, j, k)
+      {
+        bssnSim.K4CalcPt(i, j, k, &b_paq);
+      }
 
-
-    // Second RK step
-    LOOP3(i, j, k)
-    {
-      bssnSim.K2CalcPt(i, j, k, &b_paq);
-    }
-    bssnSim.regSwap_c_a();
-
-    // Third RK step
-    LOOP3(i, j, k)
-    {
-      bssnSim.K3CalcPt(i, j, k, &b_paq);
-    }
-    bssnSim.regSwap_c_a();
-
-    // Fourth RK step
-    LOOP3(i, j, k)
-    {
-      bssnSim.K4CalcPt(i, j, k, &b_paq);
-    }
+    // Subsequent hydro step
+      LOOP3(i, j, k)
+      {
+        hydroSim.setAllFluxInt(i, j, k);
+      }
 
     // Wrap up
     bssnSim.stepTerm();

@@ -6,7 +6,12 @@
 #define dt 0.1
 #define dx 1.0
 
+// WENO "epsilon" parameter
+#define EPS 0.0001
+
 #define PI (4.0*atan(1.0))
+#define SIGN(x) (((x) < 0.0) ? -1 : ((x) > 0.0))
+#define pw2(x) (x)*(x)
 
 #define RESTRICT __restrict__
 
