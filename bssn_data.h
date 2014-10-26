@@ -68,6 +68,11 @@ typedef struct {
          d2d3g11, d2d3g12, d2d3g13, d2d3g22, d2d3g23, d2d3g33,
          d3d3g11, d3d3g12, d3d3g13, d3d3g22, d3d3g23, d3d3g33;
 
+  // derivatives of full metric ("m") (needed for fluid)
+  real_t d1m00, d1m01, d1m02, d1m03, d1m11, d1m12, d1m13, d1m22, d1m23, d1m33,
+         d2m00, d2m01, d2m02, d2m03, d2m11, d2m12, d2m13, d2m22, d2m23, d2m33,
+         d3m00, d3m01, d3m02, d3m03, d3m11, d3m12, d3m13, d3m22, d3m23, d3m33;
+
   // local copies of current field values
   BSSN_APPLY_TO_FIELDS(DECLARE_REAL_T)
 

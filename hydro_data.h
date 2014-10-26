@@ -11,6 +11,8 @@ typedef struct {
 
   /* root of metric determinant */
   real_t rg;
+  /* metric det. */
+  real_t g;
 
 } HydroData;
 

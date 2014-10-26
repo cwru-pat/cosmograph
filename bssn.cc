@@ -45,6 +45,22 @@ void BSSN::set_paq_values(idx_t i, idx_t j, idx_t k, BSSNData *paq)
   calculateDDalphaTF(paq);
 }
 
+void BSSN::set_full_metric_der(BSSNData *paq)
+{
+  SET_DKM00(1); SET_DKM00(2); SET_DKM00(3);
+
+  SET_DKM0I(1, 1); SET_DKM0I(2, 1); SET_DKM0I(3, 1);
+  SET_DKM0I(1, 2); SET_DKM0I(2, 2); SET_DKM0I(3, 2);
+  SET_DKM0I(1, 3); SET_DKM0I(2, 3); SET_DKM0I(3, 3);
+
+  SET_DKMIJ(1, 1, 1); SET_DKMIJ(1, 2, 2); SET_DKMIJ(1, 3, 3);
+  SET_DKMIJ(1, 1, 2); SET_DKMIJ(1, 1, 3); SET_DKMIJ(1, 2, 3);
+  SET_DKMIJ(2, 1, 1); SET_DKMIJ(2, 2, 2); SET_DKMIJ(2, 3, 3);
+  SET_DKMIJ(2, 1, 2); SET_DKMIJ(2, 1, 3); SET_DKMIJ(2, 2, 3);
+  SET_DKMIJ(3, 1, 1); SET_DKMIJ(3, 2, 2); SET_DKMIJ(3, 3, 3);
+  SET_DKMIJ(3, 1, 2); SET_DKMIJ(3, 1, 3); SET_DKMIJ(3, 2, 3);
+}
+
 
 // Full RK step (More useful when not evolving the source simultaneously)
 void BSSN::step(BSSNData *paq)
@@ -180,7 +196,7 @@ void BSSN::K4CalcPt(idx_t i, idx_t j, idx_t k, BSSNData *paq)
 
   // evolve fields and add to _f register:
   // arr_f = arr_p + dt/6*(k_1 + 2*k_2 + 2*k_3 + k_4)
-  //       = (1.0/3.0)*(arr_f - arr_p) + (1.0/6.0)*evfn(arr_a)
+  //       = (1.0/3.0)*(arr_f - arr_p) + (dt/6.0)*evfn(arr_a)
   BSSN_FINAL_RK4_STEP();
 }
 

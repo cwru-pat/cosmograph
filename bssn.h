@@ -83,6 +83,7 @@ public:
 
   // calculate needed quantities (need the inverse metric set everywhere first)
   void set_paq_values(idx_t i, idx_t j, idx_t k, BSSNData *paq);
+  void set_full_metric_der(BSSNData *paq);
 
   void step(BSSNData *paq);
   void init();

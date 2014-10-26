@@ -57,28 +57,49 @@
   function(3, 2, 3);                  \
   function(3, 3, 3);
 
-#define BSSN_SWAP_ARRAYS(reg_prefix_1, reg_prefix_2)         \
-  std::swap(gamma11##reg_prefix_1, gamma11##reg_prefix_2);   \
-  std::swap(gamma12##reg_prefix_1, gamma12##reg_prefix_2);   \
-  std::swap(gamma13##reg_prefix_1, gamma13##reg_prefix_2);   \
-  std::swap(gamma22##reg_prefix_1, gamma22##reg_prefix_2);   \
-  std::swap(gamma23##reg_prefix_1, gamma23##reg_prefix_2);   \
-  std::swap(gamma33##reg_prefix_1, gamma33##reg_prefix_2);   \
-  std::swap(phi##reg_prefix_1,     phi##reg_prefix_2);       \
-  std::swap(A11##reg_prefix_1,     A11##reg_prefix_2);       \
-  std::swap(A12##reg_prefix_1,     A12##reg_prefix_2);       \
-  std::swap(A13##reg_prefix_1,     A13##reg_prefix_2);       \
-  std::swap(A22##reg_prefix_1,     A22##reg_prefix_2);       \
-  std::swap(A23##reg_prefix_1,     A23##reg_prefix_2);       \
-  std::swap(A33##reg_prefix_1,     A33##reg_prefix_2);       \
-  std::swap(K##reg_prefix_1,       K##reg_prefix_2);         \
-  std::swap(Gamma1##reg_prefix_1,  Gamma1##reg_prefix_2);    \
-  std::swap(Gamma2##reg_prefix_1,  Gamma2##reg_prefix_2);    \
-  std::swap(Gamma3##reg_prefix_1,  Gamma3##reg_prefix_2);    \
-  std::swap(beta1##reg_prefix_1,   beta1##reg_prefix_2);     \
-  std::swap(beta2##reg_prefix_1,   beta2##reg_prefix_2);     \
-  std::swap(beta3##reg_prefix_1,   beta3##reg_prefix_2);     \
-  std::swap(alpha##reg_prefix_1,   alpha##reg_prefix_2);
+#define BSSN_SWAP_ARRAYS(reg_prefix_1, reg_prefix_2)                               \
+  std::swap(gamma11##reg_prefix_1,          gamma11##reg_prefix_2);                \
+  std::swap(fields["gamma11"#reg_prefix_1], fields["gamma11"#reg_prefix_2]);       \
+  std::swap(gamma12##reg_prefix_1,          gamma12##reg_prefix_2);                \
+  std::swap(fields["gamma12"#reg_prefix_1], fields["gamma12"#reg_prefix_2]);       \
+  std::swap(gamma13##reg_prefix_1,          gamma13##reg_prefix_2);                \
+  std::swap(fields["gamma13"#reg_prefix_1], fields["gamma13"#reg_prefix_2]);       \
+  std::swap(gamma22##reg_prefix_1,          gamma22##reg_prefix_2);                \
+  std::swap(fields["gamma22"#reg_prefix_1], fields["gamma22"#reg_prefix_2]);       \
+  std::swap(gamma23##reg_prefix_1,          gamma23##reg_prefix_2);                \
+  std::swap(fields["gamma23"#reg_prefix_1], fields["gamma23"#reg_prefix_2]);       \
+  std::swap(gamma33##reg_prefix_1,          gamma33##reg_prefix_2);                \
+  std::swap(fields["gamma33"#reg_prefix_1], fields["gamma33"#reg_prefix_2]);       \
+  std::swap(phi##reg_prefix_1,              phi##reg_prefix_2);                    \
+  std::swap(fields["phi"#reg_prefix_1],     fields["phi"#reg_prefix_2]);           \
+  std::swap(A11##reg_prefix_1,              A11##reg_prefix_2);                    \
+  std::swap(fields["A11"#reg_prefix_1],     fields["A11"#reg_prefix_2]);           \
+  std::swap(A12##reg_prefix_1,              A12##reg_prefix_2);                    \
+  std::swap(fields["A12"#reg_prefix_1],     fields["A12"#reg_prefix_2]);           \
+  std::swap(A13##reg_prefix_1,              A13##reg_prefix_2);                    \
+  std::swap(fields["A13"#reg_prefix_1],     fields["A13"#reg_prefix_2]);           \
+  std::swap(A22##reg_prefix_1,              A22##reg_prefix_2);                    \
+  std::swap(fields["A22"#reg_prefix_1],     fields["A22"#reg_prefix_2]);           \
+  std::swap(A23##reg_prefix_1,              A23##reg_prefix_2);                    \
+  std::swap(fields["A23"#reg_prefix_1],     fields["A23"#reg_prefix_2]);           \
+  std::swap(A33##reg_prefix_1,              A33##reg_prefix_2);                    \
+  std::swap(fields["A33"#reg_prefix_1],     fields["A33"#reg_prefix_2]);           \
+  std::swap(K##reg_prefix_1,                K##reg_prefix_2);                      \
+  std::swap(fields["K"#reg_prefix_1],       fields["K"#reg_prefix_2]);             \
+  std::swap(Gamma1##reg_prefix_1,           Gamma1##reg_prefix_2);                 \
+  std::swap(fields["Gamma1"#reg_prefix_1],  fields["Gamma1"#reg_prefix_2]);        \
+  std::swap(Gamma2##reg_prefix_1,           Gamma2##reg_prefix_2);                 \
+  std::swap(fields["Gamma2"#reg_prefix_1],  fields["Gamma2"#reg_prefix_2]);        \
+  std::swap(Gamma3##reg_prefix_1,           Gamma3##reg_prefix_2);                 \
+  std::swap(fields["Gamma3"#reg_prefix_1],  fields["Gamma3"#reg_prefix_2]);        \
+  std::swap(beta1##reg_prefix_1,            beta1##reg_prefix_2);                  \
+  std::swap(fields["beta1"#reg_prefix_1],   fields["beta1"#reg_prefix_2]);         \
+  std::swap(beta2##reg_prefix_1,            beta2##reg_prefix_2);                  \
+  std::swap(fields["beta2"#reg_prefix_1],   fields["beta2"#reg_prefix_2]);         \
+  std::swap(beta3##reg_prefix_1,            beta3##reg_prefix_2);                  \
+  std::swap(fields["beta3"#reg_prefix_1],   fields["beta3"#reg_prefix_2]);         \
+  std::swap(alpha##reg_prefix_1,            alpha##reg_prefix_2);                  \
+  std::swap(fields["alpha"#reg_prefix_1],   fields["alpha"#reg_prefix_2]);
 
 #define BSSN_COPY_ARRAYS(reg_prefix_from, reg_prefix_to)        \
   std::copy(gamma11##reg_prefix_from,  gamma11##reg_prefix_from + POINTS,  gamma11##reg_prefix_to  ); \
@@ -312,6 +333,29 @@
       ) \
   )
 
+#define SET_DKM00(k) paq->d##k##m00 = DKM00(k);
+#define DKM00(k) \
+      -2.0*paq->alpha*paq->d##k##a \
+      + paq->d##k##g11*paq->beta1*paq->beta1 + paq->d##k##g22*paq->beta2*paq->beta2 + paq->d##k##g33*paq->beta3*paq->beta3 \
+      + 2.0*(paq->d##k##g12*paq->beta1*paq->beta2 + paq->d##k##g13*paq->beta1*paq->beta3 + paq->d##k##g23*paq->beta2*paq->beta3) \
+      + 2.0*( \
+          paq->d##k##g11*paq->d##k##beta1*paq->beta1 + paq->d##k##g12*paq->d##k##beta2*paq->beta1 + paq->d##k##g13*paq->d##k##beta3*paq->beta1 \
+          + paq->d##k##g12*paq->d##k##beta1*paq->beta2 + paq->d##k##g22*paq->d##k##beta2*paq->beta2 + paq->d##k##g23*paq->d##k##beta3*paq->beta2 \
+          + paq->d##k##g13*paq->d##k##beta1*paq->beta3 + paq->d##k##g23*paq->d##k##beta2*paq->beta3 + paq->d##k##g33*paq->d##k##beta3*paq->beta3 \
+        );
+
+#define SET_DKM0I(k, i) paq->d##k##m0##i = DKM0I(k, i);
+#define DKM0I(k, i) \
+      exp(4.0*paq->phi)*( \
+        paq->gamma1##i * paq->d##k##beta##1 + paq->gamma2##i * paq->d##k##beta##2 + paq->gamma3##i * paq->d##k##beta##3 \
+        + (paq->d##k##g1##i + 4.0*paq->d##k##phi*paq->gamma1##i) * paq->beta##1   \
+        + (paq->d##k##g2##i + 4.0*paq->d##k##phi*paq->gamma2##i) * paq->beta##2 \
+        + (paq->d##k##g3##i + 4.0*paq->d##k##phi*paq->gamma3##i) * paq->beta##3 \
+      );
+
+#define SET_DKMIJ(k, i, j) paq->d##k##m##i##j = DKMIJ(k, i, j);
+#define DKMIJ(k, i, j) exp(4.0*paq->phi)*(paq->d##k##g##i##j + 4.0*paq->d##k##phi*paq->gamma##i##j);
+
 /*
  * Enforce standard ordering of indexes for tensor components
  */
@@ -430,5 +474,26 @@
 #define d3d2g21 d2d3g12
 #define d3d2g31 d2d3g13
 #define d3d2g32 d2d3g23
+
+// Full Metric derivatives
+#define d1m10 d1m01
+#define d1m20 d1m02
+#define d1m30 d1m03
+#define d1m21 d1m12
+#define d1m31 d1m13
+#define d1m32 d1m23
+#define d2m10 d2m01
+#define d2m20 d2m02
+#define d2m30 d2m03
+#define d2m21 d2m12
+#define d2m31 d2m13
+#define d2m32 d2m23
+#define d3m10 d3m01
+#define d3m20 d3m02
+#define d3m30 d3m03
+#define d3m21 d3m12
+#define d3m31 d3m13
+#define d3m32 d3m23
+
 
 #endif

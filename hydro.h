@@ -52,17 +52,25 @@ public:
     HYDRO_APPLY_TO_FLUXES_INT(FLUX_ARRAY_DELETE)
   }
 
+  void setQuantitiesPt(BSSNData *paq, HydroData *hdp)
+  {
+    setPrimitivesPt(paq, hdp);
+    setFluxesPt(paq, hdp);
+    setSourcesPt(paq, hdp);
+  }
+
   void setPrimitivesPt(BSSNData *paq, HydroData *hdp)
   {
     idx_t idx = paq->idx;
 
     /* root of metric determinant */
     hdp->rg = exp(2.0*paq->phi);
+    hdp->g  = exp(4.0*paq->phi);
 
     /* lorentz factor */
     /* W = (gamma^ij S_j S_j / D^2 / (1+w^2) + 1)^1/2 */
     hdp->W = sqrt(
-        1.0 + (
+        1.0 + hdp->g * (
            paq->gammai11*US1_a[idx]*US1_a[idx] + paq->gammai22*US2_a[idx]*US2_a[idx] + paq->gammai33*US3_a[idx]*US3_a[idx]
             + 2.0*paq->gammai12*US1_a[idx]*US2_a[idx] + 2.0*paq->gammai13*US1_a[idx]*US3_a[idx] + 2.0*paq->gammai23*US2_a[idx]*US3_a[idx]
           ) / UD_a[idx] / (1.0 + w_EOS*w_EOS)
@@ -77,9 +85,9 @@ public:
     u2 = US2_a[idx] / hdp->W / hdp->rg / r_a[idx] / (1.0 + w_EOS);
     u3 = US3_a[idx] / hdp->W / hdp->rg / r_a[idx] / (1.0 + w_EOS);
     /* velocities (contravariant) */
-    v1_a[idx] = paq->alpha / hdp->W * ( paq->gammai11*u1 + paq->gammai12*u2 + paq->gammai13*u3 ) - paq->beta1;
-    v2_a[idx] = paq->alpha / hdp->W * ( paq->gammai12*u1 + paq->gammai22*u2 + paq->gammai23*u3 ) - paq->beta2;
-    v3_a[idx] = paq->alpha / hdp->W * ( paq->gammai13*u1 + paq->gammai23*u2 + paq->gammai33*u3 ) - paq->beta3;
+    v1_a[idx] = paq->alpha / hdp->W * hdp->g * ( paq->gammai11*u1 + paq->gammai12*u2 + paq->gammai13*u3 ) - paq->beta1;
+    v2_a[idx] = paq->alpha / hdp->W * hdp->g * ( paq->gammai12*u1 + paq->gammai22*u2 + paq->gammai23*u3 ) - paq->beta2;
+    v3_a[idx] = paq->alpha / hdp->W * hdp->g * ( paq->gammai13*u1 + paq->gammai23*u2 + paq->gammai33*u3 ) - paq->beta3;
 
   }
 
@@ -118,9 +126,10 @@ public:
     real_t pref = 0.5*paq->alpha*hdp->rg;
 
     // 0.5*Alpha*gamma^1/2*T*g,j
-    SS1[idx] = 0;
-    SS2[idx] = 0;
-    SS3[idx] = 0;
+    SS1_a[idx] = 0;
+    SS2_a[idx] = 0;
+    SS3_a[idx] = 0;
+
   }
 
   void setOneFluxInt(idx_t i, idx_t j, idx_t k, int d, real_t *U_ARR,

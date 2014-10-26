@@ -42,24 +42,26 @@ int main(int argc, char **argv)
   _timer["loop"].start();
   for(idx_t i=0; i < 5; ++i) {
 
-    cout << "  gamma11_f = " << bssnSim.fields["gamma11_f"][0]
-         << "; phi_f = " << bssnSim.fields["phi_f"][0]
-         << "; K_f = " << bssnSim.fields["K_f"][0]
+    // "final" calculation always ends up in "_p" register.
+    cout << "step # " << i
+         << "; phi_p = " << bssnSim.fields["phi_p"][0]
+         << "; K_p = " << bssnSim.fields["K_p"][0]
          << " \n";
 
     // Run RK steps explicitly here (ties together BSSN + Hydro stuff).
     // See bssn class or hydro class for more comments.
     bssnSim.stepInit();
 
-    // First RK step; Hydro Step
+    // First RK step & Set Hydro Vars
     LOOP3(i, j, k)
     {
       bssnSim.K1CalcPt(i, j, k, &b_paq);
 
-      // hydro acts upon _a array here
-      hydroSim.setPrimitivesPt(&b_paq, &h_paq);
-      hydroSim.setFluxesPt(&b_paq, &h_paq);
-
+      // hydro acts upon _a arrays, takes data from existing data in b_paq
+      // need to set full metric components first; this calculation is only
+      // done when explicitly called.
+      bssnSim.set_full_metric_der(&b_paq);
+      hydroSim.setQuantitiesPt(&b_paq, &h_paq);
     }
     bssnSim.regSwap_c_a();
 
