@@ -26,10 +26,10 @@ int main(int argc, char **argv)
 
   // Create simulation
   BSSN bssnSim;
-  BSSNData b_paq; // data structure associated with bssn sim
+  BSSNData b_paq = {0}; // data structure associated with bssn sim
 
   Hydro hydroSim; // one fluid
-  HydroData h_paq;
+  HydroData h_paq = {0};
 
   // initial conditions
   _timer["init"].start();
