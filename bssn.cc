@@ -7,12 +7,15 @@ namespace cosmo
 BSSN::BSSN()
 {
   BSSN_APPLY_TO_FIELDS(RK4_ARRAY_ALLOC)
+  BSSN_APPLY_TO_SOURCES(GEN1_ARRAY_ALLOC)
   BSSN_APPLY_TO_FIELDS(RK4_ARRAY_ADDMAP)
+  BSSN_APPLY_TO_SOURCES(GEN1_ARRAY_ADDMAP)
 }
 
 BSSN::~BSSN()
 {
   BSSN_APPLY_TO_FIELDS(RK4_ARRAY_DELETE)
+  BSSN_APPLY_TO_SOURCES(GEN1_ARRAY_DELETE)
 }
 
 
@@ -22,9 +25,6 @@ void BSSN::set_paq_values(idx_t i, idx_t j, idx_t k, BSSNData *paq)
   paq->j = j;
   paq->k = k;
   paq->idx = INDEX(i,j,k);
-
-  // source terms?
-  paq->rho = -3.0/PI/8.0;
 
   // draw data from cache
   set_local_vals(paq);
@@ -43,6 +43,27 @@ void BSSN::set_paq_values(idx_t i, idx_t j, idx_t k, BSSNData *paq)
   calculateRicciTF(paq);
   calculateDDphi(paq);
   calculateDDalphaTF(paq);
+
+  // source values
+  set_source_vals(paq);
+}
+
+void BSSN::set_full_metric(BSSNData *paq)
+{
+  SET_M00();
+
+  SET_M0I(1); SET_M0I(2); SET_M0I(3);
+
+  SET_MIJ(1, 1); SET_MIJ(2, 2); SET_MIJ(3, 3);
+  SET_MIJ(1, 2); SET_MIJ(1, 3); SET_MIJ(2, 3);
+
+
+  SET_Mi00();
+
+  SET_Mi0I(1); SET_Mi0I(2); SET_Mi0I(3);
+
+  SET_MiIJ(1, 1); SET_MiIJ(2, 2); SET_MiIJ(3, 3);
+  SET_MiIJ(1, 2); SET_MiIJ(1, 3); SET_MiIJ(2, 3);
 }
 
 void BSSN::set_full_metric_der(BSSNData *paq)
@@ -208,6 +229,25 @@ void BSSN::stepTerm()
   BSSN_SWAP_ARRAYS(_f, _p);
 }
 
+void BSSN::clearSrc()
+{
+  LOOP3(i, j, k)
+  {
+    idx_t idx = INDEX(i,j,k);
+
+    r_a[idx] = 0.0;
+    S_a[idx] = 0.0;
+    S1_a[idx] = 0.0;
+    S2_a[idx] = 0.0;
+    S3_a[idx] = 0.0;
+    S11_a[idx] = 0.0;
+    S12_a[idx] = 0.0;
+    S13_a[idx] = 0.0;
+    S22_a[idx] = 0.0;
+    S23_a[idx] = 0.0;
+    S33_a[idx] = 0.0;
+  }
+}
 
 void BSSN::init()
 {
@@ -245,6 +285,18 @@ void BSSN::init()
     beta3_p[idx]    = 0.0;
 
     alpha_p[idx]    = 1.0;
+
+    r_a[idx] = 0.0;
+    S_a[idx] = 0.0;
+    S1_a[idx] = 0.0;
+    S2_a[idx] = 0.0;
+    S3_a[idx] = 0.0;
+    S11_a[idx] = 0.0;
+    S12_a[idx] = 0.0;
+    S13_a[idx] = 0.0;
+    S22_a[idx] = 0.0;
+    S23_a[idx] = 0.0;
+    S33_a[idx] = 0.0;
   }
 }
 
@@ -317,6 +369,30 @@ real_t BSSN::dder(real_t field_adj[3][3][3], int d1, int d2)
 
   /* XXX */
   return 0.0;
+}
+
+
+/* Set local source term values */
+void BSSN::set_source_vals(BSSNData *paq)
+{
+  idx_t idx = paq->idx;
+
+  paq->rho = r_a[idx];
+  paq->S = S_a[idx];
+
+  paq->S11 = S11_a[idx];
+  paq->S12 = S12_a[idx];
+  paq->S13 = S13_a[idx];
+  paq->S22 = S22_a[idx];
+  paq->S23 = S23_a[idx];
+  paq->S33 = S33_a[idx];
+
+  paq->STF11 = S11_a[idx] - paq->gamma11*paq->S;
+  paq->STF12 = S12_a[idx] - paq->gamma12*paq->S;
+  paq->STF13 = S13_a[idx] - paq->gamma13*paq->S;
+  paq->STF22 = S22_a[idx] - paq->gamma22*paq->S;
+  paq->STF23 = S23_a[idx] - paq->gamma23*paq->S;
+  paq->STF33 = S33_a[idx] - paq->gamma33*paq->S;
 }
 
 
@@ -508,7 +584,7 @@ real_t BSSN::ev_K(BSSNData *paq)
         + (1.0/3.0)*paq->K*paq->K
       )
     + paq->beta1*der(paq->K_adj, 1) + paq->beta2*der(paq->K_adj, 2) + paq->beta3*der(paq->K_adj, 3)
-    + 4.0*PI*paq->alpha*paq->rho
+    + 4.0*PI*paq->alpha*(paq->rho + paq->S)
   );
 }
 

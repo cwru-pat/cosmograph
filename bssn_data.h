@@ -68,6 +68,10 @@ typedef struct {
          d2d3g11, d2d3g12, d2d3g13, d2d3g22, d2d3g23, d2d3g33,
          d3d3g11, d3d3g12, d3d3g13, d3d3g22, d3d3g23, d3d3g33;
 
+  // Full metric ("m") and inverse ("mi") (needed for fluid)
+  real_t m00, m01, m02, m03, m11, m12, m13, m22, m23, m33;
+  real_t mi00, mi01, mi02, mi03, mi11, mi12, mi13, mi22, mi23, mi33;
+
   // derivatives of full metric ("m") (needed for fluid)
   real_t d1m00, d1m01, d1m02, d1m03, d1m11, d1m12, d1m13, d1m22, d1m23, d1m33,
          d2m00, d2m01, d2m02, d2m03, d2m11, d2m12, d2m13, d2m22, d2m23, d2m33,
@@ -80,8 +84,9 @@ typedef struct {
   BSSN_APPLY_TO_FIELDS(DECLARE_ADJACENT_REAL_T)
 
   // Source terms
-  real_t rho;
-  real_t S11, S12, S13, S23, S33;
+  real_t rho, S;
+  real_t S11, S12, S13, S22, S23, S33;
+  real_t STF11, STF12, STF13, STF22, STF23, STF33;
 
 } BSSNData;
 

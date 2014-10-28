@@ -15,6 +15,7 @@ class BSSN
 {
   /* arrays for storing fields */
   BSSN_APPLY_TO_FIELDS(RK4_ARRAY_CREATE)
+  BSSN_APPLY_TO_SOURCES(GEN1_ARRAY_CREATE)
 
 public:
   std::map <std::string, real_t *> fields;
@@ -39,6 +40,7 @@ public:
   real_t dder(real_t field_adj[3][3][3], int d1, int d2);
   
   /* set current local field values */
+  void set_source_vals(BSSNData *paq);
   void set_local_vals(BSSNData *paq);
   void calculate_Acont(BSSNData *paq);
 
@@ -83,7 +85,10 @@ public:
 
   // calculate needed quantities (need the inverse metric set everywhere first)
   void set_paq_values(idx_t i, idx_t j, idx_t k, BSSNData *paq);
+  void set_full_metric(BSSNData *paq);
   void set_full_metric_der(BSSNData *paq);
+
+  void clearSrc();
 
   void step(BSSNData *paq);
   void init();

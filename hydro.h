@@ -52,46 +52,56 @@ public:
     HYDRO_APPLY_TO_FLUXES_INT(FLUX_ARRAY_DELETE)
   }
 
-  void setQuantitiesPt(BSSNData *paq, HydroData *hdp)
+  void setQuantitiesCell(BSSNData *paq, HydroData *hdp)
   {
-    setPrimitivesPt(paq, hdp);
-    setFluxesPt(paq, hdp);
-    setSourcesPt(paq, hdp);
+    setPrimitivesCell(paq, hdp);
+    setFluxesCell(paq, hdp);
+    setSourcesCell(paq, hdp);
   }
 
-  void setPrimitivesPt(BSSNData *paq, HydroData *hdp)
+  void setPrimitivesCell(BSSNData *paq, HydroData *hdp)
   {
     idx_t idx = paq->idx;
 
-    /* root of metric determinant */
-    hdp->rg = exp(2.0*paq->phi);
-    hdp->g  = exp(4.0*paq->phi);
+    if(UD_a[idx] <= 0.0)
+    {
+      r_a[idx] = 0.0;
+      v1_a[idx] = 0.0;
+      v2_a[idx] = 0.0;
+      v3_a[idx] = 0.0;
+    }
+    else
+    {
+      /* root of metric determinant */
+      hdp->rg = exp(2.0*paq->phi);
+      hdp->g  = exp(4.0*paq->phi);
 
-    /* lorentz factor */
-    /* W = (gamma^ij S_j S_j / D^2 / (1+w^2) + 1)^1/2 */
-    hdp->W = sqrt(
-        1.0 + hdp->g * (
-           paq->gammai11*US1_a[idx]*US1_a[idx] + paq->gammai22*US2_a[idx]*US2_a[idx] + paq->gammai33*US3_a[idx]*US3_a[idx]
-            + 2.0*paq->gammai12*US1_a[idx]*US2_a[idx] + 2.0*paq->gammai13*US1_a[idx]*US3_a[idx] + 2.0*paq->gammai23*US2_a[idx]*US3_a[idx]
-          ) / UD_a[idx] / (1.0 + w_EOS*w_EOS)
-        );
+      /* lorentz factor */
+      /* W = (gamma^ij S_j S_j / D^2 / (1+w^2) + 1)^1/2 */
+      hdp->W = sqrt(
+          1.0 + hdp->g * (
+             paq->gammai11*US1_a[idx]*US1_a[idx] + paq->gammai22*US2_a[idx]*US2_a[idx] + paq->gammai33*US3_a[idx]*US3_a[idx]
+              + 2.0*paq->gammai12*US1_a[idx]*US2_a[idx] + 2.0*paq->gammai13*US1_a[idx]*US3_a[idx] + 2.0*paq->gammai23*US2_a[idx]*US3_a[idx]
+            ) / UD_a[idx] / (1.0 + w_EOS*w_EOS)
+          );
 
-    /* \rho = D / gamma^1/2 / W */
-    r_a[idx] = UD_a[idx] / hdp->rg / hdp->W;
+      /* \rho = D / gamma^1/2 / W */
+      r_a[idx] = UD_a[idx] / hdp->rg / hdp->W;
 
-    /* fluid 4-velocities (covariant) */
-    real_t u1, u2, u3;
-    u1 = US1_a[idx] / hdp->W / hdp->rg / r_a[idx] / (1.0 + w_EOS);
-    u2 = US2_a[idx] / hdp->W / hdp->rg / r_a[idx] / (1.0 + w_EOS);
-    u3 = US3_a[idx] / hdp->W / hdp->rg / r_a[idx] / (1.0 + w_EOS);
-    /* velocities (contravariant) */
-    v1_a[idx] = paq->alpha / hdp->W * hdp->g * ( paq->gammai11*u1 + paq->gammai12*u2 + paq->gammai13*u3 ) - paq->beta1;
-    v2_a[idx] = paq->alpha / hdp->W * hdp->g * ( paq->gammai12*u1 + paq->gammai22*u2 + paq->gammai23*u3 ) - paq->beta2;
-    v3_a[idx] = paq->alpha / hdp->W * hdp->g * ( paq->gammai13*u1 + paq->gammai23*u2 + paq->gammai33*u3 ) - paq->beta3;
+      /* fluid 4-velocities (covariant) */
+      real_t u1, u2, u3;
+      u1 = US1_a[idx] / hdp->W / hdp->rg / r_a[idx] / (1.0 + w_EOS);
+      u2 = US2_a[idx] / hdp->W / hdp->rg / r_a[idx] / (1.0 + w_EOS);
+      u3 = US3_a[idx] / hdp->W / hdp->rg / r_a[idx] / (1.0 + w_EOS);
+      /* velocities (contravariant) */
+      v1_a[idx] = paq->alpha / hdp->W * hdp->g * ( paq->gammai11*u1 + paq->gammai12*u2 + paq->gammai13*u3 ) - paq->beta1;
+      v2_a[idx] = paq->alpha / hdp->W * hdp->g * ( paq->gammai12*u1 + paq->gammai22*u2 + paq->gammai23*u3 ) - paq->beta2;
+      v3_a[idx] = paq->alpha / hdp->W * hdp->g * ( paq->gammai13*u1 + paq->gammai23*u2 + paq->gammai33*u3 ) - paq->beta3;
+    }
 
   }
 
-  void setFluxesPt(BSSNData *paq, HydroData *hdp)
+  void setFluxesCell(BSSNData *paq, HydroData *hdp)
   {
     idx_t idx = paq->idx;
     idx_t f_idx_1 = F_INDEX(paq->i, paq->j, paq->k, 0);
@@ -100,36 +110,36 @@ public:
 
     // Calculate fluxes in each cell
     // D
-      FD_a[f_idx_1] = FD_a[idx]*v1_a[idx];
-      FD_a[f_idx_2] = FD_a[idx]*v2_a[idx];
-      FD_a[f_idx_3] = FD_a[idx]*v3_a[idx];
+      FD_a[f_idx_1] = UD_a[idx]*v1_a[idx];
+      FD_a[f_idx_2] = UD_a[idx]*v2_a[idx];
+      FD_a[f_idx_3] = UD_a[idx]*v3_a[idx];
     // S1
-      FS1_a[f_idx_1] = FS1_a[idx]*v1_a[idx]/paq->alpha
+      FS1_a[f_idx_1] = US1_a[idx]*v1_a[idx]/paq->alpha
                         + hdp->W * r_a[idx] * hdp->rg * paq->alpha;
-      FS1_a[f_idx_2] = FS1_a[idx]*v2_a[idx]/paq->alpha;
-      FS1_a[f_idx_3] = FS1_a[idx]*v3_a[idx]/paq->alpha;
+      FS1_a[f_idx_2] = US1_a[idx]*v2_a[idx]/paq->alpha;
+      FS1_a[f_idx_3] = US1_a[idx]*v3_a[idx]/paq->alpha;
     // S2
-      FS2_a[f_idx_1] = FS2_a[idx]*v1_a[idx]/paq->alpha;
-      FS2_a[f_idx_2] = FS2_a[idx]*v2_a[idx]/paq->alpha
+      FS2_a[f_idx_1] = US2_a[idx]*v1_a[idx]/paq->alpha;
+      FS2_a[f_idx_2] = US2_a[idx]*v2_a[idx]/paq->alpha
                         + hdp->W * r_a[idx] * hdp->rg * paq->alpha;
-      FS2_a[f_idx_3] = FS2_a[idx]*v3_a[idx]/paq->alpha;
+      FS2_a[f_idx_3] = US2_a[idx]*v3_a[idx]/paq->alpha;
     // S3
-      FS3_a[f_idx_1] = FS3_a[idx]*v1_a[idx]/paq->alpha;
-      FS3_a[f_idx_2] = FS3_a[idx]*v2_a[idx]/paq->alpha;
-      FS3_a[f_idx_3] = FS3_a[idx]*v3_a[idx]/paq->alpha
+      FS3_a[f_idx_1] = US3_a[idx]*v1_a[idx]/paq->alpha;
+      FS3_a[f_idx_2] = US3_a[idx]*v2_a[idx]/paq->alpha;
+      FS3_a[f_idx_3] = US3_a[idx]*v3_a[idx]/paq->alpha
                         + hdp->W * r_a[idx] * hdp->rg * paq->alpha;
   }
 
-  void setSourcesPt(BSSNData *paq, HydroData *hdp)
+  void setSourcesCell(BSSNData *paq, HydroData *hdp)
   {
     idx_t idx = paq->idx;
-    real_t pref = 0.5*paq->alpha*hdp->rg;
+    real_t pref = 0.5*paq->alpha*hdp->rg*r_a[idx];
+    real_t uu_fac = (w_EOS+1.0)*pw2(hdp->W)/pw2(paq->alpha);
 
     // 0.5*Alpha*gamma^1/2*T*g,j
-    SS1_a[idx] = 0;
-    SS2_a[idx] = 0;
-    SS3_a[idx] = 0;
-
+    SS1_a[idx] = pref*TABGAB_J(1);
+    SS2_a[idx] = pref*TABGAB_J(2);
+    SS3_a[idx] = pref*TABGAB_J(3);
   }
 
   void setOneFluxInt(idx_t i, idx_t j, idx_t k, int d, real_t *U_ARR,
@@ -271,9 +281,110 @@ public:
     setOneFluxInt(i, j, k, 3, US3_a, FS3_a, FS3_int_a);
   }
 
+  void evolveFluid(idx_t i, idx_t j, idx_t k)
+  {
+    idx_t idx = INDEX(i,j,k);
+
+    UD_f[idx] = UD_a[idx] + dt*(
+        FD_int_a[F_INDEX(i,j,k,1)] + FD_int_a[F_INDEX(i,j,k,2)] + FD_int_a[F_INDEX(i,j,k,3)]
+        + FD_int_a[F_INDEX(i-1,j,k,1)] + FD_int_a[F_INDEX(i,j-1,k,2)] + FD_int_a[F_INDEX(i,j,k-1,3)]
+      );
+
+    US1_f[idx] = US1_a[idx] + dt*(
+        FS1_int_a[F_INDEX(i,j,k,1)] + FS1_int_a[F_INDEX(i,j,k,2)] + FS1_int_a[F_INDEX(i,j,k,3)]
+        + FS1_int_a[F_INDEX(i-1,j,k,1)] + FS1_int_a[F_INDEX(i,j-1,k,2)] + FS1_int_a[F_INDEX(i,j,k-1,3)]
+      );
+
+    US2_f[idx] = US2_a[idx] + dt*(
+        FS2_int_a[F_INDEX(i,j,k,1)] + FS2_int_a[F_INDEX(i,j,k,2)] + FS2_int_a[F_INDEX(i,j,k,3)]
+        + FS2_int_a[F_INDEX(i-1,j,k,1)] + FS2_int_a[F_INDEX(i,j-1,k,2)] + FS2_int_a[F_INDEX(i,j,k-1,3)]
+      );
+
+    US3_f[idx] = US3_a[idx] + dt*(
+        FS3_int_a[F_INDEX(i,j,k,1)] + FS3_int_a[F_INDEX(i,j,k,2)] + FS3_int_a[F_INDEX(i,j,k,3)]
+        + FS3_int_a[F_INDEX(i-1,j,k,1)] + FS3_int_a[F_INDEX(i,j-1,k,2)] + FS3_int_a[F_INDEX(i,j,k-1,3)]
+      );
+
+  }
+
+  void addBSSNSrc(std::map<std::basic_string<char>, float*> fields)
+  {
+    LOOP3(i,j,k)
+    {
+      idx_t idx = INDEX(i,j,k);
+
+      real_t g11 = fields["gamma_11_f"][idx];
+      real_t g12 = fields["gamma_12_f"][idx];
+      real_t g13 = fields["gamma_13_f"][idx];
+      real_t g22 = fields["gamma_22_f"][idx];
+      real_t g23 = fields["gamma_23_f"][idx];
+      real_t g33 = fields["gamma_33_f"][idx];
+
+      real_t gi11 = g22*g33 - g23*g23;
+      real_t gi12 = g13*g23 - g12*g33;
+      real_t gi13 = g12*g23 - g13*g22;
+      real_t gi22 = g11*g33 - g13*g13;
+      real_t gi23 = g12*g13 - g23*g11;
+      real_t gi33 = g11*g22 - g12*g12;
+
+      real_t g = exp(4.0*fields["phi_f"][idx]);
+      real_t rg = exp(2.0*fields["phi_f"][idx]);
+
+      real_t W, r, u1, u2, u3;
+
+      if(UD_f[idx] <= 0)
+      {
+        W = 1.0;
+        r = 0.0;
+        u1 = 0.0;
+        u2 = 0.0;
+        u3 = 0.0;
+      }
+      else
+      {
+        W = sqrt(
+            1.0 + g * (
+               gi11*US1_f[idx]*US1_f[idx] + gi22*US2_f[idx]*US2_f[idx] + gi33*US3_f[idx]*US3_f[idx]
+                + 2.0*(gi12*US1_f[idx]*US2_f[idx] + gi13*US1_f[idx]*US3_f[idx] + gi23*US2_f[idx]*US3_f[idx])
+              ) / UD_f[idx] / (1.0 + w_EOS*w_EOS)
+            );
+
+        r = UD_f[idx] / rg / W;
+        u1 = US1_f[idx] / W / rg / r / (1.0 + w_EOS);
+        u2 = US2_f[idx] / W / rg / r / (1.0 + w_EOS);
+        u3 = US3_f[idx] / W / rg / r / (1.0 + w_EOS);
+      }
+
+      fields["r_a"][idx] += r*((1+w_EOS)*W*W - w_EOS);
+
+      fields["S1_a"][idx] += r*(1.0 + w_EOS)*W*u1;
+      fields["S2_a"][idx] += r*(1.0 + w_EOS)*W*u2;
+      fields["S3_a"][idx] += r*(1.0 + w_EOS)*W*u3;
+
+      fields["S11_a"][idx] += r*( w_EOS*g11 + (1.0 + w_EOS)*u1*u1 );
+      fields["S12_a"][idx] += r*( w_EOS*g12 + (1.0 + w_EOS)*u1*u2 );
+      fields["S13_a"][idx] += r*( w_EOS*g13 + (1.0 + w_EOS)*u1*u3 );
+      fields["S22_a"][idx] += r*( w_EOS*g22 + (1.0 + w_EOS)*u2*u2 );
+      fields["S23_a"][idx] += r*( w_EOS*g23 + (1.0 + w_EOS)*u2*u3 );
+      fields["S33_a"][idx] += r*( w_EOS*g33 + (1.0 + w_EOS)*u3*u3 );
+
+      fields["S_a"][idx] += r*( 3.0*w_EOS + (1.0 + w_EOS)*(W*W-1) );
+
+    }
+  }
+
   void init()
   {
     // initialize values
+    LOOP3(i,j,k)
+    {
+      idx_t idx = INDEX(i,j,k);
+
+      UD_a[idx] = 0.0;
+      US1_a[idx] = 0.0;
+      US2_a[idx] = 0.0;
+      US3_a[idx] = 0.0;
+    }
 
   }
 

@@ -22,7 +22,7 @@
 // #define YCP 4 // must evenly divide into N!
 // #define INDEX(i,j,k) ( (((i+N)%N)/XCP)*N*N*XCP + N*( ((i+N)%N)%XCP + (((j+N)%N)/YCP)*YCP*XCP ) + ((j+N)%N)%YCP + ((k+N)%N)*YCP )
 
-#define F_INDEX(i,j,k,d) (((i+N)%N)*N*N*3 + ((j+N)%N)*N*3 + (k+N)%N*3 + d) /* index 'd' last for now? */
+#define F_INDEX(i,j,k,d) (((i+N)%N)*N*N*3 + ((j+N)%N)*N*3 + (k+N)%N*3 + (d-1) ) /* index 'd' = 1,2,3 last for now? */
 
 #define LOOP3(i,j,k) \
   for(idx_t i=0; i<N; ++i) \
@@ -125,20 +125,20 @@
 
 
 // A GEN2 method; any method needing 2 registers.
-// Sets up a "_p" (previous) and "_a" (active) register.
+// Sets up a "_f" (final) and "_a" (active) register.
 #define GEN2_ARRAY_ADDMAP(name)         \
-        fields[#name "_p"] = name##_p;  \
+        fields[#name "_f"] = name##_f;  \
         fields[#name "_a"] = name##_a
 
 #define GEN2_ARRAY_CREATE(name) \
-        real_t * name##_p, * name##_a
+        real_t * name##_f, * name##_a
 
 #define GEN2_ARRAY_ALLOC(name) \
-        name##_p   = new real_t[N*N*N]; \
+        name##_f   = new real_t[N*N*N]; \
         name##_a   = new real_t[N*N*N]
 
 #define GEN2_ARRAY_DELETE(name) \
-        delete [] name##_p;    \
+        delete [] name##_f;    \
         delete [] name##_a
 
 

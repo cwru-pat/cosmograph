@@ -28,12 +28,25 @@
   function(beta3);                      \
   function(alpha);
 
+#define BSSN_APPLY_TO_SOURCES(function) \
+  function(r);                          \
+  function(S);                          \
+  function(S1);                         \
+  function(S2);                         \
+  function(S3);                         \
+  function(S11);                        \
+  function(S12);                        \
+  function(S13);                        \
+  function(S22);                        \
+  function(S23);                        \
+  function(S33);
+
 #define BSSN_APPLY_TO_IJ_PERMS(function) \
-  function(1, 1);                  \
-  function(1, 2);                  \
-  function(1, 3);                  \
-  function(2, 2);                  \
-  function(2, 3);                  \
+  function(1, 1);                        \
+  function(1, 2);                        \
+  function(1, 3);                        \
+  function(2, 2);                        \
+  function(2, 3);                        \
   function(3, 3);
 
 // apply when the "I" index is special, e.g., d_i g_{jk}
@@ -300,7 +313,7 @@
   )
 
 #define BSSN_DT_AIJ(I, J) ( \
-    exp(-4.0*paq->phi)*(paq->alpha*paq->ricciTF##I##J - paq->D##I##D##J##aTF) \
+    exp(-4.0*paq->phi)*(paq->alpha*(paq->ricciTF##I##J - 8.0*PI*paq->STF##I##J) - paq->D##I##D##J##aTF) \
     + paq->alpha*(paq->K*paq->A##I##J - 2.0*( \
         paq->Acont11*paq->A11 + paq->Acont22*paq->A22 + paq->Acont33*paq->A33 \
         + 2.0*(paq->Acont12*paq->A12 + paq->Acont13*paq->A13 + paq->Acont23*paq->A23) \
@@ -333,6 +346,13 @@
       ) \
   )
 
+
+/*
+ * Full metric calcs
+ */
+
+// metric derivs
+
 #define SET_DKM00(k) paq->d##k##m00 = DKM00(k);
 #define DKM00(k) \
       -2.0*paq->alpha*paq->d##k##a \
@@ -355,6 +375,35 @@
 
 #define SET_DKMIJ(k, i, j) paq->d##k##m##i##j = DKMIJ(k, i, j);
 #define DKMIJ(k, i, j) exp(4.0*paq->phi)*(paq->d##k##g##i##j + 4.0*paq->d##k##phi*paq->gamma##i##j);
+
+
+// metric
+
+#define SET_M00() paq->m00 = M00();
+#define M00() \
+      -paq->alpha*paq->alpha + exp(4.0*paq->phi)*( \
+        paq->gamma11*paq->beta1*paq->beta1 + paq->gamma22*paq->beta2*paq->beta2 + paq->gamma33*paq->beta3*paq->beta3 \
+        + 2.0*(paq->gamma12*paq->beta1*paq->beta2 + paq->gamma13*paq->beta1*paq->beta3 + paq->gamma23*paq->beta2*paq->beta3) \
+      );
+
+#define SET_M0I(i) paq->m0##i = M0I(i);
+#define M0I(i) exp(4.0*paq->phi)*(paq->gamma1##i*paq->beta1 + paq->gamma2##i*paq->beta2 + paq->gamma3##i*paq->beta3);
+
+#define SET_MIJ(i, j) paq->m##i##j = MIJ(i, j);
+#define MIJ(i, j) exp(4.0*paq->phi)*(paq->gamma##i##j);
+
+// inverse metric
+
+#define SET_Mi00() paq->mi00 = Mi00();
+#define Mi00() -1.0/paq->alpha/paq->alpha;
+
+#define SET_Mi0I(i) paq->mi0##i = Mi0I(i);
+#define Mi0I(i) 1.0/paq->alpha/paq->alpha*paq->beta##i;
+
+#define SET_MiIJ(i, j) paq->mi##i##j = MiIJ(i, j);
+#define MiIJ(i, j) exp(-4.0*paq->phi)*(paq->gamma##i##j) - 1.0/paq->alpha/paq->alpha*paq->beta##i*paq->beta##j;
+
+
 
 /*
  * Enforce standard ordering of indexes for tensor components
@@ -475,6 +524,14 @@
 #define d3d2g31 d2d3g13
 #define d3d2g32 d2d3g23
 
+// Full Metric
+#define m10 m01
+#define m20 m02
+#define m30 m03
+#define m21 m12
+#define m31 m13
+#define m32 m23
+
 // Full Metric derivatives
 #define d1m10 d1m01
 #define d1m20 d1m02
@@ -495,5 +552,13 @@
 #define d3m31 d3m13
 #define d3m32 d3m23
 
+// source terms
+#define S21 S12
+#define S31 S13
+#define S32 S23
+
+#define STF21 STF12
+#define STF31 STF13
+#define STF32 STF23
 
 #endif

@@ -51,6 +51,7 @@ int main(int argc, char **argv)
     // Run RK steps explicitly here (ties together BSSN + Hydro stuff).
     // See bssn class or hydro class for more comments.
     bssnSim.stepInit();
+    hydroSim.init();
 
     // First RK step & Set Hydro Vars
     LOOP3(i, j, k)
@@ -61,7 +62,7 @@ int main(int argc, char **argv)
       // need to set full metric components first; this calculation is only
       // done when explicitly called.
       bssnSim.set_full_metric_der(&b_paq);
-      hydroSim.setQuantitiesPt(&b_paq, &h_paq);
+      hydroSim.setQuantitiesCell(&b_paq, &h_paq);
     }
     bssnSim.regSwap_c_a();
 
@@ -89,8 +90,17 @@ int main(int argc, char **argv)
       {
         hydroSim.setAllFluxInt(i, j, k);
       }
+      LOOP3(i, j, k)
+      {
+        hydroSim.evolveFluid(i, j, k);
+      }
 
     // Wrap up
+    // clear out source term in bssn calc for replacement
+    bssnSim.clearSrc();
+    // add in new evolved source
+    hydroSim.addBSSNSrc(bssnSim.fields);
+    // bssn _f <-> _p
     bssnSim.stepTerm();
 
   }
