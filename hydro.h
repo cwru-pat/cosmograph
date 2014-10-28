@@ -82,7 +82,7 @@ public:
           1.0 + hdp->g * (
              paq->gammai11*US1_a[idx]*US1_a[idx] + paq->gammai22*US2_a[idx]*US2_a[idx] + paq->gammai33*US3_a[idx]*US3_a[idx]
               + 2.0*paq->gammai12*US1_a[idx]*US2_a[idx] + 2.0*paq->gammai13*US1_a[idx]*US3_a[idx] + 2.0*paq->gammai23*US2_a[idx]*US3_a[idx]
-            ) / UD_a[idx] / (1.0 + w_EOS*w_EOS)
+            ) / UD_a[idx] / UD_a[idx] / pw2(1.0 + w_EOS)
           );
 
       /* \rho = D / gamma^1/2 / W */
@@ -307,18 +307,19 @@ public:
 
   }
 
-  void addBSSNSrc(std::map<std::basic_string<char>, float*> fields)
+  void addBSSNSrc(std::map <std::string, real_t *> & bssn_fields)
   {
+
     LOOP3(i,j,k)
     {
       idx_t idx = INDEX(i,j,k);
 
-      real_t g11 = fields["gamma_11_f"][idx];
-      real_t g12 = fields["gamma_12_f"][idx];
-      real_t g13 = fields["gamma_13_f"][idx];
-      real_t g22 = fields["gamma_22_f"][idx];
-      real_t g23 = fields["gamma_23_f"][idx];
-      real_t g33 = fields["gamma_33_f"][idx];
+      real_t g11 = bssn_fields["gamma_11_f"][idx];
+      real_t g12 = bssn_fields["gamma_12_f"][idx];
+      real_t g13 = bssn_fields["gamma_13_f"][idx];
+      real_t g22 = bssn_fields["gamma_22_f"][idx];
+      real_t g23 = bssn_fields["gamma_23_f"][idx];
+      real_t g33 = bssn_fields["gamma_33_f"][idx];
 
       real_t gi11 = g22*g33 - g23*g23;
       real_t gi12 = g13*g23 - g12*g33;
@@ -327,8 +328,8 @@ public:
       real_t gi23 = g12*g13 - g23*g11;
       real_t gi33 = g11*g22 - g12*g12;
 
-      real_t g = exp(4.0*fields["phi_f"][idx]);
-      real_t rg = exp(2.0*fields["phi_f"][idx]);
+      real_t g = exp(4.0*bssn_fields["phi_f"][idx]);
+      real_t rg = exp(2.0*bssn_fields["phi_f"][idx]);
 
       real_t W, r, u1, u2, u3;
 
@@ -346,7 +347,7 @@ public:
             1.0 + g * (
                gi11*US1_f[idx]*US1_f[idx] + gi22*US2_f[idx]*US2_f[idx] + gi33*US3_f[idx]*US3_f[idx]
                 + 2.0*(gi12*US1_f[idx]*US2_f[idx] + gi13*US1_f[idx]*US3_f[idx] + gi23*US2_f[idx]*US3_f[idx])
-              ) / UD_f[idx] / (1.0 + w_EOS*w_EOS)
+              ) / UD_a[idx] / UD_a[idx] / pw2(1.0 + w_EOS)
             );
 
         r = UD_f[idx] / rg / W;
@@ -355,20 +356,20 @@ public:
         u3 = US3_f[idx] / W / rg / r / (1.0 + w_EOS);
       }
 
-      fields["r_a"][idx] += r*((1+w_EOS)*W*W - w_EOS);
+      // bssn_fields["r_a"][idx] += r*((1+w_EOS)*W*W - w_EOS);
 
-      fields["S1_a"][idx] += r*(1.0 + w_EOS)*W*u1;
-      fields["S2_a"][idx] += r*(1.0 + w_EOS)*W*u2;
-      fields["S3_a"][idx] += r*(1.0 + w_EOS)*W*u3;
+      // bssn_fields["S1_a"][idx] += r*(1.0 + w_EOS)*W*u1;
+      // bssn_fields["S2_a"][idx] += r*(1.0 + w_EOS)*W*u2;
+      // bssn_fields["S3_a"][idx] += r*(1.0 + w_EOS)*W*u3;
 
-      fields["S11_a"][idx] += r*( w_EOS*g11 + (1.0 + w_EOS)*u1*u1 );
-      fields["S12_a"][idx] += r*( w_EOS*g12 + (1.0 + w_EOS)*u1*u2 );
-      fields["S13_a"][idx] += r*( w_EOS*g13 + (1.0 + w_EOS)*u1*u3 );
-      fields["S22_a"][idx] += r*( w_EOS*g22 + (1.0 + w_EOS)*u2*u2 );
-      fields["S23_a"][idx] += r*( w_EOS*g23 + (1.0 + w_EOS)*u2*u3 );
-      fields["S33_a"][idx] += r*( w_EOS*g33 + (1.0 + w_EOS)*u3*u3 );
+      // bssn_fields["S11_a"][idx] += r*( w_EOS*g11 + (1.0 + w_EOS)*u1*u1 );
+      // bssn_fields["S12_a"][idx] += r*( w_EOS*g12 + (1.0 + w_EOS)*u1*u2 );
+      // bssn_fields["S13_a"][idx] += r*( w_EOS*g13 + (1.0 + w_EOS)*u1*u3 );
+      // bssn_fields["S22_a"][idx] += r*( w_EOS*g22 + (1.0 + w_EOS)*u2*u2 );
+      // bssn_fields["S23_a"][idx] += r*( w_EOS*g23 + (1.0 + w_EOS)*u2*u3 );
+      // bssn_fields["S33_a"][idx] += r*( w_EOS*g33 + (1.0 + w_EOS)*u3*u3 );
 
-      fields["S_a"][idx] += r*( 3.0*w_EOS + (1.0 + w_EOS)*(W*W-1) );
+      // bssn_fields["S_a"][idx] += r*( 3.0*w_EOS + (1.0 + w_EOS)*(W*W-1) );
 
     }
   }
