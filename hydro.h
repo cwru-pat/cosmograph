@@ -104,9 +104,9 @@ public:
   void setFluxesCell(BSSNData *paq, HydroData *hdp)
   {
     idx_t idx = paq->idx;
-    idx_t f_idx_1 = F_INDEX(paq->i, paq->j, paq->k, 0);
-    idx_t f_idx_2 = F_INDEX(paq->i, paq->j, paq->k, 1);
-    idx_t f_idx_3 = F_INDEX(paq->i, paq->j, paq->k, 2);
+    idx_t f_idx_1 = F_INDEX(paq->i, paq->j, paq->k, 1);
+    idx_t f_idx_2 = F_INDEX(paq->i, paq->j, paq->k, 2);
+    idx_t f_idx_3 = F_INDEX(paq->i, paq->j, paq->k, 3);
 
     // Calculate fluxes in each cell
     // D
