@@ -235,7 +235,7 @@ void BSSN::clearSrc()
   {
     idx_t idx = INDEX(i,j,k);
 
-    r_a[idx] = 0.0;
+    r_a[idx] = 1.0;
     S_a[idx] = 0.0;
     S1_a[idx] = 0.0;
     S2_a[idx] = 0.0;
@@ -286,7 +286,7 @@ void BSSN::init()
 
     alpha_p[idx]    = 1.0;
 
-    r_a[idx] = 0.0;
+    r_a[idx] = 1.0;
     S_a[idx] = 0.0;
     S1_a[idx] = 0.0;
     S2_a[idx] = 0.0;
