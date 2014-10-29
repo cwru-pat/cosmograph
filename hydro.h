@@ -310,16 +310,22 @@ public:
   void addBSSNSrc(std::map <std::string, real_t *> & bssn_fields)
   {
 
+   // // use const_iterator to walk through elements of pairs
+   // for ( std::map< std::string, real_t *>::const_iterator iter = bssn_fields.begin();
+   //    iter != bssn_fields.end(); ++iter )
+   //    std::cout << iter->first << '\n';
+
+
     LOOP3(i,j,k)
     {
       idx_t idx = INDEX(i,j,k);
 
-      real_t g11 = bssn_fields["gamma_11_f"][idx];
-      real_t g12 = bssn_fields["gamma_12_f"][idx];
-      real_t g13 = bssn_fields["gamma_13_f"][idx];
-      real_t g22 = bssn_fields["gamma_22_f"][idx];
-      real_t g23 = bssn_fields["gamma_23_f"][idx];
-      real_t g33 = bssn_fields["gamma_33_f"][idx];
+      real_t g11 = bssn_fields["gamma11_f"][idx];
+      real_t g12 = bssn_fields["gamma12_f"][idx];
+      real_t g13 = bssn_fields["gamma13_f"][idx];
+      real_t g22 = bssn_fields["gamma22_f"][idx];
+      real_t g23 = bssn_fields["gamma23_f"][idx];
+      real_t g33 = bssn_fields["gamma33_f"][idx];
 
       real_t gi11 = g22*g33 - g23*g23;
       real_t gi12 = g13*g23 - g12*g33;
@@ -339,7 +345,6 @@ public:
       u3 = 0.0;
 
       if(UD_f[idx] > 0.0)
-      // if(0)
       {
 
         W_rel = sqrt(
@@ -354,7 +359,6 @@ public:
         u2 = US2_f[idx] / W_rel / rg / r / (1.0 + w_EOS);
         u3 = US3_f[idx] / W_rel / rg / r / (1.0 + w_EOS);
       }
-
 
       bssn_fields["r_a"][idx] += r*((1.0 + w_EOS)*W_rel*W_rel - w_EOS);
 
@@ -372,8 +376,6 @@ public:
       bssn_fields["S_a"][idx] += r*( 3.0*w_EOS + (1.0 + w_EOS)*(W_rel*W_rel-1.0) );
 
     }
-
-    std::cout << bssn_fields["r_a"][0] << " | ";
 
   }
 
