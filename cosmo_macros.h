@@ -1,9 +1,9 @@
 #ifndef COSMO_DEFINES
 #define COSMO_DEFINES
 
-#define N 32
+#define N 4
 #define POINTS (N*N*N)
-#define dt 0.1
+#define dt 0.2
 #define dx 1.0
 
 // WENO "epsilon" parameter
@@ -22,7 +22,7 @@
 // #define YCP 4 // must evenly divide into N!
 // #define INDEX(i,j,k) ( (((i+N)%N)/XCP)*N*N*XCP + N*( ((i+N)%N)%XCP + (((j+N)%N)/YCP)*YCP*XCP ) + ((j+N)%N)%YCP + ((k+N)%N)*YCP )
 
-#define F_INDEX(i,j,k,d) (((i+N)%N)*N*N*3 + ((j+N)%N)*N*3 + ((k+N)%N)*3 + (d-1)%3 ) /* index 'd' = 1,2,3 */
+#define F_INDEX(i,j,k,d) (((i+N)%N)*N*N*3 + ((j+N)%N)*N*3 + ((k+N)%N)*3 + (d+2)%3 ) /* index 'd' = 1,2,3 */
 
 #define LOOP3(i,j,k) \
   for(idx_t i=0; i<N; ++i) \

@@ -27,7 +27,7 @@ class Hydro
 public:
   std::map <std::string, real_t *> fields;
 
-  Hydro();
+  Hydro(real_t w_EOS);
   ~Hydro();
 
   void setQuantitiesCell(BSSNData *paq, HydroData *hdp);
@@ -44,6 +44,8 @@ public:
   void addBSSNSrc(std::map <std::string, real_t *> & bssn_fields);
 
   void init();
+
+  void stepTerm();
 
 };
 

@@ -13,6 +13,8 @@ typedef struct {
   real_t rg;
   /* metric det. */
   real_t g;
+  /* 'scale factor' */
+  real_t a;
 
 } HydroData;
 

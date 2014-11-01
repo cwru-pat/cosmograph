@@ -8,6 +8,7 @@ BSSN::BSSN()
 {
   BSSN_APPLY_TO_FIELDS(RK4_ARRAY_ALLOC)
   BSSN_APPLY_TO_SOURCES(GEN1_ARRAY_ALLOC)
+
   BSSN_APPLY_TO_FIELDS(RK4_ARRAY_ADDMAP)
   BSSN_APPLY_TO_SOURCES(GEN1_ARRAY_ADDMAP)
 }
@@ -68,8 +69,6 @@ void BSSN::set_full_metric(BSSNData *paq)
 
 void BSSN::set_full_metric_der(BSSNData *paq)
 {
-  SET_DKM00(1); SET_DKM00(2); SET_DKM00(3);
-
   SET_DKM0I(1, 1); SET_DKM0I(2, 1); SET_DKM0I(3, 1);
   SET_DKM0I(1, 2); SET_DKM0I(2, 2); SET_DKM0I(3, 2);
   SET_DKM0I(1, 3); SET_DKM0I(2, 3); SET_DKM0I(3, 3);
@@ -80,6 +79,9 @@ void BSSN::set_full_metric_der(BSSNData *paq)
   SET_DKMIJ(2, 1, 2); SET_DKMIJ(2, 1, 3); SET_DKMIJ(2, 2, 3);
   SET_DKMIJ(3, 1, 1); SET_DKMIJ(3, 2, 2); SET_DKMIJ(3, 3, 3);
   SET_DKMIJ(3, 1, 2); SET_DKMIJ(3, 1, 3); SET_DKMIJ(3, 2, 3);
+
+  // macro depends on SET_DKMIJ first
+  SET_DKM00(1); SET_DKM00(2); SET_DKM00(3);
 }
 
 
@@ -235,11 +237,11 @@ void BSSN::clearSrc()
   {
     idx_t idx = INDEX(i,j,k);
 
-    r_a[idx] = 1.0;
-    S_a[idx] = 0.0;
-    S1_a[idx] = 0.0;
-    S2_a[idx] = 0.0;
-    S3_a[idx] = 0.0;
+    r_a[idx]   = 0.0;
+    S_a[idx]   = 0.0;
+    S1_a[idx]  = 0.0;
+    S2_a[idx]  = 0.0;
+    S3_a[idx]  = 0.0;
     S11_a[idx] = 0.0;
     S12_a[idx] = 0.0;
     S13_a[idx] = 0.0;
@@ -258,45 +260,45 @@ void BSSN::init()
   {
     idx = INDEX(i,j,k);
 
-    gamma11_p[idx]  = 1.0;
-    gamma12_p[idx]  = 0.0;
-    gamma13_p[idx]  = 0.0;
-    gamma22_p[idx]  = 1.0;
-    gamma23_p[idx]  = 0.0;
-    gamma33_p[idx]  = 1.0;
+    gamma11_p[idx]  = gamma11_f[idx]  = 1.0;
+    gamma12_p[idx]  = gamma12_f[idx]  = 0.0;
+    gamma13_p[idx]  = gamma13_f[idx]  = 0.0;
+    gamma22_p[idx]  = gamma22_f[idx]  = 1.0;
+    gamma23_p[idx]  = gamma23_f[idx]  = 0.0;
+    gamma33_p[idx]  = gamma33_f[idx]  = 1.0;
     
-    phi_p[idx]      = 0.0;
+    phi_p[idx]      = phi_f[idx]      = 0.0;
     
-    A11_p[idx]      = 0.0;
-    A12_p[idx]      = 0.0;
-    A13_p[idx]      = 0.0;
-    A22_p[idx]      = 0.0;
-    A23_p[idx]      = 0.0;
-    A33_p[idx]      = 0.0;
+    A11_p[idx]      = A11_f[idx]      = 0.0;
+    A12_p[idx]      = A12_f[idx]      = 0.0;
+    A13_p[idx]      = A13_f[idx]      = 0.0;
+    A22_p[idx]      = A22_f[idx]      = 0.0;
+    A23_p[idx]      = A23_f[idx]      = 0.0;
+    A33_p[idx]      = A33_f[idx]      = 0.0;
 
-    K_p[idx]        = -3.0;
+    K_p[idx]        = K_f[idx]        = -0.86832150547;
 
-    Gamma1_p[idx]   = 0.0;
-    Gamma2_p[idx]   = 0.0;
-    Gamma3_p[idx]   = 0.0;
+    Gamma1_p[idx]   = Gamma1_f[idx]   = 0.0;
+    Gamma2_p[idx]   = Gamma2_f[idx]   = 0.0;
+    Gamma3_p[idx]   = Gamma3_f[idx]   = 0.0;
 
-    beta1_p[idx]    = 0.0;
-    beta2_p[idx]    = 0.0;
-    beta3_p[idx]    = 0.0;
+    beta1_p[idx]    = beta1_f[idx]    = 0.0;
+    beta2_p[idx]    = beta2_f[idx]    = 0.0;
+    beta3_p[idx]    = beta3_f[idx]    = 0.0;
 
-    alpha_p[idx]    = 1.0;
+    alpha_p[idx]    = alpha_f[idx]    = 1.0;
 
-    r_a[idx] = 1.0;
-    S_a[idx] = 0.0;
-    S1_a[idx] = 0.0;
-    S2_a[idx] = 0.0;
-    S3_a[idx] = 0.0;
-    S11_a[idx] = 0.0;
-    S12_a[idx] = 0.0;
-    S13_a[idx] = 0.0;
-    S22_a[idx] = 0.0;
-    S23_a[idx] = 0.0;
-    S33_a[idx] = 0.0;
+    r_a[idx]        = 0.0;
+    S_a[idx]        = 0.0;
+    S1_a[idx]       = 0.0;
+    S2_a[idx]       = 0.0;
+    S3_a[idx]       = 0.0;
+    S11_a[idx]      = 0.0;
+    S12_a[idx]      = 0.0;
+    S13_a[idx]      = 0.0;
+    S22_a[idx]      = 0.0;
+    S23_a[idx]      = 0.0;
+    S33_a[idx]      = 0.0;
   }
 }
 
@@ -379,6 +381,10 @@ void BSSN::set_source_vals(BSSNData *paq)
 
   paq->rho = r_a[idx];
   paq->S = S_a[idx];
+
+  paq->S1 = S1_a[idx];
+  paq->S2 = S2_a[idx];
+  paq->S3 = S3_a[idx];
 
   paq->S11 = S11_a[idx];
   paq->S12 = S12_a[idx];

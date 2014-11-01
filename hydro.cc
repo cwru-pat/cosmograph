@@ -3,14 +3,15 @@
 namespace cosmo
 {
 
-Hydro::Hydro()
+Hydro::Hydro(real_t w)
 {
+  w_EOS = w;
+
   HYDRO_APPLY_TO_FIELDS(GEN2_ARRAY_ALLOC)
   HYDRO_APPLY_TO_FLUXES(FLUX_ARRAY_ALLOC)
   HYDRO_APPLY_TO_SOURCES(GEN1_ARRAY_ALLOC)
   HYDRO_APPLY_TO_PRIMITIVES(GEN1_ARRAY_ALLOC)
   HYDRO_APPLY_TO_FLUXES_INT(FLUX_ARRAY_ALLOC)
-
 
   HYDRO_APPLY_TO_FIELDS(GEN2_ARRAY_ADDMAP)
   HYDRO_APPLY_TO_FLUXES(FLUX_ARRAY_ADDMAP)
@@ -50,13 +51,14 @@ void Hydro::setPrimitivesCell(BSSNData *paq, HydroData *hdp)
   else
   {
     /* root of metric determinant */
-    hdp->rg = exp(2.0*paq->phi);
-    hdp->g  = exp(4.0*paq->phi);
+    hdp->rg = exp(6.0*paq->phi);
+    hdp->g  = exp(12.0*paq->phi);
+    hdp->a  = exp(2.0*paq->phi);
 
     /* lorentz factor */
     /* W = (gamma^ij S_j S_j / D^2 / (1+w^2) + 1)^1/2 */
     hdp->W = sqrt(
-        1.0 + hdp->g * (
+        1.0 + hdp->a * hdp->a * (
            paq->gammai11*US1_a[idx]*US1_a[idx] + paq->gammai22*US2_a[idx]*US2_a[idx] + paq->gammai33*US3_a[idx]*US3_a[idx]
             + 2.0*paq->gammai12*US1_a[idx]*US2_a[idx] + 2.0*paq->gammai13*US1_a[idx]*US3_a[idx] + 2.0*paq->gammai23*US2_a[idx]*US3_a[idx]
           ) / UD_a[idx] / UD_a[idx] / pw2(1.0 + w_EOS)
@@ -70,6 +72,7 @@ void Hydro::setPrimitivesCell(BSSNData *paq, HydroData *hdp)
     u1 = US1_a[idx] / hdp->W / hdp->rg / r_a[idx] / (1.0 + w_EOS);
     u2 = US2_a[idx] / hdp->W / hdp->rg / r_a[idx] / (1.0 + w_EOS);
     u3 = US3_a[idx] / hdp->W / hdp->rg / r_a[idx] / (1.0 + w_EOS);
+
     /* velocities (contravariant) */
     v1_a[idx] = paq->alpha / hdp->W * hdp->g * ( paq->gammai11*u1 + paq->gammai12*u2 + paq->gammai13*u3 ) - paq->beta1;
     v2_a[idx] = paq->alpha / hdp->W * hdp->g * ( paq->gammai12*u1 + paq->gammai22*u2 + paq->gammai23*u3 ) - paq->beta2;
@@ -92,19 +95,19 @@ void Hydro::setFluxesCell(BSSNData *paq, HydroData *hdp)
     FD_a[f_idx_3] = UD_a[idx]*v3_a[idx];
   // S1
     FS1_a[f_idx_1] = US1_a[idx]*v1_a[idx]/paq->alpha
-                      + hdp->W * r_a[idx] * hdp->rg * paq->alpha;
+                      + w_EOS * r_a[idx] * hdp->rg * paq->alpha;
     FS1_a[f_idx_2] = US1_a[idx]*v2_a[idx]/paq->alpha;
     FS1_a[f_idx_3] = US1_a[idx]*v3_a[idx]/paq->alpha;
   // S2
     FS2_a[f_idx_1] = US2_a[idx]*v1_a[idx]/paq->alpha;
     FS2_a[f_idx_2] = US2_a[idx]*v2_a[idx]/paq->alpha
-                      + hdp->W * r_a[idx] * hdp->rg * paq->alpha;
+                      + w_EOS * r_a[idx] * hdp->rg * paq->alpha;
     FS2_a[f_idx_3] = US2_a[idx]*v3_a[idx]/paq->alpha;
   // S3
     FS3_a[f_idx_1] = US3_a[idx]*v1_a[idx]/paq->alpha;
     FS3_a[f_idx_2] = US3_a[idx]*v2_a[idx]/paq->alpha;
     FS3_a[f_idx_3] = US3_a[idx]*v3_a[idx]/paq->alpha
-                      + hdp->W * r_a[idx] * hdp->rg * paq->alpha;
+                      + w_EOS * r_a[idx] * hdp->rg * paq->alpha;
 }
 
 void Hydro::setSourcesCell(BSSNData *paq, HydroData *hdp)
@@ -264,22 +267,22 @@ void Hydro::evolveFluid(idx_t i, idx_t j, idx_t k)
 
   UD_f[idx] = UD_a[idx] + dt*(
       FD_int_a[F_INDEX(i,j,k,1)] + FD_int_a[F_INDEX(i,j,k,2)] + FD_int_a[F_INDEX(i,j,k,3)]
-      + FD_int_a[F_INDEX(i-1,j,k,1)] + FD_int_a[F_INDEX(i,j-1,k,2)] + FD_int_a[F_INDEX(i,j,k-1,3)]
+      - FD_int_a[F_INDEX(i-1,j,k,1)] - FD_int_a[F_INDEX(i,j-1,k,2)] - FD_int_a[F_INDEX(i,j,k-1,3)]
     );
 
   US1_f[idx] = US1_a[idx] + dt*(
       FS1_int_a[F_INDEX(i,j,k,1)] + FS1_int_a[F_INDEX(i,j,k,2)] + FS1_int_a[F_INDEX(i,j,k,3)]
-      + FS1_int_a[F_INDEX(i-1,j,k,1)] + FS1_int_a[F_INDEX(i,j-1,k,2)] + FS1_int_a[F_INDEX(i,j,k-1,3)]
+      - FS1_int_a[F_INDEX(i-1,j,k,1)] - FS1_int_a[F_INDEX(i,j-1,k,2)] - FS1_int_a[F_INDEX(i,j,k-1,3)]
     );
 
   US2_f[idx] = US2_a[idx] + dt*(
       FS2_int_a[F_INDEX(i,j,k,1)] + FS2_int_a[F_INDEX(i,j,k,2)] + FS2_int_a[F_INDEX(i,j,k,3)]
-      + FS2_int_a[F_INDEX(i-1,j,k,1)] + FS2_int_a[F_INDEX(i,j-1,k,2)] + FS2_int_a[F_INDEX(i,j,k-1,3)]
+      - FS2_int_a[F_INDEX(i-1,j,k,1)] - FS2_int_a[F_INDEX(i,j-1,k,2)] - FS2_int_a[F_INDEX(i,j,k-1,3)]
     );
 
   US3_f[idx] = US3_a[idx] + dt*(
       FS3_int_a[F_INDEX(i,j,k,1)] + FS3_int_a[F_INDEX(i,j,k,2)] + FS3_int_a[F_INDEX(i,j,k,3)]
-      + FS3_int_a[F_INDEX(i-1,j,k,1)] + FS3_int_a[F_INDEX(i,j-1,k,2)] + FS3_int_a[F_INDEX(i,j,k-1,3)]
+      - FS3_int_a[F_INDEX(i-1,j,k,1)] - FS3_int_a[F_INDEX(i,j-1,k,2)] - FS3_int_a[F_INDEX(i,j,k-1,3)]
     );
 
 }
@@ -287,7 +290,7 @@ void Hydro::evolveFluid(idx_t i, idx_t j, idx_t k)
 void Hydro::addBSSNSrc(std::map <std::string, real_t *> & bssn_fields)
 {
 
- // // use const_iterator to walk through elements of pairs
+ // use const_iterator to walk through elements of pairs
  // for ( std::map< std::string, real_t *>::const_iterator iter = bssn_fields.begin();
  //    iter != bssn_fields.end(); ++iter )
  //    std::cout << iter->first << '\n';
@@ -311,8 +314,9 @@ void Hydro::addBSSNSrc(std::map <std::string, real_t *> & bssn_fields)
     real_t gi23 = g12*g13 - g23*g11;
     real_t gi33 = g11*g22 - g12*g12;
 
-    real_t g = exp(4.0*bssn_fields["phi_f"][idx]);
-    real_t rg = exp(2.0*bssn_fields["phi_f"][idx]);
+    real_t a = exp(4.0*bssn_fields["phi_f"][idx]);
+    real_t g = exp(12.0*bssn_fields["phi_f"][idx]);
+    real_t rg = exp(6.0*bssn_fields["phi_f"][idx]);
 
     real_t W_rel, r, u1, u2, u3;
     W_rel = 1.0;
@@ -325,7 +329,7 @@ void Hydro::addBSSNSrc(std::map <std::string, real_t *> & bssn_fields)
     {
 
       W_rel = sqrt(
-          1.0 + g * (
+          1.0 + a * a * (
              gi11*US1_f[idx]*US1_f[idx] + gi22*US2_f[idx]*US2_f[idx] + gi33*US3_f[idx]*US3_f[idx]
               + 2.0*(gi12*US1_f[idx]*US2_f[idx] + gi13*US1_f[idx]*US3_f[idx] + gi23*US2_f[idx]*US3_f[idx])
             ) / UD_f[idx] / UD_f[idx] / pw2(1.0 + w_EOS)
@@ -363,12 +367,24 @@ void Hydro::init()
   {
     idx_t idx = INDEX(i,j,k);
 
-    UD_a[idx] = 0.0;
-    US1_a[idx] = 0.0;
-    US2_a[idx] = 0.0;
-    US3_a[idx] = 0.0;
+    UD_a[idx]  = UD_f[idx]  = 0.01;
+    US1_a[idx] = US1_f[idx] = 0.0;
+    US2_a[idx] = US2_f[idx] = 0.0;
+    US3_a[idx] = US3_f[idx] = 0.0;
   }
 
+}
+
+void Hydro::stepTerm()
+{
+  std::swap(UD_a, UD_f);
+  std::swap(fields["UD_a"], fields["UD_f"]);
+  std::swap(US1_a, US1_f);
+  std::swap(fields["US1_a"], fields["US1_f"]);
+  std::swap(US2_a, US2_f);
+  std::swap(fields["US2_a"], fields["US2_f"]);
+  std::swap(US3_a, US3_f);
+  std::swap(fields["US3_a"], fields["US3_f"]);
 }
 
 

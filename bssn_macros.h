@@ -330,6 +330,7 @@
         paq->G##I##11*paq->Acont11 + paq->G##I##22*paq->Acont22 + paq->G##I##33*paq->Acont33 \
           + 2.0*(paq->G##I##12*paq->Acont12 + paq->G##I##13*paq->Acont13 + paq->G##I##23*paq->Acont23) \
         - (2.0/3.0) * (paq->gammai##I##1*der(paq->K_adj, 1) + paq->gammai##I##2*der(paq->K_adj, 2) + paq->gammai##I##3*der(paq->K_adj, 3)) \
+        - 8.0*PI*(paq->gammai##I##1*paq->S1 + paq->gammai##I##2*paq->S2 + paq->gammai##I##3*paq->S3) \
         + 6.0 * (paq->Acont##I##1*paq->d1phi + paq->Acont##I##2*paq->d2phi + paq->Acont##I##2*paq->d2phi) \
       ) \
     + paq->beta1*der(paq->Gamma##I##_adj, 1) + paq->beta2*der(paq->Gamma##I##_adj, 2) + paq->beta3*der(paq->Gamma##I##_adj, 3) \
@@ -356,12 +357,12 @@
 #define SET_DKM00(k) paq->d##k##m00 = DKM00(k);
 #define DKM00(k) \
       -2.0*paq->alpha*paq->d##k##a \
-      + paq->d##k##g11*paq->beta1*paq->beta1 + paq->d##k##g22*paq->beta2*paq->beta2 + paq->d##k##g33*paq->beta3*paq->beta3 \
-      + 2.0*(paq->d##k##g12*paq->beta1*paq->beta2 + paq->d##k##g13*paq->beta1*paq->beta3 + paq->d##k##g23*paq->beta2*paq->beta3) \
-      + 2.0*( \
-          paq->d##k##g11*paq->d##k##beta1*paq->beta1 + paq->d##k##g12*paq->d##k##beta2*paq->beta1 + paq->d##k##g13*paq->d##k##beta3*paq->beta1 \
-          + paq->d##k##g12*paq->d##k##beta1*paq->beta2 + paq->d##k##g22*paq->d##k##beta2*paq->beta2 + paq->d##k##g23*paq->d##k##beta3*paq->beta2 \
-          + paq->d##k##g13*paq->d##k##beta1*paq->beta3 + paq->d##k##g23*paq->d##k##beta2*paq->beta3 + paq->d##k##g33*paq->d##k##beta3*paq->beta3 \
+      + paq->d##k##m11*paq->beta1*paq->beta1 + paq->d##k##m22*paq->beta2*paq->beta2 + paq->d##k##m33*paq->beta3*paq->beta3 \
+      + 2.0*(paq->d##k##m12*paq->beta1*paq->beta2 + paq->d##k##m13*paq->beta1*paq->beta3 + paq->d##k##m23*paq->beta2*paq->beta3) \
+      + 2.0*exp(4.0*paq->phi)*( \
+          paq->gamma11*paq->d##k##beta1*paq->beta1 + paq->gamma12*paq->d##k##beta2*paq->beta1 + paq->gamma13*paq->d##k##beta3*paq->beta1 \
+          + paq->gamma12*paq->d##k##beta1*paq->beta2 + paq->gamma22*paq->d##k##beta2*paq->beta2 + paq->gamma23*paq->d##k##beta3*paq->beta2 \
+          + paq->gamma13*paq->d##k##beta1*paq->beta3 + paq->gamma23*paq->d##k##beta2*paq->beta3 + paq->gamma33*paq->d##k##beta3*paq->beta3 \
         );
 
 #define SET_DKM0I(k, i) paq->d##k##m0##i = DKM0I(k, i);
