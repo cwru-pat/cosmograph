@@ -39,4 +39,6 @@ typedef long int idx_t;
 #include "hydro.h"
 #include "hydro_data.h"
 
+#include "lambda.h"
+
 #endif

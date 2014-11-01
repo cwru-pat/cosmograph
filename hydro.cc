@@ -285,6 +285,10 @@ void Hydro::evolveFluid(idx_t i, idx_t j, idx_t k)
       - FS3_int_a[F_INDEX(i-1,j,k,1)] - FS3_int_a[F_INDEX(i,j-1,k,2)] - FS3_int_a[F_INDEX(i,j,k-1,3)]
     );
 
+if(idx==10) {
+  std::cout << US3_f[idx] << "|" << US3_a[idx] << "|";
+}
+
 }
 
 void Hydro::addBSSNSrc(std::map <std::string, real_t *> & bssn_fields)

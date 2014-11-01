@@ -258,11 +258,13 @@
 #define BSSN_CALCULATE_DGAMMA(I, J, K) paq->d##I##g##J##K = der(paq->gamma##J##K##_adj, I);
 
 #define BSSN_CALCULATE_ACONT(I, J) paq->Acont##I##J = ( \
-    paq->gammai##I##1*paq->gamma##J##1*paq->A11 + paq->gammai##I##2*paq->gamma##J##2*paq->A22 + paq->gammai##I##3*paq->gamma##J##3*paq->A33 + \
-    2.0*(paq->gammai##I##1*paq->gamma##J##2*paq->A12 + paq->gammai##I##1*paq->gamma##J##3*paq->A13 + paq->gammai##I##2*paq->gamma##J##3*paq->A23) \
+    paq->gammai##I##1*paq->gammai##J##1*paq->A11 + paq->gammai##I##2*paq->gammai##J##1*paq->A21 + paq->gammai##I##3*paq->gammai##J##1*paq->A31 \
+    + paq->gammai##I##1*paq->gammai##J##2*paq->A12 + paq->gammai##I##2*paq->gammai##J##2*paq->A22 + paq->gammai##I##3*paq->gammai##J##2*paq->A32 \
+    + paq->gammai##I##1*paq->gammai##J##3*paq->A13 + paq->gammai##I##2*paq->gammai##J##3*paq->A23 + paq->gammai##I##3*paq->gammai##J##3*paq->A33 \
   );
 
 // needs the gamma*ldlphi vars defined:
+// not actually trace free yet!
 #define BSSN_CALCULATE_DIDJALPHA(I, J) paq->D##I##D##J##aTF = dder(paq->alpha_adj, I, J) - ( \
     (paq->G1##I##J + 2.0*( (1==I)*paq->d##J##phi + (1==J)*paq->d##I##phi - paq->gamma##I##J*gamma1ldlphi))*paq->d1a + \
     (paq->G2##I##J + 2.0*( (2==I)*paq->d##J##phi + (2==J)*paq->d##I##phi - paq->gamma##I##J*gamma2ldlphi))*paq->d2a + \
@@ -279,6 +281,7 @@
       paq->gamma1##I*der(paq->Gamma1_adj, J) + paq->gamma2##I*der(paq->Gamma2_adj, J) + paq->gamma3##I*der(paq->Gamma3_adj, J) + \
       paq->gamma1##J*der(paq->Gamma1_adj, I) + paq->gamma2##J*der(paq->Gamma2_adj, I) + paq->gamma3##J*der(paq->Gamma3_adj, I) \
     ) \
+/* CHECK THIS */ \
     - 0.5*( \
       paq->d1g##I##1*paq->d##J##gi11 + paq->d2g##I##2*paq->d##J##gi22 + paq->d3g##I##3*paq->d##J##gi33 \
         + 2.0*(paq->d1g##I##2*paq->d##J##gi12 + paq->d1g##I##3*paq->d##J##gi13 + paq->d2g##I##3*paq->d##J##gi23) + \
@@ -315,8 +318,9 @@
 #define BSSN_DT_AIJ(I, J) ( \
     exp(-4.0*paq->phi)*(paq->alpha*(paq->ricciTF##I##J - 8.0*PI*paq->STF##I##J) - paq->D##I##D##J##aTF) \
     + paq->alpha*(paq->K*paq->A##I##J - 2.0*( \
-        paq->Acont11*paq->A11 + paq->Acont22*paq->A22 + paq->Acont33*paq->A33 \
-        + 2.0*(paq->Acont12*paq->A12 + paq->Acont13*paq->A13 + paq->Acont23*paq->A23) \
+        paq->gammai11*paq->A1##I*paq->A1##J + paq->gammai12*paq->A1##I*paq->A2##J + paq->gammai13*paq->A1##I*paq->A3##J \
+        + paq->gammai21*paq->A2##I*paq->A1##J + paq->gammai22*paq->A2##I*paq->A2##J + paq->gammai23*paq->A2##I*paq->A3##J \
+        + paq->gammai31*paq->A3##I*paq->A1##J + paq->gammai32*paq->A3##I*paq->A2##J + paq->gammai33*paq->A3##I*paq->A3##J \
       )) \
     + paq->beta1*der(paq->A##I##J##_adj, 1) + paq->beta2*der(paq->A##I##J##_adj, 2) + paq->beta3*der(paq->A##I##J##_adj, 3) \
     + paq->A##I##1*paq->d##J##beta1 + paq->A##I##2*paq->d##J##beta2 + paq->A##I##3*paq->d##J##beta3 \
@@ -325,7 +329,7 @@
   )
 
 #define BSSN_DT_GAMMAI(I) ( \
-    - 2.0*(paq->A##I##1*paq->d1a + paq->A##I##2*paq->d2a + paq->A##I##3*paq->d3a) \
+    - 2.0*(paq->Acont##I##1*paq->d1a + paq->Acont##I##2*paq->d2a + paq->Acont##I##3*paq->d3a) \
     + 2.0*paq->alpha*( \
         paq->G##I##11*paq->Acont11 + paq->G##I##22*paq->Acont22 + paq->G##I##33*paq->Acont33 \
           + 2.0*(paq->G##I##12*paq->Acont12 + paq->G##I##13*paq->Acont13 + paq->G##I##23*paq->Acont23) \

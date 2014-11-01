@@ -276,7 +276,7 @@ void BSSN::init()
     A23_p[idx]      = A23_f[idx]      = 0.0;
     A33_p[idx]      = A33_f[idx]      = 0.0;
 
-    K_p[idx]        = K_f[idx]        = -0.86832150547;
+    K_p[idx]        = K_f[idx]        = -sqrt(24*PI*(0.01));
 
     Gamma1_p[idx]   = Gamma1_f[idx]   = 0.0;
     Gamma2_p[idx]   = Gamma2_f[idx]   = 0.0;
@@ -393,12 +393,12 @@ void BSSN::set_source_vals(BSSNData *paq)
   paq->S23 = S23_a[idx];
   paq->S33 = S33_a[idx];
 
-  paq->STF11 = S11_a[idx] - paq->gamma11*paq->S;
-  paq->STF12 = S12_a[idx] - paq->gamma12*paq->S;
-  paq->STF13 = S13_a[idx] - paq->gamma13*paq->S;
-  paq->STF22 = S22_a[idx] - paq->gamma22*paq->S;
-  paq->STF23 = S23_a[idx] - paq->gamma23*paq->S;
-  paq->STF33 = S33_a[idx] - paq->gamma33*paq->S;
+  paq->STF11 = S11_a[idx] - 1.0/3.0*exp(4*paq->phi)*paq->gamma11*paq->S;
+  paq->STF12 = S12_a[idx] - 1.0/3.0*exp(4*paq->phi)*paq->gamma12*paq->S;
+  paq->STF13 = S13_a[idx] - 1.0/3.0*exp(4*paq->phi)*paq->gamma13*paq->S;
+  paq->STF22 = S22_a[idx] - 1.0/3.0*exp(4*paq->phi)*paq->gamma22*paq->S;
+  paq->STF23 = S23_a[idx] - 1.0/3.0*exp(4*paq->phi)*paq->gamma23*paq->S;
+  paq->STF33 = S33_a[idx] - 1.0/3.0*exp(4*paq->phi)*paq->gamma33*paq->S;
 }
 
 
@@ -552,6 +552,7 @@ void BSSN::calculateDDalphaTF(BSSNData *paq)
   real_t gamma1ldlphi = paq->gammai11*paq->d1phi + paq->gammai12*paq->d2phi + paq->gammai13*paq->d3phi;
   real_t gamma2ldlphi = paq->gammai21*paq->d1phi + paq->gammai22*paq->d2phi + paq->gammai23*paq->d3phi;
   real_t gamma3ldlphi = paq->gammai31*paq->d1phi + paq->gammai32*paq->d2phi + paq->gammai33*paq->d3phi;
+  // Calculates full (not trace-free) piece:
   BSSN_APPLY_TO_IJ_PERMS(BSSN_CALCULATE_DIDJALPHA)
 
   // subtract trace

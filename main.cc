@@ -28,8 +28,10 @@ int main(int argc, char **argv)
   BSSN bssnSim;
   BSSNData b_paq = {0}; // data structure associated with bssn sim
 
-  Hydro hydroSim (0.0/3.0); // fluid with some w_EOS
+  Hydro hydroSim (1.0/3.0); // fluid with some w_EOS
   HydroData h_paq = {0};
+
+  Lambda lambdaSim (0.0);
 
   // initial conditions
   _timer["init"].start();
@@ -43,7 +45,7 @@ int main(int argc, char **argv)
 
   // evolve simulation
   _timer["loop"].start();
-  for(idx_t i=0; i < 1000; ++i) {
+  for(idx_t i=0; i < 10000; ++i) {
 
     real_t tmp = bssnSim.fields["phi_p"][0];
     outFile << tmp << "\n";
@@ -112,6 +114,9 @@ int main(int argc, char **argv)
       bssnSim.clearSrc();
       // add in new evolved source
       hydroSim.addBSSNSrc(bssnSim.fields);
+
+    // Add in 'Lambda' term
+      lambdaSim.addBSSNSrc(bssnSim.fields);
 
     // Wrap up
       // bssn _f <-> _p

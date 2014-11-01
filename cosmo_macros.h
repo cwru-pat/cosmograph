@@ -1,9 +1,9 @@
 #ifndef COSMO_DEFINES
 #define COSMO_DEFINES
 
-#define N 4
+#define N 8
 #define POINTS (N*N*N)
-#define dt 0.2
+#define dt 0.02
 #define dx 1.0
 
 // WENO "epsilon" parameter
