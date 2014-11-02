@@ -285,10 +285,6 @@ void Hydro::evolveFluid(idx_t i, idx_t j, idx_t k)
       - FS3_int_a[F_INDEX(i-1,j,k,1)] - FS3_int_a[F_INDEX(i,j-1,k,2)] - FS3_int_a[F_INDEX(i,j,k-1,3)]
     );
 
-if(idx==10) {
-  std::cout << US3_f[idx] << "|" << US3_a[idx] << "|";
-}
-
 }
 
 void Hydro::addBSSNSrc(std::map <std::string, real_t *> & bssn_fields)
@@ -304,12 +300,12 @@ void Hydro::addBSSNSrc(std::map <std::string, real_t *> & bssn_fields)
   {
     idx_t idx = INDEX(i,j,k);
 
-    real_t g11 = bssn_fields["gamma11_f"][idx];
-    real_t g12 = bssn_fields["gamma12_f"][idx];
-    real_t g13 = bssn_fields["gamma13_f"][idx];
-    real_t g22 = bssn_fields["gamma22_f"][idx];
-    real_t g23 = bssn_fields["gamma23_f"][idx];
-    real_t g33 = bssn_fields["gamma33_f"][idx];
+    real_t g11 = bssn_fields["gamma11_a"][idx];
+    real_t g12 = bssn_fields["gamma12_a"][idx];
+    real_t g13 = bssn_fields["gamma13_a"][idx];
+    real_t g22 = bssn_fields["gamma22_a"][idx];
+    real_t g23 = bssn_fields["gamma23_a"][idx];
+    real_t g33 = bssn_fields["gamma33_a"][idx];
 
     real_t gi11 = g22*g33 - g23*g23;
     real_t gi12 = g13*g23 - g12*g33;
@@ -318,9 +314,9 @@ void Hydro::addBSSNSrc(std::map <std::string, real_t *> & bssn_fields)
     real_t gi23 = g12*g13 - g23*g11;
     real_t gi33 = g11*g22 - g12*g12;
 
-    real_t a = exp(4.0*bssn_fields["phi_f"][idx]);
-    real_t g = exp(12.0*bssn_fields["phi_f"][idx]);
-    real_t rg = exp(6.0*bssn_fields["phi_f"][idx]);
+    real_t a = exp(4.0*bssn_fields["phi_a"][idx]);
+    real_t g = exp(12.0*bssn_fields["phi_a"][idx]);
+    real_t rg = exp(6.0*bssn_fields["phi_a"][idx]);
 
     real_t W_rel, r, u1, u2, u3;
     W_rel = 1.0;
@@ -351,14 +347,15 @@ void Hydro::addBSSNSrc(std::map <std::string, real_t *> & bssn_fields)
     bssn_fields["S2_a"][idx] += r*(1.0 + w_EOS)*W_rel*u2;
     bssn_fields["S3_a"][idx] += r*(1.0 + w_EOS)*W_rel*u3;
 
-    bssn_fields["S11_a"][idx] += r*( w_EOS*g11 + (1.0 + w_EOS)*u1*u1 );
-    bssn_fields["S12_a"][idx] += r*( w_EOS*g12 + (1.0 + w_EOS)*u1*u2 );
-    bssn_fields["S13_a"][idx] += r*( w_EOS*g13 + (1.0 + w_EOS)*u1*u3 );
-    bssn_fields["S22_a"][idx] += r*( w_EOS*g22 + (1.0 + w_EOS)*u2*u2 );
-    bssn_fields["S23_a"][idx] += r*( w_EOS*g23 + (1.0 + w_EOS)*u2*u3 );
-    bssn_fields["S33_a"][idx] += r*( w_EOS*g33 + (1.0 + w_EOS)*u3*u3 );
+    real_t S = r*( 3.0*w_EOS + (1.0 + w_EOS)*(W_rel*W_rel-1.0) );
+    bssn_fields["S_a"][idx] += S;
 
-    bssn_fields["S_a"][idx] += r*( 3.0*w_EOS + (1.0 + w_EOS)*(W_rel*W_rel-1.0) );
+    bssn_fields["STF11_a"][idx] += r*( w_EOS*a*g11 + (1.0 + w_EOS)*u1*u1 ) - a*g11*S/3.0;
+    bssn_fields["STF12_a"][idx] += r*( w_EOS*a*g12 + (1.0 + w_EOS)*u1*u2 ) - a*g12*S/3.0;
+    bssn_fields["STF13_a"][idx] += r*( w_EOS*a*g13 + (1.0 + w_EOS)*u1*u3 ) - a*g13*S/3.0;
+    bssn_fields["STF22_a"][idx] += r*( w_EOS*a*g22 + (1.0 + w_EOS)*u2*u2 ) - a*g22*S/3.0;
+    bssn_fields["STF23_a"][idx] += r*( w_EOS*a*g23 + (1.0 + w_EOS)*u2*u3 ) - a*g23*S/3.0;
+    bssn_fields["STF33_a"][idx] += r*( w_EOS*a*g33 + (1.0 + w_EOS)*u3*u3 ) - a*g33*S/3.0;
 
   }
 

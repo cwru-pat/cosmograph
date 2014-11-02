@@ -34,12 +34,12 @@
   function(S1);                         \
   function(S2);                         \
   function(S3);                         \
-  function(S11);                        \
-  function(S12);                        \
-  function(S13);                        \
-  function(S22);                        \
-  function(S23);                        \
-  function(S33);
+  function(STF11);                      \
+  function(STF12);                      \
+  function(STF13);                      \
+  function(STF22);                      \
+  function(STF23);                      \
+  function(STF33);
 
 #define BSSN_APPLY_TO_IJ_PERMS(function) \
   function(1, 1);                        \

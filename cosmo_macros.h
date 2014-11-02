@@ -1,7 +1,7 @@
 #ifndef COSMO_DEFINES
 #define COSMO_DEFINES
 
-#define N 8
+#define N 4
 #define POINTS (N*N*N)
 #define dt 0.02
 #define dx 1.0
@@ -170,5 +170,23 @@
 
 #define FLUX_ARRAY_DELETE(name) \
         delete [] name##_a
+
+
+#define DUMPSTUFF(extra) \
+         cout << "step #" << s \
+         << ": " << extra \
+         << "|phi_a = " << bssnSim.fields["phi_a"][10] \
+         << "|K_a=" << bssnSim.fields["K_a"][10] \
+         << "|A11_a=" << bssnSim.fields["A11_a"][10] \
+         << "|A12_a=" << bssnSim.fields["A12_a"][10] \
+         << "|gamma11_a=" << bssnSim.fields["gamma11_a"][10] \
+         << "|gamma12_a=" << bssnSim.fields["gamma12_a"][10] \
+         << "|UD_a=" << hydroSim.fields["UD_a"][10] \
+         << "|r_a=" << bssnSim.fields["r_a"][10] \
+         << "|S_a=" << bssnSim.fields["S_a"][10] \
+         << "|STF11_a=" << bssnSim.fields["STF11_a"][10] \
+         << "|STF12_a=" << bssnSim.fields["STF12_a"][10] \
+         << " \n"; \
+
 
 #endif

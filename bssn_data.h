@@ -86,7 +86,6 @@ typedef struct {
   // Source terms
   real_t rho, S;
   real_t S1, S2, S3;
-  real_t S11, S12, S13, S22, S23, S33;
   real_t STF11, STF12, STF13, STF22, STF23, STF33;
 
 } BSSNData;

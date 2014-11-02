@@ -46,7 +46,7 @@ void BSSN::set_paq_values(idx_t i, idx_t j, idx_t k, BSSNData *paq)
   calculateDDalphaTF(paq);
 
   // source values
-  set_source_vals(paq);
+  set_source_vals(paq);  
 }
 
 void BSSN::set_full_metric(BSSNData *paq)
@@ -242,18 +242,17 @@ void BSSN::clearSrc()
     S1_a[idx]  = 0.0;
     S2_a[idx]  = 0.0;
     S3_a[idx]  = 0.0;
-    S11_a[idx] = 0.0;
-    S12_a[idx] = 0.0;
-    S13_a[idx] = 0.0;
-    S22_a[idx] = 0.0;
-    S23_a[idx] = 0.0;
-    S33_a[idx] = 0.0;
+    STF11_a[idx] = 0.0;
+    STF12_a[idx] = 0.0;
+    STF13_a[idx] = 0.0;
+    STF22_a[idx] = 0.0;
+    STF23_a[idx] = 0.0;
+    STF33_a[idx] = 0.0;
   }
 }
 
 void BSSN::init()
 {
-  real_t eps = 0.01;
   idx_t idx;
 
   LOOP3(i, j, k)
@@ -276,7 +275,7 @@ void BSSN::init()
     A23_p[idx]      = A23_f[idx]      = 0.0;
     A33_p[idx]      = A33_f[idx]      = 0.0;
 
-    K_p[idx]        = K_f[idx]        = -sqrt(24*PI*(0.01));
+    K_p[idx]        = K_f[idx]        = -sqrt(24.0*PI*(0.01));
 
     Gamma1_p[idx]   = Gamma1_f[idx]   = 0.0;
     Gamma2_p[idx]   = Gamma2_f[idx]   = 0.0;
@@ -293,12 +292,12 @@ void BSSN::init()
     S1_a[idx]       = 0.0;
     S2_a[idx]       = 0.0;
     S3_a[idx]       = 0.0;
-    S11_a[idx]      = 0.0;
-    S12_a[idx]      = 0.0;
-    S13_a[idx]      = 0.0;
-    S22_a[idx]      = 0.0;
-    S23_a[idx]      = 0.0;
-    S33_a[idx]      = 0.0;
+    STF11_a[idx]      = 0.0;
+    STF12_a[idx]      = 0.0;
+    STF13_a[idx]      = 0.0;
+    STF22_a[idx]      = 0.0;
+    STF23_a[idx]      = 0.0;
+    STF33_a[idx]      = 0.0;
   }
 }
 
@@ -386,19 +385,12 @@ void BSSN::set_source_vals(BSSNData *paq)
   paq->S2 = S2_a[idx];
   paq->S3 = S3_a[idx];
 
-  paq->S11 = S11_a[idx];
-  paq->S12 = S12_a[idx];
-  paq->S13 = S13_a[idx];
-  paq->S22 = S22_a[idx];
-  paq->S23 = S23_a[idx];
-  paq->S33 = S33_a[idx];
-
-  paq->STF11 = S11_a[idx] - 1.0/3.0*exp(4*paq->phi)*paq->gamma11*paq->S;
-  paq->STF12 = S12_a[idx] - 1.0/3.0*exp(4*paq->phi)*paq->gamma12*paq->S;
-  paq->STF13 = S13_a[idx] - 1.0/3.0*exp(4*paq->phi)*paq->gamma13*paq->S;
-  paq->STF22 = S22_a[idx] - 1.0/3.0*exp(4*paq->phi)*paq->gamma22*paq->S;
-  paq->STF23 = S23_a[idx] - 1.0/3.0*exp(4*paq->phi)*paq->gamma23*paq->S;
-  paq->STF33 = S33_a[idx] - 1.0/3.0*exp(4*paq->phi)*paq->gamma33*paq->S;
+  paq->STF11 = STF11_a[idx];
+  paq->STF12 = STF12_a[idx];
+  paq->STF13 = STF13_a[idx];
+  paq->STF22 = STF22_a[idx];
+  paq->STF23 = STF23_a[idx];
+  paq->STF33 = STF33_a[idx];
 }
 
 
