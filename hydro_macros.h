@@ -42,7 +42,7 @@
     function(FS3_int);
 
 
-// T^ab * g_ab,j source term in flud EOM
+// T^ab * g_ab,j source term in fluid EOM
 
 #define TABGAB_J(j)  (                                                       \
       paq->d##j##m00 * ( uu_fac + w_EOS*paq->m00 )                           \

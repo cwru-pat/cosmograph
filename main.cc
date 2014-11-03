@@ -25,11 +25,14 @@ int main(int argc, char **argv)
   }
 
   // Create simulation
-  BSSN bssnSim;
-  BSSNData b_paq = {0}; // data structure associated with bssn sim
-
-  Hydro hydroSim (1.0/3.0); // fluid with some w_EOS
-  HydroData h_paq = {0};
+    // GR Fields
+    BSSN bssnSim;
+    BSSNData b_paq = {0}; // data structure associated with bssn sim
+    // Fluid fields
+    Hydro hydroSim (0.0/3.0); // fluid with some w_EOS
+    HydroData h_paq = {0};
+    // DE
+    Lambda lambdaSim (0.001);
 
   // initial conditions
   _timer["init"].start();
@@ -42,7 +45,7 @@ int main(int argc, char **argv)
 
   // evolve simulation
   _timer["loop"].start();
-  for(idx_t s=0; s < 1000; ++s) {
+  for(idx_t s=0; s < 5000; ++s) {
 
     real_t tmp = bssnSim.fields["phi_p"][0];
     outFile << tmp << "\n";
@@ -58,6 +61,7 @@ int main(int argc, char **argv)
       bssnSim.clearSrc();
       // add hydro source to bssn sim
       hydroSim.addBSSNSrc(bssnSim.fields);
+      lambdaSim.addBSSNSrc(bssnSim.fields);
 
     // First RK step & Set Hydro Vars
     LOOP3(i, j, k)
@@ -78,6 +82,7 @@ DUMPSTUFF("postinit")
     bssnSim.clearSrc();
     // add hydro source to bssn sim
     hydroSim.addBSSNSrc(bssnSim.fields);
+    lambdaSim.addBSSNSrc(bssnSim.fields);
 
     bssnSim.regSwap_c_a();
 
@@ -92,6 +97,7 @@ DUMPSTUFF("postinit")
       bssnSim.clearSrc();
       // add hydro source to bssn sim
       hydroSim.addBSSNSrc(bssnSim.fields);
+      lambdaSim.addBSSNSrc(bssnSim.fields);
 
       bssnSim.regSwap_c_a();
       // Third RK step
@@ -104,6 +110,7 @@ DUMPSTUFF("postinit")
       bssnSim.clearSrc();
       // add hydro source to bssn sim
       hydroSim.addBSSNSrc(bssnSim.fields);
+      lambdaSim.addBSSNSrc(bssnSim.fields);
 
       bssnSim.regSwap_c_a();
 

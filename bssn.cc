@@ -275,7 +275,7 @@ void BSSN::init()
     A23_p[idx]      = A23_f[idx]      = 0.0;
     A33_p[idx]      = A33_f[idx]      = 0.0;
 
-    K_p[idx]        = K_f[idx]        = -sqrt(24.0*PI*(0.01));
+    K_p[idx]        = K_f[idx]        = -sqrt(24.0*PI*(0.011));
 
     Gamma1_p[idx]   = Gamma1_f[idx]   = 0.0;
     Gamma2_p[idx]   = Gamma2_f[idx]   = 0.0;
@@ -578,8 +578,8 @@ real_t BSSN::ev_K(BSSNData *paq)
   return (
     - paq->DDaTR
     + paq->alpha*(
-        paq->A11*paq->A11 + paq->A22*paq->A22 + paq->A33*paq->A33
-        + 2.0*(paq->A12*paq->A12 + paq->A13*paq->A13 + paq->A23*paq->A23)
+        paq->A11*paq->Acont11 + paq->A22*paq->Acont22 + paq->A33*paq->Acont33
+        + 2.0*(paq->A12*paq->Acont12 + paq->A13*paq->Acont13 + paq->A23*paq->Acont23)
         + (1.0/3.0)*paq->K*paq->K
       )
     + paq->beta1*der(paq->K_adj, 1) + paq->beta2*der(paq->K_adj, 2) + paq->beta3*der(paq->K_adj, 3)

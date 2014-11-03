@@ -41,8 +41,14 @@ void Hydro::setPrimitivesCell(BSSNData *paq, HydroData *hdp)
 {
   idx_t idx = paq->idx;
 
+  /* root of metric determinant */
+  hdp->rg = exp(6.0*paq->phi);
+  hdp->g  = exp(12.0*paq->phi);
+  hdp->a  = exp(2.0*paq->phi);
+
   if(UD_a[idx] <= 0.0)
   {
+    hdp->W = 1.0;
     r_a[idx] = 0.0;
     v1_a[idx] = 0.0;
     v2_a[idx] = 0.0;
@@ -50,11 +56,6 @@ void Hydro::setPrimitivesCell(BSSNData *paq, HydroData *hdp)
   }
   else
   {
-    /* root of metric determinant */
-    hdp->rg = exp(6.0*paq->phi);
-    hdp->g  = exp(12.0*paq->phi);
-    hdp->a  = exp(2.0*paq->phi);
-
     /* lorentz factor */
     /* W = (gamma^ij S_j S_j / D^2 / (1+w^2) + 1)^1/2 */
     hdp->W = sqrt(
@@ -325,20 +326,20 @@ void Hydro::addBSSNSrc(std::map <std::string, real_t *> & bssn_fields)
     u2 = 0.0;
     u3 = 0.0;
 
-    if(UD_f[idx] > 0.0)
+    if(UD_a[idx] > 0.0)
     {
 
       W_rel = sqrt(
           1.0 + a * a * (
-             gi11*US1_f[idx]*US1_f[idx] + gi22*US2_f[idx]*US2_f[idx] + gi33*US3_f[idx]*US3_f[idx]
-              + 2.0*(gi12*US1_f[idx]*US2_f[idx] + gi13*US1_f[idx]*US3_f[idx] + gi23*US2_f[idx]*US3_f[idx])
-            ) / UD_f[idx] / UD_f[idx] / pw2(1.0 + w_EOS)
+             gi11*US1_a[idx]*US1_a[idx] + gi22*US2_a[idx]*US2_a[idx] + gi33*US3_a[idx]*US3_a[idx]
+              + 2.0*(gi12*US1_a[idx]*US2_a[idx] + gi13*US1_a[idx]*US3_a[idx] + gi23*US2_a[idx]*US3_a[idx])
+            ) / UD_a[idx] / UD_a[idx] / pw2(1.0 + w_EOS)
           );
 
-      r =  UD_f[idx] / rg / W_rel;
-      u1 = US1_f[idx] / W_rel / rg / r / (1.0 + w_EOS);
-      u2 = US2_f[idx] / W_rel / rg / r / (1.0 + w_EOS);
-      u3 = US3_f[idx] / W_rel / rg / r / (1.0 + w_EOS);
+      r =  UD_a[idx] / rg / W_rel;
+      u1 = US1_a[idx] / W_rel / rg / r / (1.0 + w_EOS);
+      u2 = US2_a[idx] / W_rel / rg / r / (1.0 + w_EOS);
+      u3 = US3_a[idx] / W_rel / rg / r / (1.0 + w_EOS);
     }
 
     bssn_fields["r_a"][idx] += r*((1.0 + w_EOS)*W_rel*W_rel - w_EOS);
@@ -350,12 +351,12 @@ void Hydro::addBSSNSrc(std::map <std::string, real_t *> & bssn_fields)
     real_t S = r*( 3.0*w_EOS + (1.0 + w_EOS)*(W_rel*W_rel-1.0) );
     bssn_fields["S_a"][idx] += S;
 
-    bssn_fields["STF11_a"][idx] += r*( w_EOS*a*g11 + (1.0 + w_EOS)*u1*u1 ) - a*g11*S/3.0;
-    bssn_fields["STF12_a"][idx] += r*( w_EOS*a*g12 + (1.0 + w_EOS)*u1*u2 ) - a*g12*S/3.0;
-    bssn_fields["STF13_a"][idx] += r*( w_EOS*a*g13 + (1.0 + w_EOS)*u1*u3 ) - a*g13*S/3.0;
-    bssn_fields["STF22_a"][idx] += r*( w_EOS*a*g22 + (1.0 + w_EOS)*u2*u2 ) - a*g22*S/3.0;
-    bssn_fields["STF23_a"][idx] += r*( w_EOS*a*g23 + (1.0 + w_EOS)*u2*u3 ) - a*g23*S/3.0;
-    bssn_fields["STF33_a"][idx] += r*( w_EOS*a*g33 + (1.0 + w_EOS)*u3*u3 ) - a*g33*S/3.0;
+    bssn_fields["STF11_a"][idx] += r*(1.0 + w_EOS)*(u1*u1 - a*g11*(W_rel*W_rel - 1.0));
+    bssn_fields["STF12_a"][idx] += r*(1.0 + w_EOS)*(u1*u2 - a*g12*(W_rel*W_rel - 1.0));
+    bssn_fields["STF13_a"][idx] += r*(1.0 + w_EOS)*(u1*u3 - a*g13*(W_rel*W_rel - 1.0));
+    bssn_fields["STF22_a"][idx] += r*(1.0 + w_EOS)*(u2*u2 - a*g22*(W_rel*W_rel - 1.0));
+    bssn_fields["STF23_a"][idx] += r*(1.0 + w_EOS)*(u2*u3 - a*g23*(W_rel*W_rel - 1.0));
+    bssn_fields["STF33_a"][idx] += r*(1.0 + w_EOS)*(u3*u3 - a*g33*(W_rel*W_rel - 1.0));
 
   }
 
