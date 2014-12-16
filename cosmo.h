@@ -7,6 +7,7 @@
 #include <cstring>
 #include <cmath>
 #include <zlib.h>
+#include <fftw3.h>
 
 /* C++ includes */
 #include <iostream>
@@ -16,29 +17,32 @@
 #include <algorithm>
 #include <string>
 #include <sstream>
+#include <random>
 
 #include "cosmo_macros.h"
 
 namespace cosmo
 {
 
-typedef float real_t;
+// changing this affects FFTs:
+typedef double real_t;
+// see http://www.fftw.org/doc/Precision.html
+
 typedef long int idx_t;
 
 } /* namespace cosmo */
 
-#include "utils/math.h"
-#include "utils/io.h"
 #include "utils/ConfigParser.h"
 #include "utils/Timer.h"
-#include "Wave.h"
+
+#include "utils/io.h"
+#include "utils/math.h"
 
 #include "bssn.h"
 #include "bssn_data.h"
-
 #include "hydro.h"
 #include "hydro_data.h"
-
 #include "lambda.h"
+#include "ICs.h"
 
 #endif

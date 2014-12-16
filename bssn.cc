@@ -1,4 +1,3 @@
-
 #include "bssn.h"
 
 namespace cosmo
