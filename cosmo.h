@@ -7,7 +7,6 @@
 #include <cstring>
 #include <cmath>
 #include <zlib.h>
-#include <fftw3.h>
 
 /* C++ includes */
 #include <iostream>
@@ -34,7 +33,7 @@ typedef long int idx_t;
 
 #include "utils/ConfigParser.h"
 #include "utils/Timer.h"
-
+#include "utils/Fourier.h"
 #include "utils/io.h"
 #include "utils/math.h"
 

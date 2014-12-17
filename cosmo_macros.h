@@ -15,14 +15,20 @@
 
 #define RESTRICT __restrict__
 
-// standard index
+// standard index, implementing periodic boundary conditions
 #define INDEX(i,j,k) ( ((i+N)%N)*N*N + ((j+N)%N)*N + (k+N)%N )
-// fragmented columns index - seems to be slower than standard indexing anyways
-// #define XCP 4 // must evenly divide into N!
-// #define YCP 4 // must evenly divide into N!
-// #define INDEX(i,j,k) ( (((i+N)%N)/XCP)*N*N*XCP + N*( ((i+N)%N)%XCP + (((j+N)%N)/YCP)*YCP*XCP ) + ((j+N)%N)%YCP + ((k+N)%N)*YCP )
+// indexing without periodicity
+#define NP_INDEX(i,j,k) (N*N*(i) + N*(j) + (k))
+// indexing of flux arrays; indexes cell boundaries with 'd' = 1,2,3, using periodic BCs
+#define F_INDEX(i,j,k,d) (((i+N)%N)*N*N*3 + ((j+N)%N)*N*3 + ((k+N)%N)*3 + (d+2)%3 )
+// non-periodic indexing of flux arrays; indexes cell boundaries with 'd' = 1,2,3
+#define F_NP_INDEX(i,j,k,d) ((i)*N*N*3 + (j)*N*3 + (k)*3 + (d+2)%3 )
+// FFT indexing
+#define FFT_INDEX(i,j,k) ((N/2+1)*N*((i+N)%N) + (N/2+1)*((j+N)%N) + ((k+N)%N))
+// FFT indexing without periodicity
+#define FFT_NP_INDEX(i,j,k) ((N/2+1)*N*(i) + (N/2+1)*(j) + (k))
 
-#define F_INDEX(i,j,k,d) (((i+N)%N)*N*N*3 + ((j+N)%N)*N*3 + ((k+N)%N)*3 + (d+2)%3 ) /* index 'd' = 1,2,3 */
+
 
 #define LOOP3(i,j,k) \
   for(idx_t i=0; i<N; ++i) \

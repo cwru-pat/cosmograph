@@ -10,9 +10,13 @@ namespace cosmo
 {
 
 real_t cosmo_power_spectrum(real_t k, ICsData *icd);
-void set_gaussian_random_field(void (*Pk)(real_t, real_t, real_t),
-  real_t *field, ICsData *icd);
 
+void set_gaussian_random_field(real_t *field, Fourier *fourier, ICsData *icd);
+
+void set_physical_metric_and_density(
+  std::map <std::string, real_t *> & bssn_fields,
+  std::map <std::string, real_t *> & hydro_fields,
+  Fourier *fourier);
 
 } // namespace cosmo
 

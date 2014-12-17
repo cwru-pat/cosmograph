@@ -25,19 +25,34 @@ int main(int argc, char **argv)
   }
 
   // Create simulation
-    // GR Fields
-    BSSN bssnSim;
-    BSSNData b_paq = {0}; // data structure associated with bssn sim
+  _timer["init"].start();
     // Fluid fields
     Hydro hydroSim (0.0/3.0); // fluid with some w_EOS
     HydroData h_paq = {0};
+    hydroSim.init();
     // DE
     Lambda lambdaSim (0.001);
 
-  // initial conditions
-  _timer["init"].start();
-  bssnSim.init();
-  hydroSim.init();
+    // GR Fields
+    BSSN bssnSim;
+    BSSNData b_paq = {0}; // data structure associated with bssn sim
+    bssnSim.init();
+
+    // generic reusable fourier class for N^3 arrays
+    Fourier fourier;
+    fourier.Initialize(N, hydroSim.fields["UD_a"] /* just any N^3 array for planning */);
+
+    // Initial *conformal* density for fluid field
+    ICsData i_paq = {};
+    i_paq.peak_k = 4.0/((real_t) N);
+    i_paq.peak_amplitude = 0.1; // figure out units here
+    // Note that this is going to be the conformal density, not physical density!
+    set_gaussian_random_field(hydroSim.fields["UD_a"], &fourier, &i_paq);
+    // should write UD_a for possible future ref / use
+
+    // Get metric solution; set physical density
+    set_physical_metric_and_density(bssnSim.fields, hydroSim.fields, &fourier);
+
   _timer["init"].stop();
 
   ofstream outFile;
@@ -45,7 +60,7 @@ int main(int argc, char **argv)
 
   // evolve simulation
   _timer["loop"].start();
-  for(idx_t s=0; s < 5000; ++s) {
+  for(idx_t s=0; s < 25; ++s) {
 
     real_t tmp = bssnSim.fields["phi_p"][0];
     outFile << tmp << "\n";

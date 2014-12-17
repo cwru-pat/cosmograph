@@ -85,9 +85,9 @@ void Hydro::setPrimitivesCell(BSSNData *paq, HydroData *hdp)
 void Hydro::setFluxesCell(BSSNData *paq, HydroData *hdp)
 {
   idx_t idx = paq->idx;
-  idx_t f_idx_1 = F_INDEX(paq->i, paq->j, paq->k, 1);
-  idx_t f_idx_2 = F_INDEX(paq->i, paq->j, paq->k, 2);
-  idx_t f_idx_3 = F_INDEX(paq->i, paq->j, paq->k, 3);
+  idx_t f_idx_1 = F_NP_INDEX(paq->i, paq->j, paq->k, 1);
+  idx_t f_idx_2 = F_NP_INDEX(paq->i, paq->j, paq->k, 2);
+  idx_t f_idx_3 = F_NP_INDEX(paq->i, paq->j, paq->k, 3);
 
   // Calculate fluxes in each cell
   // D
@@ -267,22 +267,22 @@ void Hydro::evolveFluid(idx_t i, idx_t j, idx_t k)
   idx_t idx = INDEX(i,j,k);
 
   UD_f[idx] = UD_a[idx] + dt*(
-      FD_int_a[F_INDEX(i,j,k,1)] + FD_int_a[F_INDEX(i,j,k,2)] + FD_int_a[F_INDEX(i,j,k,3)]
+      FD_int_a[F_NP_INDEX(i,j,k,1)] + FD_int_a[F_NP_INDEX(i,j,k,2)] + FD_int_a[F_NP_INDEX(i,j,k,3)]
       - FD_int_a[F_INDEX(i-1,j,k,1)] - FD_int_a[F_INDEX(i,j-1,k,2)] - FD_int_a[F_INDEX(i,j,k-1,3)]
     );
 
   US1_f[idx] = US1_a[idx] + dt*(
-      FS1_int_a[F_INDEX(i,j,k,1)] + FS1_int_a[F_INDEX(i,j,k,2)] + FS1_int_a[F_INDEX(i,j,k,3)]
+      FS1_int_a[F_NP_INDEX(i,j,k,1)] + FS1_int_a[F_NP_INDEX(i,j,k,2)] + FS1_int_a[F_NP_INDEX(i,j,k,3)]
       - FS1_int_a[F_INDEX(i-1,j,k,1)] - FS1_int_a[F_INDEX(i,j-1,k,2)] - FS1_int_a[F_INDEX(i,j,k-1,3)]
     );
 
   US2_f[idx] = US2_a[idx] + dt*(
-      FS2_int_a[F_INDEX(i,j,k,1)] + FS2_int_a[F_INDEX(i,j,k,2)] + FS2_int_a[F_INDEX(i,j,k,3)]
+      FS2_int_a[F_NP_INDEX(i,j,k,1)] + FS2_int_a[F_NP_INDEX(i,j,k,2)] + FS2_int_a[F_NP_INDEX(i,j,k,3)]
       - FS2_int_a[F_INDEX(i-1,j,k,1)] - FS2_int_a[F_INDEX(i,j-1,k,2)] - FS2_int_a[F_INDEX(i,j,k-1,3)]
     );
 
   US3_f[idx] = US3_a[idx] + dt*(
-      FS3_int_a[F_INDEX(i,j,k,1)] + FS3_int_a[F_INDEX(i,j,k,2)] + FS3_int_a[F_INDEX(i,j,k,3)]
+      FS3_int_a[F_NP_INDEX(i,j,k,1)] + FS3_int_a[F_NP_INDEX(i,j,k,2)] + FS3_int_a[F_NP_INDEX(i,j,k,3)]
       - FS3_int_a[F_INDEX(i-1,j,k,1)] - FS3_int_a[F_INDEX(i,j-1,k,2)] - FS3_int_a[F_INDEX(i,j,k-1,3)]
     );
 

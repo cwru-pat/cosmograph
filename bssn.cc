@@ -24,7 +24,7 @@ void BSSN::set_paq_values(idx_t i, idx_t j, idx_t k, BSSNData *paq)
   paq->i = i;
   paq->j = j;
   paq->k = k;
-  paq->idx = INDEX(i,j,k);
+  paq->idx = NP_INDEX(i,j,k);
 
   // draw data from cache
   set_local_vals(paq);
@@ -123,7 +123,7 @@ void BSSN::stepInit()
   BSSN_COPY_ARRAYS(_p, _a);
   LOOP3(i, j, k)
   {
-    idx_t idx = INDEX(i, j, k);
+    idx_t idx = NP_INDEX(i, j, k);
     BSSN_ZERO_ARRAY(_f, idx);
   }
 }
@@ -234,7 +234,7 @@ void BSSN::clearSrc()
 {
   LOOP3(i, j, k)
   {
-    idx_t idx = INDEX(i,j,k);
+    idx_t idx = NP_INDEX(i,j,k);
 
     r_a[idx]   = 0.0;
     S_a[idx]   = 0.0;
@@ -256,7 +256,7 @@ void BSSN::init()
 
   LOOP3(i, j, k)
   {
-    idx = INDEX(i,j,k);
+    idx = NP_INDEX(i,j,k);
 
     gamma11_p[idx]  = gamma11_f[idx]  = 1.0;
     gamma12_p[idx]  = gamma12_f[idx]  = 0.0;
