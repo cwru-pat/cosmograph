@@ -45,7 +45,7 @@ void BSSN::set_paq_values(idx_t i, idx_t j, idx_t k, BSSNData *paq)
   calculateDDalphaTF(paq);
 
   // source values
-  set_source_vals(paq);  
+  set_source_vals(paq);
 }
 
 void BSSN::set_full_metric(BSSNData *paq)
@@ -258,6 +258,7 @@ void BSSN::init()
   {
     idx = NP_INDEX(i,j,k);
 
+    // default flat static vacuum spacetime.
     gamma11_p[idx]  = gamma11_f[idx]  = 1.0;
     gamma12_p[idx]  = gamma12_f[idx]  = 0.0;
     gamma13_p[idx]  = gamma13_f[idx]  = 0.0;
@@ -274,7 +275,7 @@ void BSSN::init()
     A23_p[idx]      = A23_f[idx]      = 0.0;
     A33_p[idx]      = A33_f[idx]      = 0.0;
 
-    K_p[idx]        = K_f[idx]        = -sqrt(24.0*PI*(0.011));
+    K_p[idx]        = K_f[idx]        = 0.0;
 
     Gamma1_p[idx]   = Gamma1_f[idx]   = 0.0;
     Gamma2_p[idx]   = Gamma2_f[idx]   = 0.0;
@@ -523,6 +524,7 @@ void BSSN::calculateRicciTF(BSSNData *paq)
   paq->ricciTF22 -= (1.0/3.0)*paq->gamma22*paq->trace;
   paq->ricciTF23 -= (1.0/3.0)*paq->gamma23*paq->trace;
   paq->ricciTF33 -= (1.0/3.0)*paq->gamma33*paq->trace;
+
 }
 
 void BSSN::calculateDDphi(BSSNData *paq)

@@ -369,7 +369,8 @@ void Hydro::init()
   {
     idx_t idx = INDEX(i,j,k);
 
-    UD_a[idx]  = UD_f[idx]  = 0.01;
+    // empty universe
+    UD_a[idx]  = UD_f[idx]  = 0.0;
     US1_a[idx] = US1_f[idx] = 0.0;
     US2_a[idx] = US2_f[idx] = 0.0;
     US3_a[idx] = US3_f[idx] = 0.0;

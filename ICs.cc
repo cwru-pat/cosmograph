@@ -43,8 +43,9 @@ void set_gaussian_random_field(real_t *field, Fourier *fourier, ICsData *icd)
 
         scale = cosmo_power_spectrum(pmag, icd);
 
-        (fourier->f_field)[FFT_NP_INDEX(i,j,k)][0] *= scale;
-        (fourier->f_field)[FFT_NP_INDEX(i,j,k)][1] *= scale;
+        // fftw transform is unnormalized; account for an N^3 here
+        (fourier->f_field)[FFT_NP_INDEX(i,j,k)][0] *= scale/N/N/N;
+        (fourier->f_field)[FFT_NP_INDEX(i,j,k)][1] *= scale/N/N/N;
       }
     }
   }
@@ -56,7 +57,8 @@ void set_gaussian_random_field(real_t *field, Fourier *fourier, ICsData *icd)
   fftw_execute_dft_c2r(fourier->p_c2r, fourier->f_field, field);
 }
 
-void set_physical_metric_and_density(
+// doesn't specify monopole / expansion contribution
+void set_physical_from_conformal(
   std::map <std::string, real_t *> & bssn_fields,
   std::map <std::string, real_t *> & hydro_fields,
   Fourier *fourier)
@@ -88,8 +90,9 @@ void set_physical_metric_and_density(
         // Here we choose the magnitude of k such that the derivative stencil
         // applied later will agree with the metric solution we find.
         p2i = 1/(pw2(2.0*sin(PI*px/N)) + pw2(2.0*sin(PI*py/N)) + pw2(2.0*sin(PI*pz/N)));
-        (fourier->f_field)[FFT_NP_INDEX(i,j,k)][0] *= p2i;
-        (fourier->f_field)[FFT_NP_INDEX(i,j,k)][1] *= p2i;
+        // account for fftw normalization here
+        (fourier->f_field)[FFT_NP_INDEX(i,j,k)][0] *= p2i/N/N/N;
+        (fourier->f_field)[FFT_NP_INDEX(i,j,k)][1] *= p2i/N/N/N;
       }
     }
   }
@@ -97,12 +100,66 @@ void set_physical_metric_and_density(
   (fourier->f_field[FFT_NP_INDEX(0,0,0)])[0] = 0;
   (fourier->f_field[FFT_NP_INDEX(0,0,0)])[1] = 0;
 
-  // temporarily use phi as conformal factor; conformal factor is inverse fft of this
-  fftw_execute_dft_c2r(fourier->p_c2r, fourier->f_field, bssn_fields["phi_a"]);
-  
-  // TODO: reconstruct physical metric
-  // TODO: reconstruct physical density
+  // temporarily use phi to store conformal factor; conformal factor is inverse fft of this
+  // conformal factor array uses _p register initially, rather than _a
+  fftw_execute_dft_c2r(fourier->p_c2r, fourier->f_field, bssn_fields["phi_p"]);
+  // add in monopole contribution:
+  LOOP3(i,j,k)
+  {
+    bssn_fields["phi_p"][NP_INDEX(i,j,k)] += 1.0;
+  }
 
+  // reconstruct physical density, and store in UD
+  LOOP3(i,j,k)
+  {
+    hydro_fields["UD_a"][NP_INDEX(i,j,k)] /= pow(bssn_fields["phi_p"][NP_INDEX(i,j,k)], 5);
+  }
+
+  // reconstruct physical metric; \phi = log(\psi)
+  LOOP3(i,j,k)
+  {
+    bssn_fields["phi_p"][NP_INDEX(i,j,k)] = log(bssn_fields["phi_p"][NP_INDEX(i,j,k)]);
+    bssn_fields["phi_f"][NP_INDEX(i,j,k)] = bssn_fields["phi_p"][NP_INDEX(i,j,k)];
+  }
+
+}
+
+void set_density_and_K(
+  std::map <std::string, real_t *> & bssn_fields,
+  std::map <std::string, real_t *> & hydro_fields,
+  real_t rhoK)
+{
+  // check for min density value > 0
+  real_t min = hydro_fields["UD_a"][NP_INDEX(0,0,0)] + rhoK;
+  real_t max = min;
+  
+  LOOP3(i,j,k)
+  {
+    hydro_fields["UD_a"][NP_INDEX(i,j,k)] += rhoK;
+    bssn_fields["K_p"][NP_INDEX(i,j,k)] = -sqrt(24.0*PI*(rhoK));
+    bssn_fields["K_f"][NP_INDEX(i,j,k)] = -sqrt(24.0*PI*(rhoK));
+
+    if(hydro_fields["UD_a"][NP_INDEX(i,j,k)] < min)
+    {
+      min = hydro_fields["UD_a"][NP_INDEX(i,j,k)];
+    }
+    if(hydro_fields["UD_a"][NP_INDEX(i,j,k)] > max)
+    {
+      max = hydro_fields["UD_a"][NP_INDEX(i,j,k)];
+    }
+    if(hydro_fields["UD_a"][NP_INDEX(i,j,k)] != hydro_fields["UD_a"][NP_INDEX(i,j,k)])
+    {
+      std::cout << "Error: NaN energy density.\n";
+      throw -1;
+    }
+  }
+
+  if(min < 0.0) {
+    std::cout << "Error: negative density in some regions.\n";
+    throw -1;
+  }
+  std::cout << "Minimum density: " << min << "\n";
+  std::cout << "Maximum density: " << max << "\n";
 }
 
 } // namespace cosmo

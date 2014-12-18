@@ -31,7 +31,7 @@ int main(int argc, char **argv)
     HydroData h_paq = {0};
     hydroSim.init();
     // DE
-    Lambda lambdaSim (0.001);
+    Lambda lambdaSim (0.0);
 
     // GR Fields
     BSSN bssnSim;
@@ -42,17 +42,17 @@ int main(int argc, char **argv)
     Fourier fourier;
     fourier.Initialize(N, hydroSim.fields["UD_a"] /* just any N^3 array for planning */);
 
-    // Initial *conformal* density for fluid field
-    ICsData i_paq = {};
-    i_paq.peak_k = 4.0/((real_t) N);
-    i_paq.peak_amplitude = 0.1; // figure out units here
-    // Note that this is going to be the conformal density, not physical density!
+    // Determine initial conditions.
+    ICsData i_paq = {0};
+    i_paq.peak_k = 2.0/((real_t) N);
+    i_paq.peak_amplitude = 0.02; // figure out units here
+    // Note that this is going to be the conformal density, not physical density.
+    // This specifies the spectrum of fluctuations around the mean, but not the mean.
     set_gaussian_random_field(hydroSim.fields["UD_a"], &fourier, &i_paq);
-    // should write UD_a for possible future ref / use
-
-    // Get metric solution; set physical density
-    set_physical_metric_and_density(bssnSim.fields, hydroSim.fields, &fourier);
-
+    // Set physical density fluctuations and metric using UD_a
+    set_physical_from_conformal(bssnSim.fields, hydroSim.fields, &fourier);
+    // Set a background (roughly, an average) density, and extrinsic curvature
+    set_density_and_K(bssnSim.fields, hydroSim.fields, 0.1);
   _timer["init"].stop();
 
   ofstream outFile;
@@ -60,7 +60,7 @@ int main(int argc, char **argv)
 
   // evolve simulation
   _timer["loop"].start();
-  for(idx_t s=0; s < 25; ++s) {
+  for(idx_t s=0; s < 100; ++s) {
 
     real_t tmp = bssnSim.fields["phi_p"][0];
     outFile << tmp << "\n";
@@ -151,6 +151,16 @@ DUMPSTUFF("postinit")
       bssnSim.stepTerm();
       // hydro _a <-> _f
       hydroSim.stepTerm();
+
+    // print out mean of phi?
+    real_t sum = 0.0; 
+    LOOP3(i, j, k)
+    {
+      sum += bssnSim.fields["phi_p"][NP_INDEX(i,j,k)];
+    }
+    cout << "Avg: " << sum/N/N/N << "\n";
+    outFile << sum/N/N/N << "\n";
+    outFile.flush();
 
   }
   _timer["loop"].stop();
