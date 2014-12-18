@@ -77,6 +77,17 @@ inline real_t double_derivative(idx_t i, idx_t j, idx_t k, int d1, int d2,
   return 0;
 }
 
+inline real_t average(real_t *field)
+{
+  // note this may have poor precision for large datasets
+  real_t sum = 0.0; 
+  LOOP3(i, j, k)
+  {
+    sum += field[NP_INDEX(i,j,k)];
+  }
+  return sum/POINTS;
+}
+
 }
 
 #endif

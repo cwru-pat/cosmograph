@@ -136,6 +136,7 @@ void set_density_and_K(
   LOOP3(i,j,k)
   {
     hydro_fields["UD_a"][NP_INDEX(i,j,k)] += rhoK;
+    hydro_fields["UD_a"][NP_INDEX(i,j,k)] *= exp(6.0*bssn_fields["phi_p"][NP_INDEX(i,j,k)]);
     bssn_fields["K_p"][NP_INDEX(i,j,k)] = -sqrt(24.0*PI*(rhoK));
     bssn_fields["K_f"][NP_INDEX(i,j,k)] = -sqrt(24.0*PI*(rhoK));
 

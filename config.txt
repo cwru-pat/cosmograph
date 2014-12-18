@@ -1,4 +1,4 @@
-steps = 500
+steps = 100
 rho_K = 0.1
-peak_amplitude = 200.0
-outfile = vals_rk-0.1_pa-200.0.dat
+peak_amplitude = 50.0
+outfile = vals_rk-0.1_pa-50.0

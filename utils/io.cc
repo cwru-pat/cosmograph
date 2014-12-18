@@ -45,7 +45,38 @@ void io_dump_strip(real_t *field, int axis, idx_t n1, idx_t n2)
   gzclose(datafile);
 
   return;
-
 }
+
+
+void io_dump_quantities(std::map <std::string, real_t *> & bssn_fields,
+                      std::map <std::string, real_t *> & hydro_fields,
+                      std::string filename)
+{
+  // output misc. info about simulation here.
+  char data[20];
+  std::string dump_filename = filename + ".dat.gz";
+
+  gzFile datafile = gzopen(dump_filename.c_str(), "ab");
+  if(datafile == Z_NULL) {
+    std::cout << "Error opening file: " << dump_filename << "\n";
+    return;
+  }
+
+  // average phi
+  sprintf(data, "%g\t", average(bssn_fields["phi_a"]));
+  gzwrite(datafile, data, strlen(data));
+
+  // average K
+  sprintf(data, "%g\t", average(bssn_fields["K_a"]));
+  gzwrite(datafile, data, strlen(data));
+
+  // average UD
+  sprintf(data, "%g\t", average(hydro_fields["UD_a"]));
+  gzwrite(datafile, data, strlen(data));
+
+  gzwrite(datafile, "\n", strlen("\n"));
+  gzclose(datafile);
+}
+
 
 }

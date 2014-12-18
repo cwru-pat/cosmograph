@@ -60,16 +60,13 @@ int main(int argc, char **argv)
     set_density_and_K(bssnSim.fields, hydroSim.fields, rho_K);
   _timer["init"].stop();
 
-  ofstream outFile;
-  outFile.open(_config["outfile"]);
 
   // evolve simulation
   _timer["loop"].start();
   for(idx_t s=0; s < steps; ++s) {
 
-    real_t tmp = bssnSim.fields["phi_p"][0];
-    outFile << tmp << "\n";
-    outFile.flush();
+    // output simulation information
+    io_dump_quantities(bssnSim.fields, hydroSim.fields, _config["outfile"]);
 
     // Run RK steps explicitly here (ties together BSSN + Hydro stuff).
     // See bssn class or hydro class for more comments.
@@ -95,8 +92,6 @@ int main(int argc, char **argv)
       bssnSim.set_full_metric(&b_paq);
       hydroSim.setQuantitiesCell(&b_paq, &h_paq);
     }
-
-// DUMPSTUFF("postinit")
 
     // reset source using new metric
     bssnSim.clearSrc();
@@ -156,20 +151,8 @@ int main(int argc, char **argv)
       bssnSim.stepTerm();
       // hydro _a <-> _f
       hydroSim.stepTerm();
-
-    // print out mean of phi?
-    real_t sum = 0.0; 
-    LOOP3(i, j, k)
-    {
-      sum += bssnSim.fields["phi_p"][NP_INDEX(i,j,k)];
-    }
-    outFile << sum/POINTS << "\n";
-    outFile.flush();
-
   }
   _timer["loop"].stop();
-
- outFile.close(); 
 
   _timer["MAIN"].stop();
 
