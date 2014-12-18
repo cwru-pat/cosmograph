@@ -12,6 +12,8 @@ ConfigParser _config;
 int main(int argc, char **argv)
 {
   _timer["MAIN"].start();
+  int steps;
+  real_t rho_K, peak_amplitude;
 
   // read in config file
   if(argc != 2)
@@ -22,6 +24,9 @@ int main(int argc, char **argv)
   else
   {
     _config.parse(argv[1]);
+    peak_amplitude = (real_t) stold(_config["peak_amplitude"]);
+    rho_K = (real_t) stold(_config["rho_K"]);
+    steps = stoi(_config["steps"]);
   }
 
   // Create simulation
@@ -45,22 +50,22 @@ int main(int argc, char **argv)
     // Determine initial conditions.
     ICsData i_paq = {0};
     i_paq.peak_k = 2.0/((real_t) N);
-    i_paq.peak_amplitude = 0.02; // figure out units here
+    i_paq.peak_amplitude = peak_amplitude; // figure out units here
     // Note that this is going to be the conformal density, not physical density.
     // This specifies the spectrum of fluctuations around the mean, but not the mean.
     set_gaussian_random_field(hydroSim.fields["UD_a"], &fourier, &i_paq);
     // Set physical density fluctuations and metric using UD_a
     set_physical_from_conformal(bssnSim.fields, hydroSim.fields, &fourier);
     // Set a background (roughly, an average) density, and extrinsic curvature
-    set_density_and_K(bssnSim.fields, hydroSim.fields, 0.1);
+    set_density_and_K(bssnSim.fields, hydroSim.fields, rho_K);
   _timer["init"].stop();
 
   ofstream outFile;
-  outFile.open("vals.dat");
+  outFile.open(_config["outfile"]);
 
   // evolve simulation
   _timer["loop"].start();
-  for(idx_t s=0; s < 100; ++s) {
+  for(idx_t s=0; s < steps; ++s) {
 
     real_t tmp = bssnSim.fields["phi_p"][0];
     outFile << tmp << "\n";
@@ -91,7 +96,7 @@ int main(int argc, char **argv)
       hydroSim.setQuantitiesCell(&b_paq, &h_paq);
     }
 
-DUMPSTUFF("postinit")
+// DUMPSTUFF("postinit")
 
     // reset source using new metric
     bssnSim.clearSrc();
@@ -158,8 +163,7 @@ DUMPSTUFF("postinit")
     {
       sum += bssnSim.fields["phi_p"][NP_INDEX(i,j,k)];
     }
-    cout << "Avg: " << sum/N/N/N << "\n";
-    outFile << sum/N/N/N << "\n";
+    outFile << sum/POINTS << "\n";
     outFile.flush();
 
   }

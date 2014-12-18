@@ -44,8 +44,8 @@ void set_gaussian_random_field(real_t *field, Fourier *fourier, ICsData *icd)
         scale = cosmo_power_spectrum(pmag, icd);
 
         // fftw transform is unnormalized; account for an N^3 here
-        (fourier->f_field)[FFT_NP_INDEX(i,j,k)][0] *= scale/N/N/N;
-        (fourier->f_field)[FFT_NP_INDEX(i,j,k)][1] *= scale/N/N/N;
+        (fourier->f_field)[FFT_NP_INDEX(i,j,k)][0] *= scale/POINTS;
+        (fourier->f_field)[FFT_NP_INDEX(i,j,k)][1] *= scale/POINTS;
       }
     }
   }
@@ -91,8 +91,8 @@ void set_physical_from_conformal(
         // applied later will agree with the metric solution we find.
         p2i = 1/(pw2(2.0*sin(PI*px/N)) + pw2(2.0*sin(PI*py/N)) + pw2(2.0*sin(PI*pz/N)));
         // account for fftw normalization here
-        (fourier->f_field)[FFT_NP_INDEX(i,j,k)][0] *= p2i/N/N/N;
-        (fourier->f_field)[FFT_NP_INDEX(i,j,k)][1] *= p2i/N/N/N;
+        (fourier->f_field)[FFT_NP_INDEX(i,j,k)][0] *= p2i/POINTS;
+        (fourier->f_field)[FFT_NP_INDEX(i,j,k)][1] *= p2i/POINTS;
       }
     }
   }
