@@ -1,4 +1,4 @@
-steps = 500
+steps = 5
 slice_output_interval = 20
 
 rho_K = 0.1

@@ -296,7 +296,8 @@ void Hydro::addBSSNSrc(std::map <std::string, real_t *> & bssn_fields)
  //    iter != bssn_fields.end(); ++iter )
  //    std::cout << iter->first << '\n';
 
-
+  idx_t i, j, k;
+  #pragma omp parallel for default(shared) private(i, j, k)
   LOOP3(i,j,k)
   {
     idx_t idx = INDEX(i,j,k);
@@ -365,6 +366,7 @@ void Hydro::addBSSNSrc(std::map <std::string, real_t *> & bssn_fields)
 void Hydro::init()
 {
   // initialize values
+  idx_t i, j, k;
   LOOP3(i,j,k)
   {
     idx_t idx = INDEX(i,j,k);

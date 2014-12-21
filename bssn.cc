@@ -121,6 +121,8 @@ void BSSN::regSwap_c_a()
 void BSSN::stepInit()
 {
   BSSN_COPY_ARRAYS(_p, _a);
+  idx_t i, j, k;
+  #pragma omp parallel for default(shared) private(i, j, k)
   LOOP3(i, j, k)
   {
     idx_t idx = NP_INDEX(i, j, k);
@@ -132,6 +134,7 @@ void BSSN::stepInit()
 // First RK step: calculate and add k_1 coeff to _f array
 void BSSN::K1Calc(BSSNData *paq)
 {
+  idx_t i, j, k;
   LOOP3(i, j, k)
   {
     K1CalcPt(i, j, k, paq);
@@ -157,6 +160,7 @@ void BSSN::K1CalcPt(idx_t i, idx_t j, idx_t k, BSSNData *paq)
 // and add to _f array
 void BSSN::K2Calc(BSSNData *paq)
 {
+  idx_t i, j, k;
   LOOP3(i, j, k)
   {
     K2CalcPt(i, j, k, paq);
@@ -182,6 +186,7 @@ void BSSN::K2CalcPt(idx_t i, idx_t j, idx_t k, BSSNData *paq)
 // and add to _f array
 void BSSN::K3Calc(BSSNData *paq)
 {
+  idx_t i, j, k;
   LOOP3(i, j, k)
   {
     K3CalcPt(i, j, k, paq);
@@ -207,6 +212,7 @@ void BSSN::K3CalcPt(idx_t i, idx_t j, idx_t k, BSSNData *paq)
 // and "weight" the final calculation correctly:
 void BSSN::K4Calc(BSSNData *paq)
 {
+  idx_t i, j, k;
   LOOP3(i, j, k)
   {
     K4CalcPt(i, j, k, paq);
@@ -232,6 +238,8 @@ void BSSN::stepTerm()
 
 void BSSN::clearSrc()
 {
+  idx_t i, j, k;
+  #pragma omp parallel for default(shared) private(i, j, k)
   LOOP3(i, j, k)
   {
     idx_t idx = NP_INDEX(i,j,k);
@@ -254,6 +262,7 @@ void BSSN::init()
 {
   idx_t idx;
 
+  idx_t i, j, k;
   LOOP3(i, j, k)
   {
     idx = NP_INDEX(i,j,k);

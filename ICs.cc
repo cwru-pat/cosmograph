@@ -14,7 +14,7 @@ real_t cosmo_power_spectrum(real_t k, ICsData *icd)
 // set a field to an arbitrary gaussian random field
 void set_gaussian_random_field(real_t *field, Fourier *fourier, ICsData *icd)
 {
-  idx_t i,j,k;
+  idx_t i, j, k;
   real_t px, py, pz, pmag;
   real_t scale;
 
@@ -133,6 +133,7 @@ void set_density_and_K(
   // check for min density value > 0
   real_t min = hydro_fields["UD_a"][NP_INDEX(0,0,0)] + rhoK;
   real_t max = min;
+  idx_t i, j, k;
   
   LOOP3(i,j,k)
   {

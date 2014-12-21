@@ -12,6 +12,7 @@ void Wave::step()
   real_t lap_www_p, lap_phi_p;
 
   // evolve fields
+  idx_t i, j, k;
   LOOP3(i, j, k)
   {
     index = INDEX(i,j,k);
@@ -31,6 +32,7 @@ void Wave::step()
 /* Initial conditions */
 void Wave::init()
 {
+  idx_t i, j, k;
   LOOP3(i, j, k)
   {
     phi[INDEX(i,j,k)] = 0;

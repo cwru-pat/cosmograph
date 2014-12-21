@@ -12,7 +12,9 @@ ConfigParser _config;
 int main(int argc, char **argv)
 {
   _timer["MAIN"].start();
-  int steps, slice_output_interval;
+  idx_t steps, slice_output_interval;
+  idx_t i, j, k, s;
+
   real_t rho_K, peak_amplitude;
 
   // read in config file
@@ -63,7 +65,7 @@ int main(int argc, char **argv)
 
   // evolve simulation
   _timer["loop"].start();
-  for(idx_t s=0; s < steps; ++s) {
+  for(s=0; s < steps; ++s) {
 
     // output simulation information
     io_dump_quantities(bssnSim.fields, hydroSim.fields, _config["outfile"]);
@@ -85,6 +87,7 @@ int main(int argc, char **argv)
       lambdaSim.addBSSNSrc(bssnSim.fields);
 
     // First RK step & Set Hydro Vars
+    #pragma omp parallel for default(shared) private(i, j, k, b_paq, h_paq)
     LOOP3(i, j, k)
     {
       bssnSim.K1CalcPt(i, j, k, &b_paq);
@@ -107,6 +110,7 @@ int main(int argc, char **argv)
 
     // Subsequent BSSN steps
       // Second RK step
+      #pragma omp parallel for default(shared) private(i, j, k, b_paq)
       LOOP3(i, j, k)
       {
         bssnSim.K2CalcPt(i, j, k, &b_paq);
@@ -120,6 +124,7 @@ int main(int argc, char **argv)
 
       bssnSim.regSwap_c_a();
       // Third RK step
+      #pragma omp parallel for default(shared) private(i, j, k, b_paq)
       LOOP3(i, j, k)
       {
         bssnSim.K3CalcPt(i, j, k, &b_paq);
@@ -134,6 +139,7 @@ int main(int argc, char **argv)
       bssnSim.regSwap_c_a();
 
       // Fourth RK step
+      #pragma omp parallel for default(shared) private(i, j, k, b_paq)
       LOOP3(i, j, k)
       {
         bssnSim.K4CalcPt(i, j, k, &b_paq);
@@ -141,10 +147,12 @@ int main(int argc, char **argv)
 
 
     // Subsequent hydro step
+      #pragma omp parallel for default(shared) private(i, j, k)
       LOOP3(i, j, k)
       {
         hydroSim.setAllFluxInt(i, j, k);
       }
+      #pragma omp parallel for default(shared) private(i, j, k)
       LOOP3(i, j, k)
       {
         hydroSim.evolveFluid(i, j, k);

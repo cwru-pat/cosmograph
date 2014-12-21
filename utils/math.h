@@ -81,6 +81,7 @@ inline real_t average(real_t *field)
 {
   // note this may have poor precision for large datasets
   real_t sum = 0.0; 
+  idx_t i, j, k;
   LOOP3(i, j, k)
   {
     sum += field[NP_INDEX(i,j,k)];

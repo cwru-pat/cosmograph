@@ -1,7 +1,7 @@
 #ifndef COSMO_DEFINES
 #define COSMO_DEFINES
 
-#define N 32
+#define N 128
 #define POINTS (N*N*N)
 #define dt 0.02
 #define dx 1.0
@@ -28,17 +28,15 @@
 // FFT indexing without periodicity
 #define FFT_NP_INDEX(i,j,k) ((N/2+1)*N*(i) + (N/2+1)*(j) + (k))
 
-
-
 #define LOOP3(i,j,k) \
-  for(idx_t i=0; i<N; ++i) \
-    for(idx_t j=0; j<N; ++j) \
-      for(idx_t k=0; k<N; ++k)
+  for(i=0; i<N; ++i) \
+    for(j=0; j<N; ++j) \
+      for(k=0; k<N; ++k)
 
 #define INTERNAL_LOOP3(i,j,k) \
-  for(idx_t i=1; i<N-1; ++i) \
-    for(idx_t j=1; j<N-1; ++j) \
-      for(idx_t k=1; k<N-1; ++k)
+  for(i=1; i<N-1; ++i) \
+    for(j=1; j<N-1; ++j) \
+      for(k=1; k<N-1; ++k)
 
 #define DECLARE_REAL_T(name) real_t name
 
