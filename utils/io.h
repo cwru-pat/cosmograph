@@ -12,6 +12,8 @@ void io_dump_quantities(std::map <std::string, real_t *> & bssn_fields,
                         std::map <std::string, real_t *> & hydro_fields,
                         std::string filename);
 
+void io_dump_2dslice(real_t *field, std::string filename);
+
 }
 
 #endif

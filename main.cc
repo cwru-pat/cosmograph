@@ -12,7 +12,7 @@ ConfigParser _config;
 int main(int argc, char **argv)
 {
   _timer["MAIN"].start();
-  int steps;
+  int steps, slice_output_interval;
   real_t rho_K, peak_amplitude;
 
   // read in config file
@@ -27,6 +27,7 @@ int main(int argc, char **argv)
     peak_amplitude = (real_t) stold(_config["peak_amplitude"]);
     rho_K = (real_t) stold(_config["rho_K"]);
     steps = stoi(_config["steps"]);
+    slice_output_interval = stoi(_config["slice_output_interval"]);
   }
 
   // Create simulation
@@ -49,7 +50,7 @@ int main(int argc, char **argv)
 
     // Determine initial conditions.
     ICsData i_paq = {0};
-    i_paq.peak_k = 2.0/((real_t) N);
+    i_paq.peak_k = 1.0/((real_t) N);
     i_paq.peak_amplitude = peak_amplitude; // figure out units here
     // Note that this is going to be the conformal density, not physical density.
     // This specifies the spectrum of fluctuations around the mean, but not the mean.
@@ -60,13 +61,16 @@ int main(int argc, char **argv)
     set_density_and_K(bssnSim.fields, hydroSim.fields, rho_K);
   _timer["init"].stop();
 
-
   // evolve simulation
   _timer["loop"].start();
   for(idx_t s=0; s < steps; ++s) {
 
     // output simulation information
     io_dump_quantities(bssnSim.fields, hydroSim.fields, _config["outfile"]);
+    if(s%slice_output_interval == 0) // try every 20 slices
+    {
+      io_dump_2dslice(bssnSim.fields["phi_p"], "psi_slice." + to_string(s));
+    }
 
     // Run RK steps explicitly here (ties together BSSN + Hydro stuff).
     // See bssn class or hydro class for more comments.

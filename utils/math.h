@@ -88,6 +88,32 @@ inline real_t average(real_t *field)
   return sum/POINTS;
 }
 
+inline real_t average_lap(real_t *field)
+{
+  // note this may have poor precision for large datasets
+  idx_t i, j, k;
+  real_t sum = 0.0;
+  LOOP3(i, j, k)
+  {
+    sum += lap_stencil(i, j, k, field)/dx/dx;
+  }
+  return sum/POINTS;
+}
+
+inline real_t standard_deviation(real_t *field)
+{
+  // note this may have poor precision for large datasets
+  idx_t i, j, k;
+  real_t sum = 0.0;
+  real_t avg = average(field);
+  LOOP3(i, j, k)
+  {
+    sum += pw2(avg - field[NP_INDEX(i,j,k)]);
+  }
+  return sqrt(sum/(POINTS-1));
+}
+
+
 }
 
 #endif

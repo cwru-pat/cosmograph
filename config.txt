@@ -1,4 +1,7 @@
-steps = 100
+steps = 500
+slice_output_interval = 20
+
 rho_K = 0.1
-peak_amplitude = 50.0
+peak_amplitude = 0.005
+
 outfile = vals_rk-0.1_pa-50.0

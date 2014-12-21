@@ -8,7 +8,7 @@ namespace cosmo
 real_t cosmo_power_spectrum(real_t k, ICsData *icd)
 {
   real_t pre = icd->peak_amplitude*4.0/3.0/icd->peak_k;
-  return pre*abs(k)/(1.0 + pow(abs(k)/icd->peak_k, 4.0)/3.0);
+  return pre*fabs(k)/((real_t) N)/(1.0 + pow(fabs(k)/((real_t) N)/icd->peak_k, 4.0)/3.0);
 }
 
 // set a field to an arbitrary gaussian random field
@@ -20,6 +20,7 @@ void set_gaussian_random_field(real_t *field, Fourier *fourier, ICsData *icd)
 
   // populate "field" with random values
   std::default_random_engine generator;
+  generator.seed(time(0));
   std::normal_distribution<real_t> distribution(0.0,1.0);
   LOOP3(i,j,k)
   {
@@ -41,15 +42,15 @@ void set_gaussian_random_field(real_t *field, Fourier *fourier, ICsData *icd)
         pz = (real_t) k;
         pmag = sqrt(pw2(px) + pw2(py) + pw2(pz));
 
-        scale = cosmo_power_spectrum(pmag, icd);
+        scale = sqrt(cosmo_power_spectrum(pmag, icd));
 
         // fftw transform is unnormalized; account for an N^3 here
-        (fourier->f_field)[FFT_NP_INDEX(i,j,k)][0] *= scale/POINTS;
-        (fourier->f_field)[FFT_NP_INDEX(i,j,k)][1] *= scale/POINTS;
+        (fourier->f_field)[FFT_NP_INDEX(i,j,k)][0] *= scale/((real_t) POINTS);
+        (fourier->f_field)[FFT_NP_INDEX(i,j,k)][1] *= scale/((real_t) POINTS);
       }
     }
   }
-  // zero-mode (mean density)... set this to something
+  // zero-mode (mean density)... set this to something later
   (fourier->f_field[FFT_NP_INDEX(0,0,0)])[0] = 0;
   (fourier->f_field[FFT_NP_INDEX(0,0,0)])[1] = 0;
 
@@ -91,8 +92,8 @@ void set_physical_from_conformal(
         // applied later will agree with the metric solution we find.
         p2i = 1/(pw2(2.0*sin(PI*px/N)) + pw2(2.0*sin(PI*py/N)) + pw2(2.0*sin(PI*pz/N)));
         // account for fftw normalization here
-        (fourier->f_field)[FFT_NP_INDEX(i,j,k)][0] *= p2i/POINTS;
-        (fourier->f_field)[FFT_NP_INDEX(i,j,k)][1] *= p2i/POINTS;
+        (fourier->f_field)[FFT_NP_INDEX(i,j,k)][0] *= p2i/((real_t) POINTS);
+        (fourier->f_field)[FFT_NP_INDEX(i,j,k)][1] *= p2i/((real_t) POINTS);
       }
     }
   }
@@ -159,8 +160,10 @@ void set_density_and_K(
     std::cout << "Error: negative density in some regions.\n";
     throw -1;
   }
-  std::cout << "Minimum density: " << min << "\n";
-  std::cout << "Maximum density: " << max << "\n";
+  std::cout << "Minimum fluid 'density': " << min << "\n";
+  std::cout << "Maximum fluid 'density': " << max << "\n";
+  std::cout << "Average fluid 'density': " << average(hydro_fields["UD_a"]) << "\n";
+  std::cout << "Std.dev fluid 'density': " << standard_deviation(hydro_fields["UD_a"]) << "\n";
 }
 
 } // namespace cosmo
