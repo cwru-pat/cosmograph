@@ -1,7 +1,10 @@
-steps = 5
+steps = 5000
 slice_output_interval = 20
 
-rho_K = 0.1
-peak_amplitude = 0.005
+omp_num_threads = 64
 
-outfile = vals_rk-0.1_pa-50.0
+rho_K_matter = 0.1
+peak_amplitude = 0.005
+rho_K_lambda = 0.01
+
+outfile = vals_rkm-0.1_rkl-0.01

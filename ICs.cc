@@ -125,22 +125,25 @@ void set_physical_from_conformal(
 
 }
 
-void set_density_and_K(
+void set_matter_density_and_K(
   std::map <std::string, real_t *> & bssn_fields,
   std::map <std::string, real_t *> & hydro_fields,
   real_t rhoK)
 {
-  // check for min density value > 0
+  // Make sure min density value > 0
   real_t min = hydro_fields["UD_a"][NP_INDEX(0,0,0)] + rhoK;
   real_t max = min;
+  real_t oldrho;
+
   idx_t i, j, k;
-  
   LOOP3(i,j,k)
   {
     hydro_fields["UD_a"][NP_INDEX(i,j,k)] += rhoK;
     hydro_fields["UD_a"][NP_INDEX(i,j,k)] *= exp(6.0*bssn_fields["phi_p"][NP_INDEX(i,j,k)]);
-    bssn_fields["K_p"][NP_INDEX(i,j,k)] = -sqrt(24.0*PI*(rhoK));
-    bssn_fields["K_f"][NP_INDEX(i,j,k)] = -sqrt(24.0*PI*(rhoK));
+
+    oldrho = pw2(bssn_fields["K_p"][NP_INDEX(i,j,k)])/24.0/PI;
+    bssn_fields["K_p"][NP_INDEX(i,j,k)] = -sqrt(24.0*PI*(rhoK+oldrho));
+    bssn_fields["K_f"][NP_INDEX(i,j,k)] = -sqrt(24.0*PI*(rhoK+oldrho));
 
     if(hydro_fields["UD_a"][NP_INDEX(i,j,k)] < min)
     {
@@ -165,6 +168,21 @@ void set_density_and_K(
   std::cout << "Maximum fluid 'density': " << max << "\n";
   std::cout << "Average fluid 'density': " << average(hydro_fields["UD_a"]) << "\n";
   std::cout << "Std.dev fluid 'density': " << standard_deviation(hydro_fields["UD_a"]) << "\n";
+}
+
+void set_lambda_K(
+  std::map <std::string, real_t *> & bssn_fields,
+  real_t rhoK)
+{
+  real_t oldrho;
+
+  idx_t i, j, k;
+  LOOP3(i,j,k)
+  {
+    oldrho = pw2(bssn_fields["K_p"][NP_INDEX(i,j,k)])/24.0/PI;
+    bssn_fields["K_p"][NP_INDEX(i,j,k)] = -sqrt(24.0*PI*(rhoK+oldrho));
+    bssn_fields["K_f"][NP_INDEX(i,j,k)] = -sqrt(24.0*PI*(rhoK+oldrho));
+  }
 }
 
 } // namespace cosmo

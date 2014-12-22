@@ -15,7 +15,7 @@ int main(int argc, char **argv)
   idx_t steps, slice_output_interval;
   idx_t i, j, k, s;
 
-  real_t rho_K, peak_amplitude;
+  real_t rho_K_matter, rho_K_lambda, peak_amplitude;
 
   // read in config file
   if(argc != 2)
@@ -26,10 +26,12 @@ int main(int argc, char **argv)
   else
   {
     _config.parse(argv[1]);
-    peak_amplitude = (real_t) stold(_config["peak_amplitude"]);
-    rho_K = (real_t) stold(_config["rho_K"]);
+    peak_amplitude = (real_t) stold(_config["peak_amplitude"]); // fluctuation amplitude
+    rho_K_matter = (real_t) stold(_config["rho_K_matter"]); // background density
+    rho_K_lambda = (real_t) stold(_config["rho_K_lambda"]); // DE density
     steps = stoi(_config["steps"]);
     slice_output_interval = stoi(_config["slice_output_interval"]);
+    omp_set_num_threads(stoi(_config["omp_num_threads"]));
   }
 
   // Create simulation
@@ -39,7 +41,7 @@ int main(int argc, char **argv)
     HydroData h_paq = {0};
     hydroSim.init();
     // DE
-    Lambda lambdaSim (0.0);
+    Lambda lambdaSim (rho_K_lambda);
 
     // GR Fields
     BSSN bssnSim;
@@ -60,7 +62,8 @@ int main(int argc, char **argv)
     // Set physical density fluctuations and metric using UD_a
     set_physical_from_conformal(bssnSim.fields, hydroSim.fields, &fourier);
     // Set a background (roughly, an average) density, and extrinsic curvature
-    set_density_and_K(bssnSim.fields, hydroSim.fields, rho_K);
+    set_matter_density_and_K(bssnSim.fields, hydroSim.fields, rho_K_matter);
+    set_lambda_K(bssnSim.fields, rho_K_lambda);
   _timer["init"].stop();
 
   // evolve simulation

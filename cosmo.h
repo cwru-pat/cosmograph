@@ -18,6 +18,8 @@
 #include <sstream>
 #include <random>
 
+#include <omp.h>
+
 #include "cosmo_macros.h"
 
 namespace cosmo

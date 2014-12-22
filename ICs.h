@@ -19,9 +19,13 @@ void set_physical_from_conformal(
   std::map <std::string, real_t *> & hydro_fields,
   Fourier *fourier);
 
-void set_density_and_K(
+void set_matter_density_and_K(
   std::map <std::string, real_t *> & bssn_fields,
   std::map <std::string, real_t *> & hydro_fields,
+  real_t rhoK);
+
+void set_lambda_K(
+  std::map <std::string, real_t *> & bssn_fields,
   real_t rhoK);
 
 } // namespace cosmo
