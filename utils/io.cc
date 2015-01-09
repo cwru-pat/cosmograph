@@ -52,7 +52,7 @@ void io_dump_strip(real_t *field, int axis, idx_t n1, idx_t n2)
 void io_dump_2dslice(real_t *field, std::string filename)
 {
   // dump the first N*N points (a 2-d slice on a boundary)
-  std::string dump_filename = filename + ".grid.h5.gz";
+  std::string dump_filename = filename + ".2d_grid.h5.gz";
 
   hid_t       file, space, dset, dcpl;  /* Handles */
   herr_t      status;
@@ -68,6 +68,40 @@ void io_dump_2dslice(real_t *field, std::string filename)
   status = H5Pset_deflate (dcpl, 9);
   status = H5Pset_chunk (dcpl, 2, chunk);
   dset = H5Dcreate2 (file, "Dataset1", H5T_IEEE_F64LE, space, H5P_DEFAULT, dcpl, H5P_DEFAULT);
+
+  status = H5Dwrite (dset, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, field);
+
+  status = H5Pclose (dcpl);
+  status = H5Dclose (dset);
+  status = H5Sclose (space);
+  status = H5Fclose (file);
+
+  return;
+}
+
+
+/* 
+ * Write full 3D slice to a file.
+ */
+void io_dump_3dslice(real_t *field, std::string filename)
+{
+  // dump the first N*N points (a 2-d slice on a boundary)
+  std::string dump_filename = filename + ".3d_grid.h5.gz";
+
+  hid_t       file, space, dset, dcpl;  /* Handles */
+  herr_t      status;
+  htri_t      avail;
+  H5Z_filter_t  filter_type;
+  hsize_t     dims[3] = {N, N, N},
+              maxdims[3] = {H5S_UNLIMITED, H5S_UNLIMITED, H5S_UNLIMITED},
+              chunk[3] = {6, 6, 6};
+
+  file = H5Fcreate (dump_filename.c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
+  space = H5Screate_simple (3, dims, maxdims);
+  dcpl = H5Pcreate (H5P_DATASET_CREATE);
+  status = H5Pset_deflate (dcpl, 9);
+  status = H5Pset_chunk (dcpl, 3, chunk);
+  dset = H5Dcreate2 (file, "DS1", H5T_IEEE_F64LE, space, H5P_DEFAULT, dcpl, H5P_DEFAULT);
 
   status = H5Dwrite (dset, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, field);
 
@@ -126,4 +160,4 @@ void io_dump_quantities(std::map <std::string, real_t *> & bssn_fields,
 }
 
 
-}
+} /* namespace cosmo */

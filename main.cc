@@ -12,7 +12,7 @@ ConfigParser _config;
 int main(int argc, char **argv)
 {
   _timer["MAIN"].start();
-  idx_t steps, slice_output_interval;
+  idx_t steps, slice_output_interval, grid_output_interval;
   idx_t i, j, k, s;
 
   real_t rho_K_matter, rho_K_lambda, peak_amplitude;
@@ -31,10 +31,12 @@ int main(int argc, char **argv)
     rho_K_lambda = (real_t) stold(_config["rho_K_lambda"]); // DE density
     steps = stoi(_config["steps"]);
     slice_output_interval = stoi(_config["slice_output_interval"]);
+    grid_output_interval = stoi(_config["grid_output_interval"]);
     omp_set_num_threads(stoi(_config["omp_num_threads"]));
   }
 
   // Create simulation
+  std::cout << "Creating initial conditions...\n";
   _timer["init"].start();
     // Fluid fields
     Hydro hydroSim (0.0/3.0); // fluid with some w_EOS
@@ -67,12 +69,17 @@ int main(int argc, char **argv)
   _timer["init"].stop();
 
   // evolve simulation
+  std::cout << "Running Simulation...\n";
   _timer["loop"].start();
   for(s=0; s < steps; ++s) {
 
     // output simulation information
     io_dump_quantities(bssnSim.fields, hydroSim.fields, _config["outfile"]);
-    if(s%slice_output_interval == 0) // try every 20 slices
+    if(s%slice_output_interval == 0)
+    {
+      io_dump_2dslice(bssnSim.fields["phi_p"], "psi_slice." + to_string(s));
+    }
+    if(s%grid_output_interval == 0)
     {
       io_dump_2dslice(bssnSim.fields["phi_p"], "psi_slice." + to_string(s));
     }

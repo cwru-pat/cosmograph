@@ -1,5 +1,6 @@
 steps = 5000
 slice_output_interval = 20
+grid_output_interval = 500
 
 omp_num_threads = 64
 
