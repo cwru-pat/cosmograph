@@ -1,7 +1,7 @@
 #ifndef COSMO_DEFINES
 #define COSMO_DEFINES
 
-#define N 128
+#define N 16
 #define POINTS (N*N*N)
 #define dt 0.02
 #define dx 1.0
