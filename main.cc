@@ -95,10 +95,10 @@ int main(int argc, char **argv)
       io_dump_3dslice(bssnSim.fields["A23_p"],     "output_3d/A23_slice."     + to_string(s));
       io_dump_3dslice(bssnSim.fields["A33_p"],     "output_3d/A33_slice."     + to_string(s));
       io_dump_3dslice(bssnSim.fields["K_p"],       "output_3d/K_slice."       + to_string(s));
-      io_dump_3dslice(bssnSim.fields["UD_a"],      "output_3d/UD_slice."      + to_string(s));
-      io_dump_3dslice(bssnSim.fields["US1_a"],     "output_3d/US1_slice."     + to_string(s));
-      io_dump_3dslice(bssnSim.fields["US2_a"],     "output_3d/US2_slice."     + to_string(s));
-      io_dump_3dslice(bssnSim.fields["US3_a"],     "output_3d/US3_slice."     + to_string(s));
+      io_dump_3dslice(hydroSim.fields["UD_f"],      "output_3d/UD_slice."      + to_string(s));
+      io_dump_3dslice(hydroSim.fields["US1_f"],     "output_3d/US1_slice."     + to_string(s));
+      io_dump_3dslice(hydroSim.fields["US2_f"],     "output_3d/US2_slice."     + to_string(s));
+      io_dump_3dslice(hydroSim.fields["US3_f"],     "output_3d/US3_slice."     + to_string(s));
     }
 
     // Run RK steps explicitly here (ties together BSSN + Hydro stuff).

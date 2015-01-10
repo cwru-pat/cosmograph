@@ -85,7 +85,7 @@ void io_dump_2dslice(real_t *field, std::string filename)
  */
 void io_dump_3dslice(real_t *field, std::string filename)
 {
-  // dump the first N*N points (a 2-d slice on a boundary)
+  // dump all N*N*N points
   std::string dump_filename = filename + ".3d_grid.h5.gz";
 
   hid_t       file, space, dset, dcpl;  /* Handles */
