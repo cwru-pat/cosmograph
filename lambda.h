@@ -7,7 +7,7 @@
 namespace cosmo
 {
 
-/** Hydro class **/
+/** Lambda class **/
 class Lambda
 {
   real_t lambda; /* CC energy density*/ 
