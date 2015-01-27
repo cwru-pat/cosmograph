@@ -42,11 +42,6 @@ void Wave::init()
   }
 }
 
-void Wave::dump_strip(std::string field, int axis, idx_t n1, idx_t n2)
-{
-  io_dump_strip(fields[field], axis, n1, n2);
-}
-
 /* Wave constructor */
 Wave::Wave()
 {

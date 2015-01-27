@@ -35,6 +35,11 @@ int main(int argc, char **argv)
     omp_set_num_threads(stoi(_config["omp_num_threads"]));
   }
 
+  // IO init
+  IOData iodata;
+  iodata.output_dir = _config["output_dir"];
+  io_init(&iodata);
+
   // Create simulation
   std::cout << "Creating initial conditions...\n";
   _timer["init"].start();
@@ -74,31 +79,32 @@ int main(int argc, char **argv)
   for(s=0; s < steps; ++s) {
 
     // output simulation information
-    io_dump_quantities(bssnSim.fields, hydroSim.fields, _config["outfile"]);
+    io_dump_quantities(bssnSim.fields, hydroSim.fields, _config["outfile"], &iodata);
     if(s%slice_output_interval == 0)
     {
-      io_dump_2dslice(bssnSim.fields["phi_p"], "output_2d/phi_slice." + to_string(s));
+      io_dump_2dslice(bssnSim.fields["phi_p"], "phi_slice." + to_string(s), &iodata);
+      io_dump_2dslice(hydroSim.fields["UD_f"], "UD_slice."  + to_string(s), &iodata);
     }
     if(s%grid_output_interval == 0)
     {
-      io_dump_3dslice(bssnSim.fields["gamma11_p"], "output_3d/gamma11_slice." + to_string(s));
-      io_dump_3dslice(bssnSim.fields["gamma12_p"], "output_3d/gamma12_slice." + to_string(s));
-      io_dump_3dslice(bssnSim.fields["gamma13_p"], "output_3d/gamma13_slice." + to_string(s));
-      io_dump_3dslice(bssnSim.fields["gamma22_p"], "output_3d/gamma22_slice." + to_string(s));
-      io_dump_3dslice(bssnSim.fields["gamma23_p"], "output_3d/gamma23_slice." + to_string(s));
-      io_dump_3dslice(bssnSim.fields["gamma33_p"], "output_3d/gamma33_slice." + to_string(s));
-      io_dump_3dslice(bssnSim.fields["phi_p"],     "output_3d/phi_slice."     + to_string(s));
-      io_dump_3dslice(bssnSim.fields["A11_p"],     "output_3d/A11_slice."     + to_string(s));
-      io_dump_3dslice(bssnSim.fields["A12_p"],     "output_3d/A12_slice."     + to_string(s));
-      io_dump_3dslice(bssnSim.fields["A13_p"],     "output_3d/A13_slice."     + to_string(s));
-      io_dump_3dslice(bssnSim.fields["A22_p"],     "output_3d/A22_slice."     + to_string(s));
-      io_dump_3dslice(bssnSim.fields["A23_p"],     "output_3d/A23_slice."     + to_string(s));
-      io_dump_3dslice(bssnSim.fields["A33_p"],     "output_3d/A33_slice."     + to_string(s));
-      io_dump_3dslice(bssnSim.fields["K_p"],       "output_3d/K_slice."       + to_string(s));
-      io_dump_3dslice(hydroSim.fields["UD_f"],      "output_3d/UD_slice."      + to_string(s));
-      io_dump_3dslice(hydroSim.fields["US1_f"],     "output_3d/US1_slice."     + to_string(s));
-      io_dump_3dslice(hydroSim.fields["US2_f"],     "output_3d/US2_slice."     + to_string(s));
-      io_dump_3dslice(hydroSim.fields["US3_f"],     "output_3d/US3_slice."     + to_string(s));
+      io_dump_3dslice(bssnSim.fields["gamma11_p"], "gamma11_slice." + to_string(s), &iodata);
+      io_dump_3dslice(bssnSim.fields["gamma12_p"], "gamma12_slice." + to_string(s), &iodata);
+      io_dump_3dslice(bssnSim.fields["gamma13_p"], "gamma13_slice." + to_string(s), &iodata);
+      io_dump_3dslice(bssnSim.fields["gamma22_p"], "gamma22_slice." + to_string(s), &iodata);
+      io_dump_3dslice(bssnSim.fields["gamma23_p"], "gamma23_slice." + to_string(s), &iodata);
+      io_dump_3dslice(bssnSim.fields["gamma33_p"], "gamma33_slice." + to_string(s), &iodata);
+      io_dump_3dslice(bssnSim.fields["phi_p"],     "phi_slice."     + to_string(s), &iodata);
+      io_dump_3dslice(bssnSim.fields["A11_p"],     "A11_slice."     + to_string(s), &iodata);
+      io_dump_3dslice(bssnSim.fields["A12_p"],     "A12_slice."     + to_string(s), &iodata);
+      io_dump_3dslice(bssnSim.fields["A13_p"],     "A13_slice."     + to_string(s), &iodata);
+      io_dump_3dslice(bssnSim.fields["A22_p"],     "A22_slice."     + to_string(s), &iodata);
+      io_dump_3dslice(bssnSim.fields["A23_p"],     "A23_slice."     + to_string(s), &iodata);
+      io_dump_3dslice(bssnSim.fields["A33_p"],     "A33_slice."     + to_string(s), &iodata);
+      io_dump_3dslice(bssnSim.fields["K_p"],       "K_slice."       + to_string(s), &iodata);
+      io_dump_3dslice(hydroSim.fields["UD_f"],     "UD_slice."      + to_string(s), &iodata);
+      io_dump_3dslice(hydroSim.fields["US1_f"],    "US1_slice."     + to_string(s), &iodata);
+      io_dump_3dslice(hydroSim.fields["US2_f"],    "US2_slice."     + to_string(s), &iodata);
+      io_dump_3dslice(hydroSim.fields["US3_f"],    "US3_slice."     + to_string(s), &iodata);
     }
 
     // Run RK steps explicitly here (ties together BSSN + Hydro stuff).

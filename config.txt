@@ -1,6 +1,6 @@
-steps = 10000
-slice_output_interval = 10000
-grid_output_interval = 500
+steps = 2000
+slice_output_interval = 100
+grid_output_interval = 10
 
 omp_num_threads = 64
 
@@ -8,4 +8,5 @@ rho_K_matter = 0.1
 peak_amplitude = 0.005
 rho_K_lambda = 0.0
 
+output_dir = output
 outfile = vals_rkm-0.1_rkl-0.0

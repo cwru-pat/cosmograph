@@ -14,7 +14,6 @@ public:
 
   void init();
   void step();
-  void dump_strip(std::string field, int axis, idx_t n1, idx_t n2);
 
 private:
   /* wave equation fields */

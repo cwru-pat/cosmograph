@@ -1,18 +1,32 @@
 
 #include "io.h"
 #include <hdf5.h>
+#include <sys/stat.h>
 
 namespace cosmo
 {
 
-void io_dump_strip(real_t *field, int axis, idx_t n1, idx_t n2)
+void io_init(IOData *iodata)
 {
-  char filename[] = "strip.dat.gz";
+  /* ensure data_dir ends with '/', unless empty string is specified. */
+  size_t len_dir_name = iodata->output_dir.length();
+  if((iodata->output_dir)[len_dir_name - 1] != '/' && len_dir_name != 0)
+  {
+    iodata->output_dir += '/';
+  }
+  /* create data_dir */
+  if(len_dir_name != 0)
+    mkdir(iodata->output_dir.c_str(), 0755);
+}
+
+void io_dump_strip(real_t *field, int axis, idx_t n1, idx_t n2, IOData *iodata)
+{
+  std::string filename = iodata->output_dir + "strip.dat.gz";
   char data[20];
 
-  gzFile datafile = gzopen(filename, "ab");
+  gzFile datafile = gzopen(filename.c_str(), "ab");
   if(datafile == Z_NULL) {
-    printf("Error opening file: %s\n", filename);
+    printf("Error opening file: %s\n", filename.c_str());
     return;
   }
 
@@ -49,10 +63,10 @@ void io_dump_strip(real_t *field, int axis, idx_t n1, idx_t n2)
 }
 
 
-void io_dump_2dslice(real_t *field, std::string filename)
+void io_dump_2dslice(real_t *field, std::string filename, IOData *iodata)
 {
   // dump the first N*N points (a 2-d slice on a boundary)
-  std::string dump_filename = filename + ".2d_grid.h5.gz";
+  std::string dump_filename = iodata->output_dir + filename + ".2d_grid.h5.gz";
 
   hid_t       file, space, dset, dcpl;  /* Handles */
   herr_t      status;
@@ -83,10 +97,10 @@ void io_dump_2dslice(real_t *field, std::string filename)
 /* 
  * Write full 3D slice to a file.
  */
-void io_dump_3dslice(real_t *field, std::string filename)
+void io_dump_3dslice(real_t *field, std::string filename, IOData *iodata)
 {
   // dump all N*N*N points
-  std::string dump_filename = filename + ".3d_grid.h5.gz";
+  std::string dump_filename = iodata->output_dir + filename + ".3d_grid.h5.gz";
 
   hid_t       file, space, dset, dcpl;  /* Handles */
   herr_t      status;
@@ -116,11 +130,11 @@ void io_dump_3dslice(real_t *field, std::string filename)
 
 void io_dump_quantities(std::map <std::string, real_t *> & bssn_fields,
                       std::map <std::string, real_t *> & hydro_fields,
-                      std::string filename)
+                      std::string filename, IOData *iodata)
 {
   // output misc. info about simulation here.
   char data[20];
-  std::string dump_filename = filename + ".dat.gz";
+  std::string dump_filename = iodata->output_dir + filename + ".dat.gz";
 
   gzFile datafile = gzopen(dump_filename.c_str(), "ab");
   if(datafile == Z_NULL) {
