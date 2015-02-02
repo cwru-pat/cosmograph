@@ -79,6 +79,7 @@ int main(int argc, char **argv)
   for(s=0; s < steps; ++s) {
 
     // output simulation information
+    _timer["output"].start();
     io_dump_quantities(bssnSim.fields, hydroSim.fields, _config["outfile"], &iodata);
     if(s%slice_output_interval == 0)
     {
@@ -87,28 +88,31 @@ int main(int argc, char **argv)
     }
     if(s%grid_output_interval == 0)
     {
-      io_dump_3dslice(bssnSim.fields["gamma11_p"], "gamma11_slice." + to_string(s), &iodata);
-      io_dump_3dslice(bssnSim.fields["gamma12_p"], "gamma12_slice." + to_string(s), &iodata);
-      io_dump_3dslice(bssnSim.fields["gamma13_p"], "gamma13_slice." + to_string(s), &iodata);
-      io_dump_3dslice(bssnSim.fields["gamma22_p"], "gamma22_slice." + to_string(s), &iodata);
-      io_dump_3dslice(bssnSim.fields["gamma23_p"], "gamma23_slice." + to_string(s), &iodata);
-      io_dump_3dslice(bssnSim.fields["gamma33_p"], "gamma33_slice." + to_string(s), &iodata);
-      io_dump_3dslice(bssnSim.fields["phi_p"],     "phi_slice."     + to_string(s), &iodata);
-      io_dump_3dslice(bssnSim.fields["A11_p"],     "A11_slice."     + to_string(s), &iodata);
-      io_dump_3dslice(bssnSim.fields["A12_p"],     "A12_slice."     + to_string(s), &iodata);
-      io_dump_3dslice(bssnSim.fields["A13_p"],     "A13_slice."     + to_string(s), &iodata);
-      io_dump_3dslice(bssnSim.fields["A22_p"],     "A22_slice."     + to_string(s), &iodata);
-      io_dump_3dslice(bssnSim.fields["A23_p"],     "A23_slice."     + to_string(s), &iodata);
-      io_dump_3dslice(bssnSim.fields["A33_p"],     "A33_slice."     + to_string(s), &iodata);
-      io_dump_3dslice(bssnSim.fields["K_p"],       "K_slice."       + to_string(s), &iodata);
-      io_dump_3dslice(hydroSim.fields["UD_f"],     "UD_slice."      + to_string(s), &iodata);
-      io_dump_3dslice(hydroSim.fields["US1_f"],    "US1_slice."     + to_string(s), &iodata);
-      io_dump_3dslice(hydroSim.fields["US2_f"],    "US2_slice."     + to_string(s), &iodata);
-      io_dump_3dslice(hydroSim.fields["US3_f"],    "US3_slice."     + to_string(s), &iodata);
+      io_dump_3dslice(bssnSim.fields["gamma11_p"], "gamma11." + to_string(s), &iodata);
+      io_dump_3dslice(bssnSim.fields["gamma12_p"], "gamma12." + to_string(s), &iodata);
+      io_dump_3dslice(bssnSim.fields["gamma13_p"], "gamma13." + to_string(s), &iodata);
+      io_dump_3dslice(bssnSim.fields["gamma22_p"], "gamma22." + to_string(s), &iodata);
+      io_dump_3dslice(bssnSim.fields["gamma23_p"], "gamma23." + to_string(s), &iodata);
+      io_dump_3dslice(bssnSim.fields["gamma33_p"], "gamma33." + to_string(s), &iodata);
+      io_dump_3dslice(bssnSim.fields["phi_p"],     "phi."     + to_string(s), &iodata);
+      io_dump_3dslice(bssnSim.fields["A11_p"],     "A11."     + to_string(s), &iodata);
+      io_dump_3dslice(bssnSim.fields["A12_p"],     "A12."     + to_string(s), &iodata);
+      io_dump_3dslice(bssnSim.fields["A13_p"],     "A13."     + to_string(s), &iodata);
+      io_dump_3dslice(bssnSim.fields["A22_p"],     "A22."     + to_string(s), &iodata);
+      io_dump_3dslice(bssnSim.fields["A23_p"],     "A23."     + to_string(s), &iodata);
+      io_dump_3dslice(bssnSim.fields["A33_p"],     "A33."     + to_string(s), &iodata);
+      io_dump_3dslice(bssnSim.fields["K_p"],       "K."       + to_string(s), &iodata);
+      io_dump_3dslice(bssnSim.fields["ricci_a"],   "ricci."   + to_string(s), &iodata);
+      io_dump_3dslice(hydroSim.fields["UD_f"],     "UD."      + to_string(s), &iodata);
+      io_dump_3dslice(hydroSim.fields["US1_f"],    "US1."     + to_string(s), &iodata);
+      io_dump_3dslice(hydroSim.fields["US2_f"],    "US2."     + to_string(s), &iodata);
+      io_dump_3dslice(hydroSim.fields["US3_f"],    "US3."     + to_string(s), &iodata);
     }
+    _timer["output"].stop();
 
     // Run RK steps explicitly here (ties together BSSN + Hydro stuff).
     // See bssn class or hydro class for more comments.
+    _timer["RK_steps"].start();
 
     // Init arrays and calculate source term for next step
       // _p is copied to _a here, which hydro uses
@@ -196,6 +200,7 @@ int main(int argc, char **argv)
       bssnSim.stepTerm();
       // hydro _a <-> _f
       hydroSim.stepTerm();
+    _timer["RK_steps"].stop();
   }
   _timer["loop"].stop();
 

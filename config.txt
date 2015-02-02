@@ -2,7 +2,7 @@ steps = 2000
 slice_output_interval = 100
 grid_output_interval = 10
 
-omp_num_threads = 64
+omp_num_threads = 4
 
 rho_K_matter = 0.1
 peak_amplitude = 0.005

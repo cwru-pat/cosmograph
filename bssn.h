@@ -16,6 +16,8 @@ class BSSN
   /* arrays for storing fields */
   BSSN_APPLY_TO_FIELDS(RK4_ARRAY_CREATE)
   BSSN_APPLY_TO_SOURCES(GEN1_ARRAY_CREATE)
+  // ricci scalar curvature
+  GEN1_ARRAY_CREATE(ricci);
 
 public:
   std::map <std::string, real_t *> fields;

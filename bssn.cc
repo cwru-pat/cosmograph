@@ -7,9 +7,13 @@ BSSN::BSSN()
 {
   BSSN_APPLY_TO_FIELDS(RK4_ARRAY_ALLOC)
   BSSN_APPLY_TO_SOURCES(GEN1_ARRAY_ALLOC)
+  // additional array for outputting ricci scalar
+  GEN1_ARRAY_ALLOC(ricci);
 
   BSSN_APPLY_TO_FIELDS(RK4_ARRAY_ADDMAP)
   BSSN_APPLY_TO_SOURCES(GEN1_ARRAY_ADDMAP)
+  // additional array for outputting ricci scalar
+  GEN1_ARRAY_ADDMAP(ricci);
 }
 
 BSSN::~BSSN()
@@ -524,8 +528,10 @@ void BSSN::calculateRicciTF(BSSNData *paq)
   paq->ricciTF33 += -2.0*( paq->D3D3phi - 2.0*paq->d3phi*paq->d3phi + paq->gamma33*(expression) );
 
   /* calculate Ricci scalar at this point; ricciTF isn't TF at this point */
-  paq->Ricci = paq->ricciTF11*paq->gammai11 + paq->ricciTF22*paq->gammai22 + paq->ricciTF33*paq->gammai33
+  paq->ricci = paq->ricciTF11*paq->gammai11 + paq->ricciTF22*paq->gammai22 + paq->ricciTF33*paq->gammai33
             + 2.0*(paq->ricciTF12*paq->gammai12 + paq->ricciTF13*paq->gammai13 + paq->ricciTF23*paq->gammai23);
+  /* store ricci scalar here too. */
+  ricci_a[paq->idx] = paq->ricci;
 
   /* remove trace... */ 
   paq->trace = paq->gammai11*paq->ricciTF11 + paq->gammai22*paq->ricciTF22 + paq->gammai33*paq->ricciTF33

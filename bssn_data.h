@@ -18,7 +18,7 @@ typedef struct {
 
   // trace-free ricci tensor components
   real_t ricciTF11, ricciTF12, ricciTF13, ricciTF22, ricciTF23, ricciTF33;
-  real_t Ricci; // ricci scalar
+  real_t ricci; // ricci scalar
 
   // derivatives of \alpha
     // covariant double-derivatives 
