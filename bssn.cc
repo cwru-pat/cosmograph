@@ -7,19 +7,24 @@ BSSN::BSSN()
 {
   BSSN_APPLY_TO_FIELDS(RK4_ARRAY_ALLOC)
   BSSN_APPLY_TO_SOURCES(GEN1_ARRAY_ALLOC)
-  // additional array for outputting ricci scalar
+  // any additional arrays for calcuated quantities
   GEN1_ARRAY_ALLOC(ricci);
+  GEN1_ARRAY_ALLOC(AijAij);
 
   BSSN_APPLY_TO_FIELDS(RK4_ARRAY_ADDMAP)
   BSSN_APPLY_TO_SOURCES(GEN1_ARRAY_ADDMAP)
-  // additional array for outputting ricci scalar
+  // any additional arrays for calcuated quantities
   GEN1_ARRAY_ADDMAP(ricci);
+  GEN1_ARRAY_ADDMAP(AijAij);
 }
 
 BSSN::~BSSN()
 {
   BSSN_APPLY_TO_FIELDS(RK4_ARRAY_DELETE)
   BSSN_APPLY_TO_SOURCES(GEN1_ARRAY_DELETE)
+  // any additional arrays for calcuated quantities
+  GEN1_ARRAY_ADDMAP(ricci);
+  GEN1_ARRAY_DELETE(AijAij);
 }
 
 
@@ -451,6 +456,10 @@ void BSSN::set_local_vals(BSSNData *paq)
 void BSSN::calculate_Acont(BSSNData *paq)
 {
   BSSN_APPLY_TO_IJ_PERMS(BSSN_CALCULATE_ACONT)
+
+  // calculate A_ij A^ij term
+  AijAij_a[paq->idx] = paq->Acont11*paq->A11 + paq->Acont22*paq->A22 + paq->Acont33*paq->A33
+      + 2.0*(paq->Acont12*paq->A12 + paq->Acont13*paq->A13 + paq->Acont23*paq->A23);
 }
 
 /* Calculate metric derivatives */

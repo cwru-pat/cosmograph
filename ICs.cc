@@ -54,8 +54,11 @@ void set_gaussian_random_field(real_t *field, Fourier *fourier, ICsData *icd)
   (fourier->f_field[FFT_NP_INDEX(0,0,0)])[0] = 0;
   (fourier->f_field[FFT_NP_INDEX(0,0,0)])[1] = 0;
 
-  // FFT back; 'field' array should now be populated.
+  // FFT back; 'field' array should now be populated with a gaussian random
+  // field and power spectrum given by cosmo_power_spectrum.
   fftw_execute_dft_c2r(fourier->p_c2r, fourier->f_field, field);
+
+  return;
 }
 
 // doesn't specify monopole / expansion contribution
@@ -70,8 +73,8 @@ void set_physical_from_conformal(
   // the conformal factor in front of metric is the solution to
   // d^2 f = f^5 * \rho
   // or 
-  // d^2 f = f^5 * \rho_conformal
-  // this assumes \rho_conformal was specified in UD_a, and that
+  // d^2 f = \rho_conformal
+  // this assumes \rho_conformal*2pi was specified in UD_a, and that
   // we will need to convert it to \rho = f^-5 * \rho_conformal.
   // It is possible to calculate f, we 
 
@@ -90,7 +93,7 @@ void set_physical_from_conformal(
         pz = (real_t) k;
         // Here we choose the magnitude of k such that the derivative stencil
         // applied later will agree with the metric solution we find.
-        p2i = 1/(pw2(2.0*sin(PI*px/N)) + pw2(2.0*sin(PI*py/N)) + pw2(2.0*sin(PI*pz/N)));
+        p2i = 1.0/(pw2(2.0*sin(PI*px/N)) + pw2(2.0*sin(PI*py/N)) + pw2(2.0*sin(PI*pz/N)));
         // account for fftw normalization here
         (fourier->f_field)[FFT_NP_INDEX(i,j,k)][0] *= p2i/((real_t) POINTS);
         (fourier->f_field)[FFT_NP_INDEX(i,j,k)][1] *= p2i/((real_t) POINTS);
@@ -104,11 +107,14 @@ void set_physical_from_conformal(
   // temporarily use phi to store conformal factor; conformal factor is inverse fft of this
   // conformal factor array uses _p register initially, rather than _a
   fftw_execute_dft_c2r(fourier->p_c2r, fourier->f_field, bssn_fields["phi_p"]);
-  // add in monopole contribution:
+  // add in monopole contribution
+  // scale density to correct "units"
   LOOP3(i,j,k)
   {
     bssn_fields["phi_p"][NP_INDEX(i,j,k)] += 1.0;
+    hydro_fields["UD_a"][NP_INDEX(i,j,k)] /= 2.0*PI;
   }
+  // UD_a should now contain the conformal density
 
   // reconstruct physical density, and store in UD
   LOOP3(i,j,k)
@@ -116,13 +122,26 @@ void set_physical_from_conformal(
     hydro_fields["UD_a"][NP_INDEX(i,j,k)] /= pow(bssn_fields["phi_p"][NP_INDEX(i,j,k)], 5);
   }
 
-  // reconstruct physical metric; \phi = log(\psi)
+  // reconstruct BSSN conformal metric factor; \phi = log(\psi)
   LOOP3(i,j,k)
   {
     bssn_fields["phi_p"][NP_INDEX(i,j,k)] = log(bssn_fields["phi_p"][NP_INDEX(i,j,k)]);
     bssn_fields["phi_f"][NP_INDEX(i,j,k)] = bssn_fields["phi_p"][NP_INDEX(i,j,k)];
   }
 
+  // check constraint: see if \grad^2 e^\phi = \bar{\rho} (conformal density fluctuations, stored in UD_a)
+  real_t resid = 0.0;
+  LOOP3(i,j,k)
+  {
+    real_t grad2e = exp(bssn_fields["phi_p"][INDEX(i+1,j,k)]) + exp(bssn_fields["phi_p"][INDEX(i,j+1,k)]) + exp(bssn_fields["phi_p"][INDEX(i,j,k+1)])
+        + exp(bssn_fields["phi_p"][INDEX(i-1,j,k)]) + exp(bssn_fields["phi_p"][INDEX(i,j-1,k)]) + exp(bssn_fields["phi_p"][INDEX(i,j,k-1)])
+        - 6.0*exp(bssn_fields["phi_p"][NP_INDEX(i,j,k)]);
+    real_t cden = hydro_fields["UD_a"][NP_INDEX(i,j,k)]*exp(5.0*bssn_fields["phi_p"][NP_INDEX(i,j,k)]);
+    resid += fabs(grad2e + 2.0*PI*cden); // should = 0
+  }
+  std::cout << "Total metric solution error residual is: " << resid << "\n";
+
+  return;
 }
 
 void set_matter_density_and_K(

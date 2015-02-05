@@ -103,10 +103,11 @@ int main(int argc, char **argv)
       io_dump_3dslice(bssnSim.fields["A33_p"],     "A33."     + to_string(s), &iodata);
       io_dump_3dslice(bssnSim.fields["K_p"],       "K."       + to_string(s), &iodata);
       io_dump_3dslice(bssnSim.fields["ricci_a"],   "ricci."   + to_string(s), &iodata);
-      io_dump_3dslice(hydroSim.fields["UD_f"],     "UD."      + to_string(s), &iodata);
-      io_dump_3dslice(hydroSim.fields["US1_f"],    "US1."     + to_string(s), &iodata);
-      io_dump_3dslice(hydroSim.fields["US2_f"],    "US2."     + to_string(s), &iodata);
-      io_dump_3dslice(hydroSim.fields["US3_f"],    "US3."     + to_string(s), &iodata);
+      io_dump_3dslice(bssnSim.fields["AijAij_a"],  "AijAij."   + to_string(s), &iodata);
+      io_dump_3dslice(hydroSim.fields["UD_a"],     "UD."      + to_string(s), &iodata);
+      io_dump_3dslice(hydroSim.fields["US1_a"],    "US1."     + to_string(s), &iodata);
+      io_dump_3dslice(hydroSim.fields["US2_a"],    "US2."     + to_string(s), &iodata);
+      io_dump_3dslice(hydroSim.fields["US3_a"],    "US3."     + to_string(s), &iodata);
     }
     _timer["output"].stop();
 

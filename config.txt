@@ -1,6 +1,6 @@
-steps = 2000
-slice_output_interval = 100
-grid_output_interval = 10
+steps = 200
+slice_output_interval = 1000
+grid_output_interval = 20
 
 omp_num_threads = 4
 
