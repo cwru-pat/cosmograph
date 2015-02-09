@@ -272,6 +272,7 @@
   );
 
 // unitary piece only:
+// calculated using http://relativity.livingreviews.org/Articles/lrr-2011-6/fulltext.html
 #define BSSN_CALCULATE_RICCITF_UNITARY(I, J) paq->ricciTF##I##J = ( \
     - 0.5*( \
       paq->gammai11*paq->d1d1g##I##J + paq->gammai22*paq->d2d2g##I##J + paq->gammai33*paq->d3d3g##I##J \
@@ -281,17 +282,19 @@
       paq->gamma1##I*der(paq->Gamma1_adj, J) + paq->gamma2##I*der(paq->Gamma2_adj, J) + paq->gamma3##I*der(paq->Gamma3_adj, J) + \
       paq->gamma1##J*der(paq->Gamma1_adj, I) + paq->gamma2##J*der(paq->Gamma2_adj, I) + paq->gamma3##J*der(paq->Gamma3_adj, I) \
     ) \
-/* CHECK THIS */ \
     - 0.5*( \
-      paq->d1g##I##1*paq->d##J##gi11 + paq->d2g##I##2*paq->d##J##gi22 + paq->d3g##I##3*paq->d##J##gi33 \
-        + 2.0*(paq->d1g##I##2*paq->d##J##gi12 + paq->d1g##I##3*paq->d##J##gi13 + paq->d2g##I##3*paq->d##J##gi23) + \
-      paq->d1g##J##1*paq->d##I##gi11 + paq->d2g##J##2*paq->d##I##gi22 + paq->d3g##J##3*paq->d##I##gi33 \
-        + 2.0*(paq->d1g##J##2*paq->d##I##gi12 + paq->d1g##J##3*paq->d##I##gi13 + paq->d2g##J##3*paq->d##I##gi23) \
+      paq->d1g##I##1*paq->d1gi##J##1 + paq->d1g##I##2*paq->d2gi##J##1 + paq->d1g##I##3*paq->d3gi##J##1 \
+        + paq->d2g##I##1*paq->d1gi##J##2 + paq->d2g##I##2*paq->d2gi##J##2 + paq->d2g##I##3*paq->d3gi##J##2 \
+        + paq->d3g##I##1*paq->d1gi##J##3 + paq->d3g##I##2*paq->d2gi##J##3 + paq->d3g##I##3*paq->d3gi##J##3 \
+      + paq->d1g##J##1*paq->d1gi##I##1 + paq->d1g##J##2*paq->d2gi##I##1 + paq->d1g##J##3*paq->d3gi##I##1 \
+        + paq->d2g##J##1*paq->d1gi##I##2 + paq->d2g##J##2*paq->d2gi##I##2 + paq->d2g##J##3*paq->d3gi##I##2 \
+        + paq->d3g##J##1*paq->d1gi##I##3 + paq->d3g##J##2*paq->d2gi##I##3 + paq->d3g##J##3*paq->d3gi##I##3 \
       - paq->Gamma1*paq->d1g##I##J - paq->Gamma2*paq->d2g##I##J - paq->Gamma3*paq->d3g##I##J \
     ) \
     - ( \
-      paq->G1##I##1*paq->G1##J##1 + paq->G2##I##2*paq->G2##J##2 + paq->G3##I##3*paq->G3##J##3 \
-        + 2.0*(paq->G1##I##2*paq->G2##J##1 + paq->G1##I##3*paq->G3##J##1 + paq->G2##I##3*paq->G3##J##2) \
+        paq->G1##I##1*paq->G1##J##1 + paq->G1##I##2*paq->G2##J##1 + paq->G1##I##3*paq->G3##J##1 \
+      + paq->G2##I##1*paq->G1##J##2 + paq->G2##I##2*paq->G2##J##2 + paq->G2##I##3*paq->G3##J##2 \
+      + paq->G3##I##1*paq->G1##J##3 + paq->G3##I##2*paq->G2##J##3 + paq->G3##I##3*paq->G3##J##3 \
     ) \
   );
 

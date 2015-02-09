@@ -1,11 +1,11 @@
-steps = 200
+steps = 500
 slice_output_interval = 1000
 grid_output_interval = 20
 
 omp_num_threads = 4
 
 rho_K_matter = 0.1
-peak_amplitude = 0.005
+peak_amplitude = 0.003
 rho_K_lambda = 0.0
 
 output_dir = output

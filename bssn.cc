@@ -48,10 +48,11 @@ void BSSN::set_paq_values(idx_t i, idx_t j, idx_t k, BSSNData *paq)
   calculate_dalpha_dphi(paq);
   // Christoffels depend on metric & derivs.
   calculate_christoffels(paq);
-  // Ricci, DDa, DDw depend on christoffels, metric, and derivs
-  calculateRicciTF(paq);
+  // DDa, DDw depend on christoffels, metric, and derivs
   calculateDDphi(paq);
   calculateDDalphaTF(paq);
+  // Ricci depends on DDphi
+  calculateRicciTF(paq);
 
   // source values
   set_source_vals(paq);
@@ -517,14 +518,17 @@ void BSSN::calculateRicciTF(BSSNData *paq)
   // unitary pieces
   BSSN_APPLY_TO_IJ_PERMS(BSSN_CALCULATE_RICCITF_UNITARY)
 
+real_t ricci_unitary = paq->ricciTF11*paq->gammai11 + paq->ricciTF22*paq->gammai22 + paq->ricciTF33*paq->gammai33
+            + 2.0*(paq->ricciTF12*paq->gammai12 + paq->ricciTF13*paq->gammai13 + paq->ricciTF23*paq->gammai23);
+
   real_t expression = (
-    paq->gammai11*(paq->D1D1phi - 2.0*paq->d1phi*paq->d1phi)
-    + paq->gammai22*(paq->D2D2phi - 2.0*paq->d2phi*paq->d2phi)
-    + paq->gammai33*(paq->D3D3phi - 2.0*paq->d3phi*paq->d3phi)
+    paq->gammai11*(paq->D1D1phi + 2.0*paq->d1phi*paq->d1phi)
+    + paq->gammai22*(paq->D2D2phi + 2.0*paq->d2phi*paq->d2phi)
+    + paq->gammai33*(paq->D3D3phi + 2.0*paq->d3phi*paq->d3phi)
     + 2.0*(
-      paq->gammai12*(paq->D1D2phi - 2.0*paq->d1phi*paq->d2phi)
-      + paq->gammai13*(paq->D1D3phi - 2.0*paq->d1phi*paq->d3phi)
-      + paq->gammai23*(paq->D2D3phi - 2.0*paq->d2phi*paq->d3phi)
+      paq->gammai12*(paq->D1D2phi + 2.0*paq->d1phi*paq->d2phi)
+      + paq->gammai13*(paq->D1D3phi + 2.0*paq->d1phi*paq->d3phi)
+      + paq->gammai23*(paq->D2D3phi + 2.0*paq->d2phi*paq->d3phi)
     )
   );
 
@@ -539,6 +543,7 @@ void BSSN::calculateRicciTF(BSSNData *paq)
   /* calculate Ricci scalar at this point; ricciTF isn't TF at this point */
   paq->ricci = paq->ricciTF11*paq->gammai11 + paq->ricciTF22*paq->gammai22 + paq->ricciTF33*paq->gammai33
             + 2.0*(paq->ricciTF12*paq->gammai12 + paq->ricciTF13*paq->gammai13 + paq->ricciTF23*paq->gammai23);
+  paq->ricci = paq->ricci*exp(-4.0*paq->phi);
   /* store ricci scalar here too. */
   ricci_a[paq->idx] = paq->ricci;
 
