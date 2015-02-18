@@ -3,7 +3,7 @@
 
 #define N 32
 #define POINTS (N*N*N)
-#define dt 0.02
+#define dt 0.001
 #define dx 1.0
 
 // WENO "epsilon" parameter

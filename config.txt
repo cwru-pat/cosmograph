@@ -5,7 +5,7 @@ grid_output_interval = 20
 omp_num_threads = 4
 
 rho_K_matter = 0.1
-peak_amplitude = 0.003
+peak_amplitude = 0.0001
 rho_K_lambda = 0.0
 
 output_dir = output

@@ -42,7 +42,15 @@ void set_gaussian_random_field(real_t *field, Fourier *fourier, ICsData *icd)
         pz = (real_t) k;
         pmag = sqrt(pw2(px) + pw2(py) + pw2(pz));
 
-        scale = sqrt(cosmo_power_spectrum(pmag, icd));
+        // Scale by power spectrum
+        if(1.0/pmag > 1.0/2.0/dx)
+        {
+          scale = sqrt(cosmo_power_spectrum(pmag, icd));
+        }
+        else
+        {
+          scale = 0.0;
+        }
 
         // fftw transform is unnormalized; account for an N^3 here
         (fourier->f_field)[FFT_NP_INDEX(i,j,k)][0] *= scale/((real_t) POINTS);
@@ -202,6 +210,13 @@ void set_lambda_K(
     bssn_fields["K_p"][NP_INDEX(i,j,k)] = -sqrt(24.0*PI*(rhoK+oldrho));
     bssn_fields["K_f"][NP_INDEX(i,j,k)] = -sqrt(24.0*PI*(rhoK+oldrho));
   }
+
+  // std::cout << "Final fluid density is:" << rhoK+oldrho << " ,"
+  //           << "fluid rho is " << oldrho
+  //           << " lambda rho is " << rhoK
+  //           << "\n";
+  // std::cout << "K is " << bssn_fields["K_f"][10] << "\n";
+
 }
 
 } // namespace cosmo

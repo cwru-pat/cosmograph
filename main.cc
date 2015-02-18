@@ -109,6 +109,9 @@ int main(int argc, char **argv)
       io_dump_3dslice(hydroSim.fields["US2_a"],    "US2."     + to_string(s), &iodata);
       io_dump_3dslice(hydroSim.fields["US3_a"],    "US3."     + to_string(s), &iodata);
     }
+std::cout << "Constraint is: "
+          << pw2(bssnSim.fields["K_a"][10])*2.0/3.0 - 16*PI*hydroSim.fields["UD_a"][10]*exp(-6.0*bssnSim.fields["phi_a"][10])
+          << "\n";
     _timer["output"].stop();
 
     // Run RK steps explicitly here (ties together BSSN + Hydro stuff).

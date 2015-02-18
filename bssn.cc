@@ -518,9 +518,6 @@ void BSSN::calculateRicciTF(BSSNData *paq)
   // unitary pieces
   BSSN_APPLY_TO_IJ_PERMS(BSSN_CALCULATE_RICCITF_UNITARY)
 
-real_t ricci_unitary = paq->ricciTF11*paq->gammai11 + paq->ricciTF22*paq->gammai22 + paq->ricciTF33*paq->gammai33
-            + 2.0*(paq->ricciTF12*paq->gammai12 + paq->ricciTF13*paq->gammai13 + paq->ricciTF23*paq->gammai23);
-
   real_t expression = (
     paq->gammai11*(paq->D1D1phi + 2.0*paq->d1phi*paq->d1phi)
     + paq->gammai22*(paq->D2D2phi + 2.0*paq->d2phi*paq->d2phi)
@@ -543,11 +540,11 @@ real_t ricci_unitary = paq->ricciTF11*paq->gammai11 + paq->ricciTF22*paq->gammai
   /* calculate Ricci scalar at this point; ricciTF isn't TF at this point */
   paq->ricci = paq->ricciTF11*paq->gammai11 + paq->ricciTF22*paq->gammai22 + paq->ricciTF33*paq->gammai33
             + 2.0*(paq->ricciTF12*paq->gammai12 + paq->ricciTF13*paq->gammai13 + paq->ricciTF23*paq->gammai23);
-  paq->ricci = paq->ricci*exp(-4.0*paq->phi);
+  paq->ricci *= exp(-4.0*paq->phi);
   /* store ricci scalar here too. */
   ricci_a[paq->idx] = paq->ricci;
 
-  /* remove trace... */ 
+  /* remove trace. Note that \bar{gamma}_{ij}*\bar{gamma}^{kl}R_{kl} = (unbarred). */
   paq->trace = paq->gammai11*paq->ricciTF11 + paq->gammai22*paq->ricciTF22 + paq->gammai33*paq->ricciTF33
       + 2.0*(paq->gammai12*paq->ricciTF12 + paq->gammai13*paq->ricciTF13 + paq->gammai23*paq->ricciTF23);
 
@@ -574,7 +571,7 @@ void BSSN::calculateDDphi(BSSNData *paq)
 void BSSN::calculateDDalphaTF(BSSNData *paq)
 {
   // double covariant derivatives - use non-unitary metric - extra pieces that depend on phi!
-  // the gamma*ldlphi are needed for the BSSN_CALCULATE_DIDJALPHA macro
+  // the gammaIldlphi are needed for the BSSN_CALCULATE_DIDJALPHA macro
   real_t gamma1ldlphi = paq->gammai11*paq->d1phi + paq->gammai12*paq->d2phi + paq->gammai13*paq->d3phi;
   real_t gamma2ldlphi = paq->gammai21*paq->d1phi + paq->gammai22*paq->d2phi + paq->gammai23*paq->d3phi;
   real_t gamma3ldlphi = paq->gammai31*paq->d1phi + paq->gammai32*paq->d2phi + paq->gammai33*paq->d3phi;
@@ -582,15 +579,18 @@ void BSSN::calculateDDalphaTF(BSSNData *paq)
   BSSN_APPLY_TO_IJ_PERMS(BSSN_CALCULATE_DIDJALPHA)
 
   // subtract trace
+  // Note that \bar{gamma}_{ij}*\bar{gamma}^{kl}R_{kl} = (unbarred), used below.
   paq->DDaTR = paq->gammai11*paq->D1D1aTF + paq->gammai22*paq->D2D2aTF + paq->gammai33*paq->D3D3aTF
       + 2.0*(paq->gammai12*paq->D1D2aTF + paq->gammai13*paq->D1D3aTF + paq->gammai23*paq->D2D3aTF);
-  
   paq->D1D1aTF -= (1/3.0)*paq->gamma11*paq->DDaTR;
   paq->D1D2aTF -= (1/3.0)*paq->gamma12*paq->DDaTR;
   paq->D1D3aTF -= (1/3.0)*paq->gamma13*paq->DDaTR;
   paq->D2D2aTF -= (1/3.0)*paq->gamma22*paq->DDaTR;
   paq->D2D3aTF -= (1/3.0)*paq->gamma23*paq->DDaTR;
   paq->D3D3aTF -= (1/3.0)*paq->gamma33*paq->DDaTR;
+
+  // scale trace back (=> contracted with "real" metric)
+  paq->DDaTR *= exp(-4.0*paq->phi);
 }
 
 real_t BSSN::ev_gamma11(BSSNData *paq) { return BSSN_DT_GAMMAIJ(1, 1); }
