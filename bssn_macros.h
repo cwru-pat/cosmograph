@@ -26,6 +26,9 @@
   function(beta1);                      \
   function(beta2);                      \
   function(beta3);                      \
+  function(B1);                         \
+  function(B2);                         \
+  function(B3);                         \
   function(alpha);
 
 #define BSSN_APPLY_TO_SOURCES(function) \
@@ -111,6 +114,12 @@
   std::swap(fields["beta2"#reg_prefix_1],   fields["beta2"#reg_prefix_2]);         \
   std::swap(beta3##reg_prefix_1,            beta3##reg_prefix_2);                  \
   std::swap(fields["beta3"#reg_prefix_1],   fields["beta3"#reg_prefix_2]);         \
+  std::swap(B1##reg_prefix_1,            B1##reg_prefix_2);                        \
+  std::swap(fields["B1"#reg_prefix_1],   fields["B1"#reg_prefix_2]);               \
+  std::swap(B2##reg_prefix_1,            B2##reg_prefix_2);                        \
+  std::swap(fields["B2"#reg_prefix_1],   fields["B2"#reg_prefix_2]);               \
+  std::swap(B3##reg_prefix_1,            B3##reg_prefix_2);                        \
+  std::swap(fields["B3"#reg_prefix_1],   fields["B3"#reg_prefix_2]);               \
   std::swap(alpha##reg_prefix_1,            alpha##reg_prefix_2);                  \
   std::swap(fields["alpha"#reg_prefix_1],   fields["alpha"#reg_prefix_2]);
 
@@ -135,6 +144,9 @@
   std::copy(beta1##reg_prefix_from,    beta1##reg_prefix_from + POINTS,    beta1##reg_prefix_to    ); \
   std::copy(beta2##reg_prefix_from,    beta2##reg_prefix_from + POINTS,    beta2##reg_prefix_to    ); \
   std::copy(beta3##reg_prefix_from,    beta3##reg_prefix_from + POINTS,    beta3##reg_prefix_to    ); \
+  std::copy(B1##reg_prefix_from,       B1##reg_prefix_from + POINTS,       B1##reg_prefix_to       ); \
+  std::copy(B2##reg_prefix_from,       B2##reg_prefix_from + POINTS,       B2##reg_prefix_to       ); \
+  std::copy(B3##reg_prefix_from,       B3##reg_prefix_from + POINTS,       B3##reg_prefix_to       ); \
   std::copy(alpha##reg_prefix_from,    alpha##reg_prefix_from + POINTS,    alpha##reg_prefix_to    );
 
 #define BSSN_ZERO_ARRAY(reg, index) \
@@ -158,6 +170,9 @@
   beta1##reg[idx]   = 0;            \
   beta2##reg[idx]   = 0;            \
   beta3##reg[idx]   = 0;            \
+  B1##reg[idx]      = 0;            \
+  B2##reg[idx]      = 0;            \
+  B3##reg[idx]      = 0;            \
   alpha##reg[idx]   = 0;
 
 
@@ -183,6 +198,9 @@
   beta1_c[paq->idx]   = beta1_p[paq->idx]   + dt*mult*ev_beta1(paq);   \
   beta2_c[paq->idx]   = beta2_p[paq->idx]   + dt*mult*ev_beta2(paq);   \
   beta3_c[paq->idx]   = beta3_p[paq->idx]   + dt*mult*ev_beta3(paq);   \
+  B1_c[paq->idx]      = B1_p[paq->idx]      + dt*mult*ev_B1(paq);      \
+  B2_c[paq->idx]      = B2_p[paq->idx]      + dt*mult*ev_B2(paq);      \
+  B3_c[paq->idx]      = B3_p[paq->idx]      + dt*mult*ev_B3(paq);      \
   alpha_c[paq->idx]   = alpha_p[paq->idx]   + dt*mult*ev_alpha(paq);
 
 #define BSSN_ADD_C_TO_F(mult) \
@@ -206,6 +224,9 @@
   beta1_f[paq->idx]   += mult*beta1_c[paq->idx];    \
   beta2_f[paq->idx]   += mult*beta2_c[paq->idx];    \
   beta3_f[paq->idx]   += mult*beta3_c[paq->idx];    \
+  B1_f[paq->idx]      += mult*B1_c[paq->idx];       \
+  B2_f[paq->idx]      += mult*B2_c[paq->idx];       \
+  B3_f[paq->idx]      += mult*B3_c[paq->idx];       \
   alpha_f[paq->idx]   += mult*alpha_c[paq->idx];
 
 // arr_f = (1.0/3.0)*(arr_f - arr_p) + (1.0/6.0)*evfn(arr_a)
@@ -230,6 +251,9 @@
   beta1_f[paq->idx]   = (1.0/3.0)*(beta1_f[paq->idx]   - beta1_p[paq->idx])   + (1.0/6.0)*dt*ev_beta1(paq);   \
   beta2_f[paq->idx]   = (1.0/3.0)*(beta2_f[paq->idx]   - beta2_p[paq->idx])   + (1.0/6.0)*dt*ev_beta2(paq);   \
   beta3_f[paq->idx]   = (1.0/3.0)*(beta3_f[paq->idx]   - beta3_p[paq->idx])   + (1.0/6.0)*dt*ev_beta3(paq);   \
+  B1_f[paq->idx]      = (1.0/3.0)*(B1_f[paq->idx]      - B1_p[paq->idx])      + (1.0/6.0)*dt*ev_B1(paq);      \
+  B2_f[paq->idx]      = (1.0/3.0)*(B2_f[paq->idx]      - B2_p[paq->idx])      + (1.0/6.0)*dt*ev_B2(paq);      \
+  B3_f[paq->idx]      = (1.0/3.0)*(B3_f[paq->idx]      - B3_p[paq->idx])      + (1.0/6.0)*dt*ev_B3(paq);      \
   alpha_f[paq->idx]   = (1.0/3.0)*(alpha_f[paq->idx]   - alpha_p[paq->idx])   + (1.0/6.0)*dt*ev_alpha(paq);
 
 

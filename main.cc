@@ -26,9 +26,6 @@ int main(int argc, char **argv)
   else
   {
     _config.parse(argv[1]);
-    peak_amplitude = (real_t) stold(_config["peak_amplitude"]); // fluctuation amplitude
-    rho_K_matter = (real_t) stold(_config["rho_K_matter"]); // background density
-    rho_K_lambda = (real_t) stold(_config["rho_K_lambda"]); // DE density
     steps = stoi(_config["steps"]);
     slice_output_interval = stoi(_config["slice_output_interval"]);
     grid_output_interval = stoi(_config["grid_output_interval"]);
@@ -43,34 +40,15 @@ int main(int argc, char **argv)
   // Create simulation
   std::cout << "Creating initial conditions...\n";
   _timer["init"].start();
-    // Fluid fields
-    Hydro hydroSim (0.0/3.0); // fluid with some w_EOS
-    HydroData h_paq = {0};
-    hydroSim.init();
-    // DE
-    Lambda lambdaSim (rho_K_lambda);
-
     // GR Fields
     BSSN bssnSim;
+    bssnSim.clearSrc();
     BSSNData b_paq = {0}; // data structure associated with bssn sim
     bssnSim.init();
 
-    // generic reusable fourier class for N^3 arrays
-    Fourier fourier;
-    fourier.Initialize(N, hydroSim.fields["UD_a"] /* just any N^3 array for planning */);
-
     // Determine initial conditions.
     ICsData i_paq = {0};
-    i_paq.peak_k = 1.0/((real_t) N);
-    i_paq.peak_amplitude = peak_amplitude; // figure out units here
-    // Note that this is going to be the conformal density, not physical density.
-    // This specifies the spectrum of fluctuations around the mean, but not the mean.
-    set_gaussian_random_field(hydroSim.fields["UD_a"], &fourier, &i_paq);
-    // Set physical density fluctuations and metric using UD_a
-    set_physical_from_conformal(bssnSim.fields, hydroSim.fields, &fourier);
-    // Set a background (roughly, an average) density, and extrinsic curvature
-    set_matter_density_and_K(bssnSim.fields, hydroSim.fields, rho_K_matter);
-    set_lambda_K(bssnSim.fields, rho_K_lambda);
+    set_BH_ICs(bssnSim.fields);
   _timer["init"].stop();
 
   // evolve simulation
@@ -80,38 +58,15 @@ int main(int argc, char **argv)
 
     // output simulation information
     _timer["output"].start();
-    io_dump_quantities(bssnSim.fields, hydroSim.fields, _config["outfile"], &iodata);
+    std::cout << "Running step " << s << ".  Phi is:" << bssnSim.fields["phi_p"][INDEX(N/2, N/2, N/2)] << "\n";
     if(s%slice_output_interval == 0)
     {
       io_dump_2dslice(bssnSim.fields["phi_p"], "phi_slice." + to_string(s), &iodata);
-      io_dump_2dslice(hydroSim.fields["UD_f"], "UD_slice."  + to_string(s), &iodata);
     }
     if(s%grid_output_interval == 0)
     {
-      io_dump_3dslice(bssnSim.fields["gamma11_p"], "gamma11." + to_string(s), &iodata);
-      io_dump_3dslice(bssnSim.fields["gamma12_p"], "gamma12." + to_string(s), &iodata);
-      io_dump_3dslice(bssnSim.fields["gamma13_p"], "gamma13." + to_string(s), &iodata);
-      io_dump_3dslice(bssnSim.fields["gamma22_p"], "gamma22." + to_string(s), &iodata);
-      io_dump_3dslice(bssnSim.fields["gamma23_p"], "gamma23." + to_string(s), &iodata);
-      io_dump_3dslice(bssnSim.fields["gamma33_p"], "gamma33." + to_string(s), &iodata);
-      io_dump_3dslice(bssnSim.fields["phi_p"],     "phi."     + to_string(s), &iodata);
-      io_dump_3dslice(bssnSim.fields["A11_p"],     "A11."     + to_string(s), &iodata);
-      io_dump_3dslice(bssnSim.fields["A12_p"],     "A12."     + to_string(s), &iodata);
-      io_dump_3dslice(bssnSim.fields["A13_p"],     "A13."     + to_string(s), &iodata);
-      io_dump_3dslice(bssnSim.fields["A22_p"],     "A22."     + to_string(s), &iodata);
-      io_dump_3dslice(bssnSim.fields["A23_p"],     "A23."     + to_string(s), &iodata);
-      io_dump_3dslice(bssnSim.fields["A33_p"],     "A33."     + to_string(s), &iodata);
-      io_dump_3dslice(bssnSim.fields["K_p"],       "K."       + to_string(s), &iodata);
-      io_dump_3dslice(bssnSim.fields["ricci_a"],   "ricci."   + to_string(s), &iodata);
-      io_dump_3dslice(bssnSim.fields["AijAij_a"],  "AijAij."   + to_string(s), &iodata);
-      io_dump_3dslice(hydroSim.fields["UD_a"],     "UD."      + to_string(s), &iodata);
-      io_dump_3dslice(hydroSim.fields["US1_a"],    "US1."     + to_string(s), &iodata);
-      io_dump_3dslice(hydroSim.fields["US2_a"],    "US2."     + to_string(s), &iodata);
-      io_dump_3dslice(hydroSim.fields["US3_a"],    "US3."     + to_string(s), &iodata);
+      // io_dump_3dslice(bssnSim.fields["phi_p"],     "phi."     + to_string(s), &iodata);
     }
-std::cout << "Constraint is: "
-          << pw2(bssnSim.fields["K_a"][10])*2.0/3.0 - 16*PI*hydroSim.fields["UD_a"][10]*exp(-6.0*bssnSim.fields["phi_a"][10])
-          << "\n";
     _timer["output"].stop();
 
     // Run RK steps explicitly here (ties together BSSN + Hydro stuff).
@@ -121,32 +76,13 @@ std::cout << "Constraint is: "
     // Init arrays and calculate source term for next step
       // _p is copied to _a here, which hydro uses
       bssnSim.stepInit();
-      // clear existing data
-      bssnSim.clearSrc();
-      // add hydro source to bssn sim
-      hydroSim.addBSSNSrc(bssnSim.fields);
-      lambdaSim.addBSSNSrc(bssnSim.fields);
 
-    // First RK step & Set Hydro Vars
-    #pragma omp parallel for default(shared) private(i, j, k, b_paq, h_paq)
+    // First RK step
+    #pragma omp parallel for default(shared) private(i, j, k, b_paq)
     LOOP3(i, j, k)
     {
       bssnSim.K1CalcPt(i, j, k, &b_paq);
-
-      // hydro takes data from existing data in b_paq (data in _a register)
-      // need to set full metric components first; this calculation is only
-      // done when explicitly called.
-      bssnSim.set_full_metric_der(&b_paq);
-      bssnSim.set_full_metric(&b_paq);
-      hydroSim.setQuantitiesCell(&b_paq, &h_paq);
     }
-
-    // reset source using new metric
-    bssnSim.clearSrc();
-    // add hydro source to bssn sim
-    hydroSim.addBSSNSrc(bssnSim.fields);
-    lambdaSim.addBSSNSrc(bssnSim.fields);
-
     bssnSim.regSwap_c_a();
 
     // Subsequent BSSN steps
@@ -156,27 +92,14 @@ std::cout << "Constraint is: "
       {
         bssnSim.K2CalcPt(i, j, k, &b_paq);
       }
-
-      // reset source using new metric
-      bssnSim.clearSrc();
-      // add hydro source to bssn sim
-      hydroSim.addBSSNSrc(bssnSim.fields);
-      lambdaSim.addBSSNSrc(bssnSim.fields);
-
       bssnSim.regSwap_c_a();
+
       // Third RK step
       #pragma omp parallel for default(shared) private(i, j, k, b_paq)
       LOOP3(i, j, k)
       {
         bssnSim.K3CalcPt(i, j, k, &b_paq);
       }
-
-      // reset source using new metric
-      bssnSim.clearSrc();
-      // add hydro source to bssn sim
-      hydroSim.addBSSNSrc(bssnSim.fields);
-      lambdaSim.addBSSNSrc(bssnSim.fields);
-
       bssnSim.regSwap_c_a();
 
       // Fourth RK step
@@ -186,24 +109,9 @@ std::cout << "Constraint is: "
         bssnSim.K4CalcPt(i, j, k, &b_paq);
       }
 
-
-    // Subsequent hydro step
-      #pragma omp parallel for default(shared) private(i, j, k)
-      LOOP3(i, j, k)
-      {
-        hydroSim.setAllFluxInt(i, j, k);
-      }
-      #pragma omp parallel for default(shared) private(i, j, k)
-      LOOP3(i, j, k)
-      {
-        hydroSim.evolveFluid(i, j, k);
-      }
-
     // Wrap up
       // bssn _f <-> _p
       bssnSim.stepTerm();
-      // hydro _a <-> _f
-      hydroSim.stepTerm();
     _timer["RK_steps"].stop();
   }
   _timer["loop"].stop();

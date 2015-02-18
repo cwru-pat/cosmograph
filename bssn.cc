@@ -633,11 +633,12 @@ real_t BSSN::ev_Gamma1(BSSNData *paq) { return BSSN_DT_GAMMAI(1); }
 real_t BSSN::ev_Gamma2(BSSNData *paq) { return BSSN_DT_GAMMAI(2); }
 real_t BSSN::ev_Gamma3(BSSNData *paq) { return BSSN_DT_GAMMAI(3); }
 
-// static gauge for now:
-// real_t BSSN::ev_alpha(BSSNData *paq) { return 0; }
-// real_t BSSN::ev_beta1(BSSNData *paq) { return 0; }
-// real_t BSSN::ev_beta2(BSSNData *paq) { return 0; }
-// real_t BSSN::ev_beta3(BSSNData *paq) { return 0; }
-
+real_t BSSN::ev_alpha(BSSNData *paq) { return -2.0*paq->alpha*paq->K; }
+real_t BSSN::ev_beta1(BSSNData *paq) { return 3.0/4.0*B1_a[paq->idx]; }
+real_t BSSN::ev_beta2(BSSNData *paq) { return 3.0/4.0*B2_a[paq->idx]; }
+real_t BSSN::ev_beta3(BSSNData *paq) { return 3.0/4.0*B3_a[paq->idx]; }
+real_t BSSN::ev_B1(BSSNData *paq) { return ev_Gamma1(paq) - 1.0/2.0/5.0*B1_a[paq->idx]; }
+real_t BSSN::ev_B2(BSSNData *paq) { return ev_Gamma2(paq) - 1.0/2.0/5.0*B2_a[paq->idx]; }
+real_t BSSN::ev_B3(BSSNData *paq) { return ev_Gamma3(paq) - 1.0/2.0/5.0*B3_a[paq->idx]; }
 
 }

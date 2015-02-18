@@ -80,11 +80,14 @@ public:
   real_t ev_Gamma1(BSSNData *paq);
   real_t ev_Gamma2(BSSNData *paq);
   real_t ev_Gamma3(BSSNData *paq);
-  // static gauge for now:
-  real_t ev_alpha(BSSNData *paq) { return 0; }
-  real_t ev_beta1(BSSNData *paq) { return 0; }
-  real_t ev_beta2(BSSNData *paq) { return 0; }
-  real_t ev_beta3(BSSNData *paq) { return 0; }
+  // gauge evolution
+  real_t ev_alpha(BSSNData *paq);
+  real_t ev_B1(BSSNData *paq);
+  real_t ev_B2(BSSNData *paq);
+  real_t ev_B3(BSSNData *paq);
+  real_t ev_beta1(BSSNData *paq);
+  real_t ev_beta2(BSSNData *paq);
+  real_t ev_beta3(BSSNData *paq);
 
   // calculate needed quantities (need the inverse metric set everywhere first)
   void set_paq_values(idx_t i, idx_t j, idx_t k, BSSNData *paq);
