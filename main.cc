@@ -59,6 +59,10 @@ int main(int argc, char **argv)
     // output simulation information
     _timer["output"].start();
     std::cout << "Running step " << s << ".  Phi is:" << bssnSim.fields["phi_p"][INDEX(N/2, N/2, N/2)] << "\n";
+    std::cout << "                Alpha is:" << bssnSim.fields["alpha_p"][INDEX(1, N/2, N/2)]
+              << ", " << bssnSim.fields["alpha_p"][INDEX(14, N/2, N/2)]
+              << "\n";
+    io_dump_strip(bssnSim.fields["phi_p"], 1, N/2, N/2, &iodata);
     if(s%slice_output_interval == 0)
     {
       io_dump_2dslice(bssnSim.fields["phi_p"], "phi_slice." + to_string(s), &iodata);
@@ -83,6 +87,7 @@ int main(int argc, char **argv)
     {
       bssnSim.K1CalcPt(i, j, k, &b_paq);
     }
+    bssnSim.apply_boundaries();
     bssnSim.regSwap_c_a();
 
     // Subsequent BSSN steps
@@ -92,6 +97,7 @@ int main(int argc, char **argv)
       {
         bssnSim.K2CalcPt(i, j, k, &b_paq);
       }
+      bssnSim.apply_boundaries();
       bssnSim.regSwap_c_a();
 
       // Third RK step
@@ -100,6 +106,7 @@ int main(int argc, char **argv)
       {
         bssnSim.K3CalcPt(i, j, k, &b_paq);
       }
+      bssnSim.apply_boundaries();
       bssnSim.regSwap_c_a();
 
       // Fourth RK step
@@ -108,6 +115,7 @@ int main(int argc, char **argv)
       {
         bssnSim.K4CalcPt(i, j, k, &b_paq);
       }
+      bssnSim.apply_boundaries();
 
     // Wrap up
       // bssn _f <-> _p

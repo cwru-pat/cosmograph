@@ -321,6 +321,19 @@ void BSSN::init()
 }
 
 
+void BSSN::apply_boundaries()
+{
+  int i, j;
+  for(int i=0; i<N; i++)
+  {
+    for(int j=0; j<N; j++)
+    {
+      BSSN_APPLY_TO_FIELDS(BSSN_SET_NEUMANN_BCS);
+    } 
+  }
+}
+
+
 real_t BSSN::der(real_t field_adj[3][3][3], int d)
 {
  // return 0;

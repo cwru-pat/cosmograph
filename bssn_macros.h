@@ -256,6 +256,34 @@
   B3_f[paq->idx]      = (1.0/3.0)*(B3_f[paq->idx]      - B3_p[paq->idx])      + (1.0/6.0)*dt*ev_B3(paq);      \
   alpha_f[paq->idx]   = (1.0/3.0)*(alpha_f[paq->idx]   - alpha_p[paq->idx])   + (1.0/6.0)*dt*ev_alpha(paq);
 
+#define BSSN_SET_NEUMANN_BCS(field) \
+  field##_p[INDEX(i,j,N-1)] = field##_p[INDEX(i,j,N-2)]; \
+  field##_a[INDEX(i,j,N-1)] = field##_a[INDEX(i,j,N-2)]; \
+  field##_c[INDEX(i,j,N-1)] = field##_c[INDEX(i,j,N-2)]; \
+  field##_f[INDEX(i,j,N-1)] = field##_f[INDEX(i,j,N-2)]; \
+  field##_p[INDEX(i,j,0  )] = field##_p[INDEX(i,j,1  )]; \
+  field##_a[INDEX(i,j,0  )] = field##_a[INDEX(i,j,1  )]; \
+  field##_c[INDEX(i,j,0  )] = field##_c[INDEX(i,j,1  )]; \
+  field##_f[INDEX(i,j,0  )] = field##_f[INDEX(i,j,1  )]; \
+  \
+  field##_p[INDEX(i,N-1,j)] = field##_p[INDEX(i,N-2,j)]; \
+  field##_a[INDEX(i,N-1,j)] = field##_a[INDEX(i,N-2,j)]; \
+  field##_c[INDEX(i,N-1,j)] = field##_c[INDEX(i,N-2,j)]; \
+  field##_f[INDEX(i,N-1,j)] = field##_f[INDEX(i,N-2,j)]; \
+  field##_p[INDEX(i,0  ,j)] = field##_p[INDEX(i,1  ,j)]; \
+  field##_a[INDEX(i,0  ,j)] = field##_a[INDEX(i,1  ,j)]; \
+  field##_c[INDEX(i,0  ,j)] = field##_c[INDEX(i,1  ,j)]; \
+  field##_f[INDEX(i,0  ,j)] = field##_f[INDEX(i,1  ,j)]; \
+  \
+  field##_p[INDEX(N-1,i,j)] = field##_p[INDEX(N-2,i,j)]; \
+  field##_a[INDEX(N-1,i,j)] = field##_a[INDEX(N-2,i,j)]; \
+  field##_c[INDEX(N-1,i,j)] = field##_c[INDEX(N-2,i,j)]; \
+  field##_f[INDEX(N-1,i,j)] = field##_f[INDEX(N-2,i,j)]; \
+  field##_p[INDEX(0  ,i,j)] = field##_p[INDEX(1  ,i,j)]; \
+  field##_a[INDEX(0  ,i,j)] = field##_a[INDEX(1  ,i,j)]; \
+  field##_c[INDEX(0  ,i,j)] = field##_c[INDEX(1  ,i,j)]; \
+  field##_f[INDEX(0  ,i,j)] = field##_f[INDEX(1  ,i,j)];
+
 
 /*
  * Aux. variable calculations

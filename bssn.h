@@ -39,6 +39,8 @@ public:
   void K4CalcPt(idx_t i, idx_t j, idx_t k, BSSNData *paq);
   void stepTerm();
 
+  void apply_boundaries();
+
   real_t der(real_t field_adj[3][3][3], int d);
   real_t dder(real_t field_adj[3][3][3], int d1, int d2);
   
