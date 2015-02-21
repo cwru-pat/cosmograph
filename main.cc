@@ -15,7 +15,7 @@ int main(int argc, char **argv)
   idx_t steps, slice_output_interval, grid_output_interval;
   idx_t i, j, k, s;
 
-  real_t rho_K_matter, rho_K_lambda, peak_amplitude;
+  real_t rho_K_matter, rho_K_lambda, rho_K_lambda_frac, peak_amplitude, peak_amplitude_frac, length_scale;
 
   // read in config file
   if(argc != 2)
@@ -26,9 +26,17 @@ int main(int argc, char **argv)
   else
   {
     _config.parse(argv[1]);
-    peak_amplitude = (real_t) stold(_config["peak_amplitude"]); // fluctuation amplitude
-    rho_K_matter = (real_t) stold(_config["rho_K_matter"]); // background density
-    rho_K_lambda = (real_t) stold(_config["rho_K_lambda"]); // DE density
+    
+    length_scale = (real_t) stold(_config["length_scale"]); // volume in hubble units
+    rho_K_matter = 3.0/PI/8.0*pw2(length_scale/N); // matter density satisfies FRW equation
+
+    // power spectrum amplitude as a fraction of the density
+    peak_amplitude_frac = (real_t) stold(_config["peak_amplitude_frac"]); // fluctuation amplitude
+    peak_amplitude = rho_K_matter*peak_amplitude_frac;
+
+    rho_K_lambda_frac = (real_t) stold(_config["rho_K_lambda_frac"]); // DE density
+    rho_K_lambda = rho_K_lambda_frac*rho_K_matter;
+
     steps = stoi(_config["steps"]);
     slice_output_interval = stoi(_config["slice_output_interval"]);
     grid_output_interval = stoi(_config["grid_output_interval"]);
@@ -109,8 +117,9 @@ int main(int argc, char **argv)
       io_dump_3dslice(hydroSim.fields["US2_a"],    "US2."     + to_string(s), &iodata);
       io_dump_3dslice(hydroSim.fields["US3_a"],    "US3."     + to_string(s), &iodata);
     }
-std::cout << "Constraint is: "
-          << pw2(bssnSim.fields["K_a"][10])*2.0/3.0 - 16*PI*hydroSim.fields["UD_a"][10]*exp(-6.0*bssnSim.fields["phi_a"][10])
+    std::cout << "FRW Eq. Resid. is: "
+          << 1.0 - pw2(bssnSim.fields["K_a"][10])*2.0/3.0/(16*PI*hydroSim.fields["UD_a"][10]*exp(-6.0*bssnSim.fields["phi_a"][10]))
+          << ", Conformal factor is about: " << exp(4.0*bssnSim.fields["phi_a"][10])
           << "\n";
     _timer["output"].stop();
 

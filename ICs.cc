@@ -43,14 +43,10 @@ void set_gaussian_random_field(real_t *field, Fourier *fourier, ICsData *icd)
         pmag = sqrt(pw2(px) + pw2(py) + pw2(pz));
 
         // Scale by power spectrum
-        if(1.0/pmag > 1.0/2.0/dx)
-        {
-          scale = sqrt(cosmo_power_spectrum(pmag, icd));
-        }
-        else
-        {
-          scale = 0.0;
-        }
+        // don't want much power on scales smaller than ~2 pixels
+        // Or scales p > 1/(2*dx), or p > N/2
+        real_t cutoff = 1.0/(1.0+exp(pmag-N/2.0));
+        scale = sqrt(cosmo_power_spectrum(pmag, icd));
 
         // fftw transform is unnormalized; account for an N^3 here
         (fourier->f_field)[FFT_NP_INDEX(i,j,k)][0] *= scale/((real_t) POINTS);

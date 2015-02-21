@@ -1,0 +1,17 @@
+Benchmarks
+==========
+
+
+Running on 4 cores
+Machine with 8 GB RAM (Can run at 128^3 max)
+5 steps
+Writing out every step
+
+Grid size | Init  | RK    | Output | Mem (Res)
+----------------------------------------------
+16        | 0.043 | 0.308 | 0.047  | NA
+32        | 0.283 | 2.787 | 0.313  | NA
+64        | 2.153 | 20.73 | 2.118  | 289   M
+128       | 18.26 | 166.0 | 17.34  | 2264  M
+
+
