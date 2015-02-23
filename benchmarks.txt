@@ -2,10 +2,11 @@ Benchmarks
 ==========
 
 
-Running on 4 cores
-Machine with 8 GB RAM (Can run at 128^3 max)
+Running on soliton
+4 cores, Intel(R) Core(TM)2 Quad CPU Q6600  @ 2.40GHz 4096 KB Cache
+8 GB RAM (Can run at 128^3 max)
 5 steps
-Writing out every step
+Writing out initial step
 
 Grid size | Init  | RK    | Output | Mem (Res)
 ----------------------------------------------
@@ -15,3 +16,33 @@ Grid size | Init  | RK    | Output | Mem (Res)
 128       | 18.26 | 166.0 | 17.34  | 2264  M
 
 
+Running on eliza
+8 cores, Intel(R) Xeon(R) CPU X5550  @ 2.67GHz 8192 KB Cache
+256 GB RAM (Can run at 512^3 max)
+5 steps
+Writing out initial step
+
+Grid size | Init  | RK    | Output | Mem (Res)
+----------------------------------------------
+16        | 0.035 | 0.146 | 0.032  | NA
+32        | 0.219 | 1.040 | 0.195  | NA
+64        | 1.555 | 8.019 | 1.351  | 289   M
+128       | 12.03 | 68.17 | 11.32  | 2264  M
+256       | 101.0 | 559.6 | 89.50  | 17.6  G
+512       |       |       |        | 136   G
+
+
+Running on gabrielle
+64 cores, 2200 MHz, 2048 KB Cache
+512 GB RAM (can run at 512^3 max)
+5 steps
+Writing out initial step
+
+Grid size | Init  | RK    | Output | Mem (Res)
+----------------------------------------------
+16        | 0.063 | 0.714 | 0.066  | NA
+32        | 0.455 | 1.313 | 0.381  | NA
+64        | 3.254 | 4.379 | 2.611  | 289 M
+128       | 20.91 | 32.12 | 21.28  | 2263 M
+256       | 168.0 | 237.7 | 168.6  | 17.6 G
+512       | 1310. | 1916. | 1609.  | 140 G

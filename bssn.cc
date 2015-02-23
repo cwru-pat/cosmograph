@@ -58,6 +58,13 @@ void BSSN::set_paq_values(idx_t i, idx_t j, idx_t k, BSSNData *paq)
   set_source_vals(paq);
 }
 
+real_t BSSN::hamiltonianConstraintCalc(BSSNData *paq)
+{
+  // needs paq vals and aijaij calc'd first
+  // Rs[[n]] - AAs[[n]] + 2/3 ks[[n]]^2 - 16 \[Pi] \[Rho]s[[n]]
+  return paq->ricci - AijAij_a[paq->idx] + 2.0/3.0*pw2(paq->K) - 16.0*PI*paq->rho;
+}
+
 void BSSN::set_full_metric(BSSNData *paq)
 {
   SET_M00();

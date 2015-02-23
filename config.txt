@@ -1,12 +1,13 @@
-steps = 5000
+steps = 50
 slice_output_interval = 10000
 grid_output_interval = 200
+constraint_calc_interval = 1
 
-omp_num_threads = 4
+omp_num_threads = 64
 
 length_scale = 0.5
 
-peak_amplitude_frac = 0.01
+peak_amplitude_frac = 0.001
 rho_K_lambda_frac = 0.0
 
 output_dir = output

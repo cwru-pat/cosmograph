@@ -91,6 +91,8 @@ public:
   void set_full_metric(BSSNData *paq);
   void set_full_metric_der(BSSNData *paq);
 
+  real_t hamiltonianConstraintCalc(BSSNData *paq);
+
   void clearSrc();
 
   void step(BSSNData *paq);

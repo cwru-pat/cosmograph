@@ -16,6 +16,7 @@ int main(int argc, char **argv)
   idx_t i, j, k, s;
 
   real_t rho_K_matter, rho_K_lambda, rho_K_lambda_frac, peak_amplitude, peak_amplitude_frac, length_scale;
+  real_t total_hamiltonian_constraint;
 
   // read in config file
   if(argc != 2)
@@ -136,8 +137,9 @@ int main(int argc, char **argv)
       hydroSim.addBSSNSrc(bssnSim.fields);
       lambdaSim.addBSSNSrc(bssnSim.fields);
 
-    // First RK step & Set Hydro Vars
-    #pragma omp parallel for default(shared) private(i, j, k, b_paq, h_paq)
+    // First RK step, Set Hydro Vars, & calc. constraint
+    total_hamiltonian_constraint = 0.0;
+    #pragma omp parallel for default(shared) private(i, j, k, b_paq, h_paq) reduction(+:total_hamiltonian_constraint)
     LOOP3(i, j, k)
     {
       bssnSim.K1CalcPt(i, j, k, &b_paq);
@@ -148,7 +150,13 @@ int main(int argc, char **argv)
       bssnSim.set_full_metric_der(&b_paq);
       bssnSim.set_full_metric(&b_paq);
       hydroSim.setQuantitiesCell(&b_paq, &h_paq);
+
+      // if(s%constraint_calc_interval)
+      // {
+        total_hamiltonian_constraint += abs(bssnSim.hamiltonianConstraintCalc(&b_paq)/bssnSim.fields["r_a"][b_paq.idx]);
+      //}
     }
+    std::cout << "Average fractional hamiltonian constraint violation: " << total_hamiltonian_constraint/POINTS << "\n";
 
     // reset source using new metric
     bssnSim.clearSrc();
