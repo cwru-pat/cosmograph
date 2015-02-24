@@ -12,7 +12,7 @@ ConfigParser _config;
 int main(int argc, char **argv)
 {
   _timer["MAIN"].start();
-  idx_t steps, slice_output_interval, grid_output_interval;
+  idx_t steps, slice_output_interval, grid_output_interval, spec_output_interval;
   idx_t i, j, k, s;
 
   real_t rho_K_matter, rho_K_lambda, rho_K_lambda_frac, peak_amplitude, peak_amplitude_frac, length_scale;
@@ -41,6 +41,7 @@ int main(int argc, char **argv)
     steps = stoi(_config["steps"]);
     slice_output_interval = stoi(_config["slice_output_interval"]);
     grid_output_interval = stoi(_config["grid_output_interval"]);
+    spec_output_interval = stoi(_config["spec_output_interval"]);
     omp_set_num_threads(stoi(_config["omp_num_threads"]));
   }
 
@@ -70,7 +71,8 @@ int main(int argc, char **argv)
 
     // Determine initial conditions.
     ICsData i_paq = {0};
-    i_paq.peak_k = 1.0/((real_t) N);
+    /* (peak scale in hubble units) * (to pixel scale) */
+    i_paq.peak_k = (1.0/0.07)*(length_scale/((real_t) N));
     i_paq.peak_amplitude = peak_amplitude; // figure out units here
     // Note that this is going to be the conformal density, not physical density.
     // This specifies the spectrum of fluctuations around the mean, but not the mean.
@@ -118,10 +120,11 @@ int main(int argc, char **argv)
       io_dump_3dslice(hydroSim.fields["US2_a"],    "US2."     + to_string(s), &iodata);
       io_dump_3dslice(hydroSim.fields["US3_a"],    "US3."     + to_string(s), &iodata);
     }
-    std::cout << "FRW Eq. Resid. is: "
-          << 1.0 - pw2(bssnSim.fields["K_a"][10])*2.0/3.0/(16*PI*hydroSim.fields["UD_a"][10]*exp(-6.0*bssnSim.fields["phi_a"][10]))
-          << ", Conformal factor is about: " << exp(4.0*bssnSim.fields["phi_a"][10])
-          << "\n";
+    if(s%spec_output_interval == 0)
+    {
+      fourier.powerDump(bssnSim.fields["phi_p"], &iodata);
+    }
+
     _timer["output"].stop();
 
     // Run RK steps explicitly here (ties together BSSN + Hydro stuff).

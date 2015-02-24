@@ -7,7 +7,7 @@ namespace cosmo
 // eg in LCDM, http://ned.ipac.caltech.edu/level5/Sept11/Norman/Norman2.html
 real_t cosmo_power_spectrum(real_t k, ICsData *icd)
 {
-  real_t pre = icd->peak_amplitude*4.0/3.0/icd->peak_k;
+  real_t pre = (1.0/N)*icd->peak_amplitude*4.0/3.0;
   return pre*fabs(k)/((real_t) N)/(1.0 + pow(fabs(k)/((real_t) N)/icd->peak_k, 4.0)/3.0);
 }
 
@@ -19,12 +19,13 @@ void set_gaussian_random_field(real_t *field, Fourier *fourier, ICsData *icd)
   real_t scale;
 
   // populate "field" with random values
-  std::default_random_engine generator;
-  generator.seed(time(0));
-  std::normal_distribution<real_t> distribution(0.0,1.0);
+  std::random_device rd;
+  std::mt19937 gen(rd());
+  std::normal_distribution<real_t> distribution;
+  distribution(gen); // calling this here suppresses a warning (bug)
   LOOP3(i,j,k)
   {
-    field[NP_INDEX(i,j,k)] = distribution(generator);
+    field[NP_INDEX(i,j,k)] = distribution(gen);
   }
 
   // FFT of random field

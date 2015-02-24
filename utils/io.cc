@@ -90,6 +90,7 @@ void io_dump_2dslice(real_t *field, std::string filename, IOData *iodata)
   status = H5Sclose (space);
   status = H5Fclose (file);
 
+  status = status; // suppress "unused" warning
   return;
 }
 
@@ -124,6 +125,7 @@ void io_dump_3dslice(real_t *field, std::string filename, IOData *iodata)
   status = H5Sclose (space);
   status = H5Fclose (file);
 
+  status = status; // suppress "unused" warning
   return;
 }
 

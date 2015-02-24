@@ -12,6 +12,8 @@
 #define PI (4.0*atan(1.0))
 #define SIGN(x) (((x) < 0.0) ? -1 : ((x) > 0.0))
 #define pw2(x) ((x)*(x))
+#define C_RE(c) ((c)[0])
+#define C_IM(c) ((c)[1])
 
 #define RESTRICT __restrict__
 
