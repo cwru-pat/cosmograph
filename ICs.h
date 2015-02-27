@@ -13,20 +13,21 @@ real_t cosmo_power_spectrum(real_t k, ICsData *icd);
 
 void set_gaussian_random_field(real_t *field, Fourier *fourier, ICsData *icd);
 
-// doesn't specify monopole / expansion contribution
-void set_physical_from_conformal(
+void set_conformal_ICs(
   std::map <std::string, real_t *> & bssn_fields,
   std::map <std::string, real_t *> & hydro_fields,
-  Fourier *fourier);
+  Fourier *fourier,
+  ICsData *icd,
+  real_t rho_K_matter,
+  real_t rho_K_lambda);
 
-void set_matter_density_and_K(
+void set_flat_ICs(
   std::map <std::string, real_t *> & bssn_fields,
   std::map <std::string, real_t *> & hydro_fields,
-  real_t rhoK);
-
-void set_lambda_K(
-  std::map <std::string, real_t *> & bssn_fields,
-  real_t rhoK);
+  Fourier *fourier,
+  ICsData *icd,
+  real_t rho_K_lambda,
+  real_t rho_K_matter);
 
 } // namespace cosmo
 

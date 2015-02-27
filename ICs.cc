@@ -46,8 +46,8 @@ void set_gaussian_random_field(real_t *field, Fourier *fourier, ICsData *icd)
         // Scale by power spectrum
         // don't want much power on scales smaller than ~2 pixels
         // Or scales p > 1/(3*dx), or p > N/3
-        real_t cutoff = 1.0/(1.0+exp(pmag-N/3.0));
-        scale = sqrt(cosmo_power_spectrum(pmag, icd));
+        real_t cutoff = 1.0/(1.0+exp(pmag-N/2.0));
+        scale = cutoff*sqrt(cosmo_power_spectrum(pmag, icd));
 
         // fftw transform is unnormalized; account for an N^3 here
         (fourier->f_field)[FFT_NP_INDEX(i,j,k)][0] *= scale/((real_t) POINTS);
@@ -67,13 +67,19 @@ void set_gaussian_random_field(real_t *field, Fourier *fourier, ICsData *icd)
 }
 
 // doesn't specify monopole / expansion contribution
-void set_physical_from_conformal(
+void set_conformal_ICs(
   std::map <std::string, real_t *> & bssn_fields,
   std::map <std::string, real_t *> & hydro_fields,
-  Fourier *fourier)
+  Fourier *fourier,
+  ICsData *icd,
+  real_t rho_K_matter,
+  real_t rho_K_lambda)
 {
   idx_t i, j, k;
   real_t px, py, pz, p2i;
+
+  set_gaussian_random_field(hydro_fields["UD_a"], fourier, icd);
+
   // working in conformal transverse-traceless decomposition,
   // the conformal factor in front of metric is the solution to
   // d^2 f = f^5 * \rho
@@ -81,7 +87,6 @@ void set_physical_from_conformal(
   // d^2 f = \rho_conformal
   // this assumes \rho_conformal*2pi was specified in UD_a, and that
   // we will need to convert it to \rho = f^-5 * \rho_conformal.
-  // It is possible to calculate f, we 
 
   // FFT of conformal field
   fftw_execute_dft_r2c(fourier->p_r2c, hydro_fields["UD_a"], fourier->f_field);
@@ -146,28 +151,19 @@ void set_physical_from_conformal(
   }
   std::cout << "Total metric solution error residual is: " << resid << "\n";
 
-  return;
-}
-
-void set_matter_density_and_K(
-  std::map <std::string, real_t *> & bssn_fields,
-  std::map <std::string, real_t *> & hydro_fields,
-  real_t rhoK)
-{
   // Make sure min density value > 0
-  real_t min = hydro_fields["UD_a"][NP_INDEX(0,0,0)] + rhoK;
+  real_t min = hydro_fields["UD_a"][NP_INDEX(0,0,0)] + rho_K_matter;
   real_t max = min;
   real_t oldrho;
 
-  idx_t i, j, k;
   LOOP3(i,j,k)
   {
-    hydro_fields["UD_a"][NP_INDEX(i,j,k)] += rhoK;
+    hydro_fields["UD_a"][NP_INDEX(i,j,k)] += rho_K_matter;
     hydro_fields["UD_a"][NP_INDEX(i,j,k)] *= exp(6.0*bssn_fields["phi_p"][NP_INDEX(i,j,k)]);
 
     oldrho = pw2(bssn_fields["K_p"][NP_INDEX(i,j,k)])/24.0/PI;
-    bssn_fields["K_p"][NP_INDEX(i,j,k)] = -sqrt(24.0*PI*(rhoK+oldrho));
-    bssn_fields["K_f"][NP_INDEX(i,j,k)] = -sqrt(24.0*PI*(rhoK+oldrho));
+    bssn_fields["K_p"][NP_INDEX(i,j,k)] = -sqrt(24.0*PI*(rho_K_matter+oldrho));
+    bssn_fields["K_f"][NP_INDEX(i,j,k)] = -sqrt(24.0*PI*(rho_K_matter+oldrho));
 
     if(hydro_fields["UD_a"][NP_INDEX(i,j,k)] < min)
     {
@@ -184,36 +180,90 @@ void set_matter_density_and_K(
     }
   }
 
-  if(min < 0.0) {
-    std::cout << "Error: negative density in some regions.\n";
-    throw -1;
-  }
   std::cout << "Minimum fluid 'density': " << min << "\n";
   std::cout << "Maximum fluid 'density': " << max << "\n";
   std::cout << "Average fluid 'density': " << average(hydro_fields["UD_a"]) << "\n";
   std::cout << "Std.dev fluid 'density': " << standard_deviation(hydro_fields["UD_a"]) << "\n";
-}
+  if(min < 0.0) {
+    std::cout << "Error: negative density in some regions.\n";
+    throw -1;
+  }
 
-void set_lambda_K(
-  std::map <std::string, real_t *> & bssn_fields,
-  real_t rhoK)
-{
-  real_t oldrho;
-
-  idx_t i, j, k;
+  // Add in cosmological constant
   LOOP3(i,j,k)
   {
     oldrho = pw2(bssn_fields["K_p"][NP_INDEX(i,j,k)])/24.0/PI;
-    bssn_fields["K_p"][NP_INDEX(i,j,k)] = -sqrt(24.0*PI*(rhoK+oldrho));
-    bssn_fields["K_f"][NP_INDEX(i,j,k)] = -sqrt(24.0*PI*(rhoK+oldrho));
+    bssn_fields["K_p"][NP_INDEX(i,j,k)] = -sqrt(24.0*PI*(rho_K_lambda+oldrho));
+    bssn_fields["K_f"][NP_INDEX(i,j,k)] = -sqrt(24.0*PI*(rho_K_lambda+oldrho));
   }
 
-  // std::cout << "Final fluid density is:" << rhoK+oldrho << " ,"
-  //           << "fluid rho is " << oldrho
-  //           << " lambda rho is " << rhoK
-  //           << "\n";
-  // std::cout << "K is " << bssn_fields["K_f"][10] << "\n";
+}
 
+void set_flat_ICs(
+  std::map <std::string, real_t *> & bssn_fields,
+  std::map <std::string, real_t *> & hydro_fields,
+  Fourier *fourier,
+  ICsData *icd,
+  real_t rho_K_matter,
+  real_t rho_K_lambda)
+{
+  idx_t i, j, k;
+
+  // simple hamiltonian constraint; flat metric, \phi = 0, 
+  set_gaussian_random_field(hydro_fields["UD_a"], fourier, icd);
+  // add in average
+  LOOP3(i,j,k)
+  {
+    hydro_fields["UD_a"][NP_INDEX(i,j,k)] += rho_K_matter;
+  }
+
+  // Make sure min density value > 0
+  real_t min = hydro_fields["UD_a"][NP_INDEX(0,0,0)];
+  real_t max = min;
+  LOOP3(i,j,k)
+  {
+    if(hydro_fields["UD_a"][NP_INDEX(i,j,k)] < min)
+    {
+      min = hydro_fields["UD_a"][NP_INDEX(i,j,k)];
+    }
+    if(hydro_fields["UD_a"][NP_INDEX(i,j,k)] > max)
+    {
+      max = hydro_fields["UD_a"][NP_INDEX(i,j,k)];
+    }
+    if(hydro_fields["UD_a"][NP_INDEX(i,j,k)] != hydro_fields["UD_a"][NP_INDEX(i,j,k)])
+    {
+      std::cout << "Error: NaN energy density.\n";
+      throw -1;
+    }
+  }
+
+  std::cout << "Minimum fluid density: " << min << "\n";
+  std::cout << "Maximum fluid density: " << max << "\n";
+  std::cout << "Average fluid density: " << average(hydro_fields["UD_a"]) << "\n";
+  std::cout << "Std.dev fluid density: " << standard_deviation(hydro_fields["UD_a"]) << "\n";
+  if(min < 0.0) {
+    std::cout << "Error: negative density in some regions.\n";
+    throw -1;
+  }
+
+  // K = -sqrt(24pi*\rho)
+  LOOP3(i,j,k)
+  {
+    bssn_fields["K_p"][NP_INDEX(i,j,k)] = -sqrt(24.0*PI*(rho_K_lambda+hydro_fields["UD_a"][NP_INDEX(i,j,k)]));
+    bssn_fields["K_f"][NP_INDEX(i,j,k)] = -sqrt(24.0*PI*(rho_K_lambda+hydro_fields["UD_a"][NP_INDEX(i,j,k)]));
+  }
+
+  // Momentum constraint must now be satisfied
+  // US_i = d_i K / 12 / pi
+  LOOP3(i,j,k)
+  {
+    hydro_fields["US1_a"][NP_INDEX(i,j,k)] = (bssn_fields["K_p"][INDEX(i+1,j,k)] - bssn_fields["K_p"][INDEX(i-1,j,k)])/2.0/dx/12.0/PI;
+    hydro_fields["US2_a"][NP_INDEX(i,j,k)] = (bssn_fields["K_p"][INDEX(i,j+1,k)] - bssn_fields["K_p"][INDEX(i,j-1,k)])/2.0/dx/12.0/PI;
+    hydro_fields["US3_a"][NP_INDEX(i,j,k)] = (bssn_fields["K_p"][INDEX(i,j,k+1)] - bssn_fields["K_p"][INDEX(i,j,k-1)])/2.0/dx/12.0/PI;
+  }
+
+  // that's it...
+  return;
 }
 
 } // namespace cosmo

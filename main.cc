@@ -74,14 +74,14 @@ int main(int argc, char **argv)
     /* (peak scale in hubble units) * (to pixel scale) */
     i_paq.peak_k = (1.0/0.07)*(length_scale/((real_t) N));
     i_paq.peak_amplitude = peak_amplitude; // figure out units here
-    // Note that this is going to be the conformal density, not physical density.
-    // This specifies the spectrum of fluctuations around the mean, but not the mean.
-    set_gaussian_random_field(hydroSim.fields["UD_a"], &fourier, &i_paq);
-    // Set physical density fluctuations and metric using UD_a
-    set_physical_from_conformal(bssnSim.fields, hydroSim.fields, &fourier);
-    // Set a background (roughly, an average) density, and extrinsic curvature
-    set_matter_density_and_K(bssnSim.fields, hydroSim.fields, rho_K_matter);
-    set_lambda_K(bssnSim.fields, rho_K_lambda);
+
+    // 1) Either "conformal" initial conditions:
+    // set_conformal_ICs(bssnSim.fields, hydroSim.fields,
+    //     &fourier, &i_paq, rho_K_matter, rho_K_lambda);
+    // 2) or "flat" initial conditions:
+    set_flat_ICs(bssnSim.fields, hydroSim.fields,
+        &fourier, &i_paq, rho_K_matter, rho_K_lambda);
+
   _timer["init"].stop();
 
   // evolve simulation
@@ -156,7 +156,7 @@ int main(int argc, char **argv)
 
       // if(s%constraint_calc_interval)
       // {
-        total_hamiltonian_constraint += abs(bssnSim.hamiltonianConstraintCalc(&b_paq)/bssnSim.fields["r_a"][b_paq.idx]);
+        total_hamiltonian_constraint += abs(bssnSim.hamiltonianConstraintCalc(&b_paq)/pw2(bssnSim.fields["K_a"][b_paq.idx]));
       //}
     }
     std::cout << "Average fractional hamiltonian constraint violation: " << total_hamiltonian_constraint/POINTS << "\n";
