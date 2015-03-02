@@ -199,7 +199,7 @@ void set_conformal_ICs(
 
 }
 
-void set_flat_ICs(
+void set_flat_dynamic_ICs(
   std::map <std::string, real_t *> & bssn_fields,
   std::map <std::string, real_t *> & hydro_fields,
   Fourier *fourier,
@@ -264,6 +264,18 @@ void set_flat_ICs(
 
   // that's it...
   return;
+}
+
+void set_flat_static_ICs(
+  std::map <std::string, real_t *> & bssn_fields,
+  std::map <std::string, real_t *> & hydro_fields,
+  Fourier *fourier,
+  ICsData *icd,
+  real_t rho_K_matter,
+  real_t rho_K_lambda)
+{
+  idx_t i, j, k;
+
 }
 
 } // namespace cosmo

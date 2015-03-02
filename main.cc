@@ -12,11 +12,11 @@ ConfigParser _config;
 int main(int argc, char **argv)
 {
   _timer["MAIN"].start();
-  idx_t steps, slice_output_interval, grid_output_interval, spec_output_interval;
+  idx_t steps, slice_output_interval, grid_output_interval, spec_output_interval, meta_output_interval;
   idx_t i, j, k, s;
 
   real_t rho_K_matter, rho_K_lambda, rho_K_lambda_frac, peak_amplitude, peak_amplitude_frac, length_scale;
-  real_t total_hamiltonian_constraint;
+  real_t total_hamiltonian_constraint = 0;
 
   // read in config file
   if(argc != 2)
@@ -41,6 +41,7 @@ int main(int argc, char **argv)
     steps = stoi(_config["steps"]);
     slice_output_interval = stoi(_config["slice_output_interval"]);
     grid_output_interval = stoi(_config["grid_output_interval"]);
+    meta_output_interval = stoi(_config["meta_output_interval"]);
     spec_output_interval = stoi(_config["spec_output_interval"]);
     omp_set_num_threads(stoi(_config["omp_num_threads"]));
   }
@@ -76,11 +77,11 @@ int main(int argc, char **argv)
     i_paq.peak_amplitude = peak_amplitude; // figure out units here
 
     // 1) Either "conformal" initial conditions:
-    // set_conformal_ICs(bssnSim.fields, hydroSim.fields,
-    //     &fourier, &i_paq, rho_K_matter, rho_K_lambda);
-    // 2) or "flat" initial conditions:
-    set_flat_ICs(bssnSim.fields, hydroSim.fields,
+    set_conformal_ICs(bssnSim.fields, hydroSim.fields,
         &fourier, &i_paq, rho_K_matter, rho_K_lambda);
+    // 2) or "flat" initial conditions:
+    // set_flat_dynamic_ICs(bssnSim.fields, hydroSim.fields,
+    //     &fourier, &i_paq, rho_K_matter, rho_K_lambda);
 
   _timer["init"].stop();
 
@@ -91,11 +92,12 @@ int main(int argc, char **argv)
 
     // output simulation information
     _timer["output"].start();
-    io_dump_quantities(bssnSim.fields, hydroSim.fields, _config["outfile"], &iodata);
+    io_show_progress(s, steps);
     if(s%slice_output_interval == 0)
     {
+      io_dump_2dslice(bssnSim.fields["K_p"], "K_slice." + to_string(s), &iodata);
       io_dump_2dslice(bssnSim.fields["phi_p"], "phi_slice." + to_string(s), &iodata);
-      io_dump_2dslice(hydroSim.fields["UD_f"], "UD_slice."  + to_string(s), &iodata);
+      io_dump_2dslice(hydroSim.fields["UD_a"], "UD_slice."  + to_string(s), &iodata);
     }
     if(s%grid_output_interval == 0)
     {
@@ -123,6 +125,11 @@ int main(int argc, char **argv)
     if(s%spec_output_interval == 0)
     {
       fourier.powerDump(bssnSim.fields["phi_p"], &iodata);
+    }
+    if(s%meta_output_interval == 0)
+    {
+      // some average values
+      io_dump_quantities(bssnSim.fields, hydroSim.fields, _config["dump_file"], &iodata);
     }
 
     _timer["output"].stop();
@@ -154,12 +161,12 @@ int main(int argc, char **argv)
       bssnSim.set_full_metric(&b_paq);
       hydroSim.setQuantitiesCell(&b_paq, &h_paq);
 
-      // if(s%constraint_calc_interval)
-      // {
+      if(s%meta_output_interval == 0)
+      {
+        // output this at the end of the loop
         total_hamiltonian_constraint += abs(bssnSim.hamiltonianConstraintCalc(&b_paq)/pw2(bssnSim.fields["K_a"][b_paq.idx]));
-      //}
+      }
     }
-    std::cout << "Average fractional hamiltonian constraint violation: " << total_hamiltonian_constraint/POINTS << "\n";
 
     // reset source using new metric
     bssnSim.clearSrc();
@@ -225,8 +232,16 @@ int main(int argc, char **argv)
       // hydro _a <-> _f
       hydroSim.stepTerm();
     _timer["RK_steps"].stop();
+
+    _timer["output"].start();
+      if(s%meta_output_interval == 0)
+      {
+        io_dump_data(total_hamiltonian_constraint/POINTS, &iodata, "avg_H_violation");
+      }
+    _timer["output"].stop();
   }
   _timer["loop"].stop();
+
 
   _timer["MAIN"].stop();
 

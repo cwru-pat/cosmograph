@@ -21,7 +21,15 @@ void set_conformal_ICs(
   real_t rho_K_matter,
   real_t rho_K_lambda);
 
-void set_flat_ICs(
+void set_flat_dynamic_ICs(
+  std::map <std::string, real_t *> & bssn_fields,
+  std::map <std::string, real_t *> & hydro_fields,
+  Fourier *fourier,
+  ICsData *icd,
+  real_t rho_K_lambda,
+  real_t rho_K_matter);
+
+void set_flat_static_ICs(
   std::map <std::string, real_t *> & bssn_fields,
   std::map <std::string, real_t *> & hydro_fields,
   Fourier *fourier,

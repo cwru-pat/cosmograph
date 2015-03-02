@@ -6,6 +6,47 @@
 namespace cosmo
 {
 
+void io_show_progress(idx_t s, idx_t maxs)
+{
+  if(s > maxs)
+  {
+    std::cout << "Simulation has ran more steps than allowed.";
+    throw -1;
+    return;
+  }
+
+  idx_t s_digits = (int) log10 ((double) s) + 1;
+  if(s==0)
+  {
+    s_digits = 1;
+  }
+  idx_t maxs_digits = (int) log10 ((double) maxs) + 1;
+
+  std::cout << " Running step " << s;
+  for(int i=s_digits; i<maxs_digits; ++i)
+  {
+    std::cout << " ";
+  }
+  std::cout << " / " << maxs;
+
+  idx_t ndots = 20;
+  std::cout << "[";
+  for(int i=0; i<ndots; ++i)
+  {
+    if(i < (ndots*s)/maxs)
+    {
+      std::cout << "=";
+    }
+    else
+    {
+      std::cout << " ";
+    }
+  }
+  std::cout << "]\r" << std::flush;
+  return;
+
+}
+
 void io_init(IOData *iodata)
 {
   /* ensure data_dir ends with '/', unless empty string is specified. */
@@ -156,20 +197,24 @@ void io_dump_quantities(std::map <std::string, real_t *> & bssn_fields,
   sprintf(data, "%g\t", average(hydro_fields["UD_a"]));
   gzwrite(datafile, data, strlen(data));
 
-  // FRW Piece of Hamiltonian constraint
-  idx_t i, j, k;
-  real_t sum = 0.0;
-  LOOP3(i, j, k)
-  {
-    // 4/3*A^2 - K^2 + 24 pi e^(5phi)*\rho
-    sum += 4.0/3.0*(
-        0.0 // need A_ij^2
-      ) - pw2(bssn_fields["K_a"][NP_INDEX(i,j,k)])
-      + 24.0*PI*bssn_fields["r_a"][NP_INDEX(i,j,k)]
-    ;
+  gzwrite(datafile, "\n", strlen("\n"));
+  gzclose(datafile);
+}
+
+void io_dump_data(real_t value, IOData *iodata, std::string filename)
+{
+  // output misc. info about simulation here.
+  char data[20];
+  std::string dump_filename = iodata->output_dir + filename + ".dat.gz";
+
+  gzFile datafile = gzopen(dump_filename.c_str(), "ab");
+  if(datafile == Z_NULL) {
+    std::cout << "Error opening file: " << dump_filename << "\n";
+    return;
   }
-  // std::cout << "FRW Const. Resid. :" << sum << "\n";
-  // std::cout << "Aij contrib. Resid. :" << average(bssn_fields["A11_a"])*POINTS << "\n";
+
+  sprintf(data, "%g", value);
+  gzwrite(datafile, data, strlen(data));
 
   gzwrite(datafile, "\n", strlen("\n"));
   gzclose(datafile);
