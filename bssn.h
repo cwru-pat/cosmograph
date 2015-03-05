@@ -41,6 +41,8 @@ public:
 
   real_t der(real_t field_adj[3][3][3], int d);
   real_t dder(real_t field_adj[3][3][3], int d1, int d2);
+  real_t der_ext(real_t field_adj[3][3][3], real_t field_adj_ext[3][2], int d);
+  real_t dder_ext(real_t field_adj[3][3][3], real_t field_adj_ext[3][2], int d1, int d2);
   
   /* set current local field values */
   void set_source_vals(BSSNData *paq);
@@ -92,6 +94,7 @@ public:
   void set_full_metric_der(BSSNData *paq);
 
   real_t hamiltonianConstraintCalc(BSSNData *paq);
+  real_t hamiltonianConstraintMag(BSSNData *paq);
 
   void clearSrc();
 

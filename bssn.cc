@@ -65,6 +65,13 @@ real_t BSSN::hamiltonianConstraintCalc(BSSNData *paq)
   return paq->ricci - AijAij_a[paq->idx] + 2.0/3.0*pw2(paq->K) - 16.0*PI*paq->rho;
 }
 
+real_t BSSN::hamiltonianConstraintMag(BSSNData *paq)
+{
+  // needs paq vals and aijaij calc'd first
+  // Magnitude of sum of terms for appx. error calc?  Should be positive anyways, but be explicit.
+  return fabs(paq->ricci) + fabs(AijAij_a[paq->idx]) + fabs(2.0/3.0*pw2(paq->K)) + fabs(16.0*PI*paq->rho);
+}
+
 void BSSN::set_full_metric(BSSNData *paq)
 {
   SET_M00();
@@ -330,8 +337,6 @@ void BSSN::init()
 
 real_t BSSN::der(real_t field_adj[3][3][3], int d)
 {
- // return 0;
-  
   switch (d) {
     case 1:
       return (field_adj[2][1][1] - field_adj[0][1][1])/dx/2.0;
@@ -350,8 +355,6 @@ real_t BSSN::der(real_t field_adj[3][3][3], int d)
 
 real_t BSSN::dder(real_t field_adj[3][3][3], int d1, int d2)
 {
-  //return 0;
-
   switch (d1) {
     case 1:
       switch (d2) {
@@ -389,6 +392,73 @@ real_t BSSN::dder(real_t field_adj[3][3][3], int d1, int d2)
           break;
         case 3:
           return (field_adj[1][1][0] + field_adj[1][1][2] - 2.0*field_adj[1][1][1])/dx/dx;
+          break;
+      }
+      break;
+  }
+
+  /* XXX */
+  return 0.0;
+}
+
+
+real_t BSSN::der_ext(real_t field_adj[3][3][3], real_t field_adj_ext[3][2], int d)
+{
+  switch (d) {
+    case 1:
+      return (-1.0*field_adj_ext[0][1] + 8.0*field_adj[2][1][1] - 8.0*field_adj[0][1][1] + field_adj_ext[0][0])/dx/12.0;
+      break;
+    case 2:
+      return (-1.0*field_adj_ext[1][1] + 8.0*field_adj[1][2][1] - 8.0*field_adj[1][0][1] + field_adj_ext[1][0])/dx/12.0;
+      break;
+    case 3:
+      return (-1.0*field_adj_ext[2][1] + 8.0*field_adj[1][1][2] - 8.0*field_adj[1][1][0] + field_adj_ext[2][0])/dx/12.0;
+      break;
+  }
+
+  /* XXX */
+  return 0;
+}
+
+real_t BSSN::dder_ext(real_t field_adj[3][3][3], real_t field_adj_ext[3][2], int d1, int d2)
+{
+  switch (d1) {
+    case 1:
+      switch (d2) {
+        case 1:
+          return (-1.0*field_adj_ext[0][0] - field_adj_ext[0][1] + 16.0*field_adj[0][1][1] + 16.0*field_adj[2][1][1] - 30.0*field_adj[1][1][1])/dx/dx/12.0;
+          break;
+        case 2:
+          return (field_adj[0][0][1] + field_adj[2][2][1] - field_adj[0][2][1] - field_adj[2][0][1])/dx/dx/4.0;
+          break;
+        case 3:
+          return (field_adj[0][1][0] + field_adj[2][1][2] - field_adj[0][1][2] - field_adj[2][1][0])/dx/dx/4.0;
+          break;
+      }
+      break;
+    case 2:
+      switch (d2) {
+        case 1:
+          return (field_adj[0][0][1] + field_adj[2][2][1] - field_adj[0][2][1] - field_adj[2][0][1])/dx/dx/4.0;
+          break;
+        case 2:
+          return (-1.0*field_adj_ext[1][0] - field_adj_ext[1][1] + 16.0*field_adj[1][0][1] + 16.0*field_adj[1][2][1] - 30.0*field_adj[1][1][1])/dx/dx/12.0;
+          break;
+        case 3:
+          return (field_adj[1][0][0] + field_adj[1][2][2] - field_adj[1][0][2] - field_adj[1][2][0])/dx/dx/4.0;
+          break;
+      }
+      break;
+    case 3:
+      switch (d2) {
+        case 1:
+          return (field_adj[0][1][0] + field_adj[2][1][2] - field_adj[0][1][2] - field_adj[2][1][0])/dx/dx/4.0;
+          break;
+        case 2:
+          return (field_adj[1][0][0] + field_adj[1][2][2] - field_adj[1][0][2] - field_adj[1][2][0])/dx/dx/4.0;
+          break;
+        case 3:
+          return (-1.0*field_adj_ext[2][0] - field_adj_ext[2][1] + 16.0*field_adj[1][1][0] + 16.0*field_adj[1][1][2] - 30.0*field_adj[1][1][1])/dx/dx/12.0;
           break;
       }
       break;
@@ -459,10 +529,25 @@ void BSSN::set_local_vals(BSSNData *paq)
   SET_LOCAL_VALUES_PF(A22);
   SET_LOCAL_VALUES_PF(A23);
   SET_LOCAL_VALUES_PF(A33);
+
+  // try and obtain more accurate derivatives for some variables
+  SET_LOCAL_VALUES_F2(gamma11);
+  SET_LOCAL_VALUES_F2(gamma12);
+  SET_LOCAL_VALUES_F2(gamma13);
+  SET_LOCAL_VALUES_F2(gamma22);
+  SET_LOCAL_VALUES_F2(gamma23);
+  SET_LOCAL_VALUES_F2(gamma33);
+  SET_LOCAL_VALUES_F2(phi);
+  SET_LOCAL_VALUES_F2(K);
+  SET_LOCAL_VALUES_F2(Gamma1);
+  SET_LOCAL_VALUES_F2(Gamma2);
+  SET_LOCAL_VALUES_F2(Gamma3);
+
 }
 
 void BSSN::calculate_Acont(BSSNData *paq)
 {
+  // A^ij is calculated from A_ij by raising wrt. the conformal metric
   BSSN_APPLY_TO_IJ_PERMS(BSSN_CALCULATE_ACONT)
 
   // calculate A_ij A^ij term
@@ -496,9 +581,9 @@ void BSSN::calculate_christoffels(BSSNData *paq)
 void BSSN::calculate_dalpha_dphi(BSSNData *paq)
 {
   // normal derivatives of phi
-  paq->d1phi = der(paq->phi_adj, 1);
-  paq->d2phi = der(paq->phi_adj, 2);
-  paq->d3phi = der(paq->phi_adj, 3);
+  paq->d1phi = der_ext(paq->phi_adj, paq->phi_adj_ext, 1);
+  paq->d2phi = der_ext(paq->phi_adj, paq->phi_adj_ext, 2);
+  paq->d3phi = der_ext(paq->phi_adj, paq->phi_adj_ext, 3);
 
   // normal derivatives of alpha
   paq->d1a = der(paq->alpha_adj, 1);
@@ -567,12 +652,12 @@ void BSSN::calculateRicciTF(BSSNData *paq)
 void BSSN::calculateDDphi(BSSNData *paq)
 {
   // double covariant derivatives, using normal metric
-  paq->D1D1phi = dder(paq->phi_adj, 1, 1) - (paq->G111*paq->d1phi + paq->G211*paq->d2phi + paq->G311*paq->d3phi);
-  paq->D1D2phi = dder(paq->phi_adj, 1, 2) - (paq->G112*paq->d1phi + paq->G212*paq->d2phi + paq->G312*paq->d3phi);
-  paq->D1D3phi = dder(paq->phi_adj, 1, 3) - (paq->G113*paq->d1phi + paq->G213*paq->d2phi + paq->G313*paq->d3phi);
-  paq->D2D2phi = dder(paq->phi_adj, 2, 2) - (paq->G122*paq->d1phi + paq->G222*paq->d2phi + paq->G322*paq->d3phi);
-  paq->D2D3phi = dder(paq->phi_adj, 2, 3) - (paq->G123*paq->d1phi + paq->G223*paq->d2phi + paq->G323*paq->d3phi);
-  paq->D3D3phi = dder(paq->phi_adj, 3, 3) - (paq->G133*paq->d1phi + paq->G233*paq->d2phi + paq->G333*paq->d3phi);
+  paq->D1D1phi = dder_ext(paq->phi_adj, paq->phi_adj_ext, 1, 1) - (paq->G111*paq->d1phi + paq->G211*paq->d2phi + paq->G311*paq->d3phi);
+  paq->D1D2phi = dder_ext(paq->phi_adj, paq->phi_adj_ext, 1, 2) - (paq->G112*paq->d1phi + paq->G212*paq->d2phi + paq->G312*paq->d3phi);
+  paq->D1D3phi = dder_ext(paq->phi_adj, paq->phi_adj_ext, 1, 3) - (paq->G113*paq->d1phi + paq->G213*paq->d2phi + paq->G313*paq->d3phi);
+  paq->D2D2phi = dder_ext(paq->phi_adj, paq->phi_adj_ext, 2, 2) - (paq->G122*paq->d1phi + paq->G222*paq->d2phi + paq->G322*paq->d3phi);
+  paq->D2D3phi = dder_ext(paq->phi_adj, paq->phi_adj_ext, 2, 3) - (paq->G123*paq->d1phi + paq->G223*paq->d2phi + paq->G323*paq->d3phi);
+  paq->D3D3phi = dder_ext(paq->phi_adj, paq->phi_adj_ext, 3, 3) - (paq->G133*paq->d1phi + paq->G233*paq->d2phi + paq->G333*paq->d3phi);
 }
 
 void BSSN::calculateDDalphaTF(BSSNData *paq)
@@ -623,7 +708,7 @@ real_t BSSN::ev_K(BSSNData *paq)
         + 2.0*(paq->A12*paq->Acont12 + paq->A13*paq->Acont13 + paq->A23*paq->Acont23)
         + (1.0/3.0)*paq->K*paq->K
       )
-    + paq->beta1*der(paq->K_adj, 1) + paq->beta2*der(paq->K_adj, 2) + paq->beta3*der(paq->K_adj, 3)
+    + paq->beta1*der_ext(paq->K_adj, paq->K_adj_ext, 1) + paq->beta2*der_ext(paq->K_adj, paq->K_adj_ext, 2) + paq->beta3*der_ext(paq->K_adj, paq->K_adj_ext, 3)
     + 4.0*PI*paq->alpha*(paq->rho + paq->S)
   );
 }

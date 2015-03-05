@@ -42,7 +42,10 @@
 
 #define DECLARE_REAL_T(name) real_t name
 
+// structure to store 27 immediately adjacent points
 #define DECLARE_ADJACENT_REAL_T(name) real_t name##_adj[3][3][3]
+// structure to store "faces" 2 points away (6 of them; _ext[dimension (x,y,z)][direction (-,+)])
+#define DECLARE_ADJ_ADJACENT_REAL_T(name) real_t name##_adj_ext[3][2]
 
 // indexes for accessing adjacent values
 #define SET_LOCAL_INDEXES \
@@ -103,6 +106,16 @@
 // Point only
 #define SET_LOCAL_VALUES_P(name) \
     paq->name = name##_a[paq->idx];
+
+// Extended faces
+// _ext[dimension (x,y,z)][direction (-,+)])
+#define SET_LOCAL_VALUES_F2(name) \
+    paq->name##_adj_ext[0][0] = name##_a[INDEX(paq->i-2, paq->j  , paq->k  )];   \
+    paq->name##_adj_ext[1][0] = name##_a[INDEX(paq->i  , paq->j-2, paq->k  )];   \
+    paq->name##_adj_ext[2][0] = name##_a[INDEX(paq->i  , paq->j  , paq->k-2)];   \
+    paq->name##_adj_ext[0][1] = name##_a[INDEX(paq->i+2, paq->j  , paq->k  )];   \
+    paq->name##_adj_ext[1][1] = name##_a[INDEX(paq->i  , paq->j+2, paq->k  )];   \
+    paq->name##_adj_ext[2][1] = name##_a[INDEX(paq->i  , paq->j  , paq->k+2)];
 
 // RK4 method, using 4 "registers".  One for the "_p"revious step data, one
 // for the data being "_a"ctively used for calculation, one for the

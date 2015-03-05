@@ -255,7 +255,7 @@
 
 #define BSSN_CALCULATE_DGAMMAI(I, J, K) paq->d##I##gi##J##K = der(paq->gammai##J##K##_adj, I);
 
-#define BSSN_CALCULATE_DGAMMA(I, J, K) paq->d##I##g##J##K = der(paq->gamma##J##K##_adj, I);
+#define BSSN_CALCULATE_DGAMMA(I, J, K) paq->d##I##g##J##K = der_ext(paq->gamma##J##K##_adj, paq->gamma##J##K##_adj_ext, I);
 
 #define BSSN_CALCULATE_ACONT(I, J) paq->Acont##I##J = ( \
     paq->gammai##I##1*paq->gammai##J##1*paq->A11 + paq->gammai##I##2*paq->gammai##J##1*paq->A21 + paq->gammai##I##3*paq->gammai##J##1*paq->A31 \
@@ -279,8 +279,8 @@
       + 2.0*(paq->gammai12*paq->d1d2g##I##J + paq->gammai13*paq->d1d3g##I##J + paq->gammai23*paq->d2d3g##I##J) \
     ) \
     + 0.5*( \
-      paq->gamma1##I*der(paq->Gamma1_adj, J) + paq->gamma2##I*der(paq->Gamma2_adj, J) + paq->gamma3##I*der(paq->Gamma3_adj, J) + \
-      paq->gamma1##J*der(paq->Gamma1_adj, I) + paq->gamma2##J*der(paq->Gamma2_adj, I) + paq->gamma3##J*der(paq->Gamma3_adj, I) \
+      paq->gamma1##I*der_ext(paq->Gamma1_adj, paq->Gamma1_adj_ext, J) + paq->gamma2##I*der_ext(paq->Gamma2_adj, paq->Gamma2_adj_ext, J) + paq->gamma3##I*der_ext(paq->Gamma3_adj, paq->Gamma3_adj_ext, J) + \
+      paq->gamma1##J*der_ext(paq->Gamma1_adj, paq->Gamma1_adj_ext, I) + paq->gamma2##J*der_ext(paq->Gamma2_adj, paq->Gamma2_adj_ext, I) + paq->gamma3##J*der_ext(paq->Gamma3_adj, paq->Gamma3_adj_ext, I) \
     ) \
     - 0.5*( \
       paq->d1g##I##1*paq->d1gi##J##1 + paq->d1g##I##2*paq->d2gi##J##1 + paq->d1g##I##3*paq->d3gi##J##1 \
@@ -298,13 +298,17 @@
     ) \
   );
 
+/* #define BSSN_CALCULATE_RICCITF_UNITARY_ALT(I, J) paq->ricciTF##I##J = ( \
+
+*/
+
 #define BSSN_CALCULATE_DIDJGAMMA_PERMS(I, J)           \
-  paq->d##I##d##J##g11 = dder(paq->gamma11_adj, I, J); \
-  paq->d##I##d##J##g12 = dder(paq->gamma12_adj, I, J); \
-  paq->d##I##d##J##g13 = dder(paq->gamma13_adj, I, J); \
-  paq->d##I##d##J##g22 = dder(paq->gamma22_adj, I, J); \
-  paq->d##I##d##J##g23 = dder(paq->gamma23_adj, I, J); \
-  paq->d##I##d##J##g33 = dder(paq->gamma33_adj, I, J)
+  paq->d##I##d##J##g11 = dder_ext(paq->gamma11_adj, paq->gamma11_adj_ext, I, J); \
+  paq->d##I##d##J##g12 = dder_ext(paq->gamma12_adj, paq->gamma12_adj_ext, I, J); \
+  paq->d##I##d##J##g13 = dder_ext(paq->gamma13_adj, paq->gamma13_adj_ext, I, J); \
+  paq->d##I##d##J##g22 = dder_ext(paq->gamma22_adj, paq->gamma22_adj_ext, I, J); \
+  paq->d##I##d##J##g23 = dder_ext(paq->gamma23_adj, paq->gamma23_adj_ext, I, J); \
+  paq->d##I##d##J##g33 = dder_ext(paq->gamma33_adj, paq->gamma33_adj_ext, I, J)
 
 
 /*
@@ -336,11 +340,11 @@
     + 2.0*paq->alpha*( \
         paq->G##I##11*paq->Acont11 + paq->G##I##22*paq->Acont22 + paq->G##I##33*paq->Acont33 \
           + 2.0*(paq->G##I##12*paq->Acont12 + paq->G##I##13*paq->Acont13 + paq->G##I##23*paq->Acont23) \
-        - (2.0/3.0) * (paq->gammai##I##1*der(paq->K_adj, 1) + paq->gammai##I##2*der(paq->K_adj, 2) + paq->gammai##I##3*der(paq->K_adj, 3)) \
+        - (2.0/3.0) * (paq->gammai##I##1*der_ext(paq->K_adj, paq->K_adj_ext, 1) + paq->gammai##I##2*der_ext(paq->K_adj, paq->K_adj_ext, 2) + paq->gammai##I##3*der_ext(paq->K_adj, paq->K_adj_ext, 3)) \
         - 8.0*PI*(paq->gammai##I##1*paq->S1 + paq->gammai##I##2*paq->S2 + paq->gammai##I##3*paq->S3) \
         + 6.0 * (paq->Acont##I##1*paq->d1phi + paq->Acont##I##2*paq->d2phi + paq->Acont##I##2*paq->d2phi) \
       ) \
-    + paq->beta1*der(paq->Gamma##I##_adj, 1) + paq->beta2*der(paq->Gamma##I##_adj, 2) + paq->beta3*der(paq->Gamma##I##_adj, 3) \
+    + paq->beta1*der_ext(paq->Gamma##I##_adj, paq->Gamma##I##_adj_ext, 1) + paq->beta2*der_ext(paq->Gamma##I##_adj, paq->Gamma##I##_adj_ext, 2) + paq->beta3*der_ext(paq->Gamma##I##_adj, paq->Gamma##I##_adj_ext, 3) \
     - paq->Gamma1*paq->d1beta##I + paq->Gamma2*paq->d2beta##I + paq->Gamma3*paq->d3beta##I \
     + (2.0/3.0) * paq->Gamma##I * (paq->d1beta1 + paq->d2beta2 + paq->d3beta3) \
     + (1.0/3.0) * ( \
@@ -353,7 +357,6 @@
         + 2.0*(paq->gammai12*dder(paq->beta##I##_adj, 1, 2) + paq->gammai13*dder(paq->beta##I##_adj, 1, 3) + paq->gammai23*dder(paq->beta##I##_adj, 2, 3)) \
       ) \
   )
-
 
 /*
  * Full metric calcs

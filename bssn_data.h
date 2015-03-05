@@ -83,6 +83,7 @@ typedef struct {
 
   // local copies of adjacent current field values for fast derivatives
   BSSN_APPLY_TO_FIELDS(DECLARE_ADJACENT_REAL_T)
+  BSSN_APPLY_TO_FIELDS(DECLARE_ADJ_ADJACENT_REAL_T)
 
   // Source terms
   real_t rho, S;

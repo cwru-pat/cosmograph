@@ -22,8 +22,8 @@ void io_show_progress(idx_t s, idx_t maxs)
   }
   idx_t maxs_digits = (int) log10 ((double) maxs) + 1;
 
-  std::cout << " Running step " << s;
-  for(int i=s_digits; i<maxs_digits; ++i)
+  std::cout << " Running step " << s+1;
+  for(int i=s_digits; i<=maxs_digits; ++i)
   {
     std::cout << " ";
   }
@@ -31,9 +31,9 @@ void io_show_progress(idx_t s, idx_t maxs)
 
   idx_t ndots = 20;
   std::cout << "[";
-  for(int i=0; i<ndots; ++i)
+  for(int i=1; i<=ndots; ++i)
   {
-    if(i < (ndots*s)/maxs)
+    if(i <= ndots*(s+1)/maxs)
     {
       std::cout << "=";
     }
@@ -55,6 +55,7 @@ void io_init(IOData *iodata)
   {
     iodata->output_dir += '/';
   }
+
   /* create data_dir */
   if(len_dir_name != 0)
     mkdir(iodata->output_dir.c_str(), 0755);

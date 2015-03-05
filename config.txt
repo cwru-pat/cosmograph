@@ -8,8 +8,8 @@ omp_num_threads = 64
 
 length_scale = 0.25
 
-peak_amplitude_frac = 0.001
+peak_amplitude_frac = 0.2
 rho_K_lambda_frac = 0.0
 
-output_dir = output
+output_dir = output_a-0.2
 dump_file = averages

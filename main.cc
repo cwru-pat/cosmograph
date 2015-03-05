@@ -48,8 +48,14 @@ int main(int argc, char **argv)
 
   // IO init
   IOData iodata;
-  iodata.output_dir = _config["output_dir"];
+  iodata.output_dir = _config["output_dir"]; // gets a '/' appended if needed
   io_init(&iodata);
+  // save a copy of config.txt
+  ifstream source(argv[1], ios::binary);
+  ofstream dest(iodata.output_dir + "config.txt", ios::binary);
+  dest << source.rdbuf();
+  source.close();
+  dest.close();
 
   // Create simulation
   std::cout << "Creating initial conditions...\n";
@@ -164,7 +170,7 @@ int main(int argc, char **argv)
       if(s%meta_output_interval == 0)
       {
         // output this at the end of the loop
-        total_hamiltonian_constraint += abs(bssnSim.hamiltonianConstraintCalc(&b_paq)/pw2(bssnSim.fields["K_a"][b_paq.idx]));
+        total_hamiltonian_constraint += fabs(bssnSim.hamiltonianConstraintCalc(&b_paq)/bssnSim.hamiltonianConstraintMag(&b_paq));
       }
     }
 
