@@ -253,6 +253,10 @@
     paq->gammai##I##3 * (paq->d##J##g##K##3 + paq->d##K##g##J##3 - paq->d3g##J##K) \
   )
 
+#define BSSN_CALCULATE_CHRISTOFFEL_LOWER(I, J, K) paq->GL##I##J##K = 0.5*( \
+    paq->d##J##g##K##I + paq->d##K##g##J##I - paq->d##I##g##J##K \
+  )
+
 #define BSSN_CALCULATE_DGAMMAI(I, J, K) paq->d##I##gi##J##K = der(paq->gammai##J##K##_adj, I);
 
 #define BSSN_CALCULATE_DGAMMA(I, J, K) paq->d##I##g##J##K = der_ext(paq->gamma##J##K##_adj, paq->gamma##J##K##_adj_ext, I);
@@ -298,9 +302,68 @@
     ) \
   );
 
-/* #define BSSN_CALCULATE_RICCITF_UNITARY_ALT(I, J) paq->ricciTF##I##J = ( \
+#define BSSN_CALCULATE_RICCITF_UNITARY_ALT(I, J) paq->ricciTF##I##J = ( \
+    - 0.5*( \
+      paq->gammai11*paq->d1d1g##I##J + paq->gammai22*paq->d2d2g##I##J + paq->gammai33*paq->d3d3g##I##J \
+      + 2.0*(paq->gammai12*paq->d1d2g##I##J + paq->gammai13*paq->d1d3g##I##J + paq->gammai23*paq->d2d3g##I##J) \
+    ) \
+    + 0.5*( \
+      paq->gamma1##I*der_ext(paq->Gamma1_adj, paq->Gamma1_adj_ext, J) + paq->gamma2##I*der_ext(paq->Gamma2_adj, paq->Gamma2_adj_ext, J) + paq->gamma3##I*der_ext(paq->Gamma3_adj, paq->Gamma3_adj_ext, J) + \
+      paq->gamma1##J*der_ext(paq->Gamma1_adj, paq->Gamma1_adj_ext, I) + paq->gamma2##J*der_ext(paq->Gamma2_adj, paq->Gamma2_adj_ext, I) + paq->gamma3##J*der_ext(paq->Gamma3_adj, paq->Gamma3_adj_ext, I) \
+    ) \
+    + 0.5*( \
+      paq->Gamma1*paq->GL##I##J##1 + paq->Gamma2*paq->GL##I##J##2 + paq->Gamma3*paq->GL##I##J##3 \
+      + paq->Gamma1*paq->GL##J##I##1 + paq->Gamma2*paq->GL##J##I##2 + paq->Gamma3*paq->GL##J##I##3 \
+    ) \
+    + paq->gammai11*( \
+        paq->G11##I*paq->GL##J##11 + paq->G21##I*paq->GL##J##21 + paq->G31##I*paq->GL##J##31 \
+        + paq->G11##J*paq->GL##I##11 + paq->G21##J*paq->GL##I##21 + paq->G31##J*paq->GL##I##31 \
+        + paq->G1##I##1*paq->GL11##J + paq->G2##I##1*paq->GL21##J + paq->G3##I##1*paq->GL31##J \
+      ) \
+    + paq->gammai12*( \
+        paq->G11##I*paq->GL##J##12 + paq->G21##I*paq->GL##J##22 + paq->G31##I*paq->GL##J##32 \
+        + paq->G11##J*paq->GL##I##12 + paq->G21##J*paq->GL##I##22 + paq->G31##J*paq->GL##I##32 \
+        + paq->G1##I##2*paq->GL11##J + paq->G2##I##2*paq->GL21##J + paq->G3##I##2*paq->GL31##J \
+      ) \
+    + paq->gammai13*( \
+        paq->G11##I*paq->GL##J##13 + paq->G21##I*paq->GL##J##23 + paq->G31##I*paq->GL##J##33 \
+        + paq->G11##J*paq->GL##I##13 + paq->G21##J*paq->GL##I##23 + paq->G31##J*paq->GL##I##33 \
+        + paq->G1##I##3*paq->GL11##J + paq->G2##I##3*paq->GL21##J + paq->G3##I##3*paq->GL31##J \
+      ) \
+    \
+    + paq->gammai21*( \
+        paq->G12##I*paq->GL##J##11 + paq->G22##I*paq->GL##J##21 + paq->G32##I*paq->GL##J##31 \
+        + paq->G12##J*paq->GL##I##11 + paq->G22##J*paq->GL##I##21 + paq->G32##J*paq->GL##I##31 \
+        + paq->G1##I##1*paq->GL12##J + paq->G2##I##1*paq->GL22##J + paq->G3##I##1*paq->GL32##J \
+      ) \
+    + paq->gammai22*( \
+        paq->G12##I*paq->GL##J##12 + paq->G22##I*paq->GL##J##22 + paq->G32##I*paq->GL##J##32 \
+        + paq->G12##J*paq->GL##I##12 + paq->G22##J*paq->GL##I##22 + paq->G32##J*paq->GL##I##32 \
+        + paq->G1##I##2*paq->GL12##J + paq->G2##I##2*paq->GL22##J + paq->G3##I##2*paq->GL32##J \
+      ) \
+    + paq->gammai23*( \
+        paq->G12##I*paq->GL##J##13 + paq->G22##I*paq->GL##J##23 + paq->G32##I*paq->GL##J##33 \
+        + paq->G12##J*paq->GL##I##13 + paq->G22##J*paq->GL##I##23 + paq->G32##J*paq->GL##I##33 \
+        + paq->G1##I##3*paq->GL12##J + paq->G2##I##3*paq->GL22##J + paq->G3##I##3*paq->GL32##J \
+      ) \
+    \
+    + paq->gammai31*( \
+        paq->G13##I*paq->GL##J##11 + paq->G23##I*paq->GL##J##21 + paq->G33##I*paq->GL##J##31 \
+        + paq->G13##J*paq->GL##I##11 + paq->G23##J*paq->GL##I##21 + paq->G33##J*paq->GL##I##31 \
+        + paq->G1##I##1*paq->GL13##J + paq->G2##I##1*paq->GL23##J + paq->G3##I##1*paq->GL33##J \
+      ) \
+    + paq->gammai32*( \
+        paq->G13##I*paq->GL##J##12 + paq->G23##I*paq->GL##J##22 + paq->G33##I*paq->GL##J##32 \
+        + paq->G13##J*paq->GL##I##12 + paq->G23##J*paq->GL##I##22 + paq->G33##J*paq->GL##I##32 \
+        + paq->G1##I##2*paq->GL13##J + paq->G2##I##2*paq->GL23##J + paq->G3##I##2*paq->GL33##J \
+      ) \
+    + paq->gammai33*( \
+        paq->G13##I*paq->GL##J##13 + paq->G23##I*paq->GL##J##23 + paq->G33##I*paq->GL##J##33 \
+        + paq->G13##J*paq->GL##I##13 + paq->G23##J*paq->GL##I##23 + paq->G33##J*paq->GL##I##33 \
+        + paq->G1##I##3*paq->GL13##J + paq->G2##I##3*paq->GL23##J + paq->G3##I##3*paq->GL33##J \
+      ) \
+  );
 
-*/
 
 #define BSSN_CALCULATE_DIDJGAMMA_PERMS(I, J)           \
   paq->d##I##d##J##g11 = dder_ext(paq->gamma11_adj, paq->gamma11_adj_ext, I, J); \
@@ -462,6 +525,17 @@
 #define G321 G312
 #define G331 G313
 #define G332 G323
+
+// lower christoffel symbols
+#define GL121 GL112
+#define GL131 GL113
+#define GL132 GL123
+#define GL221 GL212
+#define GL231 GL213
+#define GL232 GL223
+#define GL321 GL312
+#define GL331 GL313
+#define GL332 GL323
 
 // Metric derivatives
 #define d1g21 d1g12

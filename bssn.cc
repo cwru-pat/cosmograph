@@ -576,6 +576,8 @@ void BSSN::calculate_christoffels(BSSNData *paq)
 {
   // christoffel symbols: \Gamma^i_{jk} = Gijk
   BSSN_APPLY_TO_IJK_PERMS(BSSN_CALCULATE_CHRISTOFFEL)
+  // "lowered" christoffel symbols: \Gamma_{ijk} = GLijk
+  BSSN_APPLY_TO_IJK_PERMS(BSSN_CALCULATE_CHRISTOFFEL_LOWER)
 }
 
 void BSSN::calculate_dalpha_dphi(BSSNData *paq)
@@ -609,6 +611,11 @@ void BSSN::calculateRicciTF(BSSNData *paq)
 {
   // unitary pieces
   BSSN_APPLY_TO_IJ_PERMS(BSSN_CALCULATE_RICCITF_UNITARY)
+
+  // should be more accurate:
+  /* 
+    BSSN_APPLY_TO_IJ_PERMS(BSSN_CALCULATE_RICCITF_UNITARY_ALT)
+   */
 
   real_t expression = (
     paq->gammai11*(paq->D1D1phi + 2.0*paq->d1phi*paq->d1phi)

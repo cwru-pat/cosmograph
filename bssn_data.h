@@ -51,6 +51,11 @@ typedef struct {
          G211, G212, G213, G222, G223, G233,
          G311, G312, G313, G322, G323, G333;
 
+  // Lowered index christoffel symbols
+  real_t GL111, GL112, GL113, GL122, GL123, GL133,
+         GL211, GL212, GL213, GL222, GL223, GL233,
+         GL311, GL312, GL313, GL322, GL323, GL333;
+
   // derivatives of the metric, d_i g_jk
   real_t d1g11, d1g12, d1g13, d1g22, d1g23, d1g33,
          d2g11, d2g12, d2g13, d2g22, d2g23, d2g33,

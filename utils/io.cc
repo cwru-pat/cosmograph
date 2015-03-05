@@ -15,7 +15,7 @@ void io_show_progress(idx_t s, idx_t maxs)
     return;
   }
 
-  idx_t s_digits = (int) log10 ((double) s) + 1;
+  idx_t s_digits = (int) log10 ((double) s+1.0) + 1;
   if(s==0)
   {
     s_digits = 1;
