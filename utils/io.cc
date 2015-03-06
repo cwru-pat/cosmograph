@@ -30,7 +30,7 @@ void io_show_progress(idx_t s, idx_t maxs)
   std::cout << " / " << maxs;
 
   idx_t ndots = 20;
-  std::cout << "[";
+  std::cout << " [";
   for(int i=1; i<=ndots; ++i)
   {
     if(i <= ndots*(s+1)/maxs)

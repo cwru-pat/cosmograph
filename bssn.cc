@@ -658,7 +658,7 @@ void BSSN::calculateRicciTF(BSSNData *paq)
 
 void BSSN::calculateDDphi(BSSNData *paq)
 {
-  // double covariant derivatives, using normal metric
+  // double covariant derivatives, using unitary metric
   paq->D1D1phi = dder_ext(paq->phi_adj, paq->phi_adj_ext, 1, 1) - (paq->G111*paq->d1phi + paq->G211*paq->d2phi + paq->G311*paq->d3phi);
   paq->D1D2phi = dder_ext(paq->phi_adj, paq->phi_adj_ext, 1, 2) - (paq->G112*paq->d1phi + paq->G212*paq->d2phi + paq->G312*paq->d3phi);
   paq->D1D3phi = dder_ext(paq->phi_adj, paq->phi_adj_ext, 1, 3) - (paq->G113*paq->d1phi + paq->G213*paq->d2phi + paq->G313*paq->d3phi);
@@ -669,7 +669,7 @@ void BSSN::calculateDDphi(BSSNData *paq)
 
 void BSSN::calculateDDalphaTF(BSSNData *paq)
 {
-  // double covariant derivatives - use non-unitary metric - extra pieces that depend on phi!
+  // double covariant derivatives - using non-unitary metric - extra pieces that depend on phi!
   // the gammaIldlphi are needed for the BSSN_CALCULATE_DIDJALPHA macro
   real_t gamma1ldlphi = paq->gammai11*paq->d1phi + paq->gammai12*paq->d2phi + paq->gammai13*paq->d3phi;
   real_t gamma2ldlphi = paq->gammai21*paq->d1phi + paq->gammai22*paq->d2phi + paq->gammai23*paq->d3phi;
@@ -737,6 +737,5 @@ real_t BSSN::ev_Gamma3(BSSNData *paq) { return BSSN_DT_GAMMAI(3); }
 // real_t BSSN::ev_beta1(BSSNData *paq) { return 0; }
 // real_t BSSN::ev_beta2(BSSNData *paq) { return 0; }
 // real_t BSSN::ev_beta3(BSSNData *paq) { return 0; }
-
 
 }

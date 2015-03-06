@@ -396,6 +396,10 @@
     + paq->A##I##1*paq->d##J##beta1 + paq->A##I##2*paq->d##J##beta2 + paq->A##I##3*paq->d##J##beta3 \
     + paq->A##J##1*paq->d##I##beta1 + paq->A##J##2*paq->d##I##beta2 + paq->A##J##3*paq->d##I##beta3 \
     - (2.0/3.0)*paq->A##I##J*(paq->d1beta1 + paq->d2beta2 + paq->d3beta3) \
+    /* Implements "A-adjusted" BSSN system */ \
+    /* Eg; 3.26 in http://arxiv.org/pdf/1109.5782v2.pdf */ \
+    /* + kA*paq->alpha*(D_i M_j) */ \
+    /* M_j = -2/3 d_j K + 6 A^j_i D_j \phi + D_j A^j_i - 2 A d_i \phi */ \
   )
 
 #define BSSN_DT_GAMMAI(I) ( \
