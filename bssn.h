@@ -95,6 +95,7 @@ public:
 
   real_t hamiltonianConstraintCalc(BSSNData *paq);
   real_t hamiltonianConstraintMag(BSSNData *paq);
+  real_t momentumConstraintCalc(BSSNData *paq, idx_t i);
 
   void clearSrc();
 

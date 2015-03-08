@@ -20,7 +20,7 @@ void set_gaussian_random_field(real_t *field, Fourier *fourier, ICsData *icd)
 
   // populate "field" with random values
   std::random_device rd;
-  std::mt19937 gen(rd());
+  std::mt19937 gen(7.0 /*rd()*/);
   std::normal_distribution<real_t> distribution;
   distribution(gen); // calling this here suppresses a warning (bug)
   LOOP3(i,j,k)
@@ -46,7 +46,7 @@ void set_gaussian_random_field(real_t *field, Fourier *fourier, ICsData *icd)
         // Scale by power spectrum
         // don't want much power on scales smaller than ~2 pixels
         // Or scales p > 1/(3*dx), or p > N/3
-        real_t cutoff = 1.0/(1.0+exp(pmag-N/2.0));
+        real_t cutoff = 1.0/(1.0+exp(pmag - icd->ic_spec_cut));
         scale = cutoff*sqrt(cosmo_power_spectrum(pmag, icd));
 
         // fftw transform is unnormalized; account for an N^3 here

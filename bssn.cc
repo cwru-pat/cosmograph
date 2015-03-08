@@ -56,13 +56,54 @@ void BSSN::set_paq_values(idx_t i, idx_t j, idx_t k, BSSNData *paq)
 
   // source values
   set_source_vals(paq);
+
+  // /* Debugging */
+  // if(paq->idx == 100)
+  // {
+  //   real_t H1 = paq->ricci + AijAij_a[paq->idx] - 2.0/3.0*pw2(paq->K) + 16.0*PI*paq->rho;
+
+  //   real_t dJgiJ1 = paq->d1gi11 + paq->d2gi12 + paq->d3gi13;
+  //   real_t G1JKgiJK = paq->gammai11*paq->G111+paq->gammai22*paq->G122+paq->gammai33*paq->G133
+  //                     + 2.0*(paq->gammai12*paq->G112+paq->gammai13*paq->G113+paq->gammai23*paq->G123);
+  //   // /* Algebraically the above agree (use same derivatives) */
+  //   // real_t gi1MgiKLdMgKL = (
+  //   //     paq->gammai11*(
+  //   //         paq->gammai11*paq->d1g11 + paq->gammai22*paq->d1g22 + paq->gammai33*paq->d1g33
+  //   //         + 2.0*(paq->gammai12*paq->d1g12 + paq->gammai13*paq->d1g13 + paq->gammai23*paq->d1g23)
+  //   //       )
+  //   //     + paq->gammai12*(
+  //   //         paq->gammai11*paq->d2g11 + paq->gammai22*paq->d2g22 + paq->gammai33*paq->d2g33
+  //   //         + 2.0*(paq->gammai12*paq->d2g12 + paq->gammai13*paq->d2g13 + paq->gammai23*paq->d2g23)
+  //   //       )
+  //   //     + paq->gammai13*(
+  //   //         paq->gammai11*paq->d3g11 + paq->gammai22*paq->d3g22 + paq->gammai33*paq->d3g33
+  //   //         + 2.0*(paq->gammai12*paq->d3g12 + paq->gammai13*paq->d3g13 + paq->gammai23*paq->d3g23)
+  //   //       )
+  //   //   );
+
+  //   std::cout
+  //     << "\nGamma1: " << paq->Gamma1
+  //     << " | -dJgiJI: " << -dJgiJ1
+  //     << " | G1JKgiJK: " << G1JKgiJK
+  //     // << " | -gi1MgiKLdMgKL/2: " << gi1MgiKLdMgKL
+  //     // << "\nDiff: " << G1JKgiJK << " + " << dJgiJ1 << " + " << gi1MgiKLdMgKL/2.0 << " = " << G1JKgiJK + dJgiJ1 + gi1MgiKLdMgKL/2.0
+  //     << "\nH pct: " << hamiltonianConstraintCalc(paq)/hamiltonianConstraintMag(paq)*100.0
+  //     << " | H mag: " << hamiltonianConstraintMag(paq)
+  //     << " | H: " << H1
+  //     << "\nM1: " << momentumConstraintCalc(paq, 1)
+  //     << " |-2/3*d1k: " << -2.0/3.0*der_ext(paq->K_adj, paq->K_adj_ext, 1)
+
+  //     << "\n";
+  // }
+
 }
 
 real_t BSSN::hamiltonianConstraintCalc(BSSNData *paq)
 {
   // needs paq vals and aijaij calc'd first
+  // 8*exp(-5\phi)*H :
   // Rs[[n]] - AAs[[n]] + 2/3 ks[[n]]^2 - 16 \[Pi] \[Rho]s[[n]]
-  return paq->ricci - AijAij_a[paq->idx] + 2.0/3.0*pw2(paq->K) - 16.0*PI*paq->rho;
+  return paq->ricci + AijAij_a[paq->idx] - 2.0/3.0*pw2(paq->K) + 16.0*PI*paq->rho;
 }
 
 real_t BSSN::hamiltonianConstraintMag(BSSNData *paq)
@@ -70,6 +111,24 @@ real_t BSSN::hamiltonianConstraintMag(BSSNData *paq)
   // needs paq vals and aijaij calc'd first
   // Magnitude of sum of terms for appx. error calc?  Should be positive anyways, but be explicit.
   return fabs(paq->ricci) + fabs(AijAij_a[paq->idx]) + fabs(2.0/3.0*pw2(paq->K)) + fabs(16.0*PI*paq->rho);
+}
+
+real_t BSSN::momentumConstraintCalc(BSSNData *paq, idx_t i)
+{
+  // needs paq vals and aijaij calc'd first
+  switch(i)
+  {
+    case 1:
+      return BSSN_MI(1);
+    case 2:
+      return BSSN_MI(2);
+    case 3:
+      return BSSN_MI(3);
+  }
+
+  /* xxx */
+  throw -1;
+  return 0;
 }
 
 void BSSN::set_full_metric(BSSNData *paq)
@@ -610,12 +669,13 @@ void BSSN::calculate_dbeta(BSSNData *paq)
 void BSSN::calculateRicciTF(BSSNData *paq)
 {
   // unitary pieces
-  BSSN_APPLY_TO_IJ_PERMS(BSSN_CALCULATE_RICCITF_UNITARY)
+  /*BSSN_APPLY_TO_IJ_PERMS(BSSN_CALCULATE_RICCITF_UNITARY)*/
+  // should be more accurate but costly:
+  BSSN_APPLY_TO_IJ_PERMS(BSSN_CALCULATE_RICCITF_UNITARY_ALT)
 
-  // should be more accurate:
-  /* 
-    BSSN_APPLY_TO_IJ_PERMS(BSSN_CALCULATE_RICCITF_UNITARY_ALT)
-   */
+  /* calculate unitary Ricci scalar at this point; ricciTF isn't actually TF yet. */
+  paq->unitRicci = paq->ricciTF11*paq->gammai11 + paq->ricciTF22*paq->gammai22 + paq->ricciTF33*paq->gammai33
+            + 2.0*(paq->ricciTF12*paq->gammai12 + paq->ricciTF13*paq->gammai13 + paq->ricciTF23*paq->gammai23);
 
   real_t expression = (
     paq->gammai11*(paq->D1D1phi + 2.0*paq->d1phi*paq->d1phi)
@@ -629,12 +689,18 @@ void BSSN::calculateRicciTF(BSSNData *paq)
   );
 
   /* phi-piece */
-  paq->ricciTF11 += -2.0*( paq->D1D1phi - 2.0*paq->d1phi*paq->d1phi + paq->gamma11*(expression) );
-  paq->ricciTF12 += -2.0*( paq->D1D2phi - 2.0*paq->d1phi*paq->d2phi + paq->gamma12*(expression) );
-  paq->ricciTF13 += -2.0*( paq->D1D3phi - 2.0*paq->d1phi*paq->d3phi + paq->gamma13*(expression) );
-  paq->ricciTF22 += -2.0*( paq->D2D2phi - 2.0*paq->d2phi*paq->d2phi + paq->gamma22*(expression) );
-  paq->ricciTF23 += -2.0*( paq->D2D3phi - 2.0*paq->d2phi*paq->d3phi + paq->gamma23*(expression) );
-  paq->ricciTF33 += -2.0*( paq->D3D3phi - 2.0*paq->d3phi*paq->d3phi + paq->gamma33*(expression) );
+  real_t Rphi11 = -2.0*( paq->D1D1phi - 2.0*paq->d1phi*paq->d1phi + paq->gamma11*(expression) );
+  real_t Rphi12 = -2.0*( paq->D1D2phi - 2.0*paq->d1phi*paq->d2phi + paq->gamma12*(expression) );
+  real_t Rphi13 = -2.0*( paq->D1D3phi - 2.0*paq->d1phi*paq->d3phi + paq->gamma13*(expression) );
+  real_t Rphi22 = -2.0*( paq->D2D2phi - 2.0*paq->d2phi*paq->d2phi + paq->gamma22*(expression) );
+  real_t Rphi23 = -2.0*( paq->D2D3phi - 2.0*paq->d2phi*paq->d3phi + paq->gamma23*(expression) );
+  real_t Rphi33 = -2.0*( paq->D3D3phi - 2.0*paq->d3phi*paq->d3phi + paq->gamma33*(expression) );
+  paq->ricciTF11 += Rphi11;
+  paq->ricciTF12 += Rphi12;
+  paq->ricciTF13 += Rphi13;
+  paq->ricciTF22 += Rphi22;
+  paq->ricciTF23 += Rphi23;
+  paq->ricciTF33 += Rphi33;
 
   /* calculate Ricci scalar at this point; ricciTF isn't TF at this point */
   paq->ricci = paq->ricciTF11*paq->gammai11 + paq->ricciTF22*paq->gammai22 + paq->ricciTF33*paq->gammai33
@@ -646,7 +712,6 @@ void BSSN::calculateRicciTF(BSSNData *paq)
   /* remove trace. Note that \bar{gamma}_{ij}*\bar{gamma}^{kl}R_{kl} = (unbarred). */
   paq->trace = paq->gammai11*paq->ricciTF11 + paq->gammai22*paq->ricciTF22 + paq->gammai33*paq->ricciTF33
       + 2.0*(paq->gammai12*paq->ricciTF12 + paq->gammai13*paq->ricciTF13 + paq->gammai23*paq->ricciTF23);
-
   paq->ricciTF11 -= (1.0/3.0)*paq->gamma11*paq->trace;
   paq->ricciTF12 -= (1.0/3.0)*paq->gamma12*paq->trace;
   paq->ricciTF13 -= (1.0/3.0)*paq->gamma13*paq->trace;
@@ -654,6 +719,28 @@ void BSSN::calculateRicciTF(BSSNData *paq)
   paq->ricciTF23 -= (1.0/3.0)*paq->gamma23*paq->trace;
   paq->ricciTF33 -= (1.0/3.0)*paq->gamma33*paq->trace;
 
+  if(paq->idx == 100)
+  {
+    real_t confRicci = exp(-4.0*paq->phi)*(
+      paq->gammai11*Rphi11 + paq->gammai22*Rphi22 + paq->gammai33*Rphi33
+      + 2.0*(paq->gammai12*Rphi12 + paq->gammai13*Rphi13 + paq->gammai23*Rphi23)
+    );
+    real_t confRicci_alt = -8.0*exp(-5.0*paq->phi)*exp(1.0*paq->phi)*(
+      paq->gammai11*(paq->d1phi*paq->d1phi + paq->D1D1phi)
+      + paq->gammai22*(paq->d2phi*paq->d2phi + paq->D2D2phi)
+      + paq->gammai33*(paq->d3phi*paq->d3phi + paq->D3D3phi)
+      + 2.0*(
+        paq->gammai12*(paq->d1phi*paq->d2phi + paq->D1D2phi)
+        + paq->gammai13*(paq->d1phi*paq->d3phi + paq->D1D3phi)
+        + paq->gammai23*(paq->d2phi*paq->d3phi + paq->D2D3phi)
+      )
+    );
+    std::cout << "\nR_phi: " << confRicci_alt << " + bar{R}: " << exp(-4.0*paq->phi)*paq->unitRicci
+      << " = R: " << confRicci_alt+exp(-4.0*paq->phi)*paq->unitRicci
+      << "\n Rii: " << paq->ricci
+      << "\n Rii - Rphi+Rbar = " << paq->ricci - (confRicci_alt+exp(-4.0*paq->phi)*paq->unitRicci)
+      << "\n";
+  }
 }
 
 void BSSN::calculateDDphi(BSSNData *paq)
@@ -708,6 +795,16 @@ real_t BSSN::ev_A33(BSSNData *paq) { return BSSN_DT_AIJ(3, 3); }
 
 real_t BSSN::ev_K(BSSNData *paq)
 {
+  // alternate form (Hamiltonian constraint added in?)
+  return (
+    - paq->DDaTR
+    + paq->alpha*(
+        paq->ricci + pw2(paq->K)
+      )
+    + 4.0*PI*paq->alpha*(-3.0*paq->rho + paq->S)
+    + paq->beta1*der_ext(paq->K_adj, paq->K_adj_ext, 1) + paq->beta2*der_ext(paq->K_adj, paq->K_adj_ext, 2) + paq->beta3*der_ext(paq->K_adj, paq->K_adj_ext, 3)
+  );
+
   return (
     - paq->DDaTR
     + paq->alpha*(

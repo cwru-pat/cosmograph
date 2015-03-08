@@ -46,3 +46,11 @@ Grid size | Init  | RK    | Output | Mem (Res)
 128       | 20.91 | 32.12 | 21.28  | 2263 M
 256       | 168.0 | 237.7 | 168.6  | 17.6 G
 512       | 1310. | 1916. | 1609.  | 140 G
+
+
+Running on ann
+32 cores Intel(R) Xeon(R) CPU E5-2650 v2 @ 2.60GHz, 20480 KB Cache
+128 GB RAM (can run at 256^3 max)
+5 steps
+Writing out initial step
+

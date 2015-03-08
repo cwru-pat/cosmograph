@@ -12,10 +12,12 @@ ConfigParser _config;
 int main(int argc, char **argv)
 {
   _timer["MAIN"].start();
-  idx_t steps, slice_output_interval, grid_output_interval, spec_output_interval, meta_output_interval;
+  idx_t steps, slice_output_interval, grid_output_interval,
+        spec_output_interval, meta_output_interval;
   idx_t i, j, k, s;
 
-  real_t rho_K_matter, rho_K_lambda, rho_K_lambda_frac, peak_amplitude, peak_amplitude_frac, length_scale;
+  real_t rho_K_matter, rho_K_lambda, rho_K_lambda_frac, peak_amplitude,
+         peak_amplitude_frac, length_scale, ic_spec_cut_frac;
   real_t total_hamiltonian_constraint = 0;
 
   // read in config file
@@ -29,7 +31,7 @@ int main(int argc, char **argv)
     _config.parse(argv[1]);
     
     length_scale = (real_t) stold(_config["length_scale"]); // volume in hubble units
-    rho_K_matter = 3.0/PI/8.0*pw2(length_scale/N); // matter density satisfies FRW equation
+    rho_K_matter = 3.0/PI/8.0*pw2(length_scale/(N*dx)); // matter density satisfies FRW equation
 
     // power spectrum amplitude as a fraction of the density
     peak_amplitude_frac = (real_t) stold(_config["peak_amplitude_frac"]); // fluctuation amplitude
@@ -37,6 +39,8 @@ int main(int argc, char **argv)
 
     rho_K_lambda_frac = (real_t) stold(_config["rho_K_lambda_frac"]); // DE density
     rho_K_lambda = rho_K_lambda_frac*rho_K_matter;
+
+    ic_spec_cut_frac = (real_t) stold(_config["ic_spec_cut_frac"]); // power spectrum cutoff parameter
 
     steps = stoi(_config["steps"]);
     slice_output_interval = stoi(_config["slice_output_interval"]);
@@ -81,6 +85,8 @@ int main(int argc, char **argv)
     /* (peak scale in hubble units) * (to pixel scale) */
     i_paq.peak_k = (1.0/0.07)*(length_scale/((real_t) N));
     i_paq.peak_amplitude = peak_amplitude; // figure out units here
+    i_paq.ic_spec_cut = N*ic_spec_cut_frac; // cut spectrum off around p ~ ic_spec_cut
+                                            // (max is p ~ sqrt(2.5)*N )
 
     // 1) Either "conformal" initial conditions:
     set_conformal_ICs(bssnSim.fields, hydroSim.fields,
@@ -155,7 +161,7 @@ int main(int argc, char **argv)
 
     // First RK step, Set Hydro Vars, & calc. constraint
     total_hamiltonian_constraint = 0.0;
-    #pragma omp parallel for default(shared) private(i, j, k, b_paq, h_paq) reduction(+:total_hamiltonian_constraint)
+    #pragma omp parallel for default(shared) private(i, j, k, b_paq, h_paq)
     LOOP3(i, j, k)
     {
       bssnSim.K1CalcPt(i, j, k, &b_paq);
@@ -166,12 +172,6 @@ int main(int argc, char **argv)
       bssnSim.set_full_metric_der(&b_paq);
       bssnSim.set_full_metric(&b_paq);
       hydroSim.setQuantitiesCell(&b_paq, &h_paq);
-
-      if(s%meta_output_interval == 0)
-      {
-        // output this at the end of the loop
-        total_hamiltonian_constraint += fabs(bssnSim.hamiltonianConstraintCalc(&b_paq)/bssnSim.hamiltonianConstraintMag(&b_paq));
-      }
     }
 
     // reset source using new metric
@@ -242,7 +242,8 @@ int main(int argc, char **argv)
     _timer["output"].start();
       if(s%meta_output_interval == 0)
       {
-        io_dump_data(total_hamiltonian_constraint/POINTS, &iodata, "avg_H_violation");
+        //total_hamiltonian_constraint += fabs(bssnSim.hamiltonianConstraintCalc(&b_paq)/bssnSim.hamiltonianConstraintMag(&b_paq));
+        //io_dump_data(total_hamiltonian_constraint/POINTS, &iodata, "avg_H_violation");
       }
     _timer["output"].stop();
   }
