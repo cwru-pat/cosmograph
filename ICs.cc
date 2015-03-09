@@ -101,9 +101,15 @@ void set_conformal_ICs(
       for(k=0; k<N/2+1; k++)
       {
         pz = (real_t) k;
-        // Here we choose the magnitude of k such that the derivative stencil
+        // Here we choose "k" such that the derivative stencil
         // applied later will agree with the metric solution we find.
-        p2i = 1.0/(pw2(2.0*sin(PI*px/N)) + pw2(2.0*sin(PI*py/N)) + pw2(2.0*sin(PI*pz/N)));
+        // For the usual second order laplacian stencil:
+        // p2i = 1.0/4.0/(pw2(sin(PI*px/N)) + pw2(sin(PI*py/N)) + pw2(sin(PI*pz/N)));
+        // for a sum of 4th-order order second derivative stencils,
+        p2i = 3.0/(
+            16.0*(pw2(sin(PI*px/N)) + pw2(sin(PI*py/N)) + pw2(sin(PI*pz/N)))
+            - 1.0*(pw2(sin(2.0*PI*px/N)) + pw2(sin(2.0*PI*py/N)) + pw2(sin(2.0*PI*pz/N)))
+          );
         // account for fftw normalization here
         (fourier->f_field)[FFT_NP_INDEX(i,j,k)][0] *= p2i/((real_t) POINTS);
         (fourier->f_field)[FFT_NP_INDEX(i,j,k)][1] *= p2i/((real_t) POINTS);
@@ -143,13 +149,21 @@ void set_conformal_ICs(
   real_t resid = 0.0;
   LOOP3(i,j,k)
   {
-    real_t grad2e = exp(bssn_fields["phi_p"][INDEX(i+1,j,k)]) + exp(bssn_fields["phi_p"][INDEX(i,j+1,k)]) + exp(bssn_fields["phi_p"][INDEX(i,j,k+1)])
-        + exp(bssn_fields["phi_p"][INDEX(i-1,j,k)]) + exp(bssn_fields["phi_p"][INDEX(i,j-1,k)]) + exp(bssn_fields["phi_p"][INDEX(i,j,k-1)])
-        - 6.0*exp(bssn_fields["phi_p"][NP_INDEX(i,j,k)]);
+    real_t grad2e = (
+        -1.0*(
+          exp(bssn_fields["phi_p"][INDEX(i+2,j,k)]) + exp(bssn_fields["phi_p"][INDEX(i,j+2,k)]) + exp(bssn_fields["phi_p"][INDEX(i,j,k+2)])
+          + exp(bssn_fields["phi_p"][INDEX(i-2,j,k)]) + exp(bssn_fields["phi_p"][INDEX(i,j-2,k)]) + exp(bssn_fields["phi_p"][INDEX(i,j,k-2)])
+        )
+        + 16.0*(
+          exp(bssn_fields["phi_p"][INDEX(i+1,j,k)]) + exp(bssn_fields["phi_p"][INDEX(i,j+1,k)]) + exp(bssn_fields["phi_p"][INDEX(i,j,k+1)])
+          + exp(bssn_fields["phi_p"][INDEX(i-1,j,k)]) + exp(bssn_fields["phi_p"][INDEX(i,j-1,k)]) + exp(bssn_fields["phi_p"][INDEX(i,j,k-1)])
+        )
+        - 90.0*exp(bssn_fields["phi_p"][NP_INDEX(i,j,k)])
+      )/12.0;
     real_t cden = hydro_fields["UD_a"][NP_INDEX(i,j,k)]*exp(5.0*bssn_fields["phi_p"][NP_INDEX(i,j,k)]);
-    resid += fabs(grad2e + 2.0*PI*cden); // should = 0
+    resid += fabs(grad2e + 2.0*PI*cden) / (fabs(grad2e) + fabs(2.0*PI*cden)); // should = 0
   }
-  std::cout << "Total metric solution error residual is: " << resid << "\n";
+  std::cout << "Average fractional error residual  is: " << resid/POINTS << "\n";
 
   // Make sure min density value > 0
   real_t min = hydro_fields["UD_a"][NP_INDEX(0,0,0)] + rho_K_matter;

@@ -12,5 +12,5 @@ peak_amplitude_frac = 0.05
 rho_K_lambda_frac = 0.0
 ic_spec_cut_frac = 1.0
 
-output_dir = output_test_64_af0.05
+output_dir = output_test_64_0.05_hoic
 dump_file = averages
