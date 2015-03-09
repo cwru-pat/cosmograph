@@ -93,8 +93,8 @@ public:
   void set_full_metric(BSSNData *paq);
   void set_full_metric_der(BSSNData *paq);
 
-  real_t hamiltonianConstraintCalc(BSSNData *paq);
-  real_t hamiltonianConstraintMag(BSSNData *paq);
+  real_t hamiltonianConstraintCalc(idx_t idx);
+  real_t hamiltonianConstraintMag(idx_t idx);
   real_t momentumConstraintCalc(BSSNData *paq, idx_t i);
 
   void clearSrc();

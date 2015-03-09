@@ -64,6 +64,10 @@ int main(int argc, char **argv)
   // Create simulation
   std::cout << "Creating initial conditions...\n";
   _timer["init"].start();
+    // Trial FRW class
+    FRW<real_t> frw (0.0, 0.0);
+    frw.addFluid(0.5, 0.0);
+
     // Fluid fields
     Hydro hydroSim (0.0/3.0); // fluid with some w_EOS
     HydroData h_paq = {0};
@@ -242,8 +246,11 @@ int main(int argc, char **argv)
     _timer["output"].start();
       if(s%meta_output_interval == 0)
       {
-        //total_hamiltonian_constraint += fabs(bssnSim.hamiltonianConstraintCalc(&b_paq)/bssnSim.hamiltonianConstraintMag(&b_paq));
-        //io_dump_data(total_hamiltonian_constraint/POINTS, &iodata, "avg_H_violation");
+        LOOP3(i,j,k)
+          total_hamiltonian_constraint += fabs(
+              bssnSim.hamiltonianConstraintCalc(NP_INDEX(i,j,k))/bssnSim.hamiltonianConstraintMag(NP_INDEX(i,j,k))
+            );
+        io_dump_data(total_hamiltonian_constraint/POINTS, &iodata, "avg_H_violation");
       }
     _timer["output"].stop();
   }
