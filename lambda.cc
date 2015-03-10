@@ -3,9 +3,10 @@
 namespace cosmo
 {
 
-Lambda::Lambda(real_t L)
+Lambda::Lambda()
 {
-  lambda = L;
+  ICsData icd = cosmo_get_ICsData();
+  lambda = icd.rho_K_lambda;
 }
 
 Lambda::~Lambda()

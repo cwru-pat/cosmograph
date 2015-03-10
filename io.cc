@@ -2,15 +2,91 @@
 #include "io.h"
 #include <hdf5.h>
 #include <sys/stat.h>
+#include <sstream>
 
 namespace cosmo
 {
+
+void io_init(IOData *iodata, std::string output_dir)
+{
+  iodata->output_dir = output_dir;
+
+  /* ensure output_dir ends with '/', unless empty string is specified. */
+  size_t len_dir_name = iodata->output_dir.length();
+  if((iodata->output_dir)[len_dir_name - 1] != '/' && len_dir_name != 0)
+  {
+    iodata->output_dir += '/';
+  }
+
+  /* create data_dir */
+  if(len_dir_name != 0)
+    mkdir(iodata->output_dir.c_str(), 0755);
+
+  iodata->slice_output_interval = stoi(_config["slice_output_interval"]);
+  iodata->grid_output_interval = stoi(_config["grid_output_interval"]);
+  iodata->meta_output_interval = stoi(_config["meta_output_interval"]);
+  iodata->spec_output_interval = stoi(_config["spec_output_interval"]);
+  iodata->dump_file = _config["dump_file"];
+}
+
+void io_config_backup(IOData *iodata, std::string config_file)
+{
+  std::ifstream source(config_file, std::ios::binary);
+  std::ofstream dest(iodata->output_dir + "config.txt", std::ios::binary);
+  dest << source.rdbuf();
+  source.close();
+  dest.close();
+}
+
+void io_data_dump(std::map <std::string, real_t *> & bssn_fields,
+                  std::map <std::string, real_t *> & hydro_fields,
+                  IOData *iodata, idx_t step, Fourier *fourier)
+{
+  if(step % iodata->slice_output_interval == 0)
+  {
+    io_dump_2dslice(bssn_fields["K_p"], "K_slice." + std::to_string(step), iodata);
+    io_dump_2dslice(bssn_fields["phi_p"], "phi_slice." + std::to_string(step), iodata);
+    io_dump_2dslice(hydro_fields["UD_a"], "UD_slice."  + std::to_string(step), iodata);
+  }
+  if(step % iodata->grid_output_interval == 0)
+  {
+    io_dump_3dslice(bssn_fields["gamma11_p"], "gamma11." + std::to_string(step), iodata);
+    io_dump_3dslice(bssn_fields["gamma12_p"], "gamma12." + std::to_string(step), iodata);
+    io_dump_3dslice(bssn_fields["gamma13_p"], "gamma13." + std::to_string(step), iodata);
+    io_dump_3dslice(bssn_fields["gamma22_p"], "gamma22." + std::to_string(step), iodata);
+    io_dump_3dslice(bssn_fields["gamma23_p"], "gamma23." + std::to_string(step), iodata);
+    io_dump_3dslice(bssn_fields["gamma33_p"], "gamma33." + std::to_string(step), iodata);
+    io_dump_3dslice(bssn_fields["phi_p"],     "phi."     + std::to_string(step), iodata);
+    io_dump_3dslice(bssn_fields["A11_p"],     "A11."     + std::to_string(step), iodata);
+    io_dump_3dslice(bssn_fields["A12_p"],     "A12."     + std::to_string(step), iodata);
+    io_dump_3dslice(bssn_fields["A13_p"],     "A13."     + std::to_string(step), iodata);
+    io_dump_3dslice(bssn_fields["A22_p"],     "A22."     + std::to_string(step), iodata);
+    io_dump_3dslice(bssn_fields["A23_p"],     "A23."     + std::to_string(step), iodata);
+    io_dump_3dslice(bssn_fields["A33_p"],     "A33."     + std::to_string(step), iodata);
+    io_dump_3dslice(bssn_fields["K_p"],       "K."       + std::to_string(step), iodata);
+    io_dump_3dslice(bssn_fields["ricci_a"],   "ricci."   + std::to_string(step), iodata);
+    io_dump_3dslice(bssn_fields["AijAij_a"],  "AijAij."  + std::to_string(step), iodata);
+    io_dump_3dslice(hydro_fields["UD_a"],     "UD."      + std::to_string(step), iodata);
+    io_dump_3dslice(hydro_fields["US1_a"],    "US1."     + std::to_string(step), iodata);
+    io_dump_3dslice(hydro_fields["US2_a"],    "US2."     + std::to_string(step), iodata);
+    io_dump_3dslice(hydro_fields["US3_a"],    "US3."     + std::to_string(step), iodata);
+  }
+  if(step % iodata->spec_output_interval == 0)
+  {
+    fourier->powerDump(bssn_fields["phi_p"], iodata);
+  }
+  if(step % iodata->meta_output_interval == 0)
+  {
+    // some average values
+    io_dump_averages(bssn_fields, hydro_fields, iodata);
+  }
+}
 
 void io_show_progress(idx_t s, idx_t maxs)
 {
   if(s > maxs)
   {
-    std::cout << "Simulation has ran more steps than allowed.";
+    std::cout << "Simulation has run more steps than allowed.";
     throw -1;
     return;
   }
@@ -44,21 +120,6 @@ void io_show_progress(idx_t s, idx_t maxs)
   }
   std::cout << "]\r" << std::flush;
   return;
-
-}
-
-void io_init(IOData *iodata)
-{
-  /* ensure data_dir ends with '/', unless empty string is specified. */
-  size_t len_dir_name = iodata->output_dir.length();
-  if((iodata->output_dir)[len_dir_name - 1] != '/' && len_dir_name != 0)
-  {
-    iodata->output_dir += '/';
-  }
-
-  /* create data_dir */
-  if(len_dir_name != 0)
-    mkdir(iodata->output_dir.c_str(), 0755);
 }
 
 void io_dump_strip(real_t *field, int axis, idx_t n1, idx_t n2, IOData *iodata)
@@ -172,10 +233,12 @@ void io_dump_3dslice(real_t *field, std::string filename, IOData *iodata)
 }
 
 
-void io_dump_quantities(std::map <std::string, real_t *> & bssn_fields,
+void io_dump_averages(std::map <std::string, real_t *> & bssn_fields,
                       std::map <std::string, real_t *> & hydro_fields,
-                      std::string filename, IOData *iodata)
+                      IOData *iodata)
 {
+  std::string filename = iodata->dump_file;
+
   // output misc. info about simulation here.
   char data[20];
   std::string dump_filename = iodata->output_dir + filename + ".dat.gz";

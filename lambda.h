@@ -14,7 +14,7 @@ class Lambda
 
 public:
 
-  Lambda(real_t L);
+  Lambda();
   ~Lambda();
 
   void addBSSNSrc(std::map <std::string, real_t *> & bssn_fields);

@@ -3,6 +3,31 @@
 namespace cosmo
 {
 
+ICsData cosmo_get_ICsData()
+{
+  ICsData icd = {0};
+
+  real_t length_scale = (real_t) stold(_config["length_scale"]); // volume in hubble units
+  icd.rho_K_matter = 3.0/PI/8.0*pw2(length_scale/(N*dx)); // matter density satisfies FRW equation
+
+  real_t rho_K_lambda_frac = (real_t) stold(_config["rho_K_lambda_frac"]); // DE density
+  icd.rho_K_lambda = rho_K_lambda_frac*icd.rho_K_matter;
+
+  // power spectrum amplitude as a fraction of the density
+  real_t peak_amplitude_frac = (real_t) stold(_config["peak_amplitude_frac"]); // fluctuation amplitude
+  real_t peak_amplitude = icd.rho_K_matter*peak_amplitude_frac;
+
+  real_t ic_spec_cut_frac = (real_t) stold(_config["ic_spec_cut_frac"]); // power spectrum cutoff parameter
+
+  /* (peak scale in hubble units) * (to pixel scale) */
+  icd.peak_k = (1.0/0.07)*(length_scale/((real_t) N));
+  icd.peak_amplitude = peak_amplitude; // figure out units here
+  icd.ic_spec_cut = N*ic_spec_cut_frac; // cut spectrum off around p ~ ic_spec_cut
+                                          // (max is p ~ sqrt(2.5)*N )
+
+  return icd;
+}
+
 // analytic form of a power spectrum to use
 // eg in LCDM, http://ned.ipac.caltech.edu/level5/Sept11/Norman/Norman2.html
 real_t cosmo_power_spectrum(real_t k, ICsData *icd)
@@ -70,15 +95,13 @@ void set_gaussian_random_field(real_t *field, Fourier *fourier, ICsData *icd)
 void set_conformal_ICs(
   std::map <std::string, real_t *> & bssn_fields,
   std::map <std::string, real_t *> & hydro_fields,
-  Fourier *fourier,
-  ICsData *icd,
-  real_t rho_K_matter,
-  real_t rho_K_lambda)
+  Fourier *fourier)
 {
   idx_t i, j, k;
   real_t px, py, pz, p2i;
+  ICsData icd = cosmo_get_ICsData();
 
-  set_gaussian_random_field(hydro_fields["UD_a"], fourier, icd);
+  set_gaussian_random_field(hydro_fields["UD_a"], fourier, &icd);
 
   // working in conformal transverse-traceless decomposition,
   // the conformal factor in front of metric is the solution to
@@ -149,6 +172,7 @@ void set_conformal_ICs(
   real_t resid = 0.0;
   LOOP3(i,j,k)
   {
+    // 4th-order stencil.
     real_t grad2e = (
         -1.0*(
           exp(bssn_fields["phi_p"][INDEX(i+2,j,k)]) + exp(bssn_fields["phi_p"][INDEX(i,j+2,k)]) + exp(bssn_fields["phi_p"][INDEX(i,j,k+2)])
@@ -166,18 +190,18 @@ void set_conformal_ICs(
   std::cout << "Average fractional error residual  is: " << resid/POINTS << "\n";
 
   // Make sure min density value > 0
-  real_t min = hydro_fields["UD_a"][NP_INDEX(0,0,0)] + rho_K_matter;
+  real_t min = hydro_fields["UD_a"][NP_INDEX(0,0,0)] + icd.rho_K_matter;
   real_t max = min;
   real_t oldrho;
 
   LOOP3(i,j,k)
   {
-    hydro_fields["UD_a"][NP_INDEX(i,j,k)] += rho_K_matter;
+    hydro_fields["UD_a"][NP_INDEX(i,j,k)] += icd.rho_K_matter;
     hydro_fields["UD_a"][NP_INDEX(i,j,k)] *= exp(6.0*bssn_fields["phi_p"][NP_INDEX(i,j,k)]);
 
     oldrho = pw2(bssn_fields["K_p"][NP_INDEX(i,j,k)])/24.0/PI;
-    bssn_fields["K_p"][NP_INDEX(i,j,k)] = -sqrt(24.0*PI*(rho_K_matter+oldrho));
-    bssn_fields["K_f"][NP_INDEX(i,j,k)] = -sqrt(24.0*PI*(rho_K_matter+oldrho));
+    bssn_fields["K_p"][NP_INDEX(i,j,k)] = -sqrt(24.0*PI*(icd.rho_K_matter+oldrho));
+    bssn_fields["K_f"][NP_INDEX(i,j,k)] = -sqrt(24.0*PI*(icd.rho_K_matter+oldrho));
 
     if(hydro_fields["UD_a"][NP_INDEX(i,j,k)] < min)
     {
@@ -207,8 +231,8 @@ void set_conformal_ICs(
   LOOP3(i,j,k)
   {
     oldrho = pw2(bssn_fields["K_p"][NP_INDEX(i,j,k)])/24.0/PI;
-    bssn_fields["K_p"][NP_INDEX(i,j,k)] = -sqrt(24.0*PI*(rho_K_lambda+oldrho));
-    bssn_fields["K_f"][NP_INDEX(i,j,k)] = -sqrt(24.0*PI*(rho_K_lambda+oldrho));
+    bssn_fields["K_p"][NP_INDEX(i,j,k)] = -sqrt(24.0*PI*(icd.rho_K_lambda+oldrho));
+    bssn_fields["K_f"][NP_INDEX(i,j,k)] = -sqrt(24.0*PI*(icd.rho_K_lambda+oldrho));
   }
 
 }
@@ -216,19 +240,17 @@ void set_conformal_ICs(
 void set_flat_dynamic_ICs(
   std::map <std::string, real_t *> & bssn_fields,
   std::map <std::string, real_t *> & hydro_fields,
-  Fourier *fourier,
-  ICsData *icd,
-  real_t rho_K_matter,
-  real_t rho_K_lambda)
+  Fourier *fourier)
 {
   idx_t i, j, k;
+  ICsData icd = cosmo_get_ICsData();
 
   // simple hamiltonian constraint; flat metric, \phi = 0, 
-  set_gaussian_random_field(hydro_fields["UD_a"], fourier, icd);
+  set_gaussian_random_field(hydro_fields["UD_a"], fourier, &icd);
   // add in average
   LOOP3(i,j,k)
   {
-    hydro_fields["UD_a"][NP_INDEX(i,j,k)] += rho_K_matter;
+    hydro_fields["UD_a"][NP_INDEX(i,j,k)] += icd.rho_K_matter;
   }
 
   // Make sure min density value > 0
@@ -263,8 +285,8 @@ void set_flat_dynamic_ICs(
   // K = -sqrt(24pi*\rho)
   LOOP3(i,j,k)
   {
-    bssn_fields["K_p"][NP_INDEX(i,j,k)] = -sqrt(24.0*PI*(rho_K_lambda+hydro_fields["UD_a"][NP_INDEX(i,j,k)]));
-    bssn_fields["K_f"][NP_INDEX(i,j,k)] = -sqrt(24.0*PI*(rho_K_lambda+hydro_fields["UD_a"][NP_INDEX(i,j,k)]));
+    bssn_fields["K_p"][NP_INDEX(i,j,k)] = -sqrt(24.0*PI*(icd.rho_K_lambda+hydro_fields["UD_a"][NP_INDEX(i,j,k)]));
+    bssn_fields["K_f"][NP_INDEX(i,j,k)] = -sqrt(24.0*PI*(icd.rho_K_lambda+hydro_fields["UD_a"][NP_INDEX(i,j,k)]));
   }
 
   // Momentum constraint must now be satisfied
@@ -283,10 +305,7 @@ void set_flat_dynamic_ICs(
 void set_flat_static_ICs(
   std::map <std::string, real_t *> & bssn_fields,
   std::map <std::string, real_t *> & hydro_fields,
-  Fourier *fourier,
-  ICsData *icd,
-  real_t rho_K_matter,
-  real_t rho_K_lambda)
+  Fourier *fourier)
 {
   idx_t i, j, k;
 

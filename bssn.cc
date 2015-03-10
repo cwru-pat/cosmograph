@@ -61,7 +61,7 @@ void BSSN::set_paq_values(idx_t i, idx_t j, idx_t k, BSSNData *paq)
 real_t BSSN::hamiltonianConstraintCalc(idx_t idx)
 {
   // 8*exp(-5\phi)*H :
-  return ricci_a[idx] + AijAij_a[idx] - 2.0/3.0*pw2(K_p[idx]) + 16.0*PI*r_a[idx];
+  return ricci_a[idx] + AijAij_a[idx] - 2.0/3.0*pw2(K_a[idx]) + 16.0*PI*r_a[idx];
 }
 
 real_t BSSN::hamiltonianConstraintMag(idx_t idx)

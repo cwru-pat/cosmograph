@@ -36,15 +36,15 @@ typedef long int idx_t;
 #include "utils/ConfigParser.h"
 #include "utils/Timer.h"
 #include "utils/Fourier.h"
-#include "utils/io.h"
 #include "utils/math.h"
 
+#include "io.h"
+#include "ICs.h"
 #include "bssn.h"
 #include "bssn_data.h"
 #include "hydro.h"
 #include "hydro_data.h"
 #include "lambda.h"
-#include "ICs.h"
 #include "frw.h"
 
 #endif
