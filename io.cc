@@ -27,6 +27,8 @@ void io_init(IOData *iodata, std::string output_dir)
   iodata->meta_output_interval = stoi(_config["meta_output_interval"]);
   iodata->spec_output_interval = stoi(_config["spec_output_interval"]);
   iodata->dump_file = _config["dump_file"];
+
+  iodata->log.open(iodata->output_dir + "log.txt");
 }
 
 void io_config_backup(IOData *iodata, std::string config_file)
@@ -82,7 +84,7 @@ void io_data_dump(std::map <std::string, real_t *> & bssn_fields,
   }
 }
 
-void io_show_progress(idx_t s, idx_t maxs)
+void io_show_progress(idx_t s, idx_t maxs) // terminal output only
 {
   if(s > maxs)
   {
@@ -129,7 +131,7 @@ void io_dump_strip(real_t *field, int axis, idx_t n1, idx_t n2, IOData *iodata)
 
   gzFile datafile = gzopen(filename.c_str(), "ab");
   if(datafile == Z_NULL) {
-    printf("Error opening file: %s\n", filename.c_str());
+    LOG(iodata->log, "Error opening file: " << filename.c_str() << "\n");
     return;
   }
 
@@ -245,7 +247,7 @@ void io_dump_averages(std::map <std::string, real_t *> & bssn_fields,
 
   gzFile datafile = gzopen(dump_filename.c_str(), "ab");
   if(datafile == Z_NULL) {
-    std::cout << "Error opening file: " << dump_filename << "\n";
+    LOG(iodata->log, "Error opening file: " << dump_filename << "\n");
     return;
   }
 
@@ -273,7 +275,7 @@ void io_dump_data(real_t value, IOData *iodata, std::string filename)
 
   gzFile datafile = gzopen(dump_filename.c_str(), "ab");
   if(datafile == Z_NULL) {
-    std::cout << "Error opening file: " << dump_filename << "\n";
+    LOG(iodata->log, "Error opening file: " << dump_filename << "\n");
     return;
   }
 

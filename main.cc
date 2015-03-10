@@ -36,8 +36,9 @@ int main(int argc, char **argv)
   omp_set_num_threads(stoi(_config["omp_num_threads"]));
 
   // Create simulation
-  std::cout << "Creating initial conditions...\n";
   _timer["init"].start();
+    LOG(iodata.log, "Creating initial conditions...\n");
+
     // Trial FRW class
     FRW<real_t> frw (0.0, 0.0);
     frw.addFluid(0.5, 0.0);
@@ -61,20 +62,20 @@ int main(int argc, char **argv)
     if(_config["ic_type"] == "flat")
     {
       // "flat dynamic" initial conditions:
-      std::cout << "Using flat initial conditions...\n";
+      LOG(iodata.log, "Using flat initial conditions...\n");
       set_flat_dynamic_ICs(bssnSim.fields, hydroSim.fields, &fourier);
     }
     else
     {
       // default to "conformal" initial conditions:
-      std::cout << "Using conformal initial conditions...\n";
+      LOG(iodata.log, "Using conformal initial conditions...\n");
       set_conformal_ICs(bssnSim.fields, hydroSim.fields, &fourier);
     }
 
   _timer["init"].stop();
 
   // evolve simulation
-  std::cout << "Running Simulation...\n";
+  LOG(iodata.log, "Running simulation...\n");
   _timer["loop"].start();
   for(s=0; s < steps; ++s) {
 
@@ -190,10 +191,9 @@ int main(int argc, char **argv)
   }
   _timer["loop"].stop();
 
-
   _timer["MAIN"].stop();
 
-  cout << endl << _timer << endl;
+  LOG(iodata.log, endl << _timer << endl);
 
   return EXIT_SUCCESS;
 }
