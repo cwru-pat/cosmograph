@@ -8,11 +8,11 @@ omp_num_threads = 32
 
 length_scale = 0.25
 
-peak_amplitude_frac = 0.0000000000125
+peak_amplitude_frac = 0.05
 rho_K_lambda_frac = 0.0
 ic_spec_cut_frac = 1.0
 
-ic_type = flat
+ic_type = conformal
 
-output_dir = output_test_flatics
+output_dir = output_test
 dump_file = averages

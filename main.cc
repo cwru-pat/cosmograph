@@ -81,7 +81,7 @@ int main(int argc, char **argv)
 
     // output simulation information
     _timer["output"].start();
-      io_show_progress(s, steps);
+      //io_show_progress(s, steps);
       io_data_dump(bssnSim.fields, hydroSim.fields, &iodata, s, &fourier);
     _timer["output"].stop();
 
@@ -183,7 +183,7 @@ int main(int argc, char **argv)
       {
         LOOP3(i,j,k)
           total_hamiltonian_constraint += fabs(
-              bssnSim.hamiltonianConstraintCalc(NP_INDEX(i,j,k))/bssnSim.hamiltonianConstraintMag(NP_INDEX(i,j,k))
+              bssnSim.hamiltonianConstraintCalc(i,j,k)/bssnSim.hamiltonianConstraintMag(i,j,k)
             );
         io_dump_data(total_hamiltonian_constraint/POINTS, &iodata, "avg_H_violation");
       }

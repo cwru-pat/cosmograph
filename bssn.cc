@@ -58,16 +58,46 @@ void BSSN::set_paq_values(idx_t i, idx_t j, idx_t k, BSSNData *paq)
   set_source_vals(paq);
 }
 
-real_t BSSN::hamiltonianConstraintCalc(idx_t idx)
+real_t BSSN::hamiltonianConstraintCalc(idx_t i, idx_t j, idx_t k)
 {
   // 8*exp(-5\phi)*H :
-  return ricci_a[idx] + AijAij_a[idx] - 2.0/3.0*pw2(K_a[idx]) + 16.0*PI*r_a[idx];
+  idx_t idx = INDEX(i,j,k);
+
+  // if(idx == 100)
+  // {
+  //   real_t grad2e = (
+  //       -1.0*(
+  //         exp(phi_a[INDEX(i+2,j,k)]) + exp(phi_a[INDEX(i,j+2,k)]) + exp(phi_a[INDEX(i,j,k+2)])
+  //         + exp(phi_a[INDEX(i-2,j,k)]) + exp(phi_a[INDEX(i,j-2,k)]) + exp(phi_a[INDEX(i,j,k-2)])
+  //       )
+  //       + 16.0*(
+  //         exp(phi_a[INDEX(i+1,j,k)]) + exp(phi_a[INDEX(i,j+1,k)]) + exp(phi_a[INDEX(i,j,k+1)])
+  //         + exp(phi_a[INDEX(i-1,j,k)]) + exp(phi_a[INDEX(i,j-1,k)]) + exp(phi_a[INDEX(i,j,k-1)])
+  //       )
+  //       - 90.0*exp(phi_a[NP_INDEX(i,j,k)])
+  //     )/12.0;
+
+  //   std::cout << "\n Gamma1 is: " << Gamma1_a[idx];
+
+  //   std::cout << "\nRicci: " << ricci_a[idx] << ", -8e-5fd2ef = " << -8.0*exp(-5.0*phi_a[idx])*grad2e
+  //             << "\ndiff is: " << (-8.0*exp(-5.0*phi_a[idx])*grad2e - ricci_a[idx])
+  //             << ", frac diff is: " << (-8.0*exp(-5.0*phi_a[idx])*grad2e - ricci_a[idx])/BSSN::hamiltonianConstraintMag(i,j,k);
+
+  //   std::cout << "\nViolation frac. is:" << (-ricci_a[idx] + AijAij_a[idx] - 2.0/3.0*pw2(K_a[idx]) + 16.0*PI*r_a[idx])/BSSN::hamiltonianConstraintMag(i,j,k);
+  //   std::cout << "\nR frac. is:" << (ricci_a[idx])/BSSN::hamiltonianConstraintMag(i,j,k);
+  //   std::cout << "\nAijAij frac. is:" << (AijAij_a[idx])/BSSN::hamiltonianConstraintMag(i,j,k);
+  //   std::cout << "\nK frac. is:" << (- 2.0/3.0*pw2(K_a[idx]))/BSSN::hamiltonianConstraintMag(i,j,k);
+  //   std::cout << "\nrho frac. is:" << (16.0*PI*r_a[idx])/BSSN::hamiltonianConstraintMag(i,j,k);
+  // }
+
+  return -ricci_a[idx] + AijAij_a[idx] - 2.0/3.0*pw2(K_a[idx]) + 16.0*PI*r_a[idx];
 }
 
-real_t BSSN::hamiltonianConstraintMag(idx_t idx)
+real_t BSSN::hamiltonianConstraintMag(idx_t i, idx_t j, idx_t k)
 {
+  idx_t idx = INDEX(i,j,k);
   // Magnitude of sum of terms for appx. error calc?
-  return fabs(ricci_a[idx]) + fabs(AijAij_a[idx]) + 2.0/3.0*pw2(K_p[idx]) + 16.0*PI*r_a[idx];
+  return fabs(ricci_a[idx]) + fabs(AijAij_a[idx]) + 2.0/3.0*pw2(K_a[idx]) + 16.0*PI*r_a[idx];
 }
 
 real_t BSSN::momentumConstraintCalc(BSSNData *paq, idx_t i)
