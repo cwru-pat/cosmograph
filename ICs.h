@@ -5,6 +5,7 @@
 #include "globals.h"
 
 #include "ICs_data.h"
+#include "io_data.h"
 
 namespace cosmo
 {
@@ -18,17 +19,17 @@ void set_gaussian_random_field(real_t *field, Fourier *fourier, ICsData *icd);
 void set_conformal_ICs(
   std::map <std::string, real_t *> & bssn_fields,
   std::map <std::string, real_t *> & hydro_fields,
-  Fourier *fourier);
+  Fourier *fourier, IOData *iod);
 
 void set_flat_dynamic_ICs(
   std::map <std::string, real_t *> & bssn_fields,
   std::map <std::string, real_t *> & hydro_fields,
-  Fourier *fourier);
+  Fourier *fourier, IOData *iod);
 
 void set_flat_static_ICs(
   std::map <std::string, real_t *> & bssn_fields,
   std::map <std::string, real_t *> & hydro_fields,
-  Fourier *fourier);
+  Fourier *fourier, IOData *iod);
 
 } // namespace cosmo
 

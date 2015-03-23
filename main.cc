@@ -1,6 +1,8 @@
 
 #include "cosmo.h"
 #include "globals.h"
+#include <cmath>
+#include <cfloat>
 
 using namespace std;
 using namespace cosmo;
@@ -13,7 +15,6 @@ int main(int argc, char **argv)
 {
   _timer["MAIN"].start();
   idx_t i, j, k, s, steps;
-  real_t total_hamiltonian_constraint = 0.0;
 
   // read in config file
   if(argc != 2)
@@ -63,13 +64,13 @@ int main(int argc, char **argv)
     {
       // "flat dynamic" initial conditions:
       LOG(iodata.log, "Using flat initial conditions...\n");
-      set_flat_dynamic_ICs(bssnSim.fields, hydroSim.fields, &fourier);
+      set_flat_dynamic_ICs(bssnSim.fields, hydroSim.fields, &fourier, &iodata);
     }
     else
     {
       // default to "conformal" initial conditions:
       LOG(iodata.log, "Using conformal initial conditions...\n");
-      set_conformal_ICs(bssnSim.fields, hydroSim.fields, &fourier);
+      set_conformal_ICs(bssnSim.fields, hydroSim.fields, &fourier, &iodata);
     }
 
   _timer["init"].stop();
@@ -81,7 +82,7 @@ int main(int argc, char **argv)
 
     // output simulation information
     _timer["output"].start();
-      //io_show_progress(s, steps);
+      io_show_progress(s, steps);
       io_data_dump(bssnSim.fields, hydroSim.fields, &iodata, s, &fourier);
     _timer["output"].stop();
 
@@ -99,7 +100,6 @@ int main(int argc, char **argv)
       lambdaSim.addBSSNSrc(bssnSim.fields);
 
     // First RK step, Set Hydro Vars, & calc. constraint
-    total_hamiltonian_constraint = 0.0;
     #pragma omp parallel for default(shared) private(i, j, k, b_paq, h_paq)
     LOOP3(i, j, k)
     {
@@ -179,13 +179,52 @@ int main(int argc, char **argv)
     _timer["RK_steps"].stop();
 
     _timer["output"].start();
+      real_t total_hamiltonian_constraint = 0.0,
+             mean_hamiltonian_constraint = 0.0,
+             stdev_hamiltonian_constraint = 0.0,
+             total_momentum_constraint_1 = 0.0,
+             total_momentum_constraint_2 = 0.0,
+             total_momentum_constraint_3 = 0.0;
       if(s%iodata.meta_output_interval == 0)
       {
+        idx_t isNaN = 0;
+        #pragma omp parallel for default(shared) private(i, j, k, b_paq) \
+         reduction(+:total_hamiltonian_constraint, mean_hamiltonian_constraint, total_momentum_constraint_1, total_momentum_constraint_2, total_momentum_constraint_3, isNaN)
         LOOP3(i,j,k)
-          total_hamiltonian_constraint += fabs(
-              bssnSim.hamiltonianConstraintCalc(i,j,k)/bssnSim.hamiltonianConstraintMag(i,j,k)
-            );
-        io_dump_data(total_hamiltonian_constraint/POINTS, &iodata, "avg_H_violation");
+        {
+          real_t violation_fraction = bssnSim.hamiltonianConstraintCalc(i,j,k)/bssnSim.hamiltonianConstraintMag(i,j,k);
+          total_hamiltonian_constraint += fabs(violation_fraction);
+          mean_hamiltonian_constraint += violation_fraction/POINTS;
+
+          union { float violation_fraction; uint32_t x; } u = { (float) violation_fraction };
+          if((u.x << 1) > 0xff000000u && isNaN == 0)
+          {
+            LOG(iodata.log, "NAN at (" << i << "," << j << "," << k << ")!\n");
+            isNaN += 1;
+          }
+
+          bssnSim.set_paq_values(i, j, k, &b_paq);
+          total_momentum_constraint_1 += fabs(bssnSim.momentumConstraintCalc(&b_paq, 1)/bssnSim.momentumConstraintMag(&b_paq, 1));
+          total_momentum_constraint_2 += fabs(bssnSim.momentumConstraintCalc(&b_paq, 2)/bssnSim.momentumConstraintMag(&b_paq, 2));
+          total_momentum_constraint_3 += fabs(bssnSim.momentumConstraintCalc(&b_paq, 3)/bssnSim.momentumConstraintMag(&b_paq, 3));
+        }
+        if(isNaN > 0)
+        {
+          LOG(iodata.log, "NAN detected!\n");
+          _timer["output"].stop();
+          break;
+        }
+        #pragma omp parallel for default(shared) private(i, j, k, b_paq) reduction(+:stdev_hamiltonian_constraint)
+        LOOP3(i,j,k)
+        {
+          stdev_hamiltonian_constraint += pw2(bssnSim.hamiltonianConstraintCalc(i,j,k)/bssnSim.hamiltonianConstraintMag(i,j,k) - mean_hamiltonian_constraint);
+        }
+        io_dump_data(mean_hamiltonian_constraint, &iodata, "avg_H_violation");
+        io_dump_data(sqrt(stdev_hamiltonian_constraint/(POINTS-1.0)), &iodata, "std_H_violation");
+        std::cout << "\n" << "H-viol:            " << mean_hamiltonian_constraint
+                  << "\n" << "H-viol std:        " << sqrt(stdev_hamiltonian_constraint/(POINTS-1.0))
+                  << "\n" << "M-viol L1 average: " << 1.0/POINTS*sqrt(pw2(total_momentum_constraint_1)+pw2(total_momentum_constraint_2)+pw2(total_momentum_constraint_3))
+                  << "\n";
       }
     _timer["output"].stop();
   }

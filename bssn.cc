@@ -118,6 +118,24 @@ real_t BSSN::momentumConstraintCalc(BSSNData *paq, idx_t i)
   return 0;
 }
 
+real_t BSSN::momentumConstraintMag(BSSNData *paq, idx_t i)
+{
+  // needs paq vals and aijaij calc'd first
+  switch(i)
+  {
+    case 1:
+      return BSSN_MI_MAG(1);
+    case 2:
+      return BSSN_MI_MAG(2);
+    case 3:
+      return BSSN_MI_MAG(3);
+  }
+
+  /* xxx */
+  throw -1;
+  return 0;
+}
+
 void BSSN::set_full_metric(BSSNData *paq)
 {
   SET_M00();
@@ -557,13 +575,19 @@ void BSSN::set_local_vals(BSSNData *paq)
   
   SET_LOCAL_VALUES_PFE(alpha);
 
-  // Seems faster to compute all of these at each step, rather than pulling them out of memory.
+  // compute all of these at each step, rather than pulling them out of memory.
   BSSN_COMPUTE_LOCAL_GAMMAI_PF(11, 22, 33, 23, 23);
   BSSN_COMPUTE_LOCAL_GAMMAI_PF(12, 13, 23, 12, 33);
   BSSN_COMPUTE_LOCAL_GAMMAI_PF(13, 12, 23, 13, 22);
   BSSN_COMPUTE_LOCAL_GAMMAI_PF(22, 11, 33, 13, 13);
   BSSN_COMPUTE_LOCAL_GAMMAI_PF(23, 12, 13, 23, 11);
   BSSN_COMPUTE_LOCAL_GAMMAI_PF(33, 11, 22, 12, 12);
+  BSSN_COMPUTE_LOCAL_GAMMAI_F2(11, 22, 33, 23, 23);
+  BSSN_COMPUTE_LOCAL_GAMMAI_F2(12, 13, 23, 12, 33);
+  BSSN_COMPUTE_LOCAL_GAMMAI_F2(13, 12, 23, 13, 22);
+  BSSN_COMPUTE_LOCAL_GAMMAI_F2(22, 11, 33, 13, 13);
+  BSSN_COMPUTE_LOCAL_GAMMAI_F2(23, 12, 13, 23, 11);
+  BSSN_COMPUTE_LOCAL_GAMMAI_F2(33, 11, 22, 12, 12);
 
   // adjacent values only
   SET_LOCAL_VALUES_PF(Gamma1);
@@ -754,25 +778,45 @@ real_t BSSN::ev_A33(BSSNData *paq) { return BSSN_DT_AIJ(3, 3); }
 real_t BSSN::ev_K(BSSNData *paq)
 {
   // alternate form (Hamiltonian constraint added in?)
-  return (
-    - paq->DDaTR
-    + paq->alpha*(
-        paq->ricci + pw2(paq->K)
-      )
-    + 4.0*PI*paq->alpha*(-3.0*paq->rho + paq->S)
-    + paq->beta1*der_ext(paq->K_adj, paq->K_adj_ext, 1) + paq->beta2*der_ext(paq->K_adj, paq->K_adj_ext, 2) + paq->beta3*der_ext(paq->K_adj, paq->K_adj_ext, 3)
-  );
+
+  real_t AijAij = paq->A11*paq->Acont11 + paq->A22*paq->Acont22 + paq->A33*paq->Acont33
+                  + 2.0*(paq->A12*paq->Acont12 + paq->A13*paq->Acont13 + paq->A23*paq->Acont23);
+
+  real_t H = paq->ricci + 2.0/3.0*pw2(paq->K) - AijAij - 16.0*PI*paq->rho;
+  real_t Hmag = fabs(paq->ricci) + pw2(paq->K) + AijAij + 16.0*PI*paq->rho;
+  // if(paq->idx==100)
+  //   std::cout << "\n" << H/Hmag << "\n";
 
   // return (
   //   - paq->DDaTR
   //   + paq->alpha*(
-  //       paq->A11*paq->Acont11 + paq->A22*paq->Acont22 + paq->A33*paq->Acont33
-  //       + 2.0*(paq->A12*paq->Acont12 + paq->A13*paq->Acont13 + paq->A23*paq->Acont23)
-  //       + (1.0/3.0)*paq->K*paq->K
+  //       1.5*AijAij - 0.5*paq->ricci
   //     )
+  //   + 4.0*PI*paq->alpha*(3.0*paq->rho + paq->S)
   //   + paq->beta1*der_ext(paq->K_adj, paq->K_adj_ext, 1) + paq->beta2*der_ext(paq->K_adj, paq->K_adj_ext, 2) + paq->beta3*der_ext(paq->K_adj, paq->K_adj_ext, 3)
-  //   + 4.0*PI*paq->alpha*(paq->rho + paq->S)
   // );
+
+  // return (
+  //   39.0*H
+  //   - paq->DDaTR
+  //   + paq->alpha*(
+  //       paq->ricci + pw2(paq->K)
+  //     )
+  //   + 4.0*PI*paq->alpha*(-3.0*paq->rho + paq->S)
+  //   + paq->beta1*der_ext(paq->K_adj, paq->K_adj_ext, 1) + paq->beta2*der_ext(paq->K_adj, paq->K_adj_ext, 2) + paq->beta3*der_ext(paq->K_adj, paq->K_adj_ext, 3)
+  // );
+
+  return (
+    10.0*H
+    - paq->DDaTR
+    + paq->alpha*(
+        paq->A11*paq->Acont11 + paq->A22*paq->Acont22 + paq->A33*paq->Acont33
+        + 2.0*(paq->A12*paq->Acont12 + paq->A13*paq->Acont13 + paq->A23*paq->Acont23)
+        + (1.0/3.0)*paq->K*paq->K
+      )
+    + 4.0*PI*paq->alpha*(paq->rho + paq->S)
+    + paq->beta1*der_ext(paq->K_adj, paq->K_adj_ext, 1) + paq->beta2*der_ext(paq->K_adj, paq->K_adj_ext, 2) + paq->beta3*der_ext(paq->K_adj, paq->K_adj_ext, 3)
+  );
 }
 
 real_t BSSN::ev_phi(BSSNData *paq)
@@ -783,9 +827,9 @@ real_t BSSN::ev_phi(BSSNData *paq)
   );
 }
 
-real_t BSSN::ev_Gamma1(BSSNData *paq) { return BSSN_DT_GAMMAI(1); }
-real_t BSSN::ev_Gamma2(BSSNData *paq) { return BSSN_DT_GAMMAI(2); }
-real_t BSSN::ev_Gamma3(BSSNData *paq) { return BSSN_DT_GAMMAI(3); }
+real_t BSSN::ev_Gamma1(BSSNData *paq) { return /*BSSN_MI(1) +*/ BSSN_DT_GAMMAI(1); }
+real_t BSSN::ev_Gamma2(BSSNData *paq) { return /*BSSN_MI(2) +*/ BSSN_DT_GAMMAI(2); }
+real_t BSSN::ev_Gamma3(BSSNData *paq) { return /*BSSN_MI(3) +*/ BSSN_DT_GAMMAI(3); }
 
 // static gauge for now:
 // real_t BSSN::ev_alpha(BSSNData *paq) { return 0; }

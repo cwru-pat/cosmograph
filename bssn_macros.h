@@ -247,6 +247,15 @@
   paq->gammai##IJ##_adj[1][2][1] = paq->gamma##f1##_adj[1][2][1]*paq->gamma##f2##_adj[1][2][1] - paq->gamma##f3##_adj[1][2][1]*paq->gamma##f4##_adj[1][2][1]; \
   paq->gammai##IJ##_adj[2][1][1] = paq->gamma##f1##_adj[2][1][1]*paq->gamma##f2##_adj[2][1][1] - paq->gamma##f3##_adj[2][1][1]*paq->gamma##f4##_adj[2][1][1];
 
+// extended points around faces
+#define BSSN_COMPUTE_LOCAL_GAMMAI_F2(IJ, f1, f2, f3, f4) \
+  paq->gammai##IJ##_adj_ext[0][0] = paq->gamma##f1##_adj_ext[0][0]*paq->gamma##f2##_adj_ext[0][0] - paq->gamma##f3##_adj_ext[0][0]*paq->gamma##f4##_adj_ext[0][0]; \
+  paq->gammai##IJ##_adj_ext[0][1] = paq->gamma##f1##_adj_ext[0][1]*paq->gamma##f2##_adj_ext[0][1] - paq->gamma##f3##_adj_ext[0][1]*paq->gamma##f4##_adj_ext[0][1]; \
+  paq->gammai##IJ##_adj_ext[1][0] = paq->gamma##f1##_adj_ext[1][0]*paq->gamma##f2##_adj_ext[1][0] - paq->gamma##f3##_adj_ext[1][0]*paq->gamma##f4##_adj_ext[1][0]; \
+  paq->gammai##IJ##_adj_ext[1][1] = paq->gamma##f1##_adj_ext[1][1]*paq->gamma##f2##_adj_ext[1][1] - paq->gamma##f3##_adj_ext[1][1]*paq->gamma##f4##_adj_ext[1][1]; \
+  paq->gammai##IJ##_adj_ext[2][0] = paq->gamma##f1##_adj_ext[2][0]*paq->gamma##f2##_adj_ext[2][0] - paq->gamma##f3##_adj_ext[2][0]*paq->gamma##f4##_adj_ext[2][0]; \
+  paq->gammai##IJ##_adj_ext[2][1] = paq->gamma##f1##_adj_ext[2][1]*paq->gamma##f2##_adj_ext[2][1] - paq->gamma##f3##_adj_ext[2][1]*paq->gamma##f4##_adj_ext[2][1];
+
 #define BSSN_CALCULATE_CHRISTOFFEL(I, J, K) paq->G##I##J##K = 0.5*( \
     paq->gammai##I##1 * (paq->d##J##g##K##1 + paq->d##K##g##J##1 - paq->d1g##J##K) + \
     paq->gammai##I##2 * (paq->d##J##g##K##2 + paq->d##K##g##J##2 - paq->d2g##J##K) + \
@@ -257,7 +266,7 @@
     paq->d##J##g##K##I + paq->d##K##g##J##I - paq->d##I##g##J##K \
   )
 
-#define BSSN_CALCULATE_DGAMMAI(I, J, K) paq->d##I##gi##J##K = der(paq->gammai##J##K##_adj, I);
+#define BSSN_CALCULATE_DGAMMAI(I, J, K) paq->d##I##gi##J##K = der_ext(paq->gammai##J##K##_adj, paq->gammai##J##K##_adj_ext, I);
 
 #define BSSN_CALCULATE_DGAMMA(I, J, K) paq->d##I##g##J##K = der_ext(paq->gamma##J##K##_adj, paq->gamma##J##K##_adj_ext, I);
 
@@ -444,6 +453,26 @@
       paq->gammai11*paq->A11 + paq->gammai22*paq->A22 + paq->gammai33*paq->A33 \
       + 2.0*(paq->gammai12*paq->A12 + paq->gammai13*paq->A13 + paq->gammai23*paq->A23) \
     ) \
+  )
+
+#define BSSN_MI_MAG(I) ( \
+    fabs(2.0/3.0*der_ext(paq->K_adj, paq->K_adj_ext, I) - 8*PI*paq->S##I) \
+    + 6.0*fabs( \
+      paq->gamma11*paq->A1##I*paq->d1phi + paq->gamma21*paq->A2##I*paq->d1phi + paq->gamma31*paq->A3##I*paq->d1phi \
+      + paq->gamma12*paq->A1##I*paq->d2phi + paq->gamma22*paq->A2##I*paq->d2phi + paq->gamma32*paq->A3##I*paq->d2phi \
+      + paq->gamma13*paq->A1##I*paq->d3phi + paq->gamma23*paq->A2##I*paq->d3phi + paq->gamma33*paq->A3##I*paq->d3phi \
+    ) + fabs( \
+      /* (gamma^jk D_j A_ki) */ \
+      paq->gammai11*der(paq->A1##I##_adj, 1) + paq->gammai12*der(paq->A1##I##_adj, 2) + paq->gammai13*der(paq->A1##I##_adj, 3) \
+      + paq->gammai21*der(paq->A2##I##_adj, 1) + paq->gammai22*der(paq->A2##I##_adj, 2) + paq->gammai23*der(paq->A2##I##_adj, 3) \
+      + paq->gammai31*der(paq->A3##I##_adj, 1) + paq->gammai32*der(paq->A3##I##_adj, 2) + paq->gammai33*der(paq->A3##I##_adj, 3) \
+      - paq->Gamma1*paq->A1##I - paq->Gamma2*paq->A2##I - paq->Gamma3*paq->A3##I \
+      - paq->GL11##I*paq->Acont11 - paq->GL22##I*paq->Acont22 - paq->GL33##I*paq->Acont33 \
+      - 2.0*(paq->GL12##I*paq->Acont12 + paq->GL13##I*paq->Acont13 + paq->GL23##I*paq->Acont23) \
+    ) + fabs(2.0*paq->d##I##phi*( \
+      paq->gammai11*paq->A11 + paq->gammai22*paq->A22 + paq->gammai33*paq->A33 \
+      + 2.0*(paq->gammai12*paq->A12 + paq->gammai13*paq->A13 + paq->gammai23*paq->A23) \
+    )) \
   )
 
 /*

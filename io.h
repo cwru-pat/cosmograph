@@ -2,6 +2,7 @@
 #define COSMO_UTILS_IO_H
 
 #include "cosmo.h"
+#include "io_data.h"
 
 #define LOG(log_fout, message) \
   std::cout << message; \
@@ -10,16 +11,6 @@
 
 namespace cosmo
 {
-
-typedef struct {
-  std::string output_dir;
-  std::string dump_file;
-  std::ofstream log;
-  idx_t slice_output_interval;
-  idx_t grid_output_interval;
-  idx_t meta_output_interval;
-  idx_t spec_output_interval;
-} IOData;
 
 void io_init(IOData *iodata, std::string output_dir);
 

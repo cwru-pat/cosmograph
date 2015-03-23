@@ -49,6 +49,8 @@ typedef struct {
   real_t gammai11, gammai12, gammai13, gammai22, gammai23, gammai33;
   real_t gammai11_adj[3][3][3], gammai12_adj[3][3][3], gammai13_adj[3][3][3],
          gammai22_adj[3][3][3], gammai23_adj[3][3][3], gammai33_adj[3][3][3];
+  real_t gammai11_adj_ext[3][2], gammai12_adj_ext[3][2], gammai13_adj_ext[3][2],
+         gammai22_adj_ext[3][2], gammai23_adj_ext[3][2], gammai33_adj_ext[3][2];
 
   // Christoffel symbols
   real_t G111, G112, G113, G122, G123, G133,

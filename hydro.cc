@@ -80,6 +80,13 @@ void Hydro::setPrimitivesCell(BSSNData *paq, HydroData *hdp)
     v3_a[idx] = paq->alpha / hdp->W * hdp->g * ( paq->gammai13*u1 + paq->gammai23*u2 + paq->gammai33*u3 ) - paq->beta3;
   }
 
+if(idx==640 || idx==INDEX(14,13,10)|| idx==INDEX(14,13,9))
+{
+  std::cout << "\n W  = " << hdp->W
+            << "\n UD = " << UD_a[idx]
+            << "\n";
+}
+
 }
 
 void Hydro::setFluxesCell(BSSNData *paq, HydroData *hdp)
@@ -266,10 +273,13 @@ void Hydro::evolveFluid(idx_t i, idx_t j, idx_t k)
 {
   idx_t idx = INDEX(i,j,k);
 
-  UD_f[idx] = UD_a[idx] + dt*(
+  /* semi-log scheme for density variable (enforces positivity) */
+  /* May need to check for UD_a being too small or zero? */
+  /* http://www.wccm-eccm-ecfd2014.org/admin/files/filePaper/p2390.pdf */
+  UD_f[idx] = exp(log(UD_a[idx]) + dt/UD_a[idx]*(
       FD_int_a[F_NP_INDEX(i,j,k,1)] + FD_int_a[F_NP_INDEX(i,j,k,2)] + FD_int_a[F_NP_INDEX(i,j,k,3)]
       - FD_int_a[F_INDEX(i-1,j,k,1)] - FD_int_a[F_INDEX(i,j-1,k,2)] - FD_int_a[F_INDEX(i,j,k-1,3)]
-    );
+    ));
 
   US1_f[idx] = US1_a[idx] + dt*(
       FS1_int_a[F_NP_INDEX(i,j,k,1)] + FS1_int_a[F_NP_INDEX(i,j,k,2)] + FS1_int_a[F_NP_INDEX(i,j,k,3)]

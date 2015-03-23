@@ -4,6 +4,7 @@
 #include <fftw3.h>
 #include <zlib.h>
 #include <string>
+#include <iostream>
 #include "../cosmo_macros.h"
 
 namespace cosmo
@@ -53,11 +54,11 @@ void Fourier::powerDump(RT *in, IOT *iodata)
   fftw_execute_dft_r2c(p_r2c, in, f_field);
 
   // average power over angles
-  RT array_out[(int)(1.73205*(N/2))+1];
-  int numpoints[(int)(1.73205*(N/2))+1]; // Number of points in each momentum bin
-  RT p[(int)(1.73205*(N/2))+1];
-  RT f2[(int)(1.73205*(N/2))+1]; // Values for each bin: Momentum, |F-k|^2, n_k
-  int numbins = (int)(1.73205*(N/2))+1; // Actual number of bins for the number of dimensions
+  const int numbins = (int)(1.74*(N/2.0))+1; // Actual number of bins
+  RT array_out[numbins];
+  int numpoints[numbins]; // Number of points in each momentum bin
+  RT p[numbins];
+  RT f2[numbins]; // Values for each bin: Momentum, |F-k|^2, n_k
 
   double pmagnitude; // Total momentum (p) in units of lattice spacing, pmagnitude = Sqrt(px^2+py^2+pz^2).
                      // This also gives the bin index since bin spacing is set to equal lattice spacing.
@@ -69,7 +70,7 @@ void Fourier::powerDump(RT *in, IOT *iodata)
     f2[i] = 0.0;
     numpoints[i] = 0;
   }
-    
+
   // Perform average over all angles here (~integral d\Omega).
   for(i=0; i<N; i++)
   {
@@ -92,9 +93,9 @@ void Fourier::powerDump(RT *in, IOT *iodata)
       fp2 = pw2(C_RE((f_field)[FFT_NP_INDEX(i,j,k)])) + pw2(C_IM((f_field)[FFT_NP_INDEX(i,j,k)]));
       numpoints[(int)pmagnitude] += 1;
       f2[(int)pmagnitude] += fp2;
-        
-      pz = POINTS/2;
-      k = POINTS/2;
+
+      pz = N/2;
+      k = N/2;
       pmagnitude = sqrt((RT) (pw2(px) + pw2(py) + pw2(pz)));
       fp2 = pw2(C_RE((f_field)[FFT_NP_INDEX(i,j,k)])) + pw2(C_IM((f_field)[FFT_NP_INDEX(i,j,k)]));
       numpoints[(int)pmagnitude] += 1;

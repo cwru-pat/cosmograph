@@ -89,6 +89,28 @@ inline real_t average(real_t *field)
   return sum/POINTS;
 }
 
+inline real_t volume_average(real_t *phi)
+{
+  real_t sum = 0.0; 
+  idx_t i, j, k;
+  LOOP3(i, j, k)
+  {
+    sum += exp(6.0*phi[NP_INDEX(i,j,k)]);
+  }
+  return sum/POINTS;
+}
+
+inline real_t conformal_average(real_t *field, real_t *phi)
+{
+  real_t sum = 0.0; 
+  idx_t i, j, k;
+  LOOP3(i, j, k)
+  {
+    sum += exp(6.0*phi[NP_INDEX(i,j,k)])*field[NP_INDEX(i,j,k)];
+  }
+  return sum/POINTS;
+}
+
 inline real_t average_lap(real_t *field)
 {
   // note this may have poor precision for large datasets

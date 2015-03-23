@@ -17,13 +17,13 @@ ICsData cosmo_get_ICsData()
   real_t peak_amplitude_frac = (real_t) stold(_config["peak_amplitude_frac"]); // fluctuation amplitude
   real_t peak_amplitude = icd.rho_K_matter*peak_amplitude_frac;
 
-  real_t ic_spec_cut_frac = (real_t) stold(_config["ic_spec_cut_frac"]); // power spectrum cutoff parameter
+  real_t ic_spec_cut = (real_t) stold(_config["ic_spec_cut"]); // power spectrum cutoff parameter
 
   /* (peak scale in hubble units) * (to pixel scale) */
   icd.peak_k = (1.0/0.07)*(length_scale/((real_t) N));
   icd.peak_amplitude = peak_amplitude; // figure out units here
-  icd.ic_spec_cut = N*ic_spec_cut_frac; // cut spectrum off around p ~ ic_spec_cut
-                                          // (max is p ~ sqrt(2.5)*N )
+  icd.ic_spec_cut = ic_spec_cut; // cut spectrum off around p ~ ic_spec_cut
+                                 // (max is p ~ sqrt(2.5)*N )
 
   return icd;
 }
@@ -71,7 +71,7 @@ void set_gaussian_random_field(real_t *field, Fourier *fourier, ICsData *icd)
         // Scale by power spectrum
         // don't want much power on scales smaller than ~2 pixels
         // Or scales p > 1/(3*dx), or p > N/3
-        real_t cutoff = 1.0/(1.0+exp(pmag - icd->ic_spec_cut));
+        real_t cutoff = 1.0/(1.0+exp(px - icd->ic_spec_cut)*exp(py - icd->ic_spec_cut)*exp(pz - icd->ic_spec_cut));
         scale = cutoff*sqrt(cosmo_power_spectrum(pmag, icd));
 
         // fftw transform is unnormalized; account for an N^3 here
@@ -95,7 +95,7 @@ void set_gaussian_random_field(real_t *field, Fourier *fourier, ICsData *icd)
 void set_conformal_ICs(
   std::map <std::string, real_t *> & bssn_fields,
   std::map <std::string, real_t *> & hydro_fields,
-  Fourier *fourier)
+  Fourier *fourier, IOData *iod)
 {
   idx_t i, j, k;
   real_t px, py, pz, p2i;
@@ -187,21 +187,19 @@ void set_conformal_ICs(
     real_t cden = hydro_fields["UD_a"][NP_INDEX(i,j,k)]*exp(5.0*bssn_fields["phi_p"][NP_INDEX(i,j,k)]);
     resid += fabs(grad2e + 2.0*PI*cden) / (fabs(grad2e) + fabs(2.0*PI*cden)); // should = 0
   }
-  std::cout << "Average fractional error residual  is: " << resid/POINTS << "\n";
+  LOG(iod->log, "Average fractional error residual  is: " << resid/POINTS << "\n");
 
   // Make sure min density value > 0
   real_t min = hydro_fields["UD_a"][NP_INDEX(0,0,0)] + icd.rho_K_matter;
   real_t max = min;
-  real_t oldrho;
 
   LOOP3(i,j,k)
   {
     hydro_fields["UD_a"][NP_INDEX(i,j,k)] += icd.rho_K_matter;
     hydro_fields["UD_a"][NP_INDEX(i,j,k)] *= exp(6.0*bssn_fields["phi_p"][NP_INDEX(i,j,k)]);
 
-    oldrho = pw2(bssn_fields["K_p"][NP_INDEX(i,j,k)])/24.0/PI;
-    bssn_fields["K_p"][NP_INDEX(i,j,k)] = -sqrt(24.0*PI*(icd.rho_K_matter+oldrho));
-    bssn_fields["K_f"][NP_INDEX(i,j,k)] = -sqrt(24.0*PI*(icd.rho_K_matter+oldrho));
+    bssn_fields["K_p"][NP_INDEX(i,j,k)] = -sqrt(24.0*PI*(icd.rho_K_matter));
+    bssn_fields["K_f"][NP_INDEX(i,j,k)] = -sqrt(24.0*PI*(icd.rho_K_matter));
 
     if(hydro_fields["UD_a"][NP_INDEX(i,j,k)] < min)
     {
@@ -213,21 +211,22 @@ void set_conformal_ICs(
     }
     if(hydro_fields["UD_a"][NP_INDEX(i,j,k)] != hydro_fields["UD_a"][NP_INDEX(i,j,k)])
     {
-      std::cout << "Error: NaN energy density.\n";
+      LOG(iod->log, "Error: NaN energy density.\n");
       throw -1;
     }
   }
 
-  std::cout << "Minimum fluid 'density': " << min << "\n";
-  std::cout << "Maximum fluid 'density': " << max << "\n";
-  std::cout << "Average fluid 'density': " << average(hydro_fields["UD_a"]) << "\n";
-  std::cout << "Std.dev fluid 'density': " << standard_deviation(hydro_fields["UD_a"]) << "\n";
+  LOG(iod->log, "Minimum fluid 'density': " << min << "\n");
+  LOG(iod->log, "Maximum fluid 'density': " << max << "\n");
+  LOG(iod->log, "Average fluid 'density': " << average(hydro_fields["UD_a"]) << "\n");
+  LOG(iod->log, "Std.dev fluid 'density': " << standard_deviation(hydro_fields["UD_a"]) << "\n");
   if(min < 0.0) {
-    std::cout << "Error: negative density in some regions.\n";
+    LOG(iod->log, "Error: negative density in some regions.\n");
     throw -1;
   }
 
   // Add in cosmological constant
+  real_t oldrho;
   LOOP3(i,j,k)
   {
     oldrho = pw2(bssn_fields["K_p"][NP_INDEX(i,j,k)])/24.0/PI;
@@ -240,7 +239,7 @@ void set_conformal_ICs(
 void set_flat_dynamic_ICs(
   std::map <std::string, real_t *> & bssn_fields,
   std::map <std::string, real_t *> & hydro_fields,
-  Fourier *fourier)
+  Fourier *fourier, IOData *iod)
 {
   idx_t i, j, k;
   ICsData icd = cosmo_get_ICsData();
@@ -268,17 +267,17 @@ void set_flat_dynamic_ICs(
     }
     if(hydro_fields["UD_a"][NP_INDEX(i,j,k)] != hydro_fields["UD_a"][NP_INDEX(i,j,k)])
     {
-      std::cout << "Error: NaN energy density.\n";
+      LOG(iod->log, "Error: NaN energy density.\n");
       throw -1;
     }
   }
 
-  std::cout << "Minimum fluid density: " << min << "\n";
-  std::cout << "Maximum fluid density: " << max << "\n";
-  std::cout << "Average fluid density: " << average(hydro_fields["UD_a"]) << "\n";
-  std::cout << "Std.dev fluid density: " << standard_deviation(hydro_fields["UD_a"]) << "\n";
+  LOG(iod->log, "Minimum fluid density: " << min << "\n");
+  LOG(iod->log, "Maximum fluid density: " << max << "\n");
+  LOG(iod->log, "Average fluid density: " << average(hydro_fields["UD_a"]) << "\n");
+  LOG(iod->log, "Std.dev fluid density: " << standard_deviation(hydro_fields["UD_a"]) << "\n");
   if(min < 0.0) {
-    std::cout << "Error: negative density in some regions.\n";
+    LOG(iod->log, "Error: negative density in some regions.\n");
     throw -1;
   }
 
@@ -305,7 +304,7 @@ void set_flat_dynamic_ICs(
 void set_flat_static_ICs(
   std::map <std::string, real_t *> & bssn_fields,
   std::map <std::string, real_t *> & hydro_fields,
-  Fourier *fourier)
+  Fourier *fourier, IOData *iod)
 {
   idx_t i, j, k;
 

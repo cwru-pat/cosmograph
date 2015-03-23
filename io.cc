@@ -72,6 +72,11 @@ void io_data_dump(std::map <std::string, real_t *> & bssn_fields,
     io_dump_3dslice(hydro_fields["US1_a"],    "US1."     + std::to_string(step), iodata);
     io_dump_3dslice(hydro_fields["US2_a"],    "US2."     + std::to_string(step), iodata);
     io_dump_3dslice(hydro_fields["US3_a"],    "US3."     + std::to_string(step), iodata);
+
+    io_dump_3dslice(bssn_fields["r_a"],       "r_a."     + std::to_string(step), iodata);
+    io_dump_3dslice(hydro_fields["UD_f"],     "UD_f."    + std::to_string(step), iodata);
+    io_dump_3dslice(bssn_fields["K_a"],       "K_a."     + std::to_string(step), iodata);
+    io_dump_3dslice(bssn_fields["phi_a"],     "phi_a."   + std::to_string(step), iodata);
   }
   if(step % iodata->spec_output_interval == 0)
   {
@@ -261,6 +266,22 @@ void io_dump_averages(std::map <std::string, real_t *> & bssn_fields,
 
   // average UD
   sprintf(data, "%g\t", average(hydro_fields["UD_a"]));
+  gzwrite(datafile, data, strlen(data));
+
+  // average phi
+  sprintf(data, "%g\t", conformal_average(bssn_fields["phi_a"], bssn_fields["phi_a"]));
+  gzwrite(datafile, data, strlen(data));
+
+  // average K
+  sprintf(data, "%g\t", conformal_average(bssn_fields["K_a"], bssn_fields["phi_a"]));
+  gzwrite(datafile, data, strlen(data));
+
+  // average UD
+  sprintf(data, "%g\t", conformal_average(hydro_fields["UD_a"], bssn_fields["phi_a"]));
+  gzwrite(datafile, data, strlen(data));
+
+  // average volume
+  sprintf(data, "%g\t", volume_average(bssn_fields["phi_a"]));
   gzwrite(datafile, data, strlen(data));
 
   gzwrite(datafile, "\n", strlen("\n"));
