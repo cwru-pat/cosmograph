@@ -310,4 +310,35 @@ void set_flat_static_ICs(
 
 }
 
+
+void set_shock_ICs(
+  std::map <std::string, real_t *> & bssn_fields,
+  std::map <std::string, real_t *> & hydro_fields,
+  Fourier *fourier, IOData *iod)
+{
+  idx_t i, j, k;
+
+  std::random_device rd;
+  std::mt19937 gen(7.0 /*rd()*/);
+  std::normal_distribution<real_t> distribution;
+  distribution(gen); // calling this here suppresses a warning (bug)
+
+  LOOP3(i,j,k)
+  {
+    hydro_fields["UD_a"][NP_INDEX(i,j,k)] = 1.0 + 0.00001*distribution(gen);
+    hydro_fields["US2_a"][NP_INDEX(i,j,k)] = 0.0;
+    hydro_fields["US3_a"][NP_INDEX(i,j,k)] = 0.0;
+
+    // Lorentzian:
+    hydro_fields["US1_a"][NP_INDEX(i,j,k)] = 0.001*1.0/(1.0 + pw2((i - N/2.0)/(N/4.0)));
+
+    // // Tophat:
+    // hydro_fields["US1_a"][NP_INDEX(i,j,k)] = 0.0;
+    // if(i>5 && i<15)
+    // {
+    //   hydro_fields["US1_a"][NP_INDEX(i,j,k)] = 0.001;
+    // }
+  }
+}
+
 } // namespace cosmo

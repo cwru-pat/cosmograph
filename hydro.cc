@@ -79,14 +79,6 @@ void Hydro::setPrimitivesCell(BSSNData *paq, HydroData *hdp)
     v2_a[idx] = paq->alpha / hdp->W * hdp->g * ( paq->gammai12*u1 + paq->gammai22*u2 + paq->gammai23*u3 ) - paq->beta2;
     v3_a[idx] = paq->alpha / hdp->W * hdp->g * ( paq->gammai13*u1 + paq->gammai23*u2 + paq->gammai33*u3 ) - paq->beta3;
   }
-
-if(idx==640 || idx==INDEX(14,13,10)|| idx==INDEX(14,13,9))
-{
-  std::cout << "\n W  = " << hdp->W
-            << "\n UD = " << UD_a[idx]
-            << "\n";
-}
-
 }
 
 void Hydro::setFluxesCell(BSSNData *paq, HydroData *hdp)
@@ -178,7 +170,7 @@ void Hydro::setOneFluxInt(idx_t i, idx_t j, idx_t k, int d, real_t *U_ARR,
 
   // 1) 
   // determine direction of prop. across interface (Roe speed)
-  // => determines direction to take stencils across
+  // => determines direction to take stencils
   real_t a = SIGN( (F_ARR[f_idx] - F_ARR[f_idx_p1])
              / (U_ARR[u_idx] - U_ARR[u_idx_p1]) );
 
@@ -187,7 +179,7 @@ void Hydro::setOneFluxInt(idx_t i, idx_t j, idx_t k, int d, real_t *U_ARR,
   // is determined depending on the sign of `a'
 
   p1 = -F_ARR[f_idx_m1]/6.0 + 5.0/6.0*F_ARR[f_idx] + F_ARR[f_idx_p1]/3.0;
-  p2 = F_ARR[f_idx]/3.0 + 5.0/6.0*F_ARR[f_idx_p1] + -F_ARR[f_idx_p2]/3.0;
+  p2 = F_ARR[f_idx]/3.0 + 5.0/6.0*F_ARR[f_idx_p1] + -F_ARR[f_idx_p2]/6.0;
 
   if(a > 0.0)
   {
@@ -199,20 +191,22 @@ void Hydro::setOneFluxInt(idx_t i, idx_t j, idx_t k, int d, real_t *U_ARR,
   }
 
   // 3) calculate "smoothness" indicators
-  b1 = 13.0/12.0 * pw2(F_ARR[f_idx_m1] - 2.0*F_ARR[f_idx] + F_ARR[f_idx_p1])
-       + 1.0/4.0 * pw2(3.0*F_ARR[f_idx_m1] - F_ARR[f_idx_p1]);
-  b2 = 13.0/12.0 * pw2(F_ARR[f_idx] - 2.0*F_ARR[f_idx_p1] + F_ARR[f_idx_p2])
-       + 1.0/4.0 * pw2(F_ARR[f_idx] - 4.0*F_ARR[f_idx_p1] - F_ARR[f_idx_p2]);
+  b1 = 13.0/12.0 * pw2(F_ARR[f_idx_m1] - 2.0*F_ARR[f_idx] + F_ARR[f_idx_p1]);
+  b2 = 13.0/12.0 * pw2(F_ARR[f_idx] - 2.0*F_ARR[f_idx_p1] + F_ARR[f_idx_p2]);
 
   if(a > 0.0)
   {
     b0 = 13.0/12.0 * pw2(F_ARR[f_idx_m2] - 2.0*F_ARR[f_idx_m1] + F_ARR[f_idx])
        + 1.0/4.0 * pw2(3.0*F_ARR[f_idx_m2] - 4.0*F_ARR[f_idx_m1] + F_ARR[f_idx]);
+    b1 += 1.0/4.0 * pw2(3.0*F_ARR[f_idx_m1] - F_ARR[f_idx_p1]);
+    b2 += 1.0/4.0 * pw2(F_ARR[f_idx] - 4.0*F_ARR[f_idx_p1] + F_ARR[f_idx_p2]);
   }
   else
   {
-     b0 = 13.0/12.0 * pw2(F_ARR[f_idx_p3] - 2.0*F_ARR[f_idx_p2] + F_ARR[f_idx_p1])
+    b0 = 13.0/12.0 * pw2(F_ARR[f_idx_p3] - 2.0*F_ARR[f_idx_p2] + F_ARR[f_idx_p1])
        + 1.0/4.0 * pw2(3.0*F_ARR[f_idx_p3] - 4.0*F_ARR[f_idx_p2] + F_ARR[f_idx_p1]);
+    b1 += 1.0/4.0 * pw2(F_ARR[f_idx_p1] - 4.0*F_ARR[f_idx] + F_ARR[f_idx_m1]);
+    b2 += 1.0/4.0 * pw2(3.0*F_ARR[f_idx_p2] - F_ARR[f_idx]);
   }
 
   // initial 5th-order accurate weights
@@ -240,7 +234,7 @@ void Hydro::setOneFluxInt(idx_t i, idx_t j, idx_t k, int d, real_t *U_ARR,
 
   // Final flux
   real_t flux;
-  flux = w1*p1 + w1*p2 + w0*p0;
+  flux = w1*p1 + w2*p2 + w0*p0;
 
   F_ARR_INT[f_idx] = flux;
 
@@ -276,22 +270,22 @@ void Hydro::evolveFluid(idx_t i, idx_t j, idx_t k)
   /* semi-log scheme for density variable (enforces positivity) */
   /* May need to check for UD_a being too small or zero? */
   /* http://www.wccm-eccm-ecfd2014.org/admin/files/filePaper/p2390.pdf */
-  UD_f[idx] = exp(log(UD_a[idx]) + dt/UD_a[idx]*(
+  UD_f[idx] = exp(log(UD_a[idx]) - dt/dx/dx/UD_a[idx]*(
       FD_int_a[F_NP_INDEX(i,j,k,1)] + FD_int_a[F_NP_INDEX(i,j,k,2)] + FD_int_a[F_NP_INDEX(i,j,k,3)]
       - FD_int_a[F_INDEX(i-1,j,k,1)] - FD_int_a[F_INDEX(i,j-1,k,2)] - FD_int_a[F_INDEX(i,j,k-1,3)]
     ));
 
-  US1_f[idx] = US1_a[idx] + dt*(
+  US1_f[idx] = US1_a[idx] - dt/dx/dx*(
       FS1_int_a[F_NP_INDEX(i,j,k,1)] + FS1_int_a[F_NP_INDEX(i,j,k,2)] + FS1_int_a[F_NP_INDEX(i,j,k,3)]
       - FS1_int_a[F_INDEX(i-1,j,k,1)] - FS1_int_a[F_INDEX(i,j-1,k,2)] - FS1_int_a[F_INDEX(i,j,k-1,3)]
     );
 
-  US2_f[idx] = US2_a[idx] + dt*(
+  US2_f[idx] = US2_a[idx] - dt/dx/dx*(
       FS2_int_a[F_NP_INDEX(i,j,k,1)] + FS2_int_a[F_NP_INDEX(i,j,k,2)] + FS2_int_a[F_NP_INDEX(i,j,k,3)]
       - FS2_int_a[F_INDEX(i-1,j,k,1)] - FS2_int_a[F_INDEX(i,j-1,k,2)] - FS2_int_a[F_INDEX(i,j,k-1,3)]
     );
 
-  US3_f[idx] = US3_a[idx] + dt*(
+  US3_f[idx] = US3_a[idx] - dt/dx/dx*(
       FS3_int_a[F_NP_INDEX(i,j,k,1)] + FS3_int_a[F_NP_INDEX(i,j,k,2)] + FS3_int_a[F_NP_INDEX(i,j,k,3)]
       - FS3_int_a[F_INDEX(i-1,j,k,1)] - FS3_int_a[F_INDEX(i,j-1,k,2)] - FS3_int_a[F_INDEX(i,j,k-1,3)]
     );

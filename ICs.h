@@ -31,6 +31,11 @@ void set_flat_static_ICs(
   std::map <std::string, real_t *> & hydro_fields,
   Fourier *fourier, IOData *iod);
 
+void set_shock_ICs(
+  std::map <std::string, real_t *> & bssn_fields,
+  std::map <std::string, real_t *> & hydro_fields,
+  Fourier *fourier, IOData *iod);
+
 } // namespace cosmo
 
 #endif

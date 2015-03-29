@@ -356,33 +356,33 @@ void BSSN::init()
     idx = NP_INDEX(i,j,k);
 
     // default flat static vacuum spacetime.
-    gamma11_p[idx]  = gamma11_f[idx]  = 1.0;
-    gamma12_p[idx]  = gamma12_f[idx]  = 0.0;
-    gamma13_p[idx]  = gamma13_f[idx]  = 0.0;
-    gamma22_p[idx]  = gamma22_f[idx]  = 1.0;
-    gamma23_p[idx]  = gamma23_f[idx]  = 0.0;
-    gamma33_p[idx]  = gamma33_f[idx]  = 1.0;
+    gamma11_p[idx] = gamma11_a[idx] = gamma11_c[idx] = gamma11_f[idx]  = 1.0;
+    gamma12_p[idx] = gamma12_a[idx] = gamma12_c[idx] = gamma12_f[idx]  = 0.0;
+    gamma13_p[idx] = gamma13_a[idx] = gamma13_c[idx] = gamma13_f[idx]  = 0.0;
+    gamma22_p[idx] = gamma22_a[idx] = gamma22_c[idx] = gamma22_f[idx]  = 1.0;
+    gamma23_p[idx] = gamma23_a[idx] = gamma23_c[idx] = gamma23_f[idx]  = 0.0;
+    gamma33_p[idx] = gamma33_a[idx] = gamma33_c[idx] = gamma33_f[idx]  = 1.0;
     
-    phi_p[idx]      = phi_f[idx]      = 0.0;
+    phi_p[idx]     = phi_a[idx]     = phi_c[idx]     = phi_f[idx]      = 0.0;
     
-    A11_p[idx]      = A11_f[idx]      = 0.0;
-    A12_p[idx]      = A12_f[idx]      = 0.0;
-    A13_p[idx]      = A13_f[idx]      = 0.0;
-    A22_p[idx]      = A22_f[idx]      = 0.0;
-    A23_p[idx]      = A23_f[idx]      = 0.0;
-    A33_p[idx]      = A33_f[idx]      = 0.0;
+    A11_p[idx]     = A11_a[idx]     = A11_c[idx]     = A11_f[idx]      = 0.0;
+    A12_p[idx]     = A12_a[idx]     = A12_c[idx]     = A12_f[idx]      = 0.0;
+    A13_p[idx]     = A13_a[idx]     = A13_c[idx]     = A13_f[idx]      = 0.0;
+    A22_p[idx]     = A22_a[idx]     = A22_c[idx]     = A22_f[idx]      = 0.0;
+    A23_p[idx]     = A23_a[idx]     = A23_c[idx]     = A23_f[idx]      = 0.0;
+    A33_p[idx]     = A33_a[idx]     = A33_c[idx]     = A33_f[idx]      = 0.0;
 
-    K_p[idx]        = K_f[idx]        = 0.0;
+    K_p[idx]       = K_a[idx]       = K_c[idx]       = K_f[idx]        = 0.0;
 
-    Gamma1_p[idx]   = Gamma1_f[idx]   = 0.0;
-    Gamma2_p[idx]   = Gamma2_f[idx]   = 0.0;
-    Gamma3_p[idx]   = Gamma3_f[idx]   = 0.0;
+    Gamma1_p[idx]  = Gamma1_a[idx]  = Gamma1_c[idx]  = Gamma1_f[idx]   = 0.0;
+    Gamma2_p[idx]  = Gamma2_a[idx]  = Gamma2_c[idx]  = Gamma2_f[idx]   = 0.0;
+    Gamma3_p[idx]  = Gamma3_a[idx]  = Gamma3_c[idx]  = Gamma3_f[idx]   = 0.0;
 
-    beta1_p[idx]    = beta1_f[idx]    = 0.0;
-    beta2_p[idx]    = beta2_f[idx]    = 0.0;
-    beta3_p[idx]    = beta3_f[idx]    = 0.0;
+    beta1_p[idx]   = beta1_a[idx]   = beta1_c[idx]   = beta1_f[idx]    = 0.0;
+    beta2_p[idx]   = beta2_a[idx]   = beta2_c[idx]   = beta2_f[idx]    = 0.0;
+    beta3_p[idx]   = beta3_a[idx]   = beta3_c[idx]   = beta3_f[idx]    = 0.0;
 
-    alpha_p[idx]    = alpha_f[idx]    = 1.0;
+    alpha_p[idx]   = alpha_a[idx]   = alpha_c[idx]   = alpha_f[idx]    = 1.0;
 
     r_a[idx]        = 0.0;
     S_a[idx]        = 0.0;
