@@ -175,69 +175,60 @@ void Hydro::setOneFluxInt(idx_t i, idx_t j, idx_t k, int d, real_t *U_ARR,
              / (U_ARR[u_idx] - U_ARR[u_idx_p1]) );
 
   // 2) 
-  // Two stencils are always the same; then one upwind stencil
-  // is determined depending on the sign of `a'
-
-  p1 = -F_ARR[f_idx_m1]/6.0 + 5.0/6.0*F_ARR[f_idx] + F_ARR[f_idx_p1]/3.0;
-  p2 = F_ARR[f_idx]/3.0 + 5.0/6.0*F_ARR[f_idx_p1] + -F_ARR[f_idx_p2]/6.0;
-
+  // stencils are determined by the sign of `a' (mirror images of each other)
   if(a > 0.0)
   {
     p0 = F_ARR[f_idx_m2]/3.0 - 7.0/6.0*F_ARR[f_idx_m1] + 11.0/6.0*F_ARR[f_idx];
+    p1 = -F_ARR[f_idx_m1]/6.0 + 5.0/6.0*F_ARR[f_idx] + F_ARR[f_idx_p1]/3.0;
+    p2 = F_ARR[f_idx]/3.0 + 5.0/6.0*F_ARR[f_idx_p1] - F_ARR[f_idx_p2]/6.0;
   }
   else
   {
     p0 = F_ARR[f_idx_p3]/3.0 - 7.0/6.0*F_ARR[f_idx_p2] + 11.0/6.0*F_ARR[f_idx_p1];
+    p1 = -F_ARR[f_idx_p2]/6.0 + 5.0/6.0*F_ARR[f_idx_p1] + F_ARR[f_idx]/3.0;
+    p2 = F_ARR[f_idx_p1]/3.0 + 5.0/6.0*F_ARR[f_idx] - F_ARR[f_idx_m1]/6.0;
   }
 
   // 3) calculate "smoothness" indicators
-  b1 = 13.0/12.0 * pw2(F_ARR[f_idx_m1] - 2.0*F_ARR[f_idx] + F_ARR[f_idx_p1]);
-  b2 = 13.0/12.0 * pw2(F_ARR[f_idx] - 2.0*F_ARR[f_idx_p1] + F_ARR[f_idx_p2]);
-
   if(a > 0.0)
   {
     b0 = 13.0/12.0 * pw2(F_ARR[f_idx_m2] - 2.0*F_ARR[f_idx_m1] + F_ARR[f_idx])
-       + 1.0/4.0 * pw2(3.0*F_ARR[f_idx_m2] - 4.0*F_ARR[f_idx_m1] + F_ARR[f_idx]);
-    b1 += 1.0/4.0 * pw2(3.0*F_ARR[f_idx_m1] - F_ARR[f_idx_p1]);
-    b2 += 1.0/4.0 * pw2(F_ARR[f_idx] - 4.0*F_ARR[f_idx_p1] + F_ARR[f_idx_p2]);
+         + 1.0/4.0 * pw2(3.0*F_ARR[f_idx_m2] - 4.0*F_ARR[f_idx_m1] + F_ARR[f_idx]);
+    b1 = 13.0/12.0 * pw2(F_ARR[f_idx_m1] - 2.0*F_ARR[f_idx] + F_ARR[f_idx_p1])
+         + 1.0/4.0 * pw2(3.0*F_ARR[f_idx_m1] - F_ARR[f_idx_p1]);
+    b2 = 13.0/12.0 * pw2(F_ARR[f_idx] - 2.0*F_ARR[f_idx_p1] + F_ARR[f_idx_p2])
+         + 1.0/4.0 * pw2(F_ARR[f_idx] - 4.0*F_ARR[f_idx_p1] + F_ARR[f_idx_p2]);
   }
   else
   {
     b0 = 13.0/12.0 * pw2(F_ARR[f_idx_p3] - 2.0*F_ARR[f_idx_p2] + F_ARR[f_idx_p1])
-       + 1.0/4.0 * pw2(3.0*F_ARR[f_idx_p3] - 4.0*F_ARR[f_idx_p2] + F_ARR[f_idx_p1]);
-    b1 += 1.0/4.0 * pw2(F_ARR[f_idx_p1] - 4.0*F_ARR[f_idx] + F_ARR[f_idx_m1]);
-    b2 += 1.0/4.0 * pw2(3.0*F_ARR[f_idx_p2] - F_ARR[f_idx]);
+         + 1.0/4.0 * pw2(3.0*F_ARR[f_idx_p3] - 4.0*F_ARR[f_idx_p2] + F_ARR[f_idx_p1]);
+    b1 = 13.0/12.0 * pw2(F_ARR[f_idx_p2] - 2.0*F_ARR[f_idx_p1] + F_ARR[f_idx])
+         + 1.0/4.0 * pw2(3.0*F_ARR[f_idx_p2] - F_ARR[f_idx]);
+    b2 = 13.0/12.0 * pw2(F_ARR[f_idx_p1] - 2.0*F_ARR[f_idx] + F_ARR[f_idx_m1])
+         + 1.0/4.0 * pw2(F_ARR[f_idx_p1] - 4.0*F_ARR[f_idx] + F_ARR[f_idx_m1]);
   }
 
   // initial 5th-order accurate weights
-  if(a > 0.0)
-  {
-    g1 = 0.6;
-    g2 = 0.3;
-  }
-  else
-  {
-    g1 = 0.3;
-    g2 = 0.6;
-  }
   g0 = 0.1;
+  g1 = 0.6;
+  g2 = 0.3;
 
   // nonlinear weights:
-  ebtot2 = pw2(EPS + b1) + pw2(EPS + b2) + pw2(EPS + b0);
+  ebtot2 = pw2(EPS + b0) + pw2(EPS + b1) + pw2(EPS + b2);
+  w0 = g0 / ebtot2;
   w1 = g1 / ebtot2;
   w2 = g2 / ebtot2;
-  w0 = g0 / ebtot2;
-  wtot = w1 + w2 + w0;
+  wtot = w0 + w1 + w2;
+  w0 /= wtot;
   w1 /= wtot;
   w2 /= wtot;
-  w0 /= wtot;
 
   // Final flux
   real_t flux;
-  flux = w1*p1 + w2*p2 + w0*p0;
+  flux = w0*p0 + w1*p1 + w2*p2;
 
   F_ARR_INT[f_idx] = flux;
-
 }
   
 void Hydro::setAllFluxInt(idx_t i, idx_t j, idx_t k)
