@@ -261,22 +261,22 @@ void Hydro::evolveFluid(idx_t i, idx_t j, idx_t k)
   /* semi-log scheme for density variable (enforces positivity) */
   /* May need to check for UD_a being too small or zero? */
   /* http://www.wccm-eccm-ecfd2014.org/admin/files/filePaper/p2390.pdf */
-  UD_f[idx] = exp(log(UD_a[idx]) - dt/dx/dx/UD_a[idx]*(
+  UD_f[idx] = (UD_a[idx] + dt/dx/dx/UD_a[idx]*(
       FD_int_a[F_NP_INDEX(i,j,k,1)] + FD_int_a[F_NP_INDEX(i,j,k,2)] + FD_int_a[F_NP_INDEX(i,j,k,3)]
       - FD_int_a[F_INDEX(i-1,j,k,1)] - FD_int_a[F_INDEX(i,j-1,k,2)] - FD_int_a[F_INDEX(i,j,k-1,3)]
     ));
 
-  US1_f[idx] = US1_a[idx] - dt/dx/dx*(
+  US1_f[idx] = US1_a[idx] + dt/dx/dx*(
       FS1_int_a[F_NP_INDEX(i,j,k,1)] + FS1_int_a[F_NP_INDEX(i,j,k,2)] + FS1_int_a[F_NP_INDEX(i,j,k,3)]
       - FS1_int_a[F_INDEX(i-1,j,k,1)] - FS1_int_a[F_INDEX(i,j-1,k,2)] - FS1_int_a[F_INDEX(i,j,k-1,3)]
     );
 
-  US2_f[idx] = US2_a[idx] - dt/dx/dx*(
+  US2_f[idx] = US2_a[idx] + dt/dx/dx*(
       FS2_int_a[F_NP_INDEX(i,j,k,1)] + FS2_int_a[F_NP_INDEX(i,j,k,2)] + FS2_int_a[F_NP_INDEX(i,j,k,3)]
       - FS2_int_a[F_INDEX(i-1,j,k,1)] - FS2_int_a[F_INDEX(i,j-1,k,2)] - FS2_int_a[F_INDEX(i,j,k-1,3)]
     );
 
-  US3_f[idx] = US3_a[idx] - dt/dx/dx*(
+  US3_f[idx] = US3_a[idx] + dt/dx/dx*(
       FS3_int_a[F_NP_INDEX(i,j,k,1)] + FS3_int_a[F_NP_INDEX(i,j,k,2)] + FS3_int_a[F_NP_INDEX(i,j,k,3)]
       - FS3_int_a[F_INDEX(i-1,j,k,1)] - FS3_int_a[F_INDEX(i,j-1,k,2)] - FS3_int_a[F_INDEX(i,j,k-1,3)]
     );
