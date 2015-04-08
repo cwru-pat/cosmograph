@@ -325,12 +325,12 @@ void set_shock_ICs(
 
   LOOP3(i,j,k)
   {
-    hydro_fields["UD_a"][NP_INDEX(i,j,k)] = 1.0 + 0.00001*distribution(gen);
-    hydro_fields["US2_a"][NP_INDEX(i,j,k)] = 0.0;
-    hydro_fields["US3_a"][NP_INDEX(i,j,k)] = 0.0;
+    hydro_fields["UD_a"][INDEX(i,j,k)] = 0.0;//10.05 + 0.00001*distribution(gen);
+    hydro_fields["US2_a"][INDEX(i,j,k)] = 0.0;
+    hydro_fields["US3_a"][INDEX(i,j,k)] = 0.0;
 
     // Lorentzian:
-    hydro_fields["US1_a"][NP_INDEX(i,j,k)] = 0.1*1.0/(1.0 + pw2((i - N/2.0)/(N/4.0)));
+    hydro_fields["US1_a"][INDEX(i,j,k)] = 0.01/(1.0 + pw2((i - N/2.0)/(N/4.0)));
 
     // // Tophat:
     // hydro_fields["US1_a"][NP_INDEX(i,j,k)] = 0.0;

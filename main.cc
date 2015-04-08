@@ -45,7 +45,7 @@ int main(int argc, char **argv)
     frw.addFluid(0.5, 0.0);
 
     // Fluid fields
-    Hydro hydroSim (0.0/3.0); // fluid with some w_EOS
+    Hydro hydroSim; // w=0 fluid
     HydroData h_paq = {0};
     hydroSim.init();
     // DE

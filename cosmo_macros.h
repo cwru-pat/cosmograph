@@ -4,7 +4,7 @@
 #define N 32
 #define POINTS (N*N*N)
 #define dx 1.0
-#define dt (0.2*dx)
+#define dt (0.05*dx)
 
 // WENO "epsilon" parameter
 #define EPS 0.0001
@@ -22,9 +22,9 @@
 // indexing without periodicity
 #define NP_INDEX(i,j,k) (N*N*(i) + N*(j) + (k))
 // indexing of flux arrays; indexes cell boundaries with 'd' = 1,2,3, using periodic BCs
-#define F_INDEX(i,j,k,d) (((i+N)%N)*N*N*3 + ((j+N)%N)*N*3 + ((k+N)%N)*3 + (d+2)%3 )
+#define F_INDEX(i,j,k,d) ( ((i+N)%N)*N*N*3 + ((j+N)%N)*N*3 + ((k+N)%N)*3 + (d+5)%3 )
 // non-periodic indexing of flux arrays; indexes cell boundaries with 'd' = 1,2,3
-#define F_NP_INDEX(i,j,k,d) ((i)*N*N*3 + (j)*N*3 + (k)*3 + (d+2)%3 )
+#define F_NP_INDEX(i,j,k,d) ( (i)*N*N*3 + (j)*N*3 + (k)*3 + (d+5)%3 )
 // FFT indexing
 #define FFT_INDEX(i,j,k) ((N/2+1)*N*((i+N)%N) + (N/2+1)*((j+N)%N) + ((k+N)%N))
 // FFT indexing without periodicity

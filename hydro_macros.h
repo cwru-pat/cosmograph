@@ -1,7 +1,7 @@
 #ifndef HYDRO_MACROS
 #define HYDRO_MACROS
 
-// No \tau term needed; P = w \rho EOS.
+// No \tau term needed; P = 0.
 
 #define HYDRO_APPLY_TO_FIELDS(function) \
     /* conserved quantities */          \
@@ -45,17 +45,17 @@
 // T^ab * g_ab,j source term in fluid EOM
 
 #define TABGAB_J(j)  (                                                       \
-      paq->d##j##m00 * ( uu_fac + w_EOS*paq->m00 )                           \
-      + paq->d##j##m11 * ( uu_fac*v1_a[idx]*v1_a[idx] + w_EOS*paq->m11 )     \
-      + paq->d##j##m22 * ( uu_fac*v2_a[idx]*v2_a[idx] + w_EOS*paq->m22 )     \
-      + paq->d##j##m33 * ( uu_fac*v3_a[idx]*v3_a[idx] + w_EOS*paq->m33 )     \
+      paq->d##j##m00 * ( uu_fac )                           \
+      + paq->d##j##m11 * ( uu_fac*v1_a[idx]*v1_a[idx] )     \
+      + paq->d##j##m22 * ( uu_fac*v2_a[idx]*v2_a[idx] )     \
+      + paq->d##j##m33 * ( uu_fac*v3_a[idx]*v3_a[idx] )     \
       + 2.0*(                                                                \
-          + paq->d##j##m01 * ( uu_fac*v1_a[idx] + w_EOS*paq->m01 )           \
-          + paq->d##j##m02 * ( uu_fac*v2_a[idx] + w_EOS*paq->m02 )           \
-          + paq->d##j##m03 * ( uu_fac*v3_a[idx] + w_EOS*paq->m03 )           \
-          + paq->d##j##m12 * ( uu_fac*v1_a[idx]*v2_a[idx] + w_EOS*paq->m12 ) \
-          + paq->d##j##m13 * ( uu_fac*v1_a[idx]*v3_a[idx] + w_EOS*paq->m13 ) \
-          + paq->d##j##m23 * ( uu_fac*v2_a[idx]*v3_a[idx] + w_EOS*paq->m23 ) \
+          + paq->d##j##m01 * ( uu_fac*v1_a[idx] )           \
+          + paq->d##j##m02 * ( uu_fac*v2_a[idx] )           \
+          + paq->d##j##m03 * ( uu_fac*v3_a[idx] )           \
+          + paq->d##j##m12 * ( uu_fac*v1_a[idx]*v2_a[idx] ) \
+          + paq->d##j##m13 * ( uu_fac*v1_a[idx]*v3_a[idx] ) \
+          + paq->d##j##m23 * ( uu_fac*v2_a[idx]*v3_a[idx] ) \
         )                                                                    \
     )
 

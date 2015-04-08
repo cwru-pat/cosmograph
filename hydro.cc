@@ -3,82 +3,30 @@
 namespace cosmo
 {
 
-Hydro::Hydro(real_t w)
+Hydro::Hydro()
 {
-  w_EOS = w;
+  // w=0 fluid *only* for now.
+  // only works in synchronous gauge too.
 
   HYDRO_APPLY_TO_FIELDS(GEN2_ARRAY_ALLOC)
   HYDRO_APPLY_TO_FLUXES(FLUX_ARRAY_ALLOC)
-  HYDRO_APPLY_TO_SOURCES(GEN1_ARRAY_ALLOC)
-  HYDRO_APPLY_TO_PRIMITIVES(GEN1_ARRAY_ALLOC)
   HYDRO_APPLY_TO_FLUXES_INT(FLUX_ARRAY_ALLOC)
 
   HYDRO_APPLY_TO_FIELDS(GEN2_ARRAY_ADDMAP)
   HYDRO_APPLY_TO_FLUXES(FLUX_ARRAY_ADDMAP)
-  HYDRO_APPLY_TO_SOURCES(GEN1_ARRAY_ADDMAP)
-  HYDRO_APPLY_TO_PRIMITIVES(GEN1_ARRAY_ADDMAP)
   HYDRO_APPLY_TO_FLUXES_INT(FLUX_ARRAY_ADDMAP)
-
 }
 
 Hydro::~Hydro()
 {
   HYDRO_APPLY_TO_FIELDS(GEN2_ARRAY_DELETE)
   HYDRO_APPLY_TO_FLUXES(FLUX_ARRAY_DELETE)
-  HYDRO_APPLY_TO_SOURCES(GEN1_ARRAY_DELETE)
-  HYDRO_APPLY_TO_PRIMITIVES(GEN1_ARRAY_DELETE)
   HYDRO_APPLY_TO_FLUXES_INT(FLUX_ARRAY_DELETE)
 }
 
 void Hydro::setQuantitiesCell(BSSNData *paq, HydroData *hdp)
 {
-  setPrimitivesCell(paq, hdp);
   setFluxesCell(paq, hdp);
-  setSourcesCell(paq, hdp);
-}
-
-void Hydro::setPrimitivesCell(BSSNData *paq, HydroData *hdp)
-{
-  idx_t idx = paq->idx;
-
-  /* root of metric determinant */
-  hdp->rg = exp(6.0*paq->phi);
-  hdp->g  = exp(12.0*paq->phi);
-  hdp->a  = exp(2.0*paq->phi);
-
-  if(UD_a[idx] <= 0.0)
-  {
-    hdp->W = 1.0;
-    r_a[idx] = 0.0;
-    v1_a[idx] = 0.0;
-    v2_a[idx] = 0.0;
-    v3_a[idx] = 0.0;
-  }
-  else
-  {
-    /* lorentz factor */
-    /* W = (gamma^ij S_j S_j / D^2 / (1+w^2) + 1)^1/2 */
-    hdp->W = sqrt(
-        1.0 + hdp->a * hdp->a * (
-           paq->gammai11*US1_a[idx]*US1_a[idx] + paq->gammai22*US2_a[idx]*US2_a[idx] + paq->gammai33*US3_a[idx]*US3_a[idx]
-            + 2.0*paq->gammai12*US1_a[idx]*US2_a[idx] + 2.0*paq->gammai13*US1_a[idx]*US3_a[idx] + 2.0*paq->gammai23*US2_a[idx]*US3_a[idx]
-          ) / UD_a[idx] / UD_a[idx] / pw2(1.0 + w_EOS)
-        );
-
-    /* \rho = D / gamma^1/2 / W */
-    r_a[idx] = UD_a[idx] / hdp->rg / hdp->W;
-
-    /* fluid 4-velocities (covariant) */
-    real_t u1, u2, u3;
-    u1 = US1_a[idx] / hdp->W / hdp->rg / r_a[idx] / (1.0 + w_EOS);
-    u2 = US2_a[idx] / hdp->W / hdp->rg / r_a[idx] / (1.0 + w_EOS);
-    u3 = US3_a[idx] / hdp->W / hdp->rg / r_a[idx] / (1.0 + w_EOS);
-
-    /* velocities (contravariant) */
-    v1_a[idx] = paq->alpha / hdp->W * hdp->g * ( paq->gammai11*u1 + paq->gammai12*u2 + paq->gammai13*u3 ) - paq->beta1;
-    v2_a[idx] = paq->alpha / hdp->W * hdp->g * ( paq->gammai12*u1 + paq->gammai22*u2 + paq->gammai23*u3 ) - paq->beta2;
-    v3_a[idx] = paq->alpha / hdp->W * hdp->g * ( paq->gammai13*u1 + paq->gammai23*u2 + paq->gammai33*u3 ) - paq->beta3;
-  }
 }
 
 void Hydro::setFluxesCell(BSSNData *paq, HydroData *hdp)
@@ -88,38 +36,47 @@ void Hydro::setFluxesCell(BSSNData *paq, HydroData *hdp)
   idx_t f_idx_2 = F_NP_INDEX(paq->i, paq->j, paq->k, 2);
   idx_t f_idx_3 = F_NP_INDEX(paq->i, paq->j, paq->k, 3);
 
+  real_t gijsisj = exp(4.0*paq->phi)*( // gammas from BSSN sim are conformal gammas
+        paq->gamma11*US1_a[idx]*US1_a[idx] + paq->gamma22*US2_a[idx]*US2_a[idx] + paq->gamma33*US3_a[idx]*US3_a[idx] 
+       + 2.0*(paq->gamma12*US1_a[idx]*US2_a[idx] + paq->gamma13*US1_a[idx]*US3_a[idx] + paq->gamma23*US2_a[idx]*US3_a[idx] )
+      );
+
+  // common factor
+  real_t sqrt_D2_S2 = sqrt(
+      pw2(UD_a[idx])
+      + gijsisj 
+    );
+
+  real_t US1cont = exp(4.0*paq->phi)*(paq->gammai11*US1_a[idx] + paq->gammai12*US2_a[idx] + paq->gammai13*US3_a[idx]);
+  real_t US2cont = exp(4.0*paq->phi)*(paq->gammai12*US1_a[idx] + paq->gammai22*US2_a[idx] + paq->gammai23*US3_a[idx]);
+  real_t US3cont = exp(4.0*paq->phi)*(paq->gammai13*US1_a[idx] + paq->gammai23*US2_a[idx] + paq->gammai33*US3_a[idx]);
+
   // Calculate fluxes in each cell
   // D
-    FD_a[f_idx_1] = UD_a[idx]*v1_a[idx];
-    FD_a[f_idx_2] = UD_a[idx]*v2_a[idx];
-    FD_a[f_idx_3] = UD_a[idx]*v3_a[idx];
+    FD_a[f_idx_1] = UD_a[idx]*US1cont/sqrt_D2_S2;
+    FD_a[f_idx_2] = UD_a[idx]*US2cont/sqrt_D2_S2;
+    FD_a[f_idx_3] = UD_a[idx]*US3cont/sqrt_D2_S2;
   // S1
-    FS1_a[f_idx_1] = US1_a[idx]*v1_a[idx]/paq->alpha
-                      + w_EOS * r_a[idx] * hdp->rg * paq->alpha;
-    FS1_a[f_idx_2] = US1_a[idx]*v2_a[idx]/paq->alpha;
-    FS1_a[f_idx_3] = US1_a[idx]*v3_a[idx]/paq->alpha;
+    FS1_a[f_idx_1] = US1_a[idx]*US1cont/sqrt_D2_S2;
+    FS1_a[f_idx_2] = US1_a[idx]*US2cont/sqrt_D2_S2;
+    FS1_a[f_idx_3] = US1_a[idx]*US3cont/sqrt_D2_S2;
   // S2
-    FS2_a[f_idx_1] = US2_a[idx]*v1_a[idx]/paq->alpha;
-    FS2_a[f_idx_2] = US2_a[idx]*v2_a[idx]/paq->alpha
-                      + w_EOS * r_a[idx] * hdp->rg * paq->alpha;
-    FS2_a[f_idx_3] = US2_a[idx]*v3_a[idx]/paq->alpha;
+    FS2_a[f_idx_1] = US2_a[idx]*US1cont/sqrt_D2_S2;
+    FS2_a[f_idx_2] = US2_a[idx]*US2cont/sqrt_D2_S2;
+    FS2_a[f_idx_3] = US2_a[idx]*US3cont/sqrt_D2_S2;
   // S3
-    FS3_a[f_idx_1] = US3_a[idx]*v1_a[idx]/paq->alpha;
-    FS3_a[f_idx_2] = US3_a[idx]*v2_a[idx]/paq->alpha;
-    FS3_a[f_idx_3] = US3_a[idx]*v3_a[idx]/paq->alpha
-                      + w_EOS * r_a[idx] * hdp->rg * paq->alpha;
+    FS3_a[f_idx_1] = US3_a[idx]*US1cont/sqrt_D2_S2;
+    FS3_a[f_idx_2] = US3_a[idx]*US2cont/sqrt_D2_S2;
+    FS3_a[f_idx_3] = US3_a[idx]*US3cont/sqrt_D2_S2;
+
+if(idx == 32*32*15)
+{
+  std::cout << "\nD flux: " << FD_a[f_idx_1] << "\n"
+            << "S flux: " << FS1_a[f_idx_1] << "\n"
+            << "sqrt_D2_S2: " << sqrt_D2_S2 << "\n"
+            << "gijsisj: " << gijsisj << "\n";
 }
 
-void Hydro::setSourcesCell(BSSNData *paq, HydroData *hdp)
-{
-  idx_t idx = paq->idx;
-  real_t pref = 0.5*paq->alpha*hdp->rg*r_a[idx];
-  real_t uu_fac = (w_EOS+1.0)*pw2(hdp->W)/pw2(paq->alpha);
-
-  // 0.5*Alpha*gamma^1/2*T*g,j
-  SS1_a[idx] = pref*TABGAB_J(1);
-  SS2_a[idx] = pref*TABGAB_J(2);
-  SS3_a[idx] = pref*TABGAB_J(3);
 }
 
 void Hydro::setOneFluxInt(idx_t i, idx_t j, idx_t k, int d, real_t *U_ARR,
@@ -261,10 +218,17 @@ void Hydro::evolveFluid(idx_t i, idx_t j, idx_t k)
   /* semi-log scheme for density variable (enforces positivity) */
   /* May need to check for UD_a being too small or zero? */
   /* http://www.wccm-eccm-ecfd2014.org/admin/files/filePaper/p2390.pdf */
-  UD_f[idx] = exp(log(UD_a[idx]) - dt/dx/dx/UD_a[idx]*(
-      FD_int_a[F_NP_INDEX(i,j,k,1)] + FD_int_a[F_NP_INDEX(i,j,k,2)] + FD_int_a[F_NP_INDEX(i,j,k,3)]
-      - FD_int_a[F_INDEX(i-1,j,k,1)] - FD_int_a[F_INDEX(i,j-1,k,2)] - FD_int_a[F_INDEX(i,j,k-1,3)]
-    ));
+  if(UD_a[idx] < 1e-10)
+  {
+    UD_f[idx] = UD_a[idx];
+  }
+  else
+  {
+    UD_f[idx] = UD_a[idx]*exp(-dt/dx/dx/UD_a[idx]*(
+        FD_int_a[F_NP_INDEX(i,j,k,1)] + FD_int_a[F_NP_INDEX(i,j,k,2)] + FD_int_a[F_NP_INDEX(i,j,k,3)]
+        - FD_int_a[F_INDEX(i-1,j,k,1)] - FD_int_a[F_INDEX(i,j-1,k,2)] - FD_int_a[F_INDEX(i,j,k-1,3)]
+      ));
+  }
 
   US1_f[idx] = US1_a[idx] - dt/dx/dx*(
       FS1_int_a[F_NP_INDEX(i,j,k,1)] + FS1_int_a[F_NP_INDEX(i,j,k,2)] + FS1_int_a[F_NP_INDEX(i,j,k,3)]
@@ -311,7 +275,7 @@ void Hydro::addBSSNSrc(std::map <std::string, real_t *> & bssn_fields)
     real_t gi23 = g12*g13 - g23*g11;
     real_t gi33 = g11*g22 - g12*g12;
 
-    real_t a = exp(4.0*bssn_fields["phi_a"][idx]);
+    real_t a = exp(4.0*bssn_fields["phi_a"][idx]); // ~ scale factor a
     real_t g = exp(12.0*bssn_fields["phi_a"][idx]);
     real_t rg = exp(6.0*bssn_fields["phi_a"][idx]);
 
@@ -329,31 +293,30 @@ void Hydro::addBSSNSrc(std::map <std::string, real_t *> & bssn_fields)
           1.0 + a * a * (
              gi11*US1_a[idx]*US1_a[idx] + gi22*US2_a[idx]*US2_a[idx] + gi33*US3_a[idx]*US3_a[idx]
               + 2.0*(gi12*US1_a[idx]*US2_a[idx] + gi13*US1_a[idx]*US3_a[idx] + gi23*US2_a[idx]*US3_a[idx])
-            ) / UD_a[idx] / UD_a[idx] / pw2(1.0 + w_EOS)
+            ) / UD_a[idx] / UD_a[idx]
           );
 
       r =  UD_a[idx] / rg / W_rel;
-      u1 = US1_a[idx] / W_rel / rg / r / (1.0 + w_EOS);
-      u2 = US2_a[idx] / W_rel / rg / r / (1.0 + w_EOS);
-      u3 = US3_a[idx] / W_rel / rg / r / (1.0 + w_EOS);
+      u1 = US1_a[idx] / W_rel / rg / r;
+      u2 = US2_a[idx] / W_rel / rg / r;
+      u3 = US3_a[idx] / W_rel / rg / r;
     }
 
-    bssn_fields["r_a"][idx] += r*((1.0 + w_EOS)*W_rel*W_rel - w_EOS);
+    bssn_fields["r_a"][idx] += r*W_rel*W_rel;
 
-    bssn_fields["S1_a"][idx] += r*(1.0 + w_EOS)*W_rel*u1;
-    bssn_fields["S2_a"][idx] += r*(1.0 + w_EOS)*W_rel*u2;
-    bssn_fields["S3_a"][idx] += r*(1.0 + w_EOS)*W_rel*u3;
+    bssn_fields["S1_a"][idx] += r*W_rel*u1;
+    bssn_fields["S2_a"][idx] += r*W_rel*u2;
+    bssn_fields["S3_a"][idx] += r*W_rel*u3;
 
-    real_t S = r*( 3.0*w_EOS + (1.0 + w_EOS)*(W_rel*W_rel-1.0) );
+    real_t S = r*( W_rel*W_rel - 1.0 );
     bssn_fields["S_a"][idx] += S;
 
-    bssn_fields["STF11_a"][idx] += r*(1.0 + w_EOS)*(u1*u1 - a*g11*(W_rel*W_rel - 1.0));
-    bssn_fields["STF12_a"][idx] += r*(1.0 + w_EOS)*(u1*u2 - a*g12*(W_rel*W_rel - 1.0));
-    bssn_fields["STF13_a"][idx] += r*(1.0 + w_EOS)*(u1*u3 - a*g13*(W_rel*W_rel - 1.0));
-    bssn_fields["STF22_a"][idx] += r*(1.0 + w_EOS)*(u2*u2 - a*g22*(W_rel*W_rel - 1.0));
-    bssn_fields["STF23_a"][idx] += r*(1.0 + w_EOS)*(u2*u3 - a*g23*(W_rel*W_rel - 1.0));
-    bssn_fields["STF33_a"][idx] += r*(1.0 + w_EOS)*(u3*u3 - a*g33*(W_rel*W_rel - 1.0));
-
+    bssn_fields["STF11_a"][idx] += r*(u1*u1 - a*g11*(W_rel*W_rel - 1.0));
+    bssn_fields["STF12_a"][idx] += r*(u1*u2 - a*g12*(W_rel*W_rel - 1.0));
+    bssn_fields["STF13_a"][idx] += r*(u1*u3 - a*g13*(W_rel*W_rel - 1.0));
+    bssn_fields["STF22_a"][idx] += r*(u2*u2 - a*g22*(W_rel*W_rel - 1.0));
+    bssn_fields["STF23_a"][idx] += r*(u2*u3 - a*g23*(W_rel*W_rel - 1.0));
+    bssn_fields["STF33_a"][idx] += r*(u3*u3 - a*g33*(W_rel*W_rel - 1.0));
   }
 
 }

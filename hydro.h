@@ -13,9 +13,6 @@ namespace cosmo
 /** Hydro class **/
 class Hydro
 {
-  /* equation of state "w" value */
-  real_t w_EOS;
-
   /* Fluid fields */
   HYDRO_APPLY_TO_FIELDS(GEN2_ARRAY_CREATE)
   HYDRO_APPLY_TO_FLUXES(FLUX_ARRAY_CREATE)
@@ -27,13 +24,11 @@ class Hydro
 public:
   std::map <std::string, real_t *> fields;
 
-  Hydro(real_t w_EOS);
+  Hydro();
   ~Hydro();
 
   void setQuantitiesCell(BSSNData *paq, HydroData *hdp);
-  void setPrimitivesCell(BSSNData *paq, HydroData *hdp);
   void setFluxesCell(BSSNData *paq, HydroData *hdp);
-  void setSourcesCell(BSSNData *paq, HydroData *hdp);
 
   void setOneFluxInt(idx_t i, idx_t j, idx_t k, int d, real_t *U_ARR,
       real_t *F_ARR, real_t *F_ARR_INT);
