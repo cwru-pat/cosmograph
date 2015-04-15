@@ -45,9 +45,9 @@ int main(int argc, char **argv)
     frw.addFluid(0.5, 0.0);
 
     // Fluid fields
-    Hydro hydroSim (0.0/3.0); // fluid with some w_EOS
-    HydroData h_paq = {0};
-    hydroSim.init();
+    // Static matter (w=0)
+    Static staticSim;
+    staticSim.init();
     // DE
     Lambda lambdaSim;
 
@@ -58,20 +58,11 @@ int main(int argc, char **argv)
 
     // generic reusable fourier class for N^3 arrays
     Fourier fourier;
-    fourier.Initialize(N, hydroSim.fields["UD_a"] /* just any N^3 array for planning */);
+    fourier.Initialize(N, staticSim.fields["D_a"] /* just any N^3 array for planning */);
 
-    if(_config["ic_type"] == "flat")
-    {
-      // "flat dynamic" initial conditions:
-      LOG(iodata.log, "Using flat initial conditions...\n");
-      set_flat_dynamic_ICs(bssnSim.fields, hydroSim.fields, &fourier, &iodata);
-    }
-    else
-    {
-      // default to "conformal" initial conditions:
-      LOG(iodata.log, "Using conformal initial conditions...\n");
-      set_conformal_ICs(bssnSim.fields, hydroSim.fields, &fourier, &iodata);
-    }
+    // "conformal" initial conditions:
+    LOG(iodata.log, "Using conformal initial conditions...\n");
+    set_conformal_ICs(bssnSim.fields, staticSim.fields, &fourier, &iodata);
 
   _timer["init"].stop();
 
@@ -83,7 +74,7 @@ int main(int argc, char **argv)
     // output simulation information
     _timer["output"].start();
       io_show_progress(s, steps);
-      io_data_dump(bssnSim.fields, hydroSim.fields, &iodata, s, &fourier);
+      io_data_dump(bssnSim.fields, staticSim.fields, &iodata, s, &fourier);
     _timer["output"].stop();
 
     // Run RK steps explicitly here (ties together BSSN + Hydro stuff).
@@ -96,27 +87,20 @@ int main(int argc, char **argv)
       // clear existing data
       bssnSim.clearSrc();
       // add hydro source to bssn sim
-      hydroSim.addBSSNSrc(bssnSim.fields);
+      staticSim.addBSSNSrc(bssnSim.fields);
       lambdaSim.addBSSNSrc(bssnSim.fields);
 
     // First RK step, Set Hydro Vars, & calc. constraint
-    #pragma omp parallel for default(shared) private(i, j, k, b_paq, h_paq)
+    #pragma omp parallel for default(shared) private(i, j, k, b_paq)
     LOOP3(i, j, k)
     {
       bssnSim.K1CalcPt(i, j, k, &b_paq);
-
-      // hydro takes data from existing data in b_paq (data in _a register)
-      // need to set full metric components first; this calculation is only
-      // done when explicitly called.
-      bssnSim.set_full_metric_der(&b_paq);
-      bssnSim.set_full_metric(&b_paq);
-      hydroSim.setQuantitiesCell(&b_paq, &h_paq);
     }
 
     // reset source using new metric
     bssnSim.clearSrc();
     // add hydro source to bssn sim
-    hydroSim.addBSSNSrc(bssnSim.fields);
+    staticSim.addBSSNSrc(bssnSim.fields);
     lambdaSim.addBSSNSrc(bssnSim.fields);
 
     bssnSim.regSwap_c_a();
@@ -132,7 +116,7 @@ int main(int argc, char **argv)
       // reset source using new metric
       bssnSim.clearSrc();
       // add hydro source to bssn sim
-      hydroSim.addBSSNSrc(bssnSim.fields);
+      staticSim.addBSSNSrc(bssnSim.fields);
       lambdaSim.addBSSNSrc(bssnSim.fields);
 
       bssnSim.regSwap_c_a();
@@ -146,7 +130,7 @@ int main(int argc, char **argv)
       // reset source using new metric
       bssnSim.clearSrc();
       // add hydro source to bssn sim
-      hydroSim.addBSSNSrc(bssnSim.fields);
+      staticSim.addBSSNSrc(bssnSim.fields);
       lambdaSim.addBSSNSrc(bssnSim.fields);
 
       bssnSim.regSwap_c_a();
@@ -158,38 +142,21 @@ int main(int argc, char **argv)
         bssnSim.K4CalcPt(i, j, k, &b_paq);
       }
 
-
-    // Subsequent hydro step
-      #pragma omp parallel for default(shared) private(i, j, k)
-      LOOP3(i, j, k)
-      {
-        hydroSim.setAllFluxInt(i, j, k);
-      }
-      #pragma omp parallel for default(shared) private(i, j, k)
-      LOOP3(i, j, k)
-      {
-        hydroSim.evolveFluid(i, j, k);
-      }
-
     // Wrap up
       // bssn _f <-> _p
       bssnSim.stepTerm();
-      // hydro _a <-> _f
-      hydroSim.stepTerm();
+
     _timer["RK_steps"].stop();
 
     _timer["output"].start();
       real_t total_hamiltonian_constraint = 0.0,
              mean_hamiltonian_constraint = 0.0,
-             stdev_hamiltonian_constraint = 0.0,
-             total_momentum_constraint_1 = 0.0,
-             total_momentum_constraint_2 = 0.0,
-             total_momentum_constraint_3 = 0.0;
+             stdev_hamiltonian_constraint = 0.0;
       if(s%iodata.meta_output_interval == 0)
       {
         idx_t isNaN = 0;
         #pragma omp parallel for default(shared) private(i, j, k, b_paq) \
-         reduction(+:total_hamiltonian_constraint, mean_hamiltonian_constraint, total_momentum_constraint_1, total_momentum_constraint_2, total_momentum_constraint_3, isNaN)
+         reduction(+:total_hamiltonian_constraint, mean_hamiltonian_constraint, isNaN)
         LOOP3(i,j,k)
         {
           real_t violation_fraction = bssnSim.hamiltonianConstraintCalc(i,j,k)/bssnSim.hamiltonianConstraintMag(i,j,k);
@@ -203,10 +170,10 @@ int main(int argc, char **argv)
             isNaN += 1;
           }
 
-          bssnSim.set_paq_values(i, j, k, &b_paq);
-          total_momentum_constraint_1 += fabs(bssnSim.momentumConstraintCalc(&b_paq, 1)/bssnSim.momentumConstraintMag(&b_paq, 1));
-          total_momentum_constraint_2 += fabs(bssnSim.momentumConstraintCalc(&b_paq, 2)/bssnSim.momentumConstraintMag(&b_paq, 2));
-          total_momentum_constraint_3 += fabs(bssnSim.momentumConstraintCalc(&b_paq, 3)/bssnSim.momentumConstraintMag(&b_paq, 3));
+          // bssnSim.set_paq_values(i, j, k, &b_paq);
+          // total_momentum_constraint_1 += fabs(bssnSim.momentumConstraintCalc(&b_paq, 1)/bssnSim.momentumConstraintMag(&b_paq, 1));
+          // total_momentum_constraint_2 += fabs(bssnSim.momentumConstraintCalc(&b_paq, 2)/bssnSim.momentumConstraintMag(&b_paq, 2));
+          // total_momentum_constraint_3 += fabs(bssnSim.momentumConstraintCalc(&b_paq, 3)/bssnSim.momentumConstraintMag(&b_paq, 3));
         }
         if(isNaN > 0)
         {
@@ -221,10 +188,10 @@ int main(int argc, char **argv)
         }
         io_dump_data(mean_hamiltonian_constraint, &iodata, "avg_H_violation");
         io_dump_data(sqrt(stdev_hamiltonian_constraint/(POINTS-1.0)), &iodata, "std_H_violation");
-        std::cout << "\n" << "H-viol:            " << mean_hamiltonian_constraint
-                  << "\n" << "H-viol std:        " << sqrt(stdev_hamiltonian_constraint/(POINTS-1.0))
-                  << "\n" << "M-viol L1 average: " << 1.0/POINTS*sqrt(pw2(total_momentum_constraint_1)+pw2(total_momentum_constraint_2)+pw2(total_momentum_constraint_3))
-                  << "\n";
+        // std::cout << "\n" << "H-viol:            " << mean_hamiltonian_constraint
+        //           << "\n" << "H-viol std:        " << sqrt(stdev_hamiltonian_constraint/(POINTS-1.0))
+        //           // << "\n" << "M-viol L1 average: " << 1.0/POINTS*sqrt(pw2(total_momentum_constraint_1)+pw2(total_momentum_constraint_2)+pw2(total_momentum_constraint_3))
+        //           << "\n";
       }
     _timer["output"].stop();
   }

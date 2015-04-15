@@ -783,9 +783,6 @@ real_t BSSN::ev_K(BSSNData *paq)
                   + 2.0*(paq->A12*paq->Acont12 + paq->A13*paq->Acont13 + paq->A23*paq->Acont23);
 
   real_t H = paq->ricci + 2.0/3.0*pw2(paq->K) - AijAij - 16.0*PI*paq->rho;
-  real_t Hmag = fabs(paq->ricci) + pw2(paq->K) + AijAij + 16.0*PI*paq->rho;
-  // if(paq->idx==100)
-  //   std::cout << "\n" << H/Hmag << "\n";
 
   // return (
   //   - paq->DDaTR
@@ -796,27 +793,27 @@ real_t BSSN::ev_K(BSSNData *paq)
   //   + paq->beta1*der_ext(paq->K_adj, paq->K_adj_ext, 1) + paq->beta2*der_ext(paq->K_adj, paq->K_adj_ext, 2) + paq->beta3*der_ext(paq->K_adj, paq->K_adj_ext, 3)
   // );
 
-  // return (
-  //   39.0*H
-  //   - paq->DDaTR
-  //   + paq->alpha*(
-  //       paq->ricci + pw2(paq->K)
-  //     )
-  //   + 4.0*PI*paq->alpha*(-3.0*paq->rho + paq->S)
-  //   + paq->beta1*der_ext(paq->K_adj, paq->K_adj_ext, 1) + paq->beta2*der_ext(paq->K_adj, paq->K_adj_ext, 2) + paq->beta3*der_ext(paq->K_adj, paq->K_adj_ext, 3)
-  // );
-
   return (
-    fabs(1.0*H)
+    H
     - paq->DDaTR
     + paq->alpha*(
-        paq->A11*paq->Acont11 + paq->A22*paq->Acont22 + paq->A33*paq->Acont33
-        + 2.0*(paq->A12*paq->Acont12 + paq->A13*paq->Acont13 + paq->A23*paq->Acont23)
-        + (1.0/3.0)*paq->K*paq->K
+        paq->ricci + pw2(paq->K)
       )
-    + 4.0*PI*paq->alpha*(paq->rho + paq->S)
+    + 4.0*PI*paq->alpha*(-3.0*paq->rho + paq->S)
     + paq->beta1*der_ext(paq->K_adj, paq->K_adj_ext, 1) + paq->beta2*der_ext(paq->K_adj, paq->K_adj_ext, 2) + paq->beta3*der_ext(paq->K_adj, paq->K_adj_ext, 3)
   );
+
+  // return (
+  //   fabs(1.0*H)
+  //   - paq->DDaTR
+  //   + paq->alpha*(
+  //       paq->A11*paq->Acont11 + paq->A22*paq->Acont22 + paq->A33*paq->Acont33
+  //       + 2.0*(paq->A12*paq->Acont12 + paq->A13*paq->Acont13 + paq->A23*paq->Acont23)
+  //       + (1.0/3.0)*paq->K*paq->K
+  //     )
+  //   + 4.0*PI*paq->alpha*(paq->rho + paq->S)
+  //   + paq->beta1*der_ext(paq->K_adj, paq->K_adj_ext, 1) + paq->beta2*der_ext(paq->K_adj, paq->K_adj_ext, 2) + paq->beta3*der_ext(paq->K_adj, paq->K_adj_ext, 3)
+  // );
 }
 
 real_t BSSN::ev_phi(BSSNData *paq)

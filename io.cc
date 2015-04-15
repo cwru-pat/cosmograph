@@ -41,14 +41,14 @@ void io_config_backup(IOData *iodata, std::string config_file)
 }
 
 void io_data_dump(std::map <std::string, real_t *> & bssn_fields,
-                  std::map <std::string, real_t *> & hydro_fields,
+                  std::map <std::string, real_t *> & static_field,
                   IOData *iodata, idx_t step, Fourier *fourier)
 {
   if(step % iodata->slice_output_interval == 0)
   {
     io_dump_2dslice(bssn_fields["K_p"], "K_slice." + std::to_string(step), iodata);
     io_dump_2dslice(bssn_fields["phi_p"], "phi_slice." + std::to_string(step), iodata);
-    io_dump_2dslice(hydro_fields["UD_a"], "UD_slice."  + std::to_string(step), iodata);
+    io_dump_2dslice(static_field["D_a"], "UD_slice."  + std::to_string(step), iodata);
   }
   if(step % iodata->grid_output_interval == 0)
   {
@@ -68,13 +68,9 @@ void io_data_dump(std::map <std::string, real_t *> & bssn_fields,
     io_dump_3dslice(bssn_fields["K_p"],       "K."       + std::to_string(step), iodata);
     io_dump_3dslice(bssn_fields["ricci_a"],   "ricci."   + std::to_string(step), iodata);
     io_dump_3dslice(bssn_fields["AijAij_a"],  "AijAij."  + std::to_string(step), iodata);
-    io_dump_3dslice(hydro_fields["UD_a"],     "UD."      + std::to_string(step), iodata);
-    io_dump_3dslice(hydro_fields["US1_a"],    "US1."     + std::to_string(step), iodata);
-    io_dump_3dslice(hydro_fields["US2_a"],    "US2."     + std::to_string(step), iodata);
-    io_dump_3dslice(hydro_fields["US3_a"],    "US3."     + std::to_string(step), iodata);
+    io_dump_3dslice(static_field["D_a"],      "D."       + std::to_string(step), iodata);
 
     io_dump_3dslice(bssn_fields["r_a"],       "r_a."     + std::to_string(step), iodata);
-    io_dump_3dslice(hydro_fields["UD_f"],     "UD_f."    + std::to_string(step), iodata);
     io_dump_3dslice(bssn_fields["K_a"],       "K_a."     + std::to_string(step), iodata);
     io_dump_3dslice(bssn_fields["phi_a"],     "phi_a."   + std::to_string(step), iodata);
   }
@@ -85,7 +81,7 @@ void io_data_dump(std::map <std::string, real_t *> & bssn_fields,
   if(step % iodata->meta_output_interval == 0)
   {
     // some average values
-    io_dump_averages(bssn_fields, hydro_fields, iodata);
+    io_dump_averages(bssn_fields, static_field, iodata);
   }
 }
 
@@ -241,7 +237,7 @@ void io_dump_3dslice(real_t *field, std::string filename, IOData *iodata)
 
 
 void io_dump_averages(std::map <std::string, real_t *> & bssn_fields,
-                      std::map <std::string, real_t *> & hydro_fields,
+                      std::map <std::string, real_t *> & static_field,
                       IOData *iodata)
 {
   std::string filename = iodata->dump_file;
@@ -259,14 +255,16 @@ void io_dump_averages(std::map <std::string, real_t *> & bssn_fields,
   // average phi
   sprintf(data, "%g\t", average(bssn_fields["phi_a"]));
   gzwrite(datafile, data, strlen(data));
+LOG(iodata->log, "\n phi is: " << data << "\n");
 
   // average K
   sprintf(data, "%g\t", average(bssn_fields["K_a"]));
   gzwrite(datafile, data, strlen(data));
 
   // average UD
-  sprintf(data, "%g\t", average(hydro_fields["UD_a"]));
+  sprintf(data, "%g\t", average(static_field["D_a"]));
   gzwrite(datafile, data, strlen(data));
+LOG(iodata->log, "\n D is: " << data << "\n");
 
   // average phi
   sprintf(data, "%g\t", conformal_average(bssn_fields["phi_a"], bssn_fields["phi_a"]));
@@ -277,7 +275,7 @@ void io_dump_averages(std::map <std::string, real_t *> & bssn_fields,
   gzwrite(datafile, data, strlen(data));
 
   // average UD
-  sprintf(data, "%g\t", conformal_average(hydro_fields["UD_a"], bssn_fields["phi_a"]));
+  sprintf(data, "%g\t", conformal_average(static_field["D_a"], bssn_fields["phi_a"]));
   gzwrite(datafile, data, strlen(data));
 
   // average volume

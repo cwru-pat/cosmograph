@@ -10,8 +10,9 @@ namespace cosmo
 /** Static matter class **/
 class Static
 {
-  /* Fluid fields */
-  GEN1_ARRAY_CREATE(r);
+  /* Fluid field */
+  // just a density variable
+  GEN1_ARRAY_CREATE(D);
 
 public:
   std::map <std::string, real_t *> fields;

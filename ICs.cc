@@ -94,14 +94,14 @@ void set_gaussian_random_field(real_t *field, Fourier *fourier, ICsData *icd)
 // doesn't specify monopole / expansion contribution
 void set_conformal_ICs(
   std::map <std::string, real_t *> & bssn_fields,
-  std::map <std::string, real_t *> & hydro_fields,
+  std::map <std::string, real_t *> & static_field,
   Fourier *fourier, IOData *iod)
 {
   idx_t i, j, k;
   real_t px, py, pz, p2i;
   ICsData icd = cosmo_get_ICsData();
 
-  set_gaussian_random_field(hydro_fields["UD_a"], fourier, &icd);
+  set_gaussian_random_field(static_field["D_a"], fourier, &icd);
 
   // working in conformal transverse-traceless decomposition,
   // the conformal factor in front of metric is the solution to
@@ -112,7 +112,7 @@ void set_conformal_ICs(
   // we will need to convert it to \rho = f^-5 * \rho_conformal.
 
   // FFT of conformal field
-  fftw_execute_dft_r2c(fourier->p_r2c, hydro_fields["UD_a"], fourier->f_field);
+  fftw_execute_dft_r2c(fourier->p_r2c, static_field["D_a"], fourier->f_field);
 
   // scale amplitudes in fourier space
   for(i=0; i<N; i++)
@@ -151,14 +151,14 @@ void set_conformal_ICs(
   LOOP3(i,j,k)
   {
     bssn_fields["phi_p"][NP_INDEX(i,j,k)] += 1.0;
-    hydro_fields["UD_a"][NP_INDEX(i,j,k)] /= 2.0*PI;
+    static_field["D_a"][NP_INDEX(i,j,k)] /= 2.0*PI;
   }
   // UD_a should now contain the conformal density
 
   // reconstruct physical density, and store in UD
   LOOP3(i,j,k)
   {
-    hydro_fields["UD_a"][NP_INDEX(i,j,k)] /= pow(bssn_fields["phi_p"][NP_INDEX(i,j,k)], 5);
+    static_field["D_a"][NP_INDEX(i,j,k)] /= pow(bssn_fields["phi_p"][NP_INDEX(i,j,k)], 5);
   }
 
   // reconstruct BSSN conformal metric factor; \phi = log(\psi)
@@ -184,32 +184,32 @@ void set_conformal_ICs(
         )
         - 90.0*exp(bssn_fields["phi_p"][NP_INDEX(i,j,k)])
       )/12.0;
-    real_t cden = hydro_fields["UD_a"][NP_INDEX(i,j,k)]*exp(5.0*bssn_fields["phi_p"][NP_INDEX(i,j,k)]);
+    real_t cden = static_field["D_a"][NP_INDEX(i,j,k)]*exp(5.0*bssn_fields["phi_p"][NP_INDEX(i,j,k)]);
     resid += fabs(grad2e + 2.0*PI*cden) / (fabs(grad2e) + fabs(2.0*PI*cden)); // should = 0
   }
   LOG(iod->log, "Average fractional error residual  is: " << resid/POINTS << "\n");
 
   // Make sure min density value > 0
-  real_t min = hydro_fields["UD_a"][NP_INDEX(0,0,0)] + icd.rho_K_matter;
+  real_t min = static_field["D_a"][NP_INDEX(0,0,0)] + icd.rho_K_matter;
   real_t max = min;
 
   LOOP3(i,j,k)
   {
-    hydro_fields["UD_a"][NP_INDEX(i,j,k)] += icd.rho_K_matter;
-    hydro_fields["UD_a"][NP_INDEX(i,j,k)] *= exp(6.0*bssn_fields["phi_p"][NP_INDEX(i,j,k)]);
+    static_field["D_a"][NP_INDEX(i,j,k)] += icd.rho_K_matter;
+    static_field["D_a"][NP_INDEX(i,j,k)] *= exp(6.0*bssn_fields["phi_p"][NP_INDEX(i,j,k)]);
 
     bssn_fields["K_p"][NP_INDEX(i,j,k)] = -sqrt(24.0*PI*(icd.rho_K_matter));
     bssn_fields["K_f"][NP_INDEX(i,j,k)] = -sqrt(24.0*PI*(icd.rho_K_matter));
 
-    if(hydro_fields["UD_a"][NP_INDEX(i,j,k)] < min)
+    if(static_field["D_a"][NP_INDEX(i,j,k)] < min)
     {
-      min = hydro_fields["UD_a"][NP_INDEX(i,j,k)];
+      min = static_field["D_a"][NP_INDEX(i,j,k)];
     }
-    if(hydro_fields["UD_a"][NP_INDEX(i,j,k)] > max)
+    if(static_field["D_a"][NP_INDEX(i,j,k)] > max)
     {
-      max = hydro_fields["UD_a"][NP_INDEX(i,j,k)];
+      max = static_field["D_a"][NP_INDEX(i,j,k)];
     }
-    if(hydro_fields["UD_a"][NP_INDEX(i,j,k)] != hydro_fields["UD_a"][NP_INDEX(i,j,k)])
+    if(static_field["D_a"][NP_INDEX(i,j,k)] != static_field["D_a"][NP_INDEX(i,j,k)])
     {
       LOG(iod->log, "Error: NaN energy density.\n");
       throw -1;
@@ -218,8 +218,8 @@ void set_conformal_ICs(
 
   LOG(iod->log, "Minimum fluid 'density': " << min << "\n");
   LOG(iod->log, "Maximum fluid 'density': " << max << "\n");
-  LOG(iod->log, "Average fluid 'density': " << average(hydro_fields["UD_a"]) << "\n");
-  LOG(iod->log, "Std.dev fluid 'density': " << standard_deviation(hydro_fields["UD_a"]) << "\n");
+  LOG(iod->log, "Average fluid 'density': " << average(static_field["D_a"]) << "\n");
+  LOG(iod->log, "Std.dev fluid 'density': " << standard_deviation(static_field["D_a"]) << "\n");
   if(min < 0.0) {
     LOG(iod->log, "Error: negative density in some regions.\n");
     throw -1;
