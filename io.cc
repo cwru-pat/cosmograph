@@ -29,6 +29,10 @@ void io_init(IOData *iodata, std::string output_dir)
   iodata->dump_file = _config["dump_file"];
 
   iodata->log.open(iodata->output_dir + "log.txt");
+  LOG(iodata->log, "Log file open.\n");
+  LOG(iodata->log, "Running with  N = " << N  << "\n");
+  LOG(iodata->log, "Running with dt = " << dt << "\n");
+  LOG(iodata->log, "Running with dx = " << dx << "\n");
 }
 
 void io_config_backup(IOData *iodata, std::string config_file)
@@ -255,7 +259,6 @@ void io_dump_averages(std::map <std::string, real_t *> & bssn_fields,
   // average phi
   sprintf(data, "%g\t", average(bssn_fields["phi_a"]));
   gzwrite(datafile, data, strlen(data));
-LOG(iodata->log, "\n phi is: " << data << "\n");
 
   // average K
   sprintf(data, "%g\t", average(bssn_fields["K_a"]));
@@ -264,7 +267,6 @@ LOG(iodata->log, "\n phi is: " << data << "\n");
   // average UD
   sprintf(data, "%g\t", average(static_field["D_a"]));
   gzwrite(datafile, data, strlen(data));
-LOG(iodata->log, "\n D is: " << data << "\n");
 
   // average phi
   sprintf(data, "%g\t", conformal_average(bssn_fields["phi_a"], bssn_fields["phi_a"]));

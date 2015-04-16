@@ -100,6 +100,8 @@ void set_conformal_ICs(
   idx_t i, j, k;
   real_t px, py, pz, p2i;
   ICsData icd = cosmo_get_ICsData();
+  LOG(iod->log, "Generating ICs with peak at k = " << icd.peak_k << "\n");
+  LOG(iod->log, "Generating ICs with peak amp. = " << icd.peak_amplitude << "\n");
 
   set_gaussian_random_field(static_field["D_a"], fourier, &icd);
 
@@ -187,7 +189,7 @@ void set_conformal_ICs(
     real_t cden = static_field["D_a"][NP_INDEX(i,j,k)]*exp(5.0*bssn_fields["phi_p"][NP_INDEX(i,j,k)]);
     resid += fabs(grad2e + 2.0*PI*cden) / (fabs(grad2e) + fabs(2.0*PI*cden)); // should = 0
   }
-  LOG(iod->log, "Average fractional error residual  is: " << resid/POINTS << "\n");
+  LOG(iod->log, "Average fractional constraint residual is: " << resid/POINTS << "\n");
 
   // Make sure min density value > 0
   real_t min = static_field["D_a"][NP_INDEX(0,0,0)] + icd.rho_K_matter;

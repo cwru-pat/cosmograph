@@ -169,11 +169,6 @@ int main(int argc, char **argv)
             LOG(iodata.log, "NAN at (" << i << "," << j << "," << k << ")!\n");
             isNaN += 1;
           }
-
-          // bssnSim.set_paq_values(i, j, k, &b_paq);
-          // total_momentum_constraint_1 += fabs(bssnSim.momentumConstraintCalc(&b_paq, 1)/bssnSim.momentumConstraintMag(&b_paq, 1));
-          // total_momentum_constraint_2 += fabs(bssnSim.momentumConstraintCalc(&b_paq, 2)/bssnSim.momentumConstraintMag(&b_paq, 2));
-          // total_momentum_constraint_3 += fabs(bssnSim.momentumConstraintCalc(&b_paq, 3)/bssnSim.momentumConstraintMag(&b_paq, 3));
         }
         if(isNaN > 0)
         {
@@ -188,14 +183,15 @@ int main(int argc, char **argv)
         }
         io_dump_data(mean_hamiltonian_constraint, &iodata, "avg_H_violation");
         io_dump_data(sqrt(stdev_hamiltonian_constraint/(POINTS-1.0)), &iodata, "std_H_violation");
-        // std::cout << "\n" << "H-viol:            " << mean_hamiltonian_constraint
-        //           << "\n" << "H-viol std:        " << sqrt(stdev_hamiltonian_constraint/(POINTS-1.0))
-        //           // << "\n" << "M-viol L1 average: " << 1.0/POINTS*sqrt(pw2(total_momentum_constraint_1)+pw2(total_momentum_constraint_2)+pw2(total_momentum_constraint_3))
-        //           << "\n";
       }
     _timer["output"].stop();
   }
   _timer["loop"].stop();
+
+  _timer["output"].start();
+  LOG(iodata.log, "\nAverage conformal factor reached " << average(bssnSim.fields["phi_p"]) << "\n");
+  LOG(iodata.log, "Ending simulation.\n");
+  _timer["output"].stop();
 
   _timer["MAIN"].stop();
 

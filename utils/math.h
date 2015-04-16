@@ -82,6 +82,7 @@ inline real_t average(real_t *field)
   // note this may have poor precision for large datasets
   real_t sum = 0.0; 
   idx_t i, j, k;
+  #pragma omp parallel for default(shared) private(i, j, k) reduction(+:sum)
   LOOP3(i, j, k)
   {
     sum += field[NP_INDEX(i,j,k)];
@@ -93,6 +94,7 @@ inline real_t volume_average(real_t *phi)
 {
   real_t sum = 0.0; 
   idx_t i, j, k;
+  #pragma omp parallel for default(shared) private(i, j, k) reduction(+:sum)
   LOOP3(i, j, k)
   {
     sum += exp(6.0*phi[NP_INDEX(i,j,k)]);
@@ -104,6 +106,7 @@ inline real_t conformal_average(real_t *field, real_t *phi)
 {
   real_t sum = 0.0; 
   idx_t i, j, k;
+  #pragma omp parallel for default(shared) private(i, j, k) reduction(+:sum)
   LOOP3(i, j, k)
   {
     sum += exp(6.0*phi[NP_INDEX(i,j,k)])*field[NP_INDEX(i,j,k)];
@@ -129,6 +132,7 @@ inline real_t standard_deviation(real_t *field)
   idx_t i, j, k;
   real_t sum = 0.0;
   real_t avg = average(field);
+  #pragma omp parallel for default(shared) private(i, j, k) reduction(+:sum)
   LOOP3(i, j, k)
   {
     sum += pw2(avg - field[NP_INDEX(i,j,k)]);
