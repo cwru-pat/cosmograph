@@ -172,7 +172,7 @@ int main(int argc, char **argv)
         }
         if(isNaN > 0)
         {
-          LOG(iodata.log, "NAN detected!\n");
+          LOG(iodata.log, "\nNAN detected!\n");
           _timer["output"].stop();
           break;
         }
@@ -181,8 +181,10 @@ int main(int argc, char **argv)
         {
           stdev_hamiltonian_constraint += pw2(bssnSim.hamiltonianConstraintCalc(i,j,k)/bssnSim.hamiltonianConstraintMag(i,j,k) - mean_hamiltonian_constraint);
         }
+        stdev_hamiltonian_constraint = sqrt(stdev_hamiltonian_constraint/(POINTS-1.0));
+        LOG(iodata.log, "\nH: " << stdev_hamiltonian_constraint << "\n");
         io_dump_data(mean_hamiltonian_constraint, &iodata, "avg_H_violation");
-        io_dump_data(sqrt(stdev_hamiltonian_constraint/(POINTS-1.0)), &iodata, "std_H_violation");
+        io_dump_data(stdev_hamiltonian_constraint, &iodata, "std_H_violation");
       }
     _timer["output"].stop();
   }

@@ -1,16 +1,14 @@
-steps = 8500
+steps = 1
 grid_output_interval = 8499
 slice_output_interval = 8499
-spec_output_interval = 100
-meta_output_interval = 100
+spec_output_interval = 1
+meta_output_interval = 1
 
 omp_num_threads = 32
 
-length_scale = 0.5
-
-peak_amplitude_frac = 0.0
+peak_amplitude_frac = 0.1
 rho_K_lambda_frac = 0.0
-ic_spec_cut = 10.0
+ic_spec_cut = 25.0
 
-output_dir = output_N-64_A-0.0
-dump_file = averages
+output_dir = test
+dump_file = calculated

@@ -7,21 +7,22 @@ ICsData cosmo_get_ICsData()
 {
   ICsData icd = {0};
 
-  real_t length_scale = (real_t) stold(_config["length_scale"]); // volume in hubble units
-  icd.rho_K_matter = 3.0/PI/8.0*pw2(length_scale/(N*dx)); // matter density satisfies FRW equation
+  // H_LEN_FRAC is box side length in hubble units
+  icd.rho_K_matter = 3.0/PI/8.0*pw2(H_LEN_FRAC/(N*dx)); // matter density term from FRW equation
 
   real_t rho_K_lambda_frac = (real_t) stold(_config["rho_K_lambda_frac"]); // DE density
   icd.rho_K_lambda = rho_K_lambda_frac*icd.rho_K_matter;
 
   // power spectrum amplitude as a fraction of the density
   real_t peak_amplitude_frac = (real_t) stold(_config["peak_amplitude_frac"]); // fluctuation amplitude
-  real_t peak_amplitude = icd.rho_K_matter*peak_amplitude_frac;
+  // factor of N^{2/3} needed to keep power spec. amplitude constant (FFT is unnormalized)
+  real_t peak_amplitude = icd.rho_K_matter*peak_amplitude_frac*(1.0e-9)/POINTS; // scaling in arb. units
 
   real_t ic_spec_cut = (real_t) stold(_config["ic_spec_cut"]); // power spectrum cutoff parameter
 
   /* (peak scale in hubble units) * (to pixel scale) */
-  icd.peak_k = (1.0/0.07)*(length_scale/((real_t) N));
-  icd.peak_amplitude = peak_amplitude; // figure out units here
+  icd.peak_k = (1.0/0.07)*H_LEN_FRAC; // need to scale this correctly?
+  icd.peak_amplitude = peak_amplitude;
   icd.ic_spec_cut = ic_spec_cut; // cut spectrum off around p ~ ic_spec_cut
                                  // (max is p ~ sqrt(2.5)*N )
 
@@ -32,8 +33,8 @@ ICsData cosmo_get_ICsData()
 // eg in LCDM, http://ned.ipac.caltech.edu/level5/Sept11/Norman/Norman2.html
 real_t cosmo_power_spectrum(real_t k, ICsData *icd)
 {
-  real_t pre = (1.0/N)*icd->peak_amplitude*4.0/3.0;
-  return pre*fabs(k)/((real_t) N)/(1.0 + pow(fabs(k)/((real_t) N)/icd->peak_k, 4.0)/3.0);
+  real_t pre = icd->peak_amplitude*4.0/3.0;
+  return pre*fabs(k)/(1.0 + pow(fabs(k)/icd->peak_k, 4.0)/3.0);
 }
 
 // set a field to an arbitrary gaussian random field
@@ -69,14 +70,12 @@ void set_gaussian_random_field(real_t *field, Fourier *fourier, ICsData *icd)
         pmag = sqrt(pw2(px) + pw2(py) + pw2(pz));
 
         // Scale by power spectrum
-        // don't want much power on scales smaller than ~2 pixels
+        // don't want much power on scales smaller than ~3 pixels
         // Or scales p > 1/(3*dx), or p > N/3
-        real_t cutoff = 1.0/(1.0+exp(px - icd->ic_spec_cut)*exp(py - icd->ic_spec_cut)*exp(pz - icd->ic_spec_cut));
+        real_t cutoff = 1.0/(1.0 + exp(10.0*(pmag - icd->ic_spec_cut)));
         scale = cutoff*sqrt(cosmo_power_spectrum(pmag, icd));
-
-        // fftw transform is unnormalized; account for an N^3 here
-        (fourier->f_field)[FFT_NP_INDEX(i,j,k)][0] *= scale/((real_t) POINTS);
-        (fourier->f_field)[FFT_NP_INDEX(i,j,k)][1] *= scale/((real_t) POINTS);
+        (fourier->f_field)[FFT_NP_INDEX(i,j,k)][0] *= scale;
+        (fourier->f_field)[FFT_NP_INDEX(i,j,k)][1] *= scale;
       }
     }
   }
@@ -131,13 +130,13 @@ void set_conformal_ICs(
         // For the usual second order laplacian stencil:
         // p2i = 1.0/4.0/(pw2(sin(PI*px/N)) + pw2(sin(PI*py/N)) + pw2(sin(PI*pz/N)));
         // for a sum of 4th-order order second derivative stencils,
-        p2i = 3.0/(
+        p2i = dx*dx*3.0/(
             16.0*(pw2(sin(PI*px/N)) + pw2(sin(PI*py/N)) + pw2(sin(PI*pz/N)))
             - 1.0*(pw2(sin(2.0*PI*px/N)) + pw2(sin(2.0*PI*py/N)) + pw2(sin(2.0*PI*pz/N)))
           );
         // account for fftw normalization here
-        (fourier->f_field)[FFT_NP_INDEX(i,j,k)][0] *= p2i/((real_t) POINTS);
-        (fourier->f_field)[FFT_NP_INDEX(i,j,k)][1] *= p2i/((real_t) POINTS);
+        (fourier->f_field)[FFT_NP_INDEX(i,j,k)][0] *= p2i;
+        (fourier->f_field)[FFT_NP_INDEX(i,j,k)][1] *= p2i;
       }
     }
   }
@@ -152,6 +151,7 @@ void set_conformal_ICs(
   // scale density to correct "units"
   LOOP3(i,j,k)
   {
+    bssn_fields["phi_p"][NP_INDEX(i,j,k)] /= POINTS; // account for FFTW transform normalization
     bssn_fields["phi_p"][NP_INDEX(i,j,k)] += 1.0;
     static_field["D_a"][NP_INDEX(i,j,k)] /= 2.0*PI;
   }
@@ -174,7 +174,7 @@ void set_conformal_ICs(
   real_t resid = 0.0;
   LOOP3(i,j,k)
   {
-    // 4th-order stencil.
+    // 4th-order stencil of e^\phi
     real_t grad2e = (
         -1.0*(
           exp(bssn_fields["phi_p"][INDEX(i+2,j,k)]) + exp(bssn_fields["phi_p"][INDEX(i,j+2,k)]) + exp(bssn_fields["phi_p"][INDEX(i,j,k+2)])
@@ -185,23 +185,28 @@ void set_conformal_ICs(
           + exp(bssn_fields["phi_p"][INDEX(i-1,j,k)]) + exp(bssn_fields["phi_p"][INDEX(i,j-1,k)]) + exp(bssn_fields["phi_p"][INDEX(i,j,k-1)])
         )
         - 90.0*exp(bssn_fields["phi_p"][NP_INDEX(i,j,k)])
-      )/12.0;
-    real_t cden = static_field["D_a"][NP_INDEX(i,j,k)]*exp(5.0*bssn_fields["phi_p"][NP_INDEX(i,j,k)]);
-    resid += fabs(grad2e + 2.0*PI*cden) / (fabs(grad2e) + fabs(2.0*PI*cden)); // should = 0
+      )/12.0/dx/dx;
+    // conformal density
+    real_t conformal_density = static_field["D_a"][NP_INDEX(i,j,k)]*exp(5.0*bssn_fields["phi_p"][NP_INDEX(i,j,k)]);
+
+    // inhomogeneous part of constraint
+    resid += fabs(grad2e + 2.0*PI*conformal_density) / (fabs(grad2e) + fabs(2.0*PI*conformal_density)); // should = 0
   }
   LOG(iod->log, "Average fractional constraint residual is: " << resid/POINTS << "\n");
 
   // Make sure min density value > 0
   real_t min = static_field["D_a"][NP_INDEX(0,0,0)] + icd.rho_K_matter;
   real_t max = min;
+  resid = 0.0;
 
+  // Scale density variable
   LOOP3(i,j,k)
   {
-    static_field["D_a"][NP_INDEX(i,j,k)] += icd.rho_K_matter;
-    static_field["D_a"][NP_INDEX(i,j,k)] *= exp(6.0*bssn_fields["phi_p"][NP_INDEX(i,j,k)]);
-
     bssn_fields["K_p"][NP_INDEX(i,j,k)] = -sqrt(24.0*PI*(icd.rho_K_matter));
     bssn_fields["K_f"][NP_INDEX(i,j,k)] = -sqrt(24.0*PI*(icd.rho_K_matter));
+
+    static_field["D_a"][NP_INDEX(i,j,k)] += icd.rho_K_matter;
+    static_field["D_a"][NP_INDEX(i,j,k)] *= exp(6.0*bssn_fields["phi_p"][NP_INDEX(i,j,k)]);
 
     if(static_field["D_a"][NP_INDEX(i,j,k)] < min)
     {
@@ -237,6 +242,7 @@ void set_conformal_ICs(
   }
 
 }
+
 
 void set_flat_dynamic_ICs(
   std::map <std::string, real_t *> & bssn_fields,

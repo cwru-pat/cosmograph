@@ -24,9 +24,9 @@ void io_data_dump(std::map <std::string, real_t *> & bssn_fields,
 
 void io_dump_strip(real_t *field, int axis, idx_t n1, idx_t n2, IOData *iodata);
 
-void io_dump_averages(std::map <std::string, real_t *> & bssn_fields,
-                      std::map <std::string, real_t *> & hydro_fields,
-                      IOData *iodata);
+void io_dump_statistics(std::map <std::string, real_t *> & bssn_fields,
+                        std::map <std::string, real_t *> & hydro_fields,
+                        IOData *iodata);
 
 void io_dump_data(real_t value, IOData *iodata, std::string filename);
 

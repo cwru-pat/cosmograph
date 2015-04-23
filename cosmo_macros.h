@@ -3,7 +3,9 @@
 
 #define N 64
 #define POINTS (N*N*N)
-#define dx 0.5
+// box size in hubble units
+#define H_LEN_FRAC 0.5
+#define dx (H_LEN_FRAC/N)
 #define dt (0.1*dx)
 
 // WENO "epsilon" parameter

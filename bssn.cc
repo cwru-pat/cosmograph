@@ -794,7 +794,7 @@ real_t BSSN::ev_K(BSSNData *paq)
   // );
 
   return (
-    H
+    1.0*H
     - paq->DDaTR
     + paq->alpha*(
         paq->ricci + pw2(paq->K)

@@ -84,8 +84,8 @@ void io_data_dump(std::map <std::string, real_t *> & bssn_fields,
   }
   if(step % iodata->meta_output_interval == 0)
   {
-    // some average values
-    io_dump_averages(bssn_fields, static_field, iodata);
+    // some statistical values
+    io_dump_statistics(bssn_fields, static_field, iodata);
   }
 }
 
@@ -240,9 +240,9 @@ void io_dump_3dslice(real_t *field, std::string filename, IOData *iodata)
 }
 
 
-void io_dump_averages(std::map <std::string, real_t *> & bssn_fields,
-                      std::map <std::string, real_t *> & static_field,
-                      IOData *iodata)
+void io_dump_statistics(std::map <std::string, real_t *> & bssn_fields,
+                        std::map <std::string, real_t *> & static_field,
+                        IOData *iodata)
 {
   std::string filename = iodata->dump_file;
 
@@ -256,28 +256,31 @@ void io_dump_averages(std::map <std::string, real_t *> & bssn_fields,
     return;
   }
 
-  // average phi
-  sprintf(data, "%g\t", average(bssn_fields["phi_a"]));
+  // phi output
+  real_t avg_phi = conformal_average(bssn_fields["phi_a"], bssn_fields["phi_a"]); 
+  sprintf(data, "%g\t", avg_phi);
   gzwrite(datafile, data, strlen(data));
 
-  // average K
-  sprintf(data, "%g\t", average(bssn_fields["K_a"]));
+  real_t std_phi = conformal_standard_deviation(bssn_fields["phi_a"], bssn_fields["phi_a"], avg_phi);
+  sprintf(data, "%g\t", std_phi);
   gzwrite(datafile, data, strlen(data));
 
-  // average UD
-  sprintf(data, "%g\t", average(static_field["D_a"]));
+  // K output
+  real_t avg_K = conformal_average(bssn_fields["K_a"], bssn_fields["phi_a"]); 
+  sprintf(data, "%g\t", avg_K);
   gzwrite(datafile, data, strlen(data));
 
-  // average phi
-  sprintf(data, "%g\t", conformal_average(bssn_fields["phi_a"], bssn_fields["phi_a"]));
+  real_t std_K = conformal_standard_deviation(bssn_fields["K_a"], bssn_fields["phi_a"], avg_K);
+  sprintf(data, "%g\t", std_K);
   gzwrite(datafile, data, strlen(data));
 
-  // average K
-  sprintf(data, "%g\t", conformal_average(bssn_fields["K_a"], bssn_fields["phi_a"]));
+  // rho output
+  real_t avg_D = conformal_average(bssn_fields["r_a"], bssn_fields["phi_a"]); 
+  sprintf(data, "%g\t", avg_D);
   gzwrite(datafile, data, strlen(data));
 
-  // average UD
-  sprintf(data, "%g\t", conformal_average(static_field["D_a"], bssn_fields["phi_a"]));
+  real_t std_D = conformal_standard_deviation(bssn_fields["r_a"], bssn_fields["phi_a"], avg_D);
+  sprintf(data, "%g\t", std_D);
   gzwrite(datafile, data, strlen(data));
 
   // average volume

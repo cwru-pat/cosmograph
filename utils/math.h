@@ -111,27 +111,15 @@ inline real_t conformal_average(real_t *field, real_t *phi)
   {
     sum += exp(6.0*phi[NP_INDEX(i,j,k)])*field[NP_INDEX(i,j,k)];
   }
-  return sum/POINTS;
+  real_t vol = volume_average(phi);
+  return sum/POINTS/vol;
 }
 
-inline real_t average_lap(real_t *field)
+inline real_t standard_deviation(real_t *field, real_t avg)
 {
   // note this may have poor precision for large datasets
   idx_t i, j, k;
   real_t sum = 0.0;
-  LOOP3(i, j, k)
-  {
-    sum += lap_stencil(i, j, k, field)/dx/dx;
-  }
-  return sum/POINTS;
-}
-
-inline real_t standard_deviation(real_t *field)
-{
-  // note this may have poor precision for large datasets
-  idx_t i, j, k;
-  real_t sum = 0.0;
-  real_t avg = average(field);
   #pragma omp parallel for default(shared) private(i, j, k) reduction(+:sum)
   LOOP3(i, j, k)
   {
@@ -140,6 +128,31 @@ inline real_t standard_deviation(real_t *field)
   return sqrt(sum/(POINTS-1));
 }
 
+inline real_t standard_deviation(real_t *field)
+{
+  real_t avg = average(field);
+  return standard_deviation(field, avg);
+}
+
+inline real_t conformal_standard_deviation(real_t *field, real_t *phi, real_t avg)
+{
+  real_t sum = 0.0; 
+  idx_t i, j, k;
+
+  #pragma omp parallel for default(shared) private(i, j, k) reduction(+:sum)
+  LOOP3(i, j, k)
+  {
+    sum += exp(6.0*phi[NP_INDEX(i,j,k)])*pw2(avg - field[NP_INDEX(i,j,k)]);
+  }
+  real_t vol = volume_average(phi);
+  return sqrt(sum/(POINTS-1)/vol);
+}
+
+inline real_t conformal_standard_deviation(real_t *field, real_t *phi)
+{
+  real_t avg = conformal_average(field, phi);
+  return conformal_standard_deviation(field, phi, avg);
+}
 
 }
 
