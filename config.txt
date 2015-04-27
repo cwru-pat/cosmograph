@@ -1,10 +1,10 @@
-steps = 1
+steps = 10
 grid_output_interval = 8499
 slice_output_interval = 8499
-spec_output_interval = 1
-meta_output_interval = 1
+spec_output_interval = 10
+meta_output_interval = 10
 
-omp_num_threads = 32
+omp_num_threads = 64
 
 peak_amplitude_frac = 0.1
 rho_K_lambda_frac = 0.0

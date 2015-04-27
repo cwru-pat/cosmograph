@@ -192,7 +192,7 @@
 #define FLUX_ARRAY_DELETE(name) \
         delete [] name##_a
 
-
+// print out a sampling of field values
 #define DUMPSTUFF(extra) \
          cout << "step #" << s \
          << ": " << extra \
@@ -208,6 +208,7 @@
          << "|STF11_a=" << bssnSim.fields["STF11_a"][10] \
          << "|STF12_a=" << bssnSim.fields["STF12_a"][10] \
          << " \n"; \
+
 
 
 #endif

@@ -53,7 +53,6 @@ int main(int argc, char **argv)
 
     // GR Fields
     BSSN bssnSim;
-    BSSNData b_paq = {0}; // data structure associated with bssn sim
     bssnSim.init();
 
     // generic reusable fourier class for N^3 arrays
@@ -91,9 +90,10 @@ int main(int argc, char **argv)
       lambdaSim.addBSSNSrc(bssnSim.fields);
 
     // First RK step, Set Hydro Vars, & calc. constraint
-    #pragma omp parallel for default(shared) private(i, j, k, b_paq)
+    #pragma omp parallel for default(shared) private(i, j, k)
     LOOP3(i, j, k)
     {
+      BSSNData b_paq = {0}; // data structure associated with bssn sim
       bssnSim.K1CalcPt(i, j, k, &b_paq);
     }
 
@@ -107,9 +107,10 @@ int main(int argc, char **argv)
 
     // Subsequent BSSN steps
       // Second RK step
-      #pragma omp parallel for default(shared) private(i, j, k, b_paq)
+      #pragma omp parallel for default(shared) private(i, j, k)
       LOOP3(i, j, k)
       {
+        BSSNData b_paq = {0}; // data structure associated with bssn sim
         bssnSim.K2CalcPt(i, j, k, &b_paq);
       }
 
@@ -121,9 +122,10 @@ int main(int argc, char **argv)
 
       bssnSim.regSwap_c_a();
       // Third RK step
-      #pragma omp parallel for default(shared) private(i, j, k, b_paq)
+      #pragma omp parallel for default(shared) private(i, j, k)
       LOOP3(i, j, k)
       {
+        BSSNData b_paq = {0}; // data structure associated with bssn sim
         bssnSim.K3CalcPt(i, j, k, &b_paq);
       }
 
@@ -136,9 +138,10 @@ int main(int argc, char **argv)
       bssnSim.regSwap_c_a();
 
       // Fourth RK step
-      #pragma omp parallel for default(shared) private(i, j, k, b_paq)
+      #pragma omp parallel for default(shared) private(i, j, k)
       LOOP3(i, j, k)
       {
+        BSSNData b_paq = {0}; // data structure associated with bssn sim
         bssnSim.K4CalcPt(i, j, k, &b_paq);
       }
 
@@ -147,7 +150,6 @@ int main(int argc, char **argv)
       bssnSim.stepTerm();
 
     _timer["RK_steps"].stop();
-
     _timer["output"].start();
       real_t total_hamiltonian_constraint = 0.0,
              mean_hamiltonian_constraint = 0.0,
@@ -155,7 +157,7 @@ int main(int argc, char **argv)
       if(s%iodata.meta_output_interval == 0)
       {
         idx_t isNaN = 0;
-        #pragma omp parallel for default(shared) private(i, j, k, b_paq) \
+        #pragma omp parallel for default(shared) private(i, j, k) \
          reduction(+:total_hamiltonian_constraint, mean_hamiltonian_constraint, isNaN)
         LOOP3(i,j,k)
         {
@@ -176,13 +178,12 @@ int main(int argc, char **argv)
           _timer["output"].stop();
           break;
         }
-        #pragma omp parallel for default(shared) private(i, j, k, b_paq) reduction(+:stdev_hamiltonian_constraint)
+        #pragma omp parallel for default(shared) private(i, j, k) reduction(+:stdev_hamiltonian_constraint)
         LOOP3(i,j,k)
         {
           stdev_hamiltonian_constraint += pw2(bssnSim.hamiltonianConstraintCalc(i,j,k)/bssnSim.hamiltonianConstraintMag(i,j,k) - mean_hamiltonian_constraint);
         }
         stdev_hamiltonian_constraint = sqrt(stdev_hamiltonian_constraint/(POINTS-1.0));
-        LOG(iodata.log, "\nH: " << stdev_hamiltonian_constraint << "\n");
         io_dump_data(mean_hamiltonian_constraint, &iodata, "avg_H_violation");
         io_dump_data(stdev_hamiltonian_constraint, &iodata, "std_H_violation");
       }
