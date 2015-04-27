@@ -209,5 +209,9 @@
          << "|STF12_a=" << bssnSim.fields["STF12_a"][10] \
          << " \n"; \
 
+#define ACC_DEF_SIM_FIELDS() \
+    real_t * const phi_a = bssnSim.fields["phi_a"];
+
+#define ACC_SIM_FIELDS bssnSim.fields["phi_a"][0:POINTS]
 
 #endif
