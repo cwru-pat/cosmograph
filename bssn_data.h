@@ -24,18 +24,6 @@ typedef struct {
   real_t ricci; // ricci scalar
   real_t unitRicci; // ricci scalar
 
-  // derivatives of \alpha
-    // covariant double-derivatives 
-    real_t D1D1aTF, D1D2aTF, D1D3aTF, D2D2aTF, D2D3aTF, D3D3aTF;
-    real_t DDaTR;
-    // normal derivatives of
-    real_t d1a, d2a, d3a;
-
-  // derivatives of \beta
-    real_t d1beta1, d1beta2, d1beta3,
-           d2beta1, d2beta2, d2beta3,
-           d3beta1, d3beta2, d3beta3;
-
   // derivatives of phi
     // covariant double-derivatives 
     real_t D1D1phi, D1D2phi, D1D3phi, D2D2phi, D2D3phi, D3D3phi;

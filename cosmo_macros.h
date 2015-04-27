@@ -1,7 +1,7 @@
 #ifndef COSMO_DEFINES
 #define COSMO_DEFINES
 
-#define N 64
+#define N 256
 #define POINTS (N*N*N)
 // box size in hubble units
 #define H_LEN_FRAC 0.5
