@@ -1,16 +1,8 @@
-<<<<<<< HEAD
 steps = 10
 grid_output_interval = 8499
 slice_output_interval = 8499
 spec_output_interval = 10
 meta_output_interval = 10
-=======
-steps = 34000
-grid_output_interval = 33999
-slice_output_interval = 33999
-spec_output_interval = 20
-meta_output_interval = 20
->>>>>>> 3a9f5003612394ade7edf80f1b0528e52e855e29
 
 omp_num_threads = 64
 
