@@ -80,53 +80,31 @@ int main(int argc, char **argv)
     // See bssn class or hydro class for more comments.
     _timer["RK_steps"].start();
 
-    // Init arrays and calculate source term for next step
-      // _p is copied to _a here, which hydro uses
-      bssnSim.stepInit();
-      // clear existing data
-      bssnSim.clearSrc();
-      // add hydro source to bssn sim
-      staticSim.addBSSNSrc(bssnSim.fields);
-      lambdaSim.addBSSNSrc(bssnSim.fields);
-
-    // First RK step, Set Hydro Vars, & calc. constraint
-    #pragma omp parallel for default(shared) private(i, j, k)
-    LOOP3(i, j, k)
+    ACC_DEF_SIM_FIELDS();
+    #pragma acc data copy( \
+        gamma11_a[0:262144], gamma11_c[0:262144], gamma11_p[0:262144], gamma11_f[0:262144], gamma12_a[0:262144], gamma12_c[0:262144], gamma12_p[0:262144], gamma12_f[0:262144], gamma13_a[0:262144], gamma13_c[0:262144], gamma13_p[0:262144], gamma13_f[0:262144], gamma22_a[0:262144], gamma22_c[0:262144], gamma22_p[0:262144], gamma22_f[0:262144], gamma23_a[0:262144], gamma23_c[0:262144], gamma23_p[0:262144], gamma23_f[0:262144], gamma33_a[0:262144], gamma33_c[0:262144], gamma33_p[0:262144], gamma33_f[0:262144], phi_a[0:262144], phi_c[0:262144], phi_p[0:262144], phi_f[0:262144], A11_a[0:262144], A11_c[0:262144], A11_p[0:262144], A11_f[0:262144], A12_a[0:262144], A12_c[0:262144], A12_p[0:262144], A12_f[0:262144], A13_a[0:262144], A13_c[0:262144], A13_p[0:262144], A13_f[0:262144], A22_a[0:262144], A22_c[0:262144], A22_p[0:262144], A22_f[0:262144], A23_a[0:262144], A23_c[0:262144], A23_p[0:262144], A23_f[0:262144], A33_a[0:262144], A33_c[0:262144], A33_p[0:262144], A33_f[0:262144], K_a[0:262144], K_c[0:262144], K_p[0:262144], K_f[0:262144], Gamma1_a[0:262144], Gamma1_c[0:262144], Gamma1_p[0:262144], Gamma1_f[0:262144], Gamma2_a[0:262144], Gamma2_c[0:262144], Gamma2_p[0:262144], Gamma2_f[0:262144], Gamma3_a[0:262144], Gamma3_c[0:262144], Gamma3_p[0:262144], Gamma3_f[0:262144], r_a[0:262144], S_a[0:262144], S1_a[0:262144], S2_a[0:262144], S3_a[0:262144], STF11_a[0:262144], STF12_a[0:262144], STF13_a[0:262144], STF22_a[0:262144], STF23_a[0:262144], STF33_a[0:262144], ricci_a[0:262144], AijAij_a[0:262144], D_a[0:262144] \
+      )
     {
-      BSSNData b_paq = {0}; // data structure associated with bssn sim
-      bssnSim.K1CalcPt(i, j, k, &b_paq);
-    }
+      // Init arrays and calculate source term for next step
+        // _p is copied to _a here, which hydro uses
+        bssnSim.stepInit();
+        // clear existing data
+        bssnSim.clearSrc();
+        // add hydro source to bssn sim
+        staticSim.addBSSNSrc(bssnSim.fields);
+        lambdaSim.addBSSNSrc(bssnSim.fields);
 
-    // reset source using new metric
-    bssnSim.clearSrc();
-    // add hydro source to bssn sim
-    staticSim.addBSSNSrc(bssnSim.fields);
-    lambdaSim.addBSSNSrc(bssnSim.fields);
-
-    bssnSim.regSwap_c_a();
-
-    // Subsequent BSSN steps
-      // Second RK step
-      #pragma omp parallel for default(shared) private(i, j, k)
-      LOOP3(i, j, k)
+      // First RK step, Set Hydro Vars, & calc. constraint
+      // #pragma omp parallel for default(shared) private(i, j, k)
+      #pragma acc parallel loop
+      for(i=1; i<N-1; ++i)
       {
-        BSSNData b_paq = {0}; // data structure associated with bssn sim
-        bssnSim.K2CalcPt(i, j, k, &b_paq);
-      }
-
-      // reset source using new metric
-      bssnSim.clearSrc();
-      // add hydro source to bssn sim
-      staticSim.addBSSNSrc(bssnSim.fields);
-      lambdaSim.addBSSNSrc(bssnSim.fields);
-
-      bssnSim.regSwap_c_a();
-      // Third RK step
-      #pragma omp parallel for default(shared) private(i, j, k)
-      LOOP3(i, j, k)
-      {
-        BSSNData b_paq = {0}; // data structure associated with bssn sim
-        bssnSim.K3CalcPt(i, j, k, &b_paq);
+        for(j=1; j<N-1; ++j)
+          for(k=1; k<N-1; ++k)
+        {
+          BSSNData b_paq = {0}; // data structure associated with bssn sim
+          bssnSim.K1CalcPt(i, j, k, &b_paq);
+        }
       }
 
       // reset source using new metric
@@ -137,17 +115,53 @@ int main(int argc, char **argv)
 
       bssnSim.regSwap_c_a();
 
-      // Fourth RK step
-      #pragma omp parallel for default(shared) private(i, j, k)
-      LOOP3(i, j, k)
-      {
-        BSSNData b_paq = {0}; // data structure associated with bssn sim
-        bssnSim.K4CalcPt(i, j, k, &b_paq);
-      }
+      // Subsequent BSSN steps
+        // Second RK step
+        // #pragma omp parallel for default(shared) private(i, j, k)
+        #pragma acc parallel loop
+        LOOP3(i, j, k)
+        {
+          BSSNData b_paq = {0}; // data structure associated with bssn sim
+          bssnSim.K2CalcPt(i, j, k, &b_paq);
+        }
 
-    // Wrap up
-      // bssn _f <-> _p
-      bssnSim.stepTerm();
+        // reset source using new metric
+        bssnSim.clearSrc();
+        // add hydro source to bssn sim
+        staticSim.addBSSNSrc(bssnSim.fields);
+        lambdaSim.addBSSNSrc(bssnSim.fields);
+
+        bssnSim.regSwap_c_a();
+        // Third RK step
+        // #pragma omp parallel for default(shared) private(i, j, k)
+        #pragma acc parallel loop
+        LOOP3(i, j, k)
+        {
+          BSSNData b_paq = {0}; // data structure associated with bssn sim
+          bssnSim.K3CalcPt(i, j, k, &b_paq);
+        }
+
+        // reset source using new metric
+        bssnSim.clearSrc();
+        // add hydro source to bssn sim
+        staticSim.addBSSNSrc(bssnSim.fields);
+        lambdaSim.addBSSNSrc(bssnSim.fields);
+
+        bssnSim.regSwap_c_a();
+
+        // Fourth RK step
+        // #pragma omp parallel for default(shared) private(i, j, k)
+        #pragma acc parallel loop
+        LOOP3(i, j, k)
+        {
+          BSSNData b_paq = {0}; // data structure associated with bssn sim
+          bssnSim.K4CalcPt(i, j, k, &b_paq);
+        }
+
+      // Wrap up
+        // bssn _f <-> _p
+        bssnSim.stepTerm();
+    } // pragma acc
 
     _timer["RK_steps"].stop();
     _timer["output"].start();

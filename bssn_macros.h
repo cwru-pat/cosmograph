@@ -24,6 +24,25 @@
   function(Gamma2);                     \
   function(Gamma3);
 
+#define BSSN_LIST_FIELDS(function)  \
+  function(gamma11),                \
+  function(gamma12),                \
+  function(gamma13),                \
+  function(gamma22),                \
+  function(gamma23),                \
+  function(gamma33),                \
+  function(phi),                    \
+  function(A11),                    \
+  function(A12),                    \
+  function(A13),                    \
+  function(A22),                    \
+  function(A23),                    \
+  function(A33),                    \
+  function(K),                      \
+  function(Gamma1),                 \
+  function(Gamma2),                 \
+  function(Gamma3)
+
 #define BSSN_APPLY_TO_SOURCES(function) \
   function(r);                          \
   function(S);                          \
@@ -36,6 +55,19 @@
   function(STF22);                      \
   function(STF23);                      \
   function(STF33);
+
+#define BSSN_LIST_SOURCES(function) \
+  function(r),                      \
+  function(S),                      \
+  function(S1),                     \
+  function(S2),                     \
+  function(S3),                     \
+  function(STF11),                  \
+  function(STF12),                  \
+  function(STF13),                  \
+  function(STF22),                  \
+  function(STF23),                  \
+  function(STF33)
 
 #define BSSN_APPLY_TO_IJ_PERMS(function) \
   function(1, 1);                        \

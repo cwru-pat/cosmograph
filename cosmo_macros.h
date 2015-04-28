@@ -209,10 +209,38 @@
          << "|STF12_a=" << bssnSim.fields["STF12_a"][10] \
          << " \n"; \
 
+
+// defines for OpenACC functionality
+
+#define RK4_ARRAY_UNMAP(map, name)   \
+        volatile real_t * name##_a = map[#name "_a"];  \
+        volatile real_t * name##_c = map[#name "_c"];  \
+        volatile real_t * name##_p = map[#name "_p"];  \
+        volatile real_t * name##_f = map[#name "_f"]
+#define RK4_ARRAY_UNMAP_BSSN(name) RK4_ARRAY_UNMAP(bssnSim.fields, name)
+
+#define GEN1_ARRAY_UNMAP(map, name)   \
+        volatile real_t * name##_a = map[#name "_a"];
+#define GEN1_ARRAY_UNMAP_BSSN(name) RK4_ARRAY_UNMAP(bssnSim.fields, name)
+
+// need to be careful about overlapping names
 #define ACC_DEF_SIM_FIELDS() \
-    real_t * const phi_a = bssnSim.fields["phi_a"];
+        BSSN_APPLY_TO_FIELDS(RK4_ARRAY_UNMAP_BSSN); \
+        BSSN_APPLY_TO_SOURCES(GEN1_ARRAY_UNMAP_BSSN); \
+        GEN1_ARRAY_UNMAP(bssnSim.fields, ricci); \
+        GEN1_ARRAY_UNMAP(bssnSim.fields, AijAij); \
+        GEN1_ARRAY_UNMAP(staticSim.fields, D)
 
-#define ACC_SIM_FIELDS bssnSim.fields["phi_a"][0:POINTS]
+#define RK4_ARRAY_COPYDECLARE(name) \
+        name##_a[0:POINTS], name##_c[0:POINTS], name##_p[0:POINTS], name##_f[0:POINTS]
+#define GEN1_ARRAY_COPYDECLARE(name) \
+        name##_a[0:POINTS]
 
+#define ACC_SIM_FIELDS \
+        BSSN_LIST_FIELDS(RK4_ARRAY_COPYDECLARE), \
+        BSSN_LIST_SOURCES(GEN1_ARRAY_COPYDECLARE), \
+        ricci_a[0:POINTS], \
+        AijAij_a[0:POINTS], \
+        D_a[0:POINTS]
 
 #endif
