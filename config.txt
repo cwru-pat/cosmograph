@@ -10,5 +10,5 @@ peak_amplitude_frac = 0.1
 rho_K_lambda_frac = 0.0
 ic_spec_cut = 25.0
 
-output_dir = res_test_256
+output_dir = test
 dump_file = calculated

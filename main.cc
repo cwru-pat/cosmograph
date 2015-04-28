@@ -96,15 +96,11 @@ int main(int argc, char **argv)
 
       // First RK step, Set Hydro Vars, & calc. constraint
       // #pragma omp parallel for default(shared) private(i, j, k)
-      #pragma acc parallel loop
-      for(i=1; i<N-1; ++i)
+      #pragma acc loop
+      LOOP3(i, j, k)
       {
-        for(j=1; j<N-1; ++j)
-          for(k=1; k<N-1; ++k)
-        {
-          BSSNData b_paq = {0}; // data structure associated with bssn sim
-          bssnSim.K1CalcPt(i, j, k, &b_paq);
-        }
+        BSSNData b_paq = {0}; // data structure associated with bssn sim
+        bssnSim.K1CalcPt(i, j, k, &b_paq);
       }
 
       // reset source using new metric
@@ -118,7 +114,7 @@ int main(int argc, char **argv)
       // Subsequent BSSN steps
         // Second RK step
         // #pragma omp parallel for default(shared) private(i, j, k)
-        #pragma acc parallel loop
+        #pragma acc loop
         LOOP3(i, j, k)
         {
           BSSNData b_paq = {0}; // data structure associated with bssn sim
@@ -134,7 +130,7 @@ int main(int argc, char **argv)
         bssnSim.regSwap_c_a();
         // Third RK step
         // #pragma omp parallel for default(shared) private(i, j, k)
-        #pragma acc parallel loop
+        #pragma acc loop
         LOOP3(i, j, k)
         {
           BSSNData b_paq = {0}; // data structure associated with bssn sim
@@ -151,7 +147,7 @@ int main(int argc, char **argv)
 
         // Fourth RK step
         // #pragma omp parallel for default(shared) private(i, j, k)
-        #pragma acc parallel loop
+        #pragma acc loop
         LOOP3(i, j, k)
         {
           BSSNData b_paq = {0}; // data structure associated with bssn sim
