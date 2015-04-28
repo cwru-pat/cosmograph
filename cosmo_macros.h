@@ -1,7 +1,7 @@
 #ifndef COSMO_DEFINES
 #define COSMO_DEFINES
 
-#define N 64
+#define N 256
 #define POINTS (N*N*N)
 // box size in hubble units
 #define H_LEN_FRAC 0.5
@@ -209,6 +209,10 @@
          << "|STF12_a=" << bssnSim.fields["STF12_a"][10] \
          << " \n"; \
 
+#define ACC_DEF_SIM_FIELDS() \
+    real_t * const phi_a = bssnSim.fields["phi_a"];
+
+#define ACC_SIM_FIELDS bssnSim.fields["phi_a"][0:POINTS]
 
 
 #endif

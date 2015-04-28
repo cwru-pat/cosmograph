@@ -75,9 +75,9 @@ void Hydro::setPrimitivesCell(BSSNData *paq, HydroData *hdp)
     u3 = US3_a[idx] / hdp->W / hdp->rg / r_a[idx] / (1.0 + w_EOS);
 
     /* velocities (contravariant) */
-    v1_a[idx] = paq->alpha / hdp->W * hdp->g * ( paq->gammai11*u1 + paq->gammai12*u2 + paq->gammai13*u3 ) - paq->beta1;
-    v2_a[idx] = paq->alpha / hdp->W * hdp->g * ( paq->gammai12*u1 + paq->gammai22*u2 + paq->gammai23*u3 ) - paq->beta2;
-    v3_a[idx] = paq->alpha / hdp->W * hdp->g * ( paq->gammai13*u1 + paq->gammai23*u2 + paq->gammai33*u3 ) - paq->beta3;
+    v1_a[idx] = 1.0 / hdp->W * hdp->g * ( paq->gammai11*u1 + paq->gammai12*u2 + paq->gammai13*u3 );
+    v2_a[idx] = 1.0 / hdp->W * hdp->g * ( paq->gammai12*u1 + paq->gammai22*u2 + paq->gammai23*u3 );
+    v3_a[idx] = 1.0 / hdp->W * hdp->g * ( paq->gammai13*u1 + paq->gammai23*u2 + paq->gammai33*u3 );
   }
 }
 
@@ -94,29 +94,29 @@ void Hydro::setFluxesCell(BSSNData *paq, HydroData *hdp)
     FD_a[f_idx_2] = UD_a[idx]*v2_a[idx];
     FD_a[f_idx_3] = UD_a[idx]*v3_a[idx];
   // S1
-    FS1_a[f_idx_1] = US1_a[idx]*v1_a[idx]/paq->alpha
-                      + w_EOS * r_a[idx] * hdp->rg * paq->alpha;
-    FS1_a[f_idx_2] = US1_a[idx]*v2_a[idx]/paq->alpha;
-    FS1_a[f_idx_3] = US1_a[idx]*v3_a[idx]/paq->alpha;
+    FS1_a[f_idx_1] = US1_a[idx]*v1_a[idx]/1.0
+                      + w_EOS * r_a[idx] * hdp->rg * 1.0;
+    FS1_a[f_idx_2] = US1_a[idx]*v2_a[idx]/1.0;
+    FS1_a[f_idx_3] = US1_a[idx]*v3_a[idx]/1.0;
   // S2
-    FS2_a[f_idx_1] = US2_a[idx]*v1_a[idx]/paq->alpha;
-    FS2_a[f_idx_2] = US2_a[idx]*v2_a[idx]/paq->alpha
-                      + w_EOS * r_a[idx] * hdp->rg * paq->alpha;
-    FS2_a[f_idx_3] = US2_a[idx]*v3_a[idx]/paq->alpha;
+    FS2_a[f_idx_1] = US2_a[idx]*v1_a[idx]/1.0;
+    FS2_a[f_idx_2] = US2_a[idx]*v2_a[idx]/1.0
+                      + w_EOS * r_a[idx] * hdp->rg * 1.0;
+    FS2_a[f_idx_3] = US2_a[idx]*v3_a[idx]/1.0;
   // S3
-    FS3_a[f_idx_1] = US3_a[idx]*v1_a[idx]/paq->alpha;
-    FS3_a[f_idx_2] = US3_a[idx]*v2_a[idx]/paq->alpha;
-    FS3_a[f_idx_3] = US3_a[idx]*v3_a[idx]/paq->alpha
-                      + w_EOS * r_a[idx] * hdp->rg * paq->alpha;
+    FS3_a[f_idx_1] = US3_a[idx]*v1_a[idx]/1.0;
+    FS3_a[f_idx_2] = US3_a[idx]*v2_a[idx]/1.0;
+    FS3_a[f_idx_3] = US3_a[idx]*v3_a[idx]/1.0
+                      + w_EOS * r_a[idx] * hdp->rg * 1.0;
 }
 
 void Hydro::setSourcesCell(BSSNData *paq, HydroData *hdp)
 {
   idx_t idx = paq->idx;
-  real_t pref = 0.5*paq->alpha*hdp->rg*r_a[idx];
-  real_t uu_fac = (w_EOS+1.0)*pw2(hdp->W)/pw2(paq->alpha);
+  real_t pref = 0.5*hdp->rg*r_a[idx];
+  real_t uu_fac = (w_EOS+1.0)*pw2(hdp->W);
 
-  // 0.5*Alpha*gamma^1/2*T*g,j
+  // 0.5*gamma^1/2*T*g,j
   SS1_a[idx] = pref*TABGAB_J(1);
   SS2_a[idx] = pref*TABGAB_J(2);
   SS3_a[idx] = pref*TABGAB_J(3);

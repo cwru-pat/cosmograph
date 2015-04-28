@@ -56,13 +56,11 @@ public:
   /* Calculate metric derivatives */
   void calculate_dgammai(BSSNData *paq);
   void calculate_christoffels(BSSNData *paq);
-  void calculate_dalpha_dphi(BSSNData *paq);
-  void calculate_dbeta(BSSNData *paq);
+  void calculate_dphi(BSSNData *paq);
 
   /* Calculate trace-free ricci tensor components */
   void calculateRicciTF(BSSNData *paq);
   void calculateDDphi(BSSNData *paq);
-  void calculateDDalphaTF(BSSNData *paq);
 
   /* Evolution functions */
   real_t ev_gamma11(BSSNData *paq);
@@ -82,11 +80,6 @@ public:
   real_t ev_Gamma1(BSSNData *paq);
   real_t ev_Gamma2(BSSNData *paq);
   real_t ev_Gamma3(BSSNData *paq);
-  // static gauge for now:
-  real_t ev_alpha(BSSNData *paq) { return 0; }
-  real_t ev_beta1(BSSNData *paq) { return 0; }
-  real_t ev_beta2(BSSNData *paq) { return 0; }
-  real_t ev_beta3(BSSNData *paq) { return 0; }
 
   // calculate needed quantities (need the inverse metric set everywhere first)
   void set_paq_values(idx_t i, idx_t j, idx_t k, BSSNData *paq);
