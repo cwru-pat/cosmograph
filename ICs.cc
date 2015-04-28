@@ -16,7 +16,7 @@ ICsData cosmo_get_ICsData()
   // power spectrum amplitude as a fraction of the density
   real_t peak_amplitude_frac = (real_t) stold(_config["peak_amplitude_frac"]); // fluctuation amplitude
   // factor of N^{2/3} needed to keep power spec. amplitude constant (FFT is unnormalized)
-  real_t peak_amplitude = icd.rho_K_matter*peak_amplitude_frac*(1.0e-9)/POINTS; // scaling in arb. units
+  real_t peak_amplitude = icd.rho_K_matter*peak_amplitude_frac*(1.0e-6)/POINTS; // scaling in arb. units
 
   real_t ic_spec_cut = (real_t) stold(_config["ic_spec_cut"]); // power spectrum cutoff parameter
 

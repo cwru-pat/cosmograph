@@ -17,13 +17,16 @@ Static::~Static()
 void Static::addBSSNSrc(std::map <std::string, real_t *> & bssn_fields)
 {
   idx_t i, j, k;
+  real_t * const r_a = bssn_fields["r_a"];
+  real_t * const phi_a = bssn_fields["phi_a"];
+
   #pragma omp parallel for default(shared) private(i, j, k)
   LOOP3(i,j,k)
   {
     idx_t idx = NP_INDEX(i,j,k);
     // \rho = \gamma^{-1/2}*D
-    //      = exp(-6*\phi)*D
-    bssn_fields["r_a"][idx] += exp(-6.0*bssn_fields["phi_a"][idx])*D_a[idx];
+    //      =  exp(-6*\phi)*D
+    r_a[idx] += exp(-6.0*phi_a[idx])*D_a[idx];
   }
 
 }

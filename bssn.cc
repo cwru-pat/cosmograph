@@ -44,13 +44,11 @@ void BSSN::set_paq_values(idx_t i, idx_t j, idx_t k, BSSNData *paq)
   calculate_dgamma(paq);
   calculate_ddgamma(paq);
   calculate_dgammai(paq);
-  calculate_dbeta(paq);
-  calculate_dalpha_dphi(paq);
+  calculate_dphi(paq);
   // Christoffels depend on metric & derivs.
   calculate_christoffels(paq);
-  // DDa, DDw depend on christoffels, metric, and derivs
+  // DDw depend on christoffels, metric, and derivs
   calculateDDphi(paq);
-  calculateDDalphaTF(paq);
   // Ricci depends on DDphi
   calculateRicciTF(paq);
 
@@ -378,12 +376,6 @@ void BSSN::init()
     Gamma2_p[idx]  = Gamma2_a[idx]  = Gamma2_c[idx]  = Gamma2_f[idx]   = 0.0;
     Gamma3_p[idx]  = Gamma3_a[idx]  = Gamma3_c[idx]  = Gamma3_f[idx]   = 0.0;
 
-    beta1_p[idx]   = beta1_a[idx]   = beta1_c[idx]   = beta1_f[idx]    = 0.0;
-    beta2_p[idx]   = beta2_a[idx]   = beta2_c[idx]   = beta2_f[idx]    = 0.0;
-    beta3_p[idx]   = beta3_a[idx]   = beta3_c[idx]   = beta3_f[idx]    = 0.0;
-
-    alpha_p[idx]   = alpha_a[idx]   = alpha_c[idx]   = alpha_f[idx]    = 1.0;
-
     r_a[idx]        = 0.0;
     S_a[idx]        = 0.0;
     S1_a[idx]       = 0.0;
@@ -569,12 +561,6 @@ void BSSN::set_local_vals(BSSNData *paq)
   SET_LOCAL_VALUES_PFE(phi);
   SET_LOCAL_VALUES_PFE(K);
 
-  SET_LOCAL_VALUES_PFE(beta1);
-  SET_LOCAL_VALUES_PFE(beta2);
-  SET_LOCAL_VALUES_PFE(beta3);
-  
-  SET_LOCAL_VALUES_PFE(alpha);
-
   // compute all of these at each step, rather than pulling them out of memory.
   BSSN_COMPUTE_LOCAL_GAMMAI_PF(11, 22, 33, 23, 23);
   BSSN_COMPUTE_LOCAL_GAMMAI_PF(12, 13, 23, 12, 33);
@@ -650,30 +636,12 @@ void BSSN::calculate_christoffels(BSSNData *paq)
   BSSN_APPLY_TO_IJK_PERMS(BSSN_CALCULATE_CHRISTOFFEL_LOWER)
 }
 
-void BSSN::calculate_dalpha_dphi(BSSNData *paq)
+void BSSN::calculate_dphi(BSSNData *paq)
 {
   // normal derivatives of phi
   paq->d1phi = der_ext(paq->phi_adj, paq->phi_adj_ext, 1);
   paq->d2phi = der_ext(paq->phi_adj, paq->phi_adj_ext, 2);
   paq->d3phi = der_ext(paq->phi_adj, paq->phi_adj_ext, 3);
-
-  // normal derivatives of alpha
-  paq->d1a = der(paq->alpha_adj, 1);
-  paq->d2a = der(paq->alpha_adj, 2);
-  paq->d3a = der(paq->alpha_adj, 3);
-}
-
-void BSSN::calculate_dbeta(BSSNData *paq)
-{
-  paq->d1beta1 = der(paq->beta1_adj, 1);
-  paq->d1beta2 = der(paq->beta2_adj, 1);
-  paq->d1beta3 = der(paq->beta3_adj, 1);
-  paq->d2beta1 = der(paq->beta1_adj, 2);
-  paq->d2beta2 = der(paq->beta2_adj, 2);
-  paq->d2beta3 = der(paq->beta3_adj, 2);
-  paq->d3beta1 = der(paq->beta1_adj, 3);
-  paq->d3beta2 = der(paq->beta2_adj, 3);
-  paq->d3beta3 = der(paq->beta3_adj, 3);
 }
 
 /* Calculate trace-free ricci tensor components */
@@ -736,31 +704,6 @@ void BSSN::calculateDDphi(BSSNData *paq)
   paq->D3D3phi = dder_ext(paq->phi_adj, paq->phi_adj_ext, 3, 3) - (paq->G133*paq->d1phi + paq->G233*paq->d2phi + paq->G333*paq->d3phi);
 }
 
-void BSSN::calculateDDalphaTF(BSSNData *paq)
-{
-  // double covariant derivatives - using non-unitary metric - extra pieces that depend on phi!
-  // the gammaIldlphi are needed for the BSSN_CALCULATE_DIDJALPHA macro
-  real_t gamma1ldlphi = paq->gammai11*paq->d1phi + paq->gammai12*paq->d2phi + paq->gammai13*paq->d3phi;
-  real_t gamma2ldlphi = paq->gammai21*paq->d1phi + paq->gammai22*paq->d2phi + paq->gammai23*paq->d3phi;
-  real_t gamma3ldlphi = paq->gammai31*paq->d1phi + paq->gammai32*paq->d2phi + paq->gammai33*paq->d3phi;
-  // Calculates full (not trace-free) piece:
-  BSSN_APPLY_TO_IJ_PERMS(BSSN_CALCULATE_DIDJALPHA)
-
-  // subtract trace
-  // Note that \bar{gamma}_{ij}*\bar{gamma}^{kl}R_{kl} = (unbarred), used below.
-  paq->DDaTR = paq->gammai11*paq->D1D1aTF + paq->gammai22*paq->D2D2aTF + paq->gammai33*paq->D3D3aTF
-      + 2.0*(paq->gammai12*paq->D1D2aTF + paq->gammai13*paq->D1D3aTF + paq->gammai23*paq->D2D3aTF);
-  paq->D1D1aTF -= (1/3.0)*paq->gamma11*paq->DDaTR;
-  paq->D1D2aTF -= (1/3.0)*paq->gamma12*paq->DDaTR;
-  paq->D1D3aTF -= (1/3.0)*paq->gamma13*paq->DDaTR;
-  paq->D2D2aTF -= (1/3.0)*paq->gamma22*paq->DDaTR;
-  paq->D2D3aTF -= (1/3.0)*paq->gamma23*paq->DDaTR;
-  paq->D3D3aTF -= (1/3.0)*paq->gamma33*paq->DDaTR;
-
-  // scale trace back (=> contracted with "real" metric)
-  paq->DDaTR *= exp(-4.0*paq->phi);
-}
-
 real_t BSSN::ev_gamma11(BSSNData *paq) { return BSSN_DT_GAMMAIJ(1, 1); }
 real_t BSSN::ev_gamma12(BSSNData *paq) { return BSSN_DT_GAMMAIJ(1, 2); }
 real_t BSSN::ev_gamma13(BSSNData *paq) { return BSSN_DT_GAMMAIJ(1, 3); }
@@ -784,54 +727,24 @@ real_t BSSN::ev_K(BSSNData *paq)
 
   real_t H = paq->ricci + 2.0/3.0*pw2(paq->K) - AijAij - 16.0*PI*paq->rho;
 
-  // return (
-  //   - paq->DDaTR
-  //   + paq->alpha*(
-  //       1.5*AijAij - 0.5*paq->ricci
-  //     )
-  //   + 4.0*PI*paq->alpha*(3.0*paq->rho + paq->S)
-  //   + paq->beta1*der_ext(paq->K_adj, paq->K_adj_ext, 1) + paq->beta2*der_ext(paq->K_adj, paq->K_adj_ext, 2) + paq->beta3*der_ext(paq->K_adj, paq->K_adj_ext, 3)
-  // );
-
   return (
     1.0*H
-    - paq->DDaTR
-    + paq->alpha*(
+    + (
         paq->ricci + pw2(paq->K)
       )
-    + 4.0*PI*paq->alpha*(-3.0*paq->rho + paq->S)
-    + paq->beta1*der_ext(paq->K_adj, paq->K_adj_ext, 1) + paq->beta2*der_ext(paq->K_adj, paq->K_adj_ext, 2) + paq->beta3*der_ext(paq->K_adj, paq->K_adj_ext, 3)
+    + 4.0*PI*(-3.0*paq->rho + paq->S)
   );
-
-  // return (
-  //   fabs(1.0*H)
-  //   - paq->DDaTR
-  //   + paq->alpha*(
-  //       paq->A11*paq->Acont11 + paq->A22*paq->Acont22 + paq->A33*paq->Acont33
-  //       + 2.0*(paq->A12*paq->Acont12 + paq->A13*paq->Acont13 + paq->A23*paq->Acont23)
-  //       + (1.0/3.0)*paq->K*paq->K
-  //     )
-  //   + 4.0*PI*paq->alpha*(paq->rho + paq->S)
-  //   + paq->beta1*der_ext(paq->K_adj, paq->K_adj_ext, 1) + paq->beta2*der_ext(paq->K_adj, paq->K_adj_ext, 2) + paq->beta3*der_ext(paq->K_adj, paq->K_adj_ext, 3)
-  // );
 }
 
 real_t BSSN::ev_phi(BSSNData *paq)
 {
   return (
-    1.0/6.0*(der(paq->beta1_adj, 1) + der(paq->beta2_adj, 2) + der(paq->beta3_adj, 3) - paq->alpha*paq->K)
-    + paq->beta1*paq->d1phi + paq->beta2*paq->d2phi + paq->beta3*paq->d3phi
+    -1.0/6.0*paq->K
   );
 }
 
 real_t BSSN::ev_Gamma1(BSSNData *paq) { return /*BSSN_MI(1) +*/ BSSN_DT_GAMMAI(1); }
 real_t BSSN::ev_Gamma2(BSSNData *paq) { return /*BSSN_MI(2) +*/ BSSN_DT_GAMMAI(2); }
 real_t BSSN::ev_Gamma3(BSSNData *paq) { return /*BSSN_MI(3) +*/ BSSN_DT_GAMMAI(3); }
-
-// static gauge for now:
-// real_t BSSN::ev_alpha(BSSNData *paq) { return 0; }
-// real_t BSSN::ev_beta1(BSSNData *paq) { return 0; }
-// real_t BSSN::ev_beta2(BSSNData *paq) { return 0; }
-// real_t BSSN::ev_beta3(BSSNData *paq) { return 0; }
 
 }
