@@ -1,14 +1,14 @@
-steps = 10
+steps = 8000
 grid_output_interval = 8499
 slice_output_interval = 8499
-spec_output_interval = 10
-meta_output_interval = 10
+spec_output_interval = 8499
+meta_output_interval = 8499
 
-omp_num_threads = 64
+omp_num_threads = 4
 
 peak_amplitude_frac = 0.1
 rho_K_lambda_frac = 0.0
 ic_spec_cut = 25.0
 
-output_dir = res_test_256
+output_dir = test
 dump_file = calculated
