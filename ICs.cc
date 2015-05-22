@@ -15,8 +15,7 @@ ICsData cosmo_get_ICsData()
 
   // power spectrum amplitude as a fraction of the density
   real_t peak_amplitude_frac = (real_t) stold(_config["peak_amplitude_frac"]); // fluctuation amplitude
-  // factor of N^{2/3} needed to keep power spec. amplitude constant (FFT is unnormalized)
-  real_t peak_amplitude = icd.rho_K_matter*peak_amplitude_frac*(1.0e-6)/POINTS; // scaling in arb. units
+  real_t peak_amplitude = icd.rho_K_matter*peak_amplitude_frac*(1.0e-6); // scaling in arb. units
 
   real_t ic_spec_cut = (real_t) stold(_config["ic_spec_cut"]); // power spectrum cutoff parameter
 
@@ -47,15 +46,11 @@ void set_gaussian_random_field(real_t *field, Fourier *fourier, ICsData *icd)
   // populate "field" with random values
   std::random_device rd;
   std::mt19937 gen(7.0 /*rd()*/);
-  std::normal_distribution<real_t> distribution;
-  distribution(gen); // calling this here suppresses a warning (bug)
-  LOOP3(i,j,k)
-  {
-    field[NP_INDEX(i,j,k)] = distribution(gen);
-  }
-
-  // FFT of random field
-  fftw_execute_dft_r2c(fourier->p_r2c, field, fourier->f_field);
+  std::normal_distribution<real_t> gaussian_distribution;
+  std::uniform_real_distribution<double> angular_distribution(0.0, 2.0*PI);
+   // calling these here before looping suppresses a warning (bug)
+  gaussian_distribution(gen);
+  angular_distribution(gen);
 
   // scale amplitudes in fourier space
   for(i=0; i<N; i++)
@@ -74,11 +69,38 @@ void set_gaussian_random_field(real_t *field, Fourier *fourier, ICsData *icd)
         // Or scales p > 1/(3*dx), or p > N/3
         real_t cutoff = 1.0/(1.0 + exp(10.0*(pmag - icd->ic_spec_cut)));
         scale = cutoff*sqrt(cosmo_power_spectrum(pmag, icd));
-        (fourier->f_field)[FFT_NP_INDEX(i,j,k)][0] *= scale;
-        (fourier->f_field)[FFT_NP_INDEX(i,j,k)][1] *= scale;
+
+        real_t rand_mag = gaussian_distribution(gen);
+        real_t rand_phase = angular_distribution(gen);
+
+        (fourier->f_field)[FFT_NP_INDEX(i,j,k)][0] = scale*rand_mag*cos(rand_phase);
+        (fourier->f_field)[FFT_NP_INDEX(i,j,k)][1] = scale*rand_mag*sin(rand_phase);
+
+      }
+      // run through more random numbers so ICs are similar
+      // at different resolutions up to 256^3
+      for(int x=N/2+1; x<256/2+1; x++) {
+        gaussian_distribution(gen);
+        angular_distribution(gen);
       }
     }
+    // run through more random numbers so ICs are similar
+    // at different resolutions up to 256^3
+    for(int y = N/2; y < 256/2; y++)
+      for(int x = 0; x < 256/2+1; x++) {
+        gaussian_distribution(gen);
+        angular_distribution(gen);
+      }
   }
+  // run through more random numbers so ICs are similar
+  // at different resolutions up to 256^3
+  for(int z = N/2; z < 256/2; z++)
+    for(int y = 0; y < 256/2; y++)
+      for(int x = 0; x < 256/2+1; x++) {
+        gaussian_distribution(gen);
+        angular_distribution(gen);
+      }
+
   // zero-mode (mean density)... set this to something later
   (fourier->f_field[FFT_NP_INDEX(0,0,0)])[0] = 0;
   (fourier->f_field[FFT_NP_INDEX(0,0,0)])[1] = 0;
