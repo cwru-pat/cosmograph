@@ -29,20 +29,41 @@ public:
     fluids.emplace_back(rho_in, w_in);
   }
   void step(RT h);
+  RT get_phi()
+  {
+    return phi;
+  }
+  RT get_K()
+  {
+    return K;
+  }
 };
 
 template <typename RT>
 void FRW<RT>::step(RT h)
 {
-  RT source = 0.0;
+  // phi evolution term
+  RT new_phi = -K/6.0;
+
+  // K evolution term
+  // Also evolve the fluid here.
+  RT K_source = 0.0;
   for(auto& x: fluids)
   {
-    source += x.first*(1.0+x.second);
+    // source is 4*pi*(3*rho + S)
+    // = 4*pi*(3*rho + 3*P)
+    // = 12*pi*rho*(1 + w)
+    K_source += 12*PI_L*x.first*(1.0 + x.second);
+
+    // K is now sourced; evolve the fluid here so we
+    // don't have to loop a bunch later.
+    // d/dt rho = -3*H*rho*(1+w)
+    RT new_rho = K*x.first*(1.0 + x.second);
+    x.first += h*new_rho;
   }
+  RT new_K = K_source;
 
-  RT new_phi = -K/6.0;
-  RT new_K = 12*PI_L*source;
-
+  // Eulerian integration
   phi += h*new_phi;
   K += h*new_K;
 }

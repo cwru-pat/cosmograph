@@ -40,10 +40,6 @@ int main(int argc, char **argv)
   _timer["init"].start();
     LOG(iodata.log, "Creating initial conditions...\n");
 
-    // Trial FRW class
-    FRW<real_t> frw (0.0, 0.0);
-    frw.addFluid(0.5, 0.0);
-
     // Fluid fields
     // Static matter (w=0)
     Static staticSim;
@@ -63,12 +59,32 @@ int main(int argc, char **argv)
     LOG(iodata.log, "Using conformal initial conditions...\n");
     set_conformal_ICs(bssnSim.fields, staticSim.fields, &fourier, &iodata);
 
+    // Trial FRW class
+    staticSim.addBSSNSrc(bssnSim.fields);
+    real_t frw_rho = average(bssnSim.fields["r_a"]);
+    FRW<real_t> frw (0.0, -sqrt(24.0*PI*frw_rho) /* K */);
+    frw.addFluid(frw_rho /* rho */, 0.0 /* 'w' */);
+
   _timer["init"].stop();
 
   // evolve simulation
   LOG(iodata.log, "Running simulation...\n");
   _timer["loop"].start();
   for(s=0; s < steps; ++s) {
+
+    _timer["Reference FRW"].start();
+    LOG(iodata.log,    "\n"
+                    << frw.get_phi()
+                    << "\n"
+                    << bssnSim.fields["phi_a"][0]
+                    << "\n"
+                  );
+    int subiters = 100;
+    for(int p=0; p<subiters; ++p)
+    {
+      frw.step(dt/((real_t) subiters));
+    }
+    _timer["Reference FRW"].stop();
 
     // output simulation information
     _timer["output"].start();
