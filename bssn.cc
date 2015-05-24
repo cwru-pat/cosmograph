@@ -58,44 +58,16 @@ void BSSN::set_paq_values(idx_t i, idx_t j, idx_t k, BSSNData *paq)
 
 real_t BSSN::hamiltonianConstraintCalc(idx_t i, idx_t j, idx_t k)
 {
-  // 8*exp(-5\phi)*H :
   idx_t idx = INDEX(i,j,k);
 
-  // if(idx == 100)
-  // {
-  //   real_t grad2e = (
-  //       -1.0*(
-  //         exp(phi_a[INDEX(i+2,j,k)]) + exp(phi_a[INDEX(i,j+2,k)]) + exp(phi_a[INDEX(i,j,k+2)])
-  //         + exp(phi_a[INDEX(i-2,j,k)]) + exp(phi_a[INDEX(i,j-2,k)]) + exp(phi_a[INDEX(i,j,k-2)])
-  //       )
-  //       + 16.0*(
-  //         exp(phi_a[INDEX(i+1,j,k)]) + exp(phi_a[INDEX(i,j+1,k)]) + exp(phi_a[INDEX(i,j,k+1)])
-  //         + exp(phi_a[INDEX(i-1,j,k)]) + exp(phi_a[INDEX(i,j-1,k)]) + exp(phi_a[INDEX(i,j,k-1)])
-  //       )
-  //       - 90.0*exp(phi_a[NP_INDEX(i,j,k)])
-  //     )/12.0;
-
-  //   std::cout << "\n Gamma1 is: " << Gamma1_a[idx];
-
-  //   std::cout << "\nRicci: " << ricci_a[idx] << ", -8e-5fd2ef = " << -8.0*exp(-5.0*phi_a[idx])*grad2e
-  //             << "\ndiff is: " << (-8.0*exp(-5.0*phi_a[idx])*grad2e - ricci_a[idx])
-  //             << ", frac diff is: " << (-8.0*exp(-5.0*phi_a[idx])*grad2e - ricci_a[idx])/BSSN::hamiltonianConstraintMag(i,j,k);
-
-  //   std::cout << "\nViolation frac. is:" << (-ricci_a[idx] + AijAij_a[idx] - 2.0/3.0*pw2(K_a[idx]) + 16.0*PI*r_a[idx])/BSSN::hamiltonianConstraintMag(i,j,k);
-  //   std::cout << "\nR frac. is:" << (ricci_a[idx])/BSSN::hamiltonianConstraintMag(i,j,k);
-  //   std::cout << "\nAijAij frac. is:" << (AijAij_a[idx])/BSSN::hamiltonianConstraintMag(i,j,k);
-  //   std::cout << "\nK frac. is:" << (- 2.0/3.0*pw2(K_a[idx]))/BSSN::hamiltonianConstraintMag(i,j,k);
-  //   std::cout << "\nrho frac. is:" << (16.0*PI*r_a[idx])/BSSN::hamiltonianConstraintMag(i,j,k);
-  // }
-
-  return -ricci_a[idx] + AijAij_a[idx] - 2.0/3.0*pw2(K_a[idx]) + 16.0*PI*r_a[idx];
+  return (exp(5.0*phi_a[idx])/8.0)*(-ricci_a[idx] + AijAij_a[idx] - 2.0/3.0*pw2(K_a[idx]) + 16.0*PI*r_a[idx]);
 }
 
 real_t BSSN::hamiltonianConstraintMag(idx_t i, idx_t j, idx_t k)
 {
   idx_t idx = INDEX(i,j,k);
-  // Magnitude of sum of terms for appx. error calc?
-  return fabs(ricci_a[idx]) + fabs(AijAij_a[idx]) + 2.0/3.0*pw2(K_a[idx]) + 16.0*PI*r_a[idx];
+  // sqrt sum of sq. of terms for appx. mag / scale?
+  return (exp(5.0*phi_a[idx])/8.0)*sqrt( pw2(ricci_a[idx]) + pw2(AijAij_a[idx]) + pw2(2.0/3.0*pw2(K_a[idx])) + pw2(16.0*PI*r_a[idx]) );
 }
 
 real_t BSSN::momentumConstraintCalc(BSSNData *paq, idx_t i)
@@ -648,7 +620,7 @@ void BSSN::calculate_dphi(BSSNData *paq)
 void BSSN::calculateRicciTF(BSSNData *paq)
 {
   // unitary pieces
-  /*BSSN_APPLY_TO_IJ_PERMS(BSSN_CALCULATE_RICCITF_UNITARY)*/
+  /* BSSN_APPLY_TO_IJ_PERMS(BSSN_CALCULATE_RICCITF_UNITARY) */
   // should be more accurate but costly:
   BSSN_APPLY_TO_IJ_PERMS(BSSN_CALCULATE_RICCITF_UNITARY_ALT)
 
@@ -725,7 +697,7 @@ real_t BSSN::ev_K(BSSNData *paq)
   real_t AijAij = paq->A11*paq->Acont11 + paq->A22*paq->Acont22 + paq->A33*paq->Acont33
                   + 2.0*(paq->A12*paq->Acont12 + paq->A13*paq->Acont13 + paq->A23*paq->Acont23);
 
-  real_t H = paq->ricci + 2.0/3.0*pw2(paq->K) - AijAij - 16.0*PI*paq->rho;
+  real_t H = (paq->ricci + 2.0/3.0*pw2(paq->K) - AijAij - 16.0*PI*paq->rho);
 
   return (
     1.0*H

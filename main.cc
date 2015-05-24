@@ -73,12 +73,12 @@ int main(int argc, char **argv)
   for(s=0; s < steps; ++s) {
 
     _timer["Reference FRW"].start();
-    LOG(iodata.log,    "\n"
-                    << frw.get_phi()
-                    << "\n"
-                    << bssnSim.fields["phi_a"][0]
-                    << "\n"
-                  );
+    // LOG(iodata.log,    "\n"
+    //                 << frw.get_phi()
+    //                 << "\n"
+    //                 << bssnSim.fields["phi_a"][0]
+    //                 << "\n"
+    //               );
     int subiters = 100;
     for(int p=0; p<subiters; ++p)
     {

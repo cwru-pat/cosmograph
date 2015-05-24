@@ -86,20 +86,12 @@ void set_gaussian_random_field(real_t *field, Fourier *fourier, ICsData *icd)
     }
     // run through more random numbers so ICs are similar
     // at different resolutions up to 256^3
-    for(int y = N/2; y < 256/2; y++)
-      for(int x = 0; x < 256/2+1; x++) {
+    for(int y=N; y<256; y++)
+      for(int x=0; x<256/2+1; x++) {
         gaussian_distribution(gen);
         angular_distribution(gen);
       }
   }
-  // run through more random numbers so ICs are similar
-  // at different resolutions up to 256^3
-  for(int z = N/2; z < 256/2; z++)
-    for(int y = 0; y < 256/2; y++)
-      for(int x = 0; x < 256/2+1; x++) {
-        gaussian_distribution(gen);
-        angular_distribution(gen);
-      }
 
   // zero-mode (mean density)... set this to something later
   (fourier->f_field[FFT_NP_INDEX(0,0,0)])[0] = 0;
@@ -126,18 +118,18 @@ void set_conformal_ICs(
 
   set_gaussian_random_field(static_field["D_a"], fourier, &icd);
 
-  // working in conformal transverse-traceless decomposition,
   // the conformal factor in front of metric is the solution to
-  // d^2 f = f^5 * \rho
+  // d^2 f = -2*pi f^5 * \rho
   // or 
-  // d^2 f = \rho_conformal
-  // this assumes \rho_conformal*2pi was specified in UD_a, and that
-  // we will need to convert it to \rho = f^-5 * \rho_conformal.
+  // d^2 f = -\rho_conformal
+  // so assume -\rho_conformal was specified in UD_a, and that
+  // we will need to convert it to \rho = f^-5 * \rho_conformal/(2pi).
 
   // FFT of conformal field
   fftw_execute_dft_r2c(fourier->p_r2c, static_field["D_a"], fourier->f_field);
 
-  // scale amplitudes in fourier space
+  // scale amplitudes in fourier space;
+  // solve for: \tilde{f} = \tilde{\rho_conformal}/k^2 (minus signs cancel)
   for(i=0; i<N; i++)
   {
     px = (real_t) (i<=N/2 ? i : i-N);
@@ -147,14 +139,14 @@ void set_conformal_ICs(
       for(k=0; k<N/2+1; k++)
       {
         pz = (real_t) k;
-        // Here we choose "k" such that the derivative stencil
+        // Here we choose "1/k^2" such that the derivative stencil
         // applied later will agree with the metric solution we find.
         // For the usual second order laplacian stencil:
         // p2i = 1.0/4.0/(pw2(sin(PI*px/N)) + pw2(sin(PI*py/N)) + pw2(sin(PI*pz/N)));
         // for a sum of 4th-order order second derivative stencils,
         p2i = dx*dx*3.0/(
-            16.0*(pw2(sin(PI*px/N)) + pw2(sin(PI*py/N)) + pw2(sin(PI*pz/N)))
-            - 1.0*(pw2(sin(2.0*PI*px/N)) + pw2(sin(2.0*PI*py/N)) + pw2(sin(2.0*PI*pz/N)))
+            16.0*( pw2(sin(PI*px/N)) + pw2(sin(PI*py/N)) + pw2(sin(PI*pz/N)) )
+            - 1.0*( pw2(sin(2.0*PI*px/N)) + pw2(sin(2.0*PI*py/N)) + pw2(sin(2.0*PI*pz/N)) )
           );
         // account for fftw normalization here
         (fourier->f_field)[FFT_NP_INDEX(i,j,k)][0] *= p2i;
@@ -175,15 +167,10 @@ void set_conformal_ICs(
   {
     bssn_fields["phi_p"][NP_INDEX(i,j,k)] /= POINTS; // account for FFTW transform normalization
     bssn_fields["phi_p"][NP_INDEX(i,j,k)] += 1.0;
-    static_field["D_a"][NP_INDEX(i,j,k)] /= 2.0*PI;
+    static_field["D_a"][NP_INDEX(i,j,k)] /= 2.0*PI*pow(bssn_fields["phi_p"][NP_INDEX(i,j,k)], 5);
   }
-  // UD_a should now contain the conformal density
-
-  // reconstruct physical density, and store in UD
-  LOOP3(i,j,k)
-  {
-    static_field["D_a"][NP_INDEX(i,j,k)] /= pow(bssn_fields["phi_p"][NP_INDEX(i,j,k)], 5);
-  }
+  // UD_a should now contain the physical density fluctuations
+  LOG(iod->log, "Average physical fluctuation density (*16 pi) is: " << 16*PI*average(static_field["D_a"]) << "\n");
 
   // reconstruct BSSN conformal metric factor; \phi = log(\psi)
   LOOP3(i,j,k)
@@ -192,13 +179,13 @@ void set_conformal_ICs(
     bssn_fields["phi_f"][NP_INDEX(i,j,k)] = bssn_fields["phi_p"][NP_INDEX(i,j,k)];
   }
 
-  // check constraint: see if \grad^2 e^\phi = \bar{\rho} (conformal density fluctuations, stored in UD_a)
+  // check constraint: see if \grad^2 e^\phi = e^(5*\phi)*\rho
   real_t resid = 0.0;
   LOOP3(i,j,k)
   {
     // 4th-order stencil of e^\phi
     real_t grad2e = (
-        -1.0*(
+        - 1.0*(
           exp(bssn_fields["phi_p"][INDEX(i+2,j,k)]) + exp(bssn_fields["phi_p"][INDEX(i,j+2,k)]) + exp(bssn_fields["phi_p"][INDEX(i,j,k+2)])
           + exp(bssn_fields["phi_p"][INDEX(i-2,j,k)]) + exp(bssn_fields["phi_p"][INDEX(i,j-2,k)]) + exp(bssn_fields["phi_p"][INDEX(i,j,k-2)])
         )
@@ -211,17 +198,17 @@ void set_conformal_ICs(
     // conformal density
     real_t conformal_density = static_field["D_a"][NP_INDEX(i,j,k)]*exp(5.0*bssn_fields["phi_p"][NP_INDEX(i,j,k)]);
 
-    // inhomogeneous part of constraint
-    resid += fabs(grad2e + 2.0*PI*conformal_density) / (fabs(grad2e) + fabs(2.0*PI*conformal_density)); // should = 0
+    // fractional constraint violation
+    resid += fabs(grad2e + 2.0*PI*conformal_density) / sqrt(pw2(grad2e) + pw2(2.0*PI*conformal_density));
   }
-  LOG(iod->log, "Average fractional constraint residual is: " << resid/POINTS << "\n");
+  LOG(iod->log, "Average fractional constraint violation magnitude is: " << resid/POINTS << "\n");
 
   // Make sure min density value > 0
   real_t min = static_field["D_a"][NP_INDEX(0,0,0)] + icd.rho_K_matter;
   real_t max = min;
   resid = 0.0;
 
-  // Scale density variable
+  // Scale density variable to conservative units
   LOOP3(i,j,k)
   {
     bssn_fields["K_p"][NP_INDEX(i,j,k)] = -sqrt(24.0*PI*(icd.rho_K_matter));
