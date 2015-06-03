@@ -702,7 +702,7 @@ real_t BSSN::ev_K(BSSNData *paq)
   real_t H = (paq->ricci + 2.0/3.0*pw2(paq->K) - AijAij - 16.0*PI*paq->rho);
 
   return (
-    1.0*H
+    2.0*H
     + (
         paq->ricci + pw2(paq->K)
       )
