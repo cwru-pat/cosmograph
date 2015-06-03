@@ -8,7 +8,7 @@ omp_num_threads = 32
 
 peak_amplitude_frac = 0.05
 rho_K_lambda_frac = 0.0
-ic_spec_cut = 100.0
+ic_spec_cut = 85.0
 
 output_dir = fiducial
 dump_file = calculated
