@@ -23,6 +23,8 @@ typedef struct {
   real_t ricciTF11, ricciTF12, ricciTF13, ricciTF22, ricciTF23, ricciTF33;
   real_t ricci; // ricci scalar
   real_t unitRicci; // ricci scalar
+  // for constraint checking
+  real_t AijAij;
 
   // derivatives of phi
     // covariant double-derivatives 

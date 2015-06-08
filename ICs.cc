@@ -8,7 +8,7 @@ ICsData cosmo_get_ICsData()
   ICsData icd = {0};
 
   // H_LEN_FRAC is box side length in hubble units
-  icd.rho_K_matter = 3.0/PI/8.0*pw2(H_LEN_FRAC/(N*dx)); // matter density term from FRW equation
+  icd.rho_K_matter = 3.0/PI/8.0*pow(0.5/H_LEN_FRAC, 2.0); // matter density term from FRW equation
 
   real_t rho_K_lambda_frac = (real_t) stold(_config["rho_K_lambda_frac"]); // DE density
   icd.rho_K_lambda = rho_K_lambda_frac*icd.rho_K_matter;
@@ -119,17 +119,21 @@ void set_conformal_ICs(
   set_gaussian_random_field(static_field["D_a"], fourier, &icd);
 
   // the conformal factor in front of metric is the solution to
-  // d^2 f = -2*pi f^5 * \rho
+  // d^2 exp(\phi) = -2*pi exp(5\phi) * \rho
+  // or
+  // d^2 \phi = -2*pi exp(6\phi) * \rho - (d\phi)^2
   // or 
-  // d^2 f = -\rho_conformal
-  // so assume -\rho_conformal was specified in UD_a, and that
-  // we will need to convert it to \rho = f^-5 * \rho_conformal/(2pi).
+  // d^2 \phi = \rho_conformal
+  // so given \rho_conformal = "D_a" (not actually the variable; just
+  // a re-use of the field space for setting ICs), we will need to solve
+  // for \phi and subsequently find the physical \rho
+  // \rho = ("D_a" + (d\phi)^2) / (-2*pi) / exp(6\phi)
 
-  // FFT of conformal field
+  // FFT of gaussian random field
   fftw_execute_dft_r2c(fourier->p_r2c, static_field["D_a"], fourier->f_field);
 
   // scale amplitudes in fourier space;
-  // solve for: \tilde{f} = \tilde{\rho_conformal}/k^2 (minus signs cancel)
+  // solve for: \tilde{\phi} = \tilde{-\rho_conformal}/k^2 (minus signs cancel)
   for(i=0; i<N; i++)
   {
     px = (real_t) (i<=N/2 ? i : i-N);
@@ -158,28 +162,31 @@ void set_conformal_ICs(
   (fourier->f_field[FFT_NP_INDEX(0,0,0)])[0] = 0;
   (fourier->f_field[FFT_NP_INDEX(0,0,0)])[1] = 0;
 
-  // temporarily use phi to store conformal factor; conformal factor is inverse fft of this
-  // conformal factor array uses _p register initially, rather than _a
   fftw_execute_dft_c2r(fourier->p_c2r, fourier->f_field, bssn_fields["phi_p"]);
-  // add in monopole contribution
-  // scale density to correct "units"
+  // account for FFTW transform normalization and set \phi_f
   LOOP3(i,j,k)
   {
-    bssn_fields["phi_p"][NP_INDEX(i,j,k)] /= POINTS; // account for FFTW transform normalization
-    bssn_fields["phi_p"][NP_INDEX(i,j,k)] += 1.0;
-    static_field["D_a"][NP_INDEX(i,j,k)] /= 2.0*PI*pow(bssn_fields["phi_p"][NP_INDEX(i,j,k)], 5);
+    bssn_fields["phi_p"][NP_INDEX(i,j,k)] *= 1.0/POINTS;
+    bssn_fields["phi_f"][NP_INDEX(i,j,k)] = bssn_fields["phi_p"][NP_INDEX(i,j,k)];
+  }
+
+  // reconstruct physical density and handle conformal factor normalization
+  LOOP3(i,j,k)
+  {
+    static_field["D_a"][NP_INDEX(i,j,k)] = (
+      // "D_a" + (d\phi)^2
+      static_field["D_a"][NP_INDEX(i,j,k)] + (
+        + pw2(-bssn_fields["phi_p"][NP_INDEX(i+2,j,k)] + 8.0*bssn_fields["phi_p"][NP_INDEX(i+1,j,k)] - 8.0*bssn_fields["phi_p"][NP_INDEX(i-1,j,k)] + bssn_fields["phi_p"][NP_INDEX(i-2,j,k)])
+        + pw2(-bssn_fields["phi_p"][NP_INDEX(i,j+2,k)] + 8.0*bssn_fields["phi_p"][NP_INDEX(i,j+1,k)] - 8.0*bssn_fields["phi_p"][NP_INDEX(i,j-1,k)] + bssn_fields["phi_p"][NP_INDEX(i,j-2,k)])
+        + pw2(-bssn_fields["phi_p"][NP_INDEX(i,j,k+2)] + 8.0*bssn_fields["phi_p"][NP_INDEX(i,j,k+1)] - 8.0*bssn_fields["phi_p"][NP_INDEX(i,j,k-1)] + bssn_fields["phi_p"][NP_INDEX(i,j,k-2)])
+      )/pw2(12.0*dx)
+    ) / (2.0*PI) / exp(6.0*bssn_fields["phi_p"][NP_INDEX(i,j,k)]);
   }
   // UD_a should now contain the physical density fluctuations
   LOG(iod->log, "Average physical fluctuation density (*16 pi) is: " << 16*PI*average(static_field["D_a"]) << "\n");
 
-  // reconstruct BSSN conformal metric factor; \phi = log(\psi)
-  LOOP3(i,j,k)
-  {
-    bssn_fields["phi_p"][NP_INDEX(i,j,k)] = log(bssn_fields["phi_p"][NP_INDEX(i,j,k)]);
-    bssn_fields["phi_f"][NP_INDEX(i,j,k)] = bssn_fields["phi_p"][NP_INDEX(i,j,k)];
-  }
-
   // check constraint: see if \grad^2 e^\phi = e^(5*\phi)*\rho
+  // (Will differ at O(dx^2) from expression in terms of grad^2 \phi!)
   real_t resid = 0.0;
   LOOP3(i,j,k)
   {

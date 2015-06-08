@@ -173,11 +173,18 @@ int main(int argc, char **argv)
       if(s%iodata.meta_output_interval == 0)
       {
         idx_t isNaN = 0;
+        bssnSim.stepInit();
+        bssnSim.clearSrc();
+        staticSim.addBSSNSrc(bssnSim.fields);
         #pragma omp parallel for default(shared) private(i, j, k) \
          reduction(+:total_hamiltonian_constraint, mean_hamiltonian_constraint, isNaN)
         LOOP3(i,j,k)
         {
-          real_t violation_fraction = bssnSim.hamiltonianConstraintCalc(i,j,k)/bssnSim.hamiltonianConstraintMag(i,j,k);
+          BSSNData b_paq = {0};
+          bssnSim.set_paq_values(i, j, k, &b_paq);
+          real_t ham = (b_paq.ricci + 2.0/3.0*pw2(b_paq.K) - 16.0*PI*b_paq.rho);
+          real_t ham2 = sqrt(pw2(b_paq.ricci) + pw2(2.0/3.0*pw2(b_paq.K)) + pw2(16.0*PI*b_paq.rho));
+          real_t violation_fraction = ham/ham2;
           total_hamiltonian_constraint += fabs(violation_fraction);
           mean_hamiltonian_constraint += violation_fraction/POINTS;
 
@@ -197,7 +204,12 @@ int main(int argc, char **argv)
         #pragma omp parallel for default(shared) private(i, j, k) reduction(+:stdev_hamiltonian_constraint)
         LOOP3(i,j,k)
         {
-          stdev_hamiltonian_constraint += pw2(bssnSim.hamiltonianConstraintCalc(i,j,k)/bssnSim.hamiltonianConstraintMag(i,j,k) - mean_hamiltonian_constraint);
+          BSSNData b_paq = {0};
+          bssnSim.set_paq_values(i, j, k, &b_paq);
+          real_t ham = (b_paq.ricci + 2.0/3.0*pw2(b_paq.K) - 16.0*PI*b_paq.rho);
+          real_t ham2 = sqrt(pw2(b_paq.ricci) + pw2(2.0/3.0*pw2(b_paq.K)) + pw2(16.0*PI*b_paq.rho));
+          real_t violation_fraction = ham/ham2;
+          stdev_hamiltonian_constraint += pw2(violation_fraction - mean_hamiltonian_constraint);
         }
         stdev_hamiltonian_constraint = sqrt(stdev_hamiltonian_constraint/(POINTS-1.0));
         io_dump_data(mean_hamiltonian_constraint, &iodata, "avg_H_violation");

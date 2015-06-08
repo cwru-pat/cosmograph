@@ -583,6 +583,7 @@ void BSSN::calculate_Acont(BSSNData *paq)
   // calculate A_ij A^ij term
   AijAij_a[paq->idx] = paq->Acont11*paq->A11 + paq->Acont22*paq->A22 + paq->Acont33*paq->A33
       + 2.0*(paq->Acont12*paq->A12 + paq->Acont13*paq->A13 + paq->Acont23*paq->A23);
+  paq->AijAij = AijAij_a[paq->idx];
 }
 
 /* Calculate metric derivatives */

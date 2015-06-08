@@ -2,7 +2,7 @@ steps = 6000
 grid_output_interval = 200
 slice_output_interval = 200
 spec_output_interval = 10
-meta_output_interval = 10
+meta_output_interval = 1
 
 omp_num_threads = 32
 
