@@ -56,11 +56,9 @@ void BSSN::set_paq_values(idx_t i, idx_t j, idx_t k, BSSNData *paq)
   set_source_vals(paq);
 }
 
-real_t BSSN::hamiltonianConstraintCalc(idx_t i, idx_t j, idx_t k)
+real_t BSSN::hamiltonianConstraintCalc(BSSNData *paq)
 {
-  idx_t idx = INDEX(i,j,k);
-
-  return (exp(5.0*phi_a[idx])/8.0)*(-ricci_a[idx] + AijAij_a[idx] - 2.0/3.0*pw2(K_a[idx]) + 16.0*PI*r_a[idx]);
+  return -exp(5.0*paq->phi)/8.0*(paq->ricci + 2.0/3.0*pw2(paq->K) - paq->AijAij - 16.0*PI*paq->rho);
 }
 
 real_t BSSN::hamiltonianConstraintMag(idx_t i, idx_t j, idx_t k)
@@ -695,19 +693,11 @@ real_t BSSN::ev_A33(BSSNData *paq) { return BSSN_DT_AIJ(3, 3); }
 
 real_t BSSN::ev_K(BSSNData *paq)
 {
-  // alternate form (Hamiltonian constraint added in?)
-
-  real_t AijAij = paq->A11*paq->Acont11 + paq->A22*paq->Acont22 + paq->A33*paq->Acont33
-                  + 2.0*(paq->A12*paq->Acont12 + paq->A13*paq->Acont13 + paq->A23*paq->Acont23);
-
-  real_t H = (paq->ricci + 2.0/3.0*pw2(paq->K) - AijAij - 16.0*PI*paq->rho);
-
+  real_t H = hamiltonianConstraintCalc(paq);
   return (
-    2.0*H
-    + (
-        paq->ricci + pw2(paq->K)
-      )
-    + 4.0*PI*(-3.0*paq->rho + paq->S)
+    - 2.0*8.0*exp(-5.0*paq->phi)*H
+    + pw2(paq->K)/3.0 + paq->AijAij
+    + 4.0*PI*(paq->rho + paq->S)
   );
 }
 
