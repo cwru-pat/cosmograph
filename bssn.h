@@ -87,9 +87,16 @@ public:
   void set_full_metric_der(BSSNData *paq);
 
   real_t hamiltonianConstraintCalc(BSSNData *paq);
-  real_t hamiltonianConstraintMag(idx_t i, idx_t j, idx_t k);
-  real_t momentumConstraintCalc(BSSNData *paq, idx_t i);
-  real_t momentumConstraintMag(BSSNData *paq, idx_t i);
+  real_t hamiltonianConstraintScale(BSSNData *paq);
+  real_t hamiltonianConstraintMean();
+  real_t hamiltonianConstraintStDev(real_t mean);
+
+  real_t momentumConstraintCalc(BSSNData *paq, idx_t d);
+  real_t momentumConstraintScale(BSSNData *paq, idx_t d);
+  real_t momentumConstraintMagMean();
+  real_t momentumConstraintMagStDev(real_t mean);
+
+  real_t metricConstraintTotalMag();
 
   void clearSrc();
 

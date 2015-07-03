@@ -129,7 +129,7 @@ void Fourier::powerDump(RT *in, IOT *iodata)
   for(i=0; i<numbins; i++)
   {
     // field values
-    sprintf(data, "%g\t", array_out[i]);
+    sprintf(data, "%g\t", (double) array_out[i]);
     gzwrite(datafile, data, std::char_traits<char>::length(data));
   }
   gzwrite(datafile, "\n", std::char_traits<char>::length("\n")); 

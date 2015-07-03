@@ -16,19 +16,52 @@ return (
   );
 }
 
-inline real_t derivative_stencil(idx_t i, idx_t j, idx_t k, int d,
+inline real_t derivative(idx_t i, idx_t j, idx_t k, int d,
     real_t *field)
 {
   switch (d) {
     case 1:
-      return field[INDEX(i+1,j,k)] - field[INDEX(i-1,j,k)];
+      return (-1.0*field[INDEX(i+2,j,k)] + 8.0*field[INDEX(i+1,j,k)] - 8.0*field[INDEX(i-1,j,k)] + field[INDEX(i-2,j,k)])/12.0/dx;
       break;
     case 2:
-      return field[INDEX(i,j+1,k)] - field[INDEX(i,j-1,k)];
+      return (-1.0*field[INDEX(i,j+2,k)] + 8.0*field[INDEX(i,j+1,k)] - 8.0*field[INDEX(i,j-1,k)] + field[INDEX(i,j-2,k)])/12.0/dx;
       break;
     case 3:
-      return field[INDEX(i,j,k+1)] - field[INDEX(i,j,k-1)];
+      return (-1.0*field[INDEX(i,j,k+2)] + 8.0*field[INDEX(i,j,k+1)] - 8.0*field[INDEX(i,j,k-1)] + field[INDEX(i,j,k-2)])/12.0/dx;
       break;
+  }
+
+  /* XXX */
+  return 0;
+}
+
+inline real_t mixed_derivative_stencil(idx_t i, idx_t j, idx_t k, int d1, int d2, real_t *field)
+{
+  if( (d1 == 1 && d2 == 2) || (d1 == 2 && d2 == 1) ) {
+    return -(
+       1.00*field[INDEX(i-2,j+2,k)] + -8.00*field[INDEX(i-1,j+2,k)] +  8.00*field[INDEX(i+1,j+2,k)] + -1.00*field[INDEX(i+2,j+2,k)] +
+      -8.00*field[INDEX(i-2,j+1,k)] +  64.0*field[INDEX(i-1,j+1,k)] + -64.0*field[INDEX(i+1,j+1,k)] +  8.00*field[INDEX(i+2,j+1,k)] +
+       8.00*field[INDEX(i-2,j-1,k)] + -64.0*field[INDEX(i-1,j-1,k)] +  64.0*field[INDEX(i+1,j-1,k)] + -8.00*field[INDEX(i+2,j-1,k)] +
+      -1.00*field[INDEX(i-2,j-2,k)] +  8.00*field[INDEX(i-1,j-2,k)] + -8.00*field[INDEX(i+1,j-2,k)] +  1.00*field[INDEX(i+2,j-2,k)]
+    )/12.0/12.0/dx/dx;
+  }
+
+  if( (d1 == 1 && d2 == 3) || (d1 == 3 && d2 == 1) ) {
+    return -(
+       1.00*field[INDEX(i-2,j,k+2)] + -8.00*field[INDEX(i-1,j,k+2)] +  8.00*field[INDEX(i+1,j,k+2)] + -1.00*field[INDEX(i+2,j,k+2)] +
+      -8.00*field[INDEX(i-2,j,k+1)] +  64.0*field[INDEX(i-1,j,k+1)] + -64.0*field[INDEX(i+1,j,k+1)] +  8.00*field[INDEX(i+2,j,k+1)] +
+       8.00*field[INDEX(i-2,j,k-1)] + -64.0*field[INDEX(i-1,j,k-1)] +  64.0*field[INDEX(i+1,j,k-1)] + -8.00*field[INDEX(i+2,j,k-1)] +
+      -1.00*field[INDEX(i-2,j,k-2)] +  8.00*field[INDEX(i-1,j,k-2)] + -8.00*field[INDEX(i+1,j,k-2)] +  1.00*field[INDEX(i+2,j,k-2)]
+    )/12.0/12.0/dx/dx;
+  }
+
+  if( (d1 == 3 && d2 == 2) || (d1 == 2 && d2 == 3) ) {
+    return -(
+       1.00*field[INDEX(i,j+2,k-2)] + -8.00*field[INDEX(i,j+2,k-1)] +  8.00*field[INDEX(i,j+2,k+1)] + -1.00*field[INDEX(i,j+2,k+2)] +
+      -8.00*field[INDEX(i,j+1,k-2)] +  64.0*field[INDEX(i,j+1,k-1)] + -64.0*field[INDEX(i,j+1,k+1)] +  8.00*field[INDEX(i,j+1,k+2)] +
+       8.00*field[INDEX(i,j-1,k-2)] + -64.0*field[INDEX(i,j-1,k-1)] +  64.0*field[INDEX(i,j-1,k+1)] + -8.00*field[INDEX(i,j-1,k+2)] +
+      -1.00*field[INDEX(i,j-2,k-2)] +  8.00*field[INDEX(i,j-2,k-1)] + -8.00*field[INDEX(i,j-2,k+1)] +  1.00*field[INDEX(i,j-2,k+2)]
+    )/144.0/dx/dx;
   }
 
   /* XXX */
@@ -40,13 +73,43 @@ inline real_t double_derivative_stencil(idx_t i, idx_t j, idx_t k, int d,
 {
   switch (d) {
     case 1:
-      return field[INDEX(i+1,j,k)] + field[INDEX(i-1,j,k)] - 2.0*field[INDEX(i,j,k)];
+      return (
+          1.0*field[INDEX(i+4,j,k)] +
+          -16.0*field[INDEX(i+3,j,k)] +
+          64.0*field[INDEX(i+2,j,k)] +
+          16.0*field[INDEX(i+1,j,k)] +
+          -130.0*field[INDEX(i+0,j,k)] +
+          16.0*field[INDEX(i-1,j,k)] +
+          64.0*field[INDEX(i-2,j,k)] +
+          -16.0*field[INDEX(i-3,j,k)] +
+          1.0*field[INDEX(i-4,j,k)]
+        )/12.0/12.0/dx/dx;
       break;
     case 2:
-      return field[INDEX(i,j+1,k)] + field[INDEX(i,j-1,k)] - 2.0*field[INDEX(i,j,k)];
+      return (
+          1.0*field[INDEX(i,j+4,k)] +
+          -16.0*field[INDEX(i,j+3,k)] +
+          64.0*field[INDEX(i,j+2,k)] +
+          16.0*field[INDEX(i,j+1,k)] +
+          -130.0*field[INDEX(i,j+0,k)] +
+          16.0*field[INDEX(i,j-1,k)] +
+          64.0*field[INDEX(i,j-2,k)] +
+          -16.0*field[INDEX(i,j-3,k)] +
+          1.0*field[INDEX(i,j-4,k)]
+        )/12.0/12.0/dx/dx;
       break;
     case 3:
-      return field[INDEX(i,j,k+1)] + field[INDEX(i,j,k-1)] - 2.0*field[INDEX(i,j,k)];
+      return (
+          1.0*field[INDEX(i,j,k+4)] +
+          -16.0*field[INDEX(i,j,k+3)] +
+          64.0*field[INDEX(i,j,k+2)] +
+          16.0*field[INDEX(i,j,k+1)] +
+          -130.0*field[INDEX(i,j,k+0)] +
+          16.0*field[INDEX(i,j,k-1)] +
+          64.0*field[INDEX(i,j,k-2)] +
+          -16.0*field[INDEX(i,j,k-3)] +
+          1.0*field[INDEX(i,j,k-4)]
+        )/12.0/12.0/dx/dx;
       break;
   }
 
@@ -60,17 +123,7 @@ inline real_t double_derivative(idx_t i, idx_t j, idx_t k, int d1, int d2,
   if(d1 == d2) {
     return double_derivative_stencil(i, j, k, d1, field);
   } else {
-    switch (d1) {
-      case 1:
-        return derivative_stencil(i+1, j, k, d2, field) - derivative_stencil(i-1, j, k, d2, field);
-        break;
-      case 2:
-        return derivative_stencil(i, j+1, k, d2, field) - derivative_stencil(i, j-1, k, d2, field);
-        break;
-      case 3:
-        return derivative_stencil(i, j, k+1, d2, field) - derivative_stencil(i, j, k-1, d2, field);
-        break;
-    }
+    return mixed_derivative_stencil(i, j, k, d1, d2, field);
   }
 
   /* XXX */
@@ -152,6 +205,25 @@ inline real_t conformal_standard_deviation(real_t *field, real_t *phi)
 {
   real_t avg = conformal_average(field, phi);
   return conformal_standard_deviation(field, phi, avg);
+}
+
+inline idx_t numNaNs(real_t *field)
+{
+  idx_t i, j, k;
+  idx_t NaNs = 0;
+  
+  #pragma omp parallel for default(shared) private(i, j, k) reduction(+:NaNs)
+  LOOP3(i,j,k)
+  {
+    real_t val = field[NP_INDEX(i,j,k)];
+    union { float val; uint32_t x; } u = { (float) val };
+    if((u.x << 1) > 0xff000000u)
+    {
+      NaNs += 1;
+    }
+  }
+
+  return NaNs;
 }
 
 }

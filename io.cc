@@ -145,21 +145,21 @@ void io_dump_strip(real_t *field, int axis, idx_t n1, idx_t n2, IOData *iodata)
     case 1:
       for(idx_t i=0; i<N; i++)
       {
-        sprintf(data, "%g\t", field[INDEX(i,n1,n2)]);
+        sprintf(data, "%g\t", (double) field[INDEX(i,n1,n2)]);
         gzwrite(datafile, data, strlen(data));
       }
       break;
     case 2:
       for(idx_t j=0; j<N; j++)
       {
-        sprintf(data, "%g\t", field[INDEX(n1,j,n2)]);
+        sprintf(data, "%g\t", (double) field[INDEX(n1,j,n2)]);
         gzwrite(datafile, data, strlen(data));
       }
       break;
     case 3:
       for(idx_t k=0; k<N; k++)
       {
-        sprintf(data, "%g\t", field[INDEX(n1,n2,k)]);
+        sprintf(data, "%g\t", (double) field[INDEX(n1,n2,k)]);
         gzwrite(datafile, data, strlen(data));
       }
       break;
@@ -258,42 +258,42 @@ void io_dump_statistics(std::map <std::string, real_t *> & bssn_fields,
 
   // phi output
   real_t avg_phi = conformal_average(bssn_fields["phi_a"], bssn_fields["phi_a"]); 
-  sprintf(data, "%g\t", avg_phi);
+  sprintf(data, "%g\t", (double) avg_phi);
   gzwrite(datafile, data, strlen(data));
 
   real_t std_phi = conformal_standard_deviation(bssn_fields["phi_a"], bssn_fields["phi_a"], avg_phi);
-  sprintf(data, "%g\t", std_phi);
+  sprintf(data, "%g\t", (double) std_phi);
   gzwrite(datafile, data, strlen(data));
 
   // K output
   real_t avg_K = conformal_average(bssn_fields["K_a"], bssn_fields["phi_a"]); 
-  sprintf(data, "%g\t", avg_K);
+  sprintf(data, "%g\t", (double) avg_K);
   gzwrite(datafile, data, strlen(data));
 
   real_t std_K = conformal_standard_deviation(bssn_fields["K_a"], bssn_fields["phi_a"], avg_K);
-  sprintf(data, "%g\t", std_K);
+  sprintf(data, "%g\t", (double) std_K);
   gzwrite(datafile, data, strlen(data));
 
   // rho output
   real_t avg_rho = conformal_average(bssn_fields["r_a"], bssn_fields["phi_a"]); 
-  sprintf(data, "%g\t", avg_rho);
+  sprintf(data, "%g\t", (double) avg_rho);
   gzwrite(datafile, data, strlen(data));
 
   real_t std_rho = conformal_standard_deviation(bssn_fields["r_a"], bssn_fields["phi_a"], avg_rho);
-  sprintf(data, "%g\t", std_rho);
+  sprintf(data, "%g\t", (double) std_rho);
   gzwrite(datafile, data, strlen(data));
 
   // ricci output
   real_t avg_ricci = conformal_average(bssn_fields["ricci_a"], bssn_fields["phi_a"]); 
-  sprintf(data, "%g\t", avg_ricci);
+  sprintf(data, "%g\t", (double) avg_ricci);
   gzwrite(datafile, data, strlen(data));
 
   real_t std_ricci = conformal_standard_deviation(bssn_fields["ricci_a"], bssn_fields["phi_a"], avg_ricci);
-  sprintf(data, "%g\t", std_ricci);
+  sprintf(data, "%g\t", (double) std_ricci);
   gzwrite(datafile, data, strlen(data));
 
   // average volume
-  sprintf(data, "%g\t", volume_average(bssn_fields["phi_a"]));
+  sprintf(data, "%g\t", (double) volume_average(bssn_fields["phi_a"]));
   gzwrite(datafile, data, strlen(data));
 
   gzwrite(datafile, "\n", strlen("\n"));
@@ -312,7 +312,7 @@ void io_dump_data(real_t value, IOData *iodata, std::string filename)
     return;
   }
 
-  sprintf(data, "%g", value);
+  sprintf(data, "%g", (double) value);
   gzwrite(datafile, data, strlen(data));
 
   gzwrite(datafile, "\n", strlen("\n"));

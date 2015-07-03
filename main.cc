@@ -105,6 +105,21 @@ int main(int argc, char **argv)
       staticSim.addBSSNSrc(bssnSim.fields);
       lambdaSim.addBSSNSrc(bssnSim.fields);
 
+BSSNData b_paq = {0};
+BSSNData b_paq_ip = {0};
+BSSNData b_paq_im = {0};
+BSSNData b_paq_jp = {0};
+BSSNData b_paq_jm = {0};
+BSSNData b_paq_kp = {0};
+BSSNData b_paq_km = {0};
+BSSNData b_paq_ipp = {0};
+BSSNData b_paq_imm = {0};
+BSSNData b_paq_jpp = {0};
+BSSNData b_paq_jmm = {0};
+BSSNData b_paq_kpp = {0};
+BSSNData b_paq_kmm = {0};
+DUMPPAQSTUFF 
+
     // First RK step, Set Hydro Vars, & calc. constraint
     #pragma omp parallel for default(shared) private(i, j, k)
     LOOP3(i, j, k)
@@ -118,6 +133,8 @@ int main(int argc, char **argv)
     // add hydro source to bssn sim
     staticSim.addBSSNSrc(bssnSim.fields);
     lambdaSim.addBSSNSrc(bssnSim.fields);
+
+DUMPPAQSTUFF
 
     bssnSim.regSwap_c_a();
 
@@ -151,6 +168,8 @@ int main(int argc, char **argv)
       staticSim.addBSSNSrc(bssnSim.fields);
       lambdaSim.addBSSNSrc(bssnSim.fields);
 
+DUMPPAQSTUFF 
+
       bssnSim.regSwap_c_a();
 
       // Fourth RK step
@@ -165,57 +184,46 @@ int main(int argc, char **argv)
       // bssn _f <-> _p
       bssnSim.stepTerm();
 
+DUMPPAQSTUFF 
+
     _timer["RK_steps"].stop();
-    _timer["output"].start();
-      real_t total_hamiltonian_constraint = 0.0,
-             mean_hamiltonian_constraint = 0.0,
-             stdev_hamiltonian_constraint = 0.0;
+
+
+    _timer["meta_output_interval"].start();
+
       if(s%iodata.meta_output_interval == 0)
       {
         idx_t isNaN = 0;
         bssnSim.stepInit();
         bssnSim.clearSrc();
         staticSim.addBSSNSrc(bssnSim.fields);
-        #pragma omp parallel for default(shared) private(i, j, k) \
-         reduction(+:total_hamiltonian_constraint, mean_hamiltonian_constraint, isNaN)
-        LOOP3(i,j,k)
-        {
-          BSSNData b_paq = {0};
-          bssnSim.set_paq_values(i, j, k, &b_paq);
-          real_t ham = (b_paq.ricci + 2.0/3.0*pw2(b_paq.K) - 16.0*PI*b_paq.rho);
-          real_t ham2 = sqrt(pw2(b_paq.ricci) + pw2(2.0/3.0*pw2(b_paq.K)) + pw2(16.0*PI*b_paq.rho));
-          real_t violation_fraction = ham/ham2;
-          total_hamiltonian_constraint += fabs(violation_fraction);
-          mean_hamiltonian_constraint += violation_fraction/POINTS;
 
-          union { float violation_fraction; uint32_t x; } u = { (float) violation_fraction };
-          if((u.x << 1) > 0xff000000u && isNaN == 0)
-          {
-            LOG(iodata.log, "NAN at (" << i << "," << j << "," << k << ")!\n");
-            isNaN += 1;
-          }
-        }
-        if(isNaN > 0)
-        {
-          LOG(iodata.log, "\nNAN detected!\n");
-          _timer["output"].stop();
-          break;
-        }
-        #pragma omp parallel for default(shared) private(i, j, k) reduction(+:stdev_hamiltonian_constraint)
-        LOOP3(i,j,k)
-        {
-          BSSNData b_paq = {0};
-          bssnSim.set_paq_values(i, j, k, &b_paq);
-          real_t ham = (b_paq.ricci + 2.0/3.0*pw2(b_paq.K) - 16.0*PI*b_paq.rho);
-          real_t ham2 = sqrt(pw2(b_paq.ricci) + pw2(2.0/3.0*pw2(b_paq.K)) + pw2(16.0*PI*b_paq.rho));
-          real_t violation_fraction = ham/ham2;
-          stdev_hamiltonian_constraint += pw2(violation_fraction - mean_hamiltonian_constraint);
-        }
-        stdev_hamiltonian_constraint = sqrt(stdev_hamiltonian_constraint/(POINTS-1.0));
+        real_t mean_hamiltonian_constraint = bssnSim.hamiltonianConstraintMean();
+        real_t stdev_hamiltonian_constraint = bssnSim.hamiltonianConstraintStDev(mean_hamiltonian_constraint);
+        real_t mean_momentum_constraint = bssnSim.momentumConstraintMagMean();
+        real_t stdev_momentum_constraint = bssnSim.momentumConstraintMagStDev(mean_momentum_constraint);
         io_dump_data(mean_hamiltonian_constraint, &iodata, "avg_H_violation");
         io_dump_data(stdev_hamiltonian_constraint, &iodata, "std_H_violation");
+        io_dump_data(mean_momentum_constraint, &iodata, "avg_M_violation");
+        io_dump_data(stdev_momentum_constraint, &iodata, "std_M_violation");
+
+        LOG(iodata.log,
+          "\nFractional Mean / St. Dev Momentum constraint violation is: " <<
+          mean_momentum_constraint << " / " << stdev_momentum_constraint <<
+          "\nFractional Mean / St. Dev Hamiltonian constraint violation is: " <<
+          mean_hamiltonian_constraint << " / " << stdev_hamiltonian_constraint <<
+          "\n"
+        );
+
+        if(numNaNs(bssnSim.fields["phi_a"]) > 0)
+        {
+          LOG(iodata.log, "\nNAN detected!\n");
+          _timer["meta_output_interval"].stop();
+          break;
+        }
       }
-    _timer["output"].stop();
+    _timer["meta_output_interval"].stop();
+
   }
   _timer["loop"].stop();
 
