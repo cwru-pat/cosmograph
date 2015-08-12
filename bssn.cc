@@ -54,6 +54,27 @@ void BSSN::set_paq_values(idx_t i, idx_t j, idx_t k, BSSNData *paq)
 
   // source values
   set_source_vals(paq);
+
+  paq->H = hamiltonianConstraintCalc(paq);
+  paq->db = double_derivative_stencil(i, j, k, 1, phi_a) - (
+      1.0/78400.0*phi_a[INDEX(i+8, j, k)] +
+      -1.0/3675.0*phi_a[INDEX(i+7, j, k)] +
+      127.0/44100.0*phi_a[INDEX(i+6, j, k)] +
+      -11.0/525.0*phi_a[INDEX(i+5, j, k)] +
+      53.0/525.0*phi_a[INDEX(i+4, j, k)] +
+      -11.0/35.0*phi_a[INDEX(i+3, j, k)] +
+      1213.0/2100.0*phi_a[INDEX(i+2, j, k)] +
+      411.0/1225.0*phi_a[INDEX(i+1, j, k)] +
+      -480841.0/352800.0*phi_a[INDEX(i+0, j, k)] +
+      411.0/1225.0*phi_a[INDEX(i+1, j, k)] +
+      1213.0/2100.0*phi_a[INDEX(i+2, j, k)] +
+      -11.0/35.0*phi_a[INDEX(i+3, j, k)] +
+      53.0/525.0*phi_a[INDEX(i+4, j, k)] +
+      -11.0/525.0*phi_a[INDEX(i+5, j, k)] +
+      127.0/44100.0*phi_a[INDEX(i+6, j, k)] +
+      -1.0/3675.0*phi_a[INDEX(i+7, j, k)] +
+      1.0/78400.0*phi_a[INDEX(i+8, j, k)]
+    )/dx/dx;
 }
 
 real_t BSSN::hamiltonianConstraintMean()
@@ -473,140 +494,23 @@ void BSSN::init()
   }
 }
 
-
-real_t BSSN::der(real_t field_adj[3][3][3], int d)
-{
-  switch (d) {
-    case 1:
-      return (field_adj[2][1][1] - field_adj[0][1][1])/dx/2.0;
-      break;
-    case 2:
-      return (field_adj[1][2][1] - field_adj[1][0][1])/dx/2.0;
-      break;
-    case 3:
-      return (field_adj[1][1][2] - field_adj[1][1][0])/dx/2.0;
-      break;
-  }
-
-  /* XXX */
-  return 0;
-}
-
-real_t BSSN::dder(real_t field_adj[3][3][3], int d1, int d2)
-{
-  switch (d1) {
-    case 1:
-      switch (d2) {
-        case 1:
-          return (field_adj[0][1][1] + field_adj[2][1][1] - 2.0*field_adj[1][1][1])/dx/dx;
-          break;
-        case 2:
-          return (field_adj[0][0][1] + field_adj[2][2][1] - field_adj[0][2][1] - field_adj[2][0][1])/dx/dx/4.0;
-          break;
-        case 3:
-          return (field_adj[0][1][0] + field_adj[2][1][2] - field_adj[0][1][2] - field_adj[2][1][0])/dx/dx/4.0;
-          break;
-      }
-      break;
-    case 2:
-      switch (d2) {
-        case 1:
-          return (field_adj[0][0][1] + field_adj[2][2][1] - field_adj[0][2][1] - field_adj[2][0][1])/dx/dx/4.0;
-          break;
-        case 2:
-          return (field_adj[1][0][1] + field_adj[1][2][1] - 2.0*field_adj[1][1][1])/dx/dx;
-          break;
-        case 3:
-          return (field_adj[1][0][0] + field_adj[1][2][2] - field_adj[1][0][2] - field_adj[1][2][0])/dx/dx/4.0;
-          break;
-      }
-      break;
-    case 3:
-      switch (d2) {
-        case 1:
-          return (field_adj[0][1][0] + field_adj[2][1][2] - field_adj[0][1][2] - field_adj[2][1][0])/dx/dx/4.0;
-          break;
-        case 2:
-          return (field_adj[1][0][0] + field_adj[1][2][2] - field_adj[1][0][2] - field_adj[1][2][0])/dx/dx/4.0;
-          break;
-        case 3:
-          return (field_adj[1][1][0] + field_adj[1][1][2] - 2.0*field_adj[1][1][1])/dx/dx;
-          break;
-      }
-      break;
-  }
-
-  /* XXX */
-  return 0.0;
-}
-
-
 real_t BSSN::der_ext(real_t field_adj[3][3][3], real_t field_adj_ext[3][2], int d)
 {
   switch (d) {
     case 1:
-      return (-1.0*field_adj_ext[0][1] + 8.0*field_adj[2][1][1] - 8.0*field_adj[0][1][1] + field_adj_ext[0][0])/dx/12.0;
+      return (field_adj[2][1][1]  - field_adj[0][1][1])/dx/2.0;
       break;
     case 2:
-      return (-1.0*field_adj_ext[1][1] + 8.0*field_adj[1][2][1] - 8.0*field_adj[1][0][1] + field_adj_ext[1][0])/dx/12.0;
+      return (field_adj[1][2][1]  - field_adj[1][0][1])/dx/2.0;
       break;
     case 3:
-      return (-1.0*field_adj_ext[2][1] + 8.0*field_adj[1][1][2] - 8.0*field_adj[1][1][0] + field_adj_ext[2][0])/dx/12.0;
+      return (field_adj[1][1][2]  - field_adj[1][1][0])/dx/2.0;
       break;
   }
 
   /* XXX */
   return 0;
 }
-
-real_t BSSN::dder_ext(real_t field_adj[3][3][3], real_t field_adj_ext[3][2], int d1, int d2)
-{
-  switch (d1) {
-    case 1:
-      switch (d2) {
-        case 1:
-          return (-1.0*field_adj_ext[0][0] - field_adj_ext[0][1] + 16.0*field_adj[0][1][1] + 16.0*field_adj[2][1][1] - 30.0*field_adj[1][1][1])/dx/dx/12.0;
-          break;
-        case 2:
-          return (field_adj[0][0][1] + field_adj[2][2][1] - field_adj[0][2][1] - field_adj[2][0][1])/dx/dx/4.0;
-          break;
-        case 3:
-          return (field_adj[0][1][0] + field_adj[2][1][2] - field_adj[0][1][2] - field_adj[2][1][0])/dx/dx/4.0;
-          break;
-      }
-      break;
-    case 2:
-      switch (d2) {
-        case 1:
-          return (field_adj[0][0][1] + field_adj[2][2][1] - field_adj[0][2][1] - field_adj[2][0][1])/dx/dx/4.0;
-          break;
-        case 2:
-          return (-1.0*field_adj_ext[1][0] - field_adj_ext[1][1] + 16.0*field_adj[1][0][1] + 16.0*field_adj[1][2][1] - 30.0*field_adj[1][1][1])/dx/dx/12.0;
-          break;
-        case 3:
-          return (field_adj[1][0][0] + field_adj[1][2][2] - field_adj[1][0][2] - field_adj[1][2][0])/dx/dx/4.0;
-          break;
-      }
-      break;
-    case 3:
-      switch (d2) {
-        case 1:
-          return (field_adj[0][1][0] + field_adj[2][1][2] - field_adj[0][1][2] - field_adj[2][1][0])/dx/dx/4.0;
-          break;
-        case 2:
-          return (field_adj[1][0][0] + field_adj[1][2][2] - field_adj[1][0][2] - field_adj[1][2][0])/dx/dx/4.0;
-          break;
-        case 3:
-          return (-1.0*field_adj_ext[2][0] - field_adj_ext[2][1] + 16.0*field_adj[1][1][0] + 16.0*field_adj[1][1][2] - 30.0*field_adj[1][1][1])/dx/dx/12.0;
-          break;
-      }
-      break;
-  }
-
-  /* XXX */
-  return 0.0;
-}
-
 
 /* Set local source term values */
 void BSSN::set_source_vals(BSSNData *paq)
@@ -784,26 +688,25 @@ void BSSN::calculateDDphi(BSSNData *paq)
   paq->D3D3phi = double_derivative(i, j, k, 3, 3, phi_a) - (paq->G133*paq->d1phi + paq->G233*paq->d2phi + paq->G333*paq->d3phi);  
 }
 
-real_t BSSN::ev_gamma11(BSSNData *paq) { return BSSN_DT_GAMMAIJ(1, 1); }
-real_t BSSN::ev_gamma12(BSSNData *paq) { return BSSN_DT_GAMMAIJ(1, 2); }
-real_t BSSN::ev_gamma13(BSSNData *paq) { return BSSN_DT_GAMMAIJ(1, 3); }
-real_t BSSN::ev_gamma22(BSSNData *paq) { return BSSN_DT_GAMMAIJ(2, 2); }
-real_t BSSN::ev_gamma23(BSSNData *paq) { return BSSN_DT_GAMMAIJ(2, 3); }
-real_t BSSN::ev_gamma33(BSSNData *paq) { return BSSN_DT_GAMMAIJ(3, 3); }
+real_t BSSN::ev_gamma11(BSSNData *paq) { real_t damping_term = 0.5*dt*paq->gamma11*paq->H; return BSSN_DT_GAMMAIJ(1, 1) /*+ damping_term*/; }
+real_t BSSN::ev_gamma12(BSSNData *paq) { real_t damping_term = 0.5*dt*paq->gamma12*paq->H; return BSSN_DT_GAMMAIJ(1, 2) /*+ damping_term*/; }
+real_t BSSN::ev_gamma13(BSSNData *paq) { real_t damping_term = 0.5*dt*paq->gamma13*paq->H; return BSSN_DT_GAMMAIJ(1, 3) /*+ damping_term*/; }
+real_t BSSN::ev_gamma22(BSSNData *paq) { real_t damping_term = 0.5*dt*paq->gamma22*paq->H; return BSSN_DT_GAMMAIJ(2, 2) /*+ damping_term*/; }
+real_t BSSN::ev_gamma23(BSSNData *paq) { real_t damping_term = 0.5*dt*paq->gamma23*paq->H; return BSSN_DT_GAMMAIJ(2, 3) /*+ damping_term*/; }
+real_t BSSN::ev_gamma33(BSSNData *paq) { real_t damping_term = 0.5*dt*paq->gamma33*paq->H; return BSSN_DT_GAMMAIJ(3, 3) /*+ damping_term*/; }
 
-real_t BSSN::ev_A11(BSSNData *paq) { return BSSN_DT_AIJ(1, 1); }
-real_t BSSN::ev_A12(BSSNData *paq) { return BSSN_DT_AIJ(1, 2); }
-real_t BSSN::ev_A13(BSSNData *paq) { return BSSN_DT_AIJ(1, 3); }
-real_t BSSN::ev_A22(BSSNData *paq) { return BSSN_DT_AIJ(2, 2); }
-real_t BSSN::ev_A23(BSSNData *paq) { return BSSN_DT_AIJ(2, 3); }
-real_t BSSN::ev_A33(BSSNData *paq) { return BSSN_DT_AIJ(3, 3); }
+real_t BSSN::ev_A11(BSSNData *paq) { real_t damping_term = -1.0*dt*paq->A11*paq->H; return BSSN_DT_AIJ(1, 1) /*+ damping_term*/; }
+real_t BSSN::ev_A12(BSSNData *paq) { real_t damping_term = -1.0*dt*paq->A12*paq->H; return BSSN_DT_AIJ(1, 2) /*+ damping_term*/; }
+real_t BSSN::ev_A13(BSSNData *paq) { real_t damping_term = -1.0*dt*paq->A13*paq->H; return BSSN_DT_AIJ(1, 3) /*+ damping_term*/; }
+real_t BSSN::ev_A22(BSSNData *paq) { real_t damping_term = -1.0*dt*paq->A22*paq->H; return BSSN_DT_AIJ(2, 2) /*+ damping_term*/; }
+real_t BSSN::ev_A23(BSSNData *paq) { real_t damping_term = -1.0*dt*paq->A23*paq->H; return BSSN_DT_AIJ(2, 3) /*+ damping_term*/; }
+real_t BSSN::ev_A33(BSSNData *paq) { real_t damping_term = -1.0*dt*paq->A33*paq->H; return BSSN_DT_AIJ(3, 3) /*+ damping_term*/; }
 
 real_t BSSN::ev_K(BSSNData *paq)
 {
-  real_t H = hamiltonianConstraintCalc(paq);
   real_t prefactor = -1.0;
   return (
-    prefactor*8.0*exp(-5.0*paq->phi)*H
+    prefactor*8.0*exp(-5.0*paq->phi)*paq->H
     + pw2(paq->K)/3.0 + paq->AijAij
     + 4.0*PI*(paq->rho + paq->S)
   );
@@ -811,8 +714,11 @@ real_t BSSN::ev_K(BSSNData *paq)
 
 real_t BSSN::ev_phi(BSSNData *paq)
 {
+  real_t damping_term = 0.1*dt*paq->H;
+
   return (
     -1.0/6.0*paq->K
+    /*+ damping_term*/
   );
 }
 

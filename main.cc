@@ -105,27 +105,17 @@ int main(int argc, char **argv)
       staticSim.addBSSNSrc(bssnSim.fields);
       lambdaSim.addBSSNSrc(bssnSim.fields);
 
-BSSNData b_paq = {0};
-BSSNData b_paq_ip = {0};
-BSSNData b_paq_im = {0};
-BSSNData b_paq_jp = {0};
-BSSNData b_paq_jm = {0};
-BSSNData b_paq_kp = {0};
-BSSNData b_paq_km = {0};
-BSSNData b_paq_ipp = {0};
-BSSNData b_paq_imm = {0};
-BSSNData b_paq_jpp = {0};
-BSSNData b_paq_jmm = {0};
-BSSNData b_paq_kpp = {0};
-BSSNData b_paq_kmm = {0};
-DUMPPAQSTUFF 
-
     // First RK step, Set Hydro Vars, & calc. constraint
     #pragma omp parallel for default(shared) private(i, j, k)
     LOOP3(i, j, k)
     {
       BSSNData b_paq = {0}; // data structure associated with bssn sim
       bssnSim.K1CalcPt(i, j, k, &b_paq);
+
+if(i==0&&j==0&&k==0) {
+  std::cout << "\nDB val: " << b_paq.db << "\n";
+}
+
     }
 
     // reset source using new metric
@@ -133,8 +123,6 @@ DUMPPAQSTUFF
     // add hydro source to bssn sim
     staticSim.addBSSNSrc(bssnSim.fields);
     lambdaSim.addBSSNSrc(bssnSim.fields);
-
-DUMPPAQSTUFF
 
     bssnSim.regSwap_c_a();
 
@@ -166,9 +154,7 @@ DUMPPAQSTUFF
       bssnSim.clearSrc();
       // add hydro source to bssn sim
       staticSim.addBSSNSrc(bssnSim.fields);
-      lambdaSim.addBSSNSrc(bssnSim.fields);
-
-DUMPPAQSTUFF 
+      lambdaSim.addBSSNSrc(bssnSim.fields); 
 
       bssnSim.regSwap_c_a();
 
@@ -182,9 +168,7 @@ DUMPPAQSTUFF
 
     // Wrap up
       // bssn _f <-> _p
-      bssnSim.stepTerm();
-
-DUMPPAQSTUFF 
+      bssnSim.stepTerm(); 
 
     _timer["RK_steps"].stop();
 
@@ -207,13 +191,13 @@ DUMPPAQSTUFF
         io_dump_data(mean_momentum_constraint, &iodata, "avg_M_violation");
         io_dump_data(stdev_momentum_constraint, &iodata, "std_M_violation");
 
-        LOG(iodata.log,
-          "\nFractional Mean / St. Dev Momentum constraint violation is: " <<
-          mean_momentum_constraint << " / " << stdev_momentum_constraint <<
-          "\nFractional Mean / St. Dev Hamiltonian constraint violation is: " <<
-          mean_hamiltonian_constraint << " / " << stdev_hamiltonian_constraint <<
-          "\n"
-        );
+        // LOG(iodata.log,
+        //   "\nFractional Mean / St. Dev Momentum constraint violation is: " <<
+        //   mean_momentum_constraint << " / " << stdev_momentum_constraint <<
+        //   "\nFractional Mean / St. Dev Hamiltonian constraint violation is: " <<
+        //   mean_hamiltonian_constraint << " / " << stdev_hamiltonian_constraint <<
+        //   "\n"
+        // );
 
         if(numNaNs(bssnSim.fields["phi_a"]) > 0)
         {

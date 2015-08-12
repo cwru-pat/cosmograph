@@ -15,6 +15,9 @@ typedef struct {
   real_t rho_K_matter;
   real_t rho_K_lambda;
 
+  // constraint violating term amplitude
+  real_t viol_amp;
+
 } ICsData;
 
 } /* namespace cosmo */

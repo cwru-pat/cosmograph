@@ -91,6 +91,11 @@ typedef struct {
   real_t S1, S2, S3;
   real_t STF11, STF12, STF13, STF22, STF23, STF33;
 
+  // H constraint calc.
+  real_t H;
+  // Misc. debugging calc
+  real_t db;
+
 } BSSNData;
 
 } /* namespace cosmo */

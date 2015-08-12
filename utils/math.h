@@ -6,28 +6,45 @@
 namespace cosmo
 {
 
-inline real_t lap_stencil(idx_t i, idx_t j, idx_t k, real_t *field)
-{
-return (
-    - 6.0*field[INDEX(i,j,k)]
-    + field[INDEX(i+1,j,k)] + field[INDEX(i-1,j,k)]
-    + field[INDEX(i,j+1,k)] + field[INDEX(i,j-1,k)]
-    + field[INDEX(i,j,k+1)] + field[INDEX(i,j,k-1)]
-  );
-}
-
 inline real_t derivative(idx_t i, idx_t j, idx_t k, int d,
     real_t *field)
 {
   switch (d) {
     case 1:
-      return (-1.0*field[INDEX(i+2,j,k)] + 8.0*field[INDEX(i+1,j,k)] - 8.0*field[INDEX(i-1,j,k)] + field[INDEX(i-2,j,k)])/12.0/dx;
+      return (
+        1.0/280.0*field[INDEX(i-4,j,k)]
+        - 4.0/105.0*field[INDEX(i-3,j,k)]
+        + 1.0/5.0*field[INDEX(i-2,j,k)]
+        - 4.0/5.0*field[INDEX(i-1,j,k)]
+        + 4.0/5.0*field[INDEX(i+1,j,k)]
+        - 1.0/5.0*field[INDEX(i+2,j,k)]
+        + 4.0/105.0*field[INDEX(i+3,j,k)]
+        - 1.0/280.0*field[INDEX(i+4,j,k)]
+      )/dx;
       break;
     case 2:
-      return (-1.0*field[INDEX(i,j+2,k)] + 8.0*field[INDEX(i,j+1,k)] - 8.0*field[INDEX(i,j-1,k)] + field[INDEX(i,j-2,k)])/12.0/dx;
+      return (
+        1.0/280.0*field[INDEX(i,j-4,k)]
+        - 4.0/105.0*field[INDEX(i,j-3,k)]
+        + 1.0/5.0*field[INDEX(i,j-2,k)]
+        - 4.0/5.0*field[INDEX(i,j-1,k)]
+        + 4.0/5.0*field[INDEX(i,j+1,k)]
+        - 1.0/5.0*field[INDEX(i,j+2,k)]
+        + 4.0/105.0*field[INDEX(i,j+3,k)]
+        - 1.0/280.0*field[INDEX(i,j+4,k)]
+      )/dx;
       break;
     case 3:
-      return (-1.0*field[INDEX(i,j,k+2)] + 8.0*field[INDEX(i,j,k+1)] - 8.0*field[INDEX(i,j,k-1)] + field[INDEX(i,j,k-2)])/12.0/dx;
+      return (
+        1.0/280.0*field[INDEX(i,j,k-4)]
+        - 4.0/105.0*field[INDEX(i,j,k-3)]
+        + 1.0/5.0*field[INDEX(i,j,k-2)]
+        - 4.0/5.0*field[INDEX(i,j,k-1)]
+        + 4.0/5.0*field[INDEX(i,j,k+1)]
+        - 1.0/5.0*field[INDEX(i,j,k+2)]
+        + 4.0/105.0*field[INDEX(i,j,k+3)]
+        - 1.0/280.0*field[INDEX(i,j,k+4)]
+      )/dx;
       break;
   }
 
@@ -38,30 +55,48 @@ inline real_t derivative(idx_t i, idx_t j, idx_t k, int d,
 inline real_t mixed_derivative_stencil(idx_t i, idx_t j, idx_t k, int d1, int d2, real_t *field)
 {
   if( (d1 == 1 && d2 == 2) || (d1 == 2 && d2 == 1) ) {
-    return -(
-       1.00*field[INDEX(i-2,j+2,k)] + -8.00*field[INDEX(i-1,j+2,k)] +  8.00*field[INDEX(i+1,j+2,k)] + -1.00*field[INDEX(i+2,j+2,k)] +
-      -8.00*field[INDEX(i-2,j+1,k)] +  64.0*field[INDEX(i-1,j+1,k)] + -64.0*field[INDEX(i+1,j+1,k)] +  8.00*field[INDEX(i+2,j+1,k)] +
-       8.00*field[INDEX(i-2,j-1,k)] + -64.0*field[INDEX(i-1,j-1,k)] +  64.0*field[INDEX(i+1,j-1,k)] + -8.00*field[INDEX(i+2,j-1,k)] +
-      -1.00*field[INDEX(i-2,j-2,k)] +  8.00*field[INDEX(i-1,j-2,k)] + -8.00*field[INDEX(i+1,j-2,k)] +  1.00*field[INDEX(i+2,j-2,k)]
-    )/12.0/12.0/dx/dx;
+    return (
+      135.0*(
+        - field[INDEX(i+1,j-1,k)] + field[INDEX(i+1,j+1,k)]
+        + field[INDEX(i-1,j-1,k)] - field[INDEX(i-1,j+1,k)]
+      ) - 27.0/2.0*(
+        - field[INDEX(i+2,j-2,k)] + field[INDEX(i+2,j+2,k)]
+        + field[INDEX(i-2,j-2,k)] - field[INDEX(i-2,j+2,k)]
+      ) + (
+        - field[INDEX(i+3,j-3,k)] + field[INDEX(i+3,j+3,k)]
+        + field[INDEX(i-3,j-3,k)] - field[INDEX(i-3,j+3,k)]
+      )
+    )/360.0/dx/dx;
   }
 
   if( (d1 == 1 && d2 == 3) || (d1 == 3 && d2 == 1) ) {
-    return -(
-       1.00*field[INDEX(i-2,j,k+2)] + -8.00*field[INDEX(i-1,j,k+2)] +  8.00*field[INDEX(i+1,j,k+2)] + -1.00*field[INDEX(i+2,j,k+2)] +
-      -8.00*field[INDEX(i-2,j,k+1)] +  64.0*field[INDEX(i-1,j,k+1)] + -64.0*field[INDEX(i+1,j,k+1)] +  8.00*field[INDEX(i+2,j,k+1)] +
-       8.00*field[INDEX(i-2,j,k-1)] + -64.0*field[INDEX(i-1,j,k-1)] +  64.0*field[INDEX(i+1,j,k-1)] + -8.00*field[INDEX(i+2,j,k-1)] +
-      -1.00*field[INDEX(i-2,j,k-2)] +  8.00*field[INDEX(i-1,j,k-2)] + -8.00*field[INDEX(i+1,j,k-2)] +  1.00*field[INDEX(i+2,j,k-2)]
-    )/12.0/12.0/dx/dx;
+    return (
+      135.0*(
+        - field[INDEX(i+1,j,k-1)] + field[INDEX(i+1,j,k+1)]
+        + field[INDEX(i-1,j,k-1)] - field[INDEX(i-1,j,k+1)]
+      ) - 27.0/2.0*(
+        - field[INDEX(i+2,j,k-2)] + field[INDEX(i+2,j,k+2)]
+        + field[INDEX(i-2,j,k-2)] - field[INDEX(i-2,j,k+2)]
+      ) + (
+        - field[INDEX(i+3,j,k-3)] + field[INDEX(i+3,j,k+3)]
+        + field[INDEX(i-3,j,k-3)] - field[INDEX(i-3,j,k+3)]
+      )
+    )/360.0/dx/dx;
   }
 
   if( (d1 == 3 && d2 == 2) || (d1 == 2 && d2 == 3) ) {
-    return -(
-       1.00*field[INDEX(i,j+2,k-2)] + -8.00*field[INDEX(i,j+2,k-1)] +  8.00*field[INDEX(i,j+2,k+1)] + -1.00*field[INDEX(i,j+2,k+2)] +
-      -8.00*field[INDEX(i,j+1,k-2)] +  64.0*field[INDEX(i,j+1,k-1)] + -64.0*field[INDEX(i,j+1,k+1)] +  8.00*field[INDEX(i,j+1,k+2)] +
-       8.00*field[INDEX(i,j-1,k-2)] + -64.0*field[INDEX(i,j-1,k-1)] +  64.0*field[INDEX(i,j-1,k+1)] + -8.00*field[INDEX(i,j-1,k+2)] +
-      -1.00*field[INDEX(i,j-2,k-2)] +  8.00*field[INDEX(i,j-2,k-1)] + -8.00*field[INDEX(i,j-2,k+1)] +  1.00*field[INDEX(i,j-2,k+2)]
-    )/144.0/dx/dx;
+    return (
+      135.0*(
+        - field[INDEX(i,j+1,k-1)] + field[INDEX(i,j+1,k+1)]
+        + field[INDEX(i,j-1,k-1)] - field[INDEX(i,j-1,k+1)]
+      ) - 27.0/2.0*(
+        - field[INDEX(i,j+2,k-2)] + field[INDEX(i,j+2,k+2)]
+        + field[INDEX(i,j-2,k-2)] - field[INDEX(i,j-2,k+2)]
+      ) + (
+        - field[INDEX(i,j+3,k-3)] + field[INDEX(i,j+3,k+3)]
+        + field[INDEX(i,j-3,k-3)] - field[INDEX(i,j-3,k+3)]
+      )
+    )/360.0/dx/dx;
   }
 
   /* XXX */
@@ -74,42 +109,42 @@ inline real_t double_derivative_stencil(idx_t i, idx_t j, idx_t k, int d,
   switch (d) {
     case 1:
       return (
-          1.0*field[INDEX(i+4,j,k)] +
-          -16.0*field[INDEX(i+3,j,k)] +
-          64.0*field[INDEX(i+2,j,k)] +
-          16.0*field[INDEX(i+1,j,k)] +
-          -130.0*field[INDEX(i+0,j,k)] +
-          16.0*field[INDEX(i-1,j,k)] +
-          64.0*field[INDEX(i-2,j,k)] +
-          -16.0*field[INDEX(i-3,j,k)] +
-          1.0*field[INDEX(i-4,j,k)]
-        )/12.0/12.0/dx/dx;
+          - 1.0/560.0*field[INDEX(i-4,j,k)]
+          + 8.0/315.0*field[INDEX(i-3,j,k)]
+          - 1.0/5.0*field[INDEX(i-2,j,k)]
+          + 8.0/5.0*field[INDEX(i-1,j,k)]
+          - 205.0/72.0*field[INDEX(i-0,j,k)]
+          + 8.0/5.0*field[INDEX(i+1,j,k)]
+          - 1.0/5.0*field[INDEX(i+2,j,k)]
+          + 8.0/315.0*field[INDEX(i+3,j,k)]
+          - 1.0/560.0*field[INDEX(i+4,j,k)]
+        )/dx/dx;
       break;
     case 2:
       return (
-          1.0*field[INDEX(i,j+4,k)] +
-          -16.0*field[INDEX(i,j+3,k)] +
-          64.0*field[INDEX(i,j+2,k)] +
-          16.0*field[INDEX(i,j+1,k)] +
-          -130.0*field[INDEX(i,j+0,k)] +
-          16.0*field[INDEX(i,j-1,k)] +
-          64.0*field[INDEX(i,j-2,k)] +
-          -16.0*field[INDEX(i,j-3,k)] +
-          1.0*field[INDEX(i,j-4,k)]
-        )/12.0/12.0/dx/dx;
+          - 1.0/560.0*field[INDEX(i,j-4,k)]
+          + 8.0/315.0*field[INDEX(i,j-3,k)]
+          - 1.0/5.0*field[INDEX(i,j-2,k)]
+          + 8.0/5.0*field[INDEX(i,j-1,k)]
+          - 205.0/72.0*field[INDEX(i,j-0,k)]
+          + 8.0/5.0*field[INDEX(i,j+1,k)]
+          - 1.0/5.0*field[INDEX(i,j+2,k)]
+          + 8.0/315.0*field[INDEX(i,j+3,k)]
+          - 1.0/560.0*field[INDEX(i,j+4,k)]
+        )/dx/dx;
       break;
     case 3:
       return (
-          1.0*field[INDEX(i,j,k+4)] +
-          -16.0*field[INDEX(i,j,k+3)] +
-          64.0*field[INDEX(i,j,k+2)] +
-          16.0*field[INDEX(i,j,k+1)] +
-          -130.0*field[INDEX(i,j,k+0)] +
-          16.0*field[INDEX(i,j,k-1)] +
-          64.0*field[INDEX(i,j,k-2)] +
-          -16.0*field[INDEX(i,j,k-3)] +
-          1.0*field[INDEX(i,j,k-4)]
-        )/12.0/12.0/dx/dx;
+          - 1.0/560.0*field[INDEX(i,j,k-4)]
+          + 8.0/315.0*field[INDEX(i,j,k-3)]
+          - 1.0/5.0*field[INDEX(i,j,k-2)]
+          + 8.0/5.0*field[INDEX(i,j,k-1)]
+          - 205.0/72.0*field[INDEX(i,j,k-0)]
+          + 8.0/5.0*field[INDEX(i,j,k+1)]
+          - 1.0/5.0*field[INDEX(i,j,k+2)]
+          + 8.0/315.0*field[INDEX(i,j,k+3)]
+          - 1.0/560.0*field[INDEX(i,j,k+4)]
+        )/dx/dx;
       break;
   }
 
