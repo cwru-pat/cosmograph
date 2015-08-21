@@ -6,7 +6,109 @@
 namespace cosmo
 {
 
-inline real_t derivative(idx_t i, idx_t j, idx_t k, int d,
+inline real_t derivative_Odx2(idx_t i, idx_t j, idx_t k, int d,
+    real_t *field)
+{
+  switch (d) {
+    case 1:
+      return (
+        - 1.0/2.0*field[INDEX(i-1,j,k)]
+        + 1.0/2.0*field[INDEX(i+1,j,k)]
+      )/dx;
+      break;
+    case 2:
+      return (
+        - 1.0/2.0*field[INDEX(i,j-1,k)]
+        + 1.0/2.0*field[INDEX(i,j+1,k)]
+      )/dx;
+      break;
+    case 3:
+      return (
+        - 1.0/2.0*field[INDEX(i,j,k-1)]
+        + 1.0/2.0*field[INDEX(i,j,k+1)]
+      )/dx;
+      break;
+  }
+
+  /* XXX */
+  return 0;
+}
+
+inline real_t derivative_Odx4(idx_t i, idx_t j, idx_t k, int d,
+    real_t *field)
+{
+  switch (d) {
+    case 1:
+      return (
+        + 1.0/12.0*field[INDEX(i-2,j,k)]
+        - 2.0/3.0*field[INDEX(i-1,j,k)]
+        + 2.0/3.0*field[INDEX(i+1,j,k)]
+        - 1.0/12.0*field[INDEX(i+2,j,k)]
+      )/dx;
+      break;
+    case 2:
+      return (
+        + 1.0/12.0*field[INDEX(i,j-2,k)]
+        - 2.0/3.0*field[INDEX(i,j-1,k)]
+        + 2.0/3.0*field[INDEX(i,j+1,k)]
+        - 1.0/12.0*field[INDEX(i,j+2,k)]
+      )/dx;
+      break;
+    case 3:
+      return (
+        + 1.0/12.0*field[INDEX(i,j,k-2)]
+        - 2.0/3.0*field[INDEX(i,j,k-1)]
+        + 2.0/3.0*field[INDEX(i,j,k+1)]
+        - 1.0/12.0*field[INDEX(i,j,k+2)]
+      )/dx;
+      break;
+  }
+
+  /* XXX */
+  return 0;
+}
+
+inline real_t derivative_Odx6(idx_t i, idx_t j, idx_t k, int d,
+    real_t *field)
+{
+  switch (d) {
+    case 1:
+      return (
+        - 1.0/60.0*field[INDEX(i-3,j,k)]
+        + 3.0/20.0*field[INDEX(i-2,j,k)]
+        - 3.0/4.0*field[INDEX(i-1,j,k)]
+        + 3.0/4.0*field[INDEX(i+1,j,k)]
+        - 3.0/20.0*field[INDEX(i+2,j,k)]
+        + 1.0/60.0*field[INDEX(i+3,j,k)]
+      )/dx;
+      break;
+    case 2:
+      return (
+        - 1.0/60.0*field[INDEX(i,j-3,k)]
+        + 3.0/20.0*field[INDEX(i,j-2,k)]
+        - 3.0/4.0*field[INDEX(i,j-1,k)]
+        + 3.0/4.0*field[INDEX(i,j+1,k)]
+        - 3.0/20.0*field[INDEX(i,j+2,k)]
+        + 1.0/60.0*field[INDEX(i,j+3,k)]
+      )/dx;
+      break;
+    case 3:
+      return (
+        - 1.0/60.0*field[INDEX(i,j,k-3)]
+        + 3.0/20.0*field[INDEX(i,j,k-2)]
+        - 3.0/4.0*field[INDEX(i,j,k-1)]
+        + 3.0/4.0*field[INDEX(i,j,k+1)]
+        - 3.0/20.0*field[INDEX(i,j,k+2)]
+        + 1.0/60.0*field[INDEX(i,j,k+3)]
+      )/dx;
+      break;
+  }
+
+  /* XXX */
+  return 0;
+}
+
+inline real_t derivative_Odx8(idx_t i, idx_t j, idx_t k, int d,
     real_t *field)
 {
   switch (d) {
@@ -52,7 +154,76 @@ inline real_t derivative(idx_t i, idx_t j, idx_t k, int d,
   return 0;
 }
 
-inline real_t mixed_derivative_stencil(idx_t i, idx_t j, idx_t k, int d1, int d2, real_t *field)
+inline real_t mixed_derivative_stencil_Odx2(idx_t i, idx_t j, idx_t k, int d1, int d2, real_t *field)
+{
+  if( (d1 == 1 && d2 == 2) || (d1 == 2 && d2 == 1) ) {
+    return (
+      - field[INDEX(i+1,j-1,k)] + field[INDEX(i+1,j+1,k)]
+      + field[INDEX(i-1,j-1,k)] - field[INDEX(i-1,j+1,k)]
+    )/4.0/dx/dx;
+  }
+
+  if( (d1 == 1 && d2 == 3) || (d1 == 3 && d2 == 1) ) {
+    return (
+      - field[INDEX(i+1,j,k-1)] + field[INDEX(i+1,j,k+1)]
+      + field[INDEX(i-1,j,k-1)] - field[INDEX(i-1,j,k+1)]
+    )/4.0/dx/dx;
+  }
+
+  if( (d1 == 3 && d2 == 2) || (d1 == 2 && d2 == 3) ) {
+    return (
+      - field[INDEX(i,j+1,k-1)] + field[INDEX(i,j+1,k+1)]
+      + field[INDEX(i,j-1,k-1)] - field[INDEX(i,j-1,k+1)]
+    )/4.0/dx/dx;
+  }
+
+  /* XXX */
+  return 0;
+}
+
+inline real_t mixed_derivative_stencil_Odx4(idx_t i, idx_t j, idx_t k, int d1, int d2, real_t *field)
+{
+  if( (d1 == 1 && d2 == 2) || (d1 == 2 && d2 == 1) ) {
+    return (
+      (
+        - field[INDEX(i+1,j-1,k)] + field[INDEX(i+1,j+1,k)]
+        + field[INDEX(i-1,j-1,k)] - field[INDEX(i-1,j+1,k)]
+      ) - 1.0/16.0*(
+        - field[INDEX(i+2,j-2,k)] + field[INDEX(i+2,j+2,k)]
+        + field[INDEX(i-2,j-2,k)] - field[INDEX(i-2,j+2,k)]
+      )
+    )/3.0/dx/dx;
+  }
+
+  if( (d1 == 1 && d2 == 3) || (d1 == 3 && d2 == 1) ) {
+    return (
+      (
+        - field[INDEX(i+1,j,k-1)] + field[INDEX(i+1,j,k+1)]
+        + field[INDEX(i-1,j,k-1)] - field[INDEX(i-1,j,k+1)]
+      ) - 1.0/16.0*(
+        - field[INDEX(i+2,j,k-2)] + field[INDEX(i+2,j,k+2)]
+        + field[INDEX(i-2,j,k-2)] - field[INDEX(i-2,j,k+2)]
+      )
+    )/3.0/dx/dx;
+  }
+
+  if( (d1 == 3 && d2 == 2) || (d1 == 2 && d2 == 3) ) {
+    return (
+      (
+        - field[INDEX(i,j+1,k-1)] + field[INDEX(i,j+1,k+1)]
+        + field[INDEX(i,j-1,k-1)] - field[INDEX(i,j-1,k+1)]
+      ) - 1.0/16.0*(
+        - field[INDEX(i,j+2,k-2)] + field[INDEX(i,j+2,k+2)]
+        + field[INDEX(i,j-2,k-2)] - field[INDEX(i,j-2,k+2)]
+      )
+    )/3.0/dx/dx;
+  }
+
+  /* XXX */
+  return 0;
+}
+
+inline real_t mixed_derivative_stencil_Odx6(idx_t i, idx_t j, idx_t k, int d1, int d2, real_t *field)
 {
   if( (d1 == 1 && d2 == 2) || (d1 == 2 && d2 == 1) ) {
     return (
@@ -103,7 +274,118 @@ inline real_t mixed_derivative_stencil(idx_t i, idx_t j, idx_t k, int d1, int d2
   return 0;
 }
 
-inline real_t double_derivative_stencil(idx_t i, idx_t j, idx_t k, int d,
+inline real_t double_derivative_stencil_Odx2(idx_t i, idx_t j, idx_t k, int d,
+    real_t *field)
+{
+  switch (d) {
+    case 1:
+      return (
+          field[INDEX(i-1,j,k)]
+          - 2.0*field[INDEX(i-0,j,k)]
+          + field[INDEX(i+1,j,k)]
+        )/dx/dx;
+      break;
+    case 2:
+      return (
+          field[INDEX(i,j-1,k)]
+          - 2.0*field[INDEX(i,j-0,k)]
+          + field[INDEX(i,j+1,k)]
+        )/dx/dx;
+      break;
+    case 3:
+      return (
+          field[INDEX(i,j,k-1)]
+          - 2.0*field[INDEX(i,j,k-0)]
+          + field[INDEX(i,j,k+1)]
+        )/dx/dx;
+      break;
+  }
+
+  /* XXX */
+  return 0;
+}
+
+inline real_t double_derivative_stencil_Odx4(idx_t i, idx_t j, idx_t k, int d,
+    real_t *field)
+{
+  switch (d) {
+    case 1:
+      return (
+          - 1.0/12.0*field[INDEX(i-2,j,k)]
+          + 4.0/3.0*field[INDEX(i-1,j,k)]
+          - 5.0/2.0*field[INDEX(i-0,j,k)]
+          + 4.0/3.0*field[INDEX(i+1,j,k)]
+          - 1.0/12.0*field[INDEX(i+2,j,k)]
+        )/dx/dx;
+      break;
+    case 2:
+      return (
+          - 1.0/12.0*field[INDEX(i,j-2,k)]
+          + 4.0/3.0*field[INDEX(i,j-1,k)]
+          - 5.0/2.0*field[INDEX(i,j-0,k)]
+          + 4.0/3.0*field[INDEX(i,j+1,k)]
+          - 1.0/12.0*field[INDEX(i,j+2,k)]
+        )/dx/dx;
+      break;
+    case 3:
+      return (
+          - 1.0/12.0*field[INDEX(i,j,k-2)]
+          + 4.0/3.0*field[INDEX(i,j,k-1)]
+          - 5.0/2.0*field[INDEX(i,j,k-0)]
+          + 4.0/3.0*field[INDEX(i,j,k+1)]
+          - 1.0/12.0*field[INDEX(i,j,k+2)]
+        )/dx/dx;
+      break;
+  }
+
+  /* XXX */
+  return 0;
+}
+
+inline real_t double_derivative_stencil_Odx6(idx_t i, idx_t j, idx_t k, int d,
+    real_t *field)
+{
+  switch (d) {
+    case 1:
+      return (
+          1.0/90.0*field[INDEX(i-3,j,k)]
+          - 3.0/20.0*field[INDEX(i-2,j,k)]
+          + 3.0/2.0*field[INDEX(i-1,j,k)]
+          - 49.0/18.0*field[INDEX(i-0,j,k)]
+          + 3.0/2.0*field[INDEX(i+1,j,k)]
+          - 3.0/20.0*field[INDEX(i+2,j,k)]
+          + 1.0/90.0*field[INDEX(i+3,j,k)]
+        )/dx/dx;
+      break;
+    case 2:
+      return (
+          1.0/90.0*field[INDEX(i,j-3,k)]
+          - 3.0/20.0*field[INDEX(i,j-2,k)]
+          + 3.0/2.0*field[INDEX(i,j-1,k)]
+          - 49.0/18.0*field[INDEX(i,j-0,k)]
+          + 3.0/2.0*field[INDEX(i,j+1,k)]
+          - 3.0/20.0*field[INDEX(i,j+2,k)]
+          + 1.0/90.0*field[INDEX(i,j+3,k)]
+        )/dx/dx;
+      break;
+    case 3:
+      return (
+          1.0/90.0*field[INDEX(i,j,k-3)]
+          - 3.0/20.0*field[INDEX(i,j,k-2)]
+          + 3.0/2.0*field[INDEX(i,j,k-1)]
+          - 49.0/18.0*field[INDEX(i,j,k-0)]
+          + 3.0/2.0*field[INDEX(i,j,k+1)]
+          - 3.0/20.0*field[INDEX(i,j,k+2)]
+          + 1.0/90.0*field[INDEX(i,j,k+3)]
+        )/dx/dx;
+      break;
+  }
+
+  /* XXX */
+  return 0;
+}
+
+inline real_t double_derivative_stencil_Odx8(idx_t i, idx_t j, idx_t k, int d,
     real_t *field)
 {
   switch (d) {
@@ -152,6 +434,25 @@ inline real_t double_derivative_stencil(idx_t i, idx_t j, idx_t k, int d,
   return 0;
 }
 
+/* stencil functions to use: */
+inline real_t derivative(idx_t i, idx_t j, idx_t k, int d,
+    real_t *field)
+{
+  return derivative_Odx8(i, j, k, d, field);
+}
+
+inline real_t mixed_derivative_stencil(idx_t i, idx_t j, idx_t k, int d1, int d2, real_t *field)
+{
+  return mixed_derivative_stencil_Odx6(i, j, k, d1, d2, field);
+}
+
+inline real_t double_derivative_stencil(idx_t i, idx_t j, idx_t k, int d,
+    real_t *field)
+{
+  return double_derivative_stencil_Odx8(i, j, k, d, field);
+}
+
+/* more generic function for 2nd derivs */
 inline real_t double_derivative(idx_t i, idx_t j, idx_t k, int d1, int d2,
     real_t *field)
 {
