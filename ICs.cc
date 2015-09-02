@@ -8,19 +8,19 @@ ICsData cosmo_get_ICsData()
   ICsData icd = {0};
 
   // H_LEN_FRAC is box side length in hubble units
-  icd.rho_K_matter = 3.0/PI/8.0*pow(0.5/H_LEN_FRAC, 2.0); // matter density term from FRW equation
+  icd.rho_K_matter = 3.0/PI/8.0; // matter density term from FRW equation
 
   real_t rho_K_lambda_frac = (real_t) stold(_config["rho_K_lambda_frac"]); // DE density
   icd.rho_K_lambda = rho_K_lambda_frac*icd.rho_K_matter;
 
   // power spectrum amplitude as a fraction of the density
   real_t peak_amplitude_frac = (real_t) stold(_config["peak_amplitude_frac"]); // fluctuation amplitude
-  real_t peak_amplitude = icd.rho_K_matter*peak_amplitude_frac*(1.0e-7); // scaling in arb. units
+  real_t peak_amplitude = icd.rho_K_matter*peak_amplitude_frac*(1.0e-7)*(5.0/0.7); // scaling in arb. units
 
   real_t ic_spec_cut = (real_t) stold(_config["ic_spec_cut"]); // power spectrum cutoff parameter
 
   /* (peak scale in hubble units) * (to pixel scale) */
-  icd.peak_k = (1.0/0.07)*H_LEN_FRAC; // need to scale this correctly?
+  icd.peak_k = (1.0/0.07)*H_LEN_FRAC;
   icd.peak_amplitude = peak_amplitude;
   icd.ic_spec_cut = ic_spec_cut; // cut spectrum off around p ~ ic_spec_cut
 
@@ -34,7 +34,7 @@ ICsData cosmo_get_ICsData()
 real_t cosmo_power_spectrum(real_t k, ICsData *icd)
 {
   real_t pre = icd->peak_amplitude*4.0/3.0;
-  return pre*fabs(k)/(1.0 + pow(fabs(k)/icd->peak_k, 4.0)/3.0);
+  return pre*fabs(k)/icd->peak_k/(1.0 + pow(fabs(k)/icd->peak_k, 4.0)/3.0);
 }
 
 // set a field to an arbitrary gaussian random field

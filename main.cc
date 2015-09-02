@@ -111,11 +111,6 @@ int main(int argc, char **argv)
     {
       BSSNData b_paq = {0}; // data structure associated with bssn sim
       bssnSim.K1CalcPt(i, j, k, &b_paq);
-
-if(i==0&&j==0&&k==0) {
-  std::cout << "\nDB val: " << b_paq.db << "\n";
-}
-
     }
 
     // reset source using new metric
