@@ -86,16 +86,6 @@ int main(int argc, char **argv)
     }
     _timer["Reference FRW"].stop();
 
-    // output simulation information
-    _timer["output"].start();
-      io_show_progress(s, steps);
-      io_data_dump(bssnSim.fields, staticSim.fields, &iodata, s, &fourier);
-    _timer["output"].stop();
-
-    // Run RK steps explicitly here (ties together BSSN + Hydro stuff).
-    // See bssn class or hydro class for more comments.
-    _timer["RK_steps"].start();
-
     // Init arrays and calculate source term for next step
       // _p is copied to _a here, which hydro uses
       bssnSim.stepInit();
@@ -104,6 +94,17 @@ int main(int argc, char **argv)
       // add hydro source to bssn sim
       staticSim.addBSSNSrc(bssnSim.fields);
       lambdaSim.addBSSNSrc(bssnSim.fields);
+
+    // output simulation information
+    // these generally rely on data in the _a registers being accurate.
+    _timer["output"].start();
+      io_show_progress(s, steps);
+      io_data_dump(bssnSim.fields, staticSim.fields, &iodata, s, &fourier);
+    _timer["output"].stop();
+
+    // Run RK steps explicitly here (ties together BSSN + Hydro stuff).
+    // See bssn class or hydro class for more comments.
+    _timer["RK_steps"].start();
 
     // First RK step, Set Hydro Vars, & calc. constraint
     #pragma omp parallel for default(shared) private(i, j, k)
@@ -163,7 +164,8 @@ int main(int argc, char **argv)
 
     // Wrap up
       // bssn _f <-> _p
-      bssnSim.stepTerm(); 
+      bssnSim.stepTerm();
+      // "current" data is in the _p array.
 
     _timer["RK_steps"].stop();
 
