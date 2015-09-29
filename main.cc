@@ -96,7 +96,7 @@ int main(int argc, char **argv)
       lambdaSim.addBSSNSrc(bssnSim.fields);
 
     // output simulation information
-    // these generally rely on data in the _a registers being accurate.
+    // these generally output any data in the _a registers.
     _timer["output"].start();
       io_show_progress(s, steps);
       io_data_dump(bssnSim.fields, staticSim.fields, &iodata, s, &fourier);

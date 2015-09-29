@@ -438,18 +438,18 @@ inline real_t double_derivative_stencil_Odx8(idx_t i, idx_t j, idx_t k, int d,
 inline real_t derivative(idx_t i, idx_t j, idx_t k, int d,
     real_t *field)
 {
-  return derivative_Odx8(i, j, k, d, field);
+  return derivative_Odx2(i, j, k, d, field);
 }
 
 inline real_t mixed_derivative_stencil(idx_t i, idx_t j, idx_t k, int d1, int d2, real_t *field)
 {
-  return mixed_derivative_stencil_Odx6(i, j, k, d1, d2, field);
+  return mixed_derivative_stencil_Odx2(i, j, k, d1, d2, field);
 }
 
 inline real_t double_derivative_stencil(idx_t i, idx_t j, idx_t k, int d,
     real_t *field)
 {
-  return double_derivative_stencil_Odx8(i, j, k, d, field);
+  return double_derivative_stencil_Odx2(i, j, k, d, field);
 }
 
 /* more generic function for 2nd derivs */

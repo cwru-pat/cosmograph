@@ -7,7 +7,6 @@ ICsData cosmo_get_ICsData()
 {
   ICsData icd = {0};
 
-  // H_LEN_FRAC is box side length in hubble units
   icd.rho_K_matter = 3.0/PI/8.0; // matter density term from FRW equation
 
   real_t rho_K_lambda_frac = (real_t) stold(_config["rho_K_lambda_frac"]); // DE density
@@ -46,7 +45,7 @@ void set_gaussian_random_field(real_t *field, Fourier *fourier, ICsData *icd)
 
   // populate "field" with random values
   std::random_device rd;
-  std::mt19937 gen(7.0 /*rd()*/);
+  std::mt19937 gen(9.0 /*rd()*/);
   std::normal_distribution<real_t> gaussian_distribution;
   std::uniform_real_distribution<double> angular_distribution(0.0, 2.0*PI);
    // calling these here before looping suppresses a warning (bug)
@@ -54,49 +53,55 @@ void set_gaussian_random_field(real_t *field, Fourier *fourier, ICsData *icd)
   angular_distribution(gen);
 
   // scale amplitudes in fourier space
-  for(i=0; i<N; i++)
+  // don't expect to run at >512^3 anytime soon; loop over all momenta out to that resolution.
+  // this won't work for a larger grid.
+  idx_t NMAX = 512;
+  for(i=0; i<NMAX; i++)
   {
-    px = (real_t) (i<=N/2 ? i : i-N);
-    for(j=0; j<N; j++)
+    px = (real_t) (i<=NMAX/2 ? i : i-NMAX);
+    for(j=0; j<NMAX; j++)
     {
-      py = (real_t) (j<=N/2 ? j : j-N);
-      for(k=0; k<N/2+1; k++)
+      py = (real_t) (j<=NMAX/2 ? j : j-NMAX);
+      for(k=0; k<NMAX/2+1; k++)
       {
         pz = (real_t) k;
-        pmag = sqrt(pw2(px) + pw2(py) + pw2(pz));
 
-        // Scale by power spectrum
-        // don't want much power on scales smaller than ~3 pixels
-        // Or scales p > 1/(3*dx), or p > N/3
-        real_t cutoff = 1.0/( 1.0 + exp(10.0*(abs(px) - icd->ic_spec_cut))*exp(10.0*(abs(py) - icd->ic_spec_cut))*exp(10.0*(abs(pz) - icd->ic_spec_cut)) );
-        scale = cutoff*sqrt(cosmo_power_spectrum(pmag, icd));
-
+        // generate the same random modes for all resolutions (up to NMAX)
         real_t rand_mag = gaussian_distribution(gen);
         real_t rand_phase = angular_distribution(gen);
 
-        (fourier->f_field)[FFT_NP_INDEX(i,j,k)][0] = scale*rand_mag*cos(rand_phase);
-        (fourier->f_field)[FFT_NP_INDEX(i,j,k)][1] = scale*rand_mag*sin(rand_phase);
+        // only store momentum values for relevant bins
+        if( fabs(px) < (real_t) N/2+1 + 0.01 && fabs(py) < (real_t) N/2+1 + 0.01 && fabs(pz) < (real_t) N/2+1 + 0.01 )
+        {
+          idx_t fft_index = FFT_NP_INDEX(
+            px > -0.5 ? ROUND_2_IDXT(px) : N + ROUND_2_IDXT(px),
+            py > -0.5 ? ROUND_2_IDXT(py) : N + ROUND_2_IDXT(py),
+            pz > -0.5 ? ROUND_2_IDXT(pz) : N + ROUND_2_IDXT(pz)
+          );
 
-      }
-      // run through more random numbers so ICs are similar
-      // at different resolutions up to 256^3
-      for(int x=N/2+1; x<256/2+1; x++) {
-        gaussian_distribution(gen);
-        angular_distribution(gen);
+          pmag = sqrt(pw2(px) + pw2(py) + pw2(pz));
+
+          // Scale by power spectrum
+          // don't want much power on scales smaller than ~3 pixels
+          // Or scales p > 1/(3*dx), or p > N/3
+          real_t cutoff = 1.0 / (
+              1.0 +
+                exp(10.0*(fabs(px) - icd->ic_spec_cut))
+                *exp(10.0*(fabs(py) - icd->ic_spec_cut))
+                *exp(10.0*(fabs(pz) - icd->ic_spec_cut))
+          );
+          scale = cutoff*sqrt(cosmo_power_spectrum(pmag, icd));
+
+          (fourier->f_field)[fft_index][0] = scale*rand_mag*cos(rand_phase);
+          (fourier->f_field)[fft_index][1] = scale*rand_mag*sin(rand_phase);
+        }
       }
     }
-    // run through more random numbers so ICs are similar
-    // at different resolutions up to 256^3
-    for(int y=N; y<256; y++)
-      for(int x=0; x<256/2+1; x++) {
-        gaussian_distribution(gen);
-        angular_distribution(gen);
-      }
   }
 
   // zero-mode (mean density)... set this to something later
-  (fourier->f_field[FFT_NP_INDEX(0,0,0)])[0] = 0;
-  (fourier->f_field[FFT_NP_INDEX(0,0,0)])[1] = 0;
+  (fourier->f_field)[FFT_NP_INDEX(0,0,0)][0] = 0;
+  (fourier->f_field)[FFT_NP_INDEX(0,0,0)][1] = 0;
 
   // FFT back; 'field' array should now be populated with a gaussian random
   // field and power spectrum given by cosmo_power_spectrum.
