@@ -213,15 +213,6 @@
   paq->gammai##IJ##_adj[1][2][1] = paq->gamma##f1##_adj[1][2][1]*paq->gamma##f2##_adj[1][2][1] - paq->gamma##f3##_adj[1][2][1]*paq->gamma##f4##_adj[1][2][1]; \
   paq->gammai##IJ##_adj[2][1][1] = paq->gamma##f1##_adj[2][1][1]*paq->gamma##f2##_adj[2][1][1] - paq->gamma##f3##_adj[2][1][1]*paq->gamma##f4##_adj[2][1][1];
 
-// extended points around faces
-#define BSSN_COMPUTE_LOCAL_GAMMAI_F2(IJ, f1, f2, f3, f4) \
-  paq->gammai##IJ##_adj_ext[0][0] = paq->gamma##f1##_adj_ext[0][0]*paq->gamma##f2##_adj_ext[0][0] - paq->gamma##f3##_adj_ext[0][0]*paq->gamma##f4##_adj_ext[0][0]; \
-  paq->gammai##IJ##_adj_ext[0][1] = paq->gamma##f1##_adj_ext[0][1]*paq->gamma##f2##_adj_ext[0][1] - paq->gamma##f3##_adj_ext[0][1]*paq->gamma##f4##_adj_ext[0][1]; \
-  paq->gammai##IJ##_adj_ext[1][0] = paq->gamma##f1##_adj_ext[1][0]*paq->gamma##f2##_adj_ext[1][0] - paq->gamma##f3##_adj_ext[1][0]*paq->gamma##f4##_adj_ext[1][0]; \
-  paq->gammai##IJ##_adj_ext[1][1] = paq->gamma##f1##_adj_ext[1][1]*paq->gamma##f2##_adj_ext[1][1] - paq->gamma##f3##_adj_ext[1][1]*paq->gamma##f4##_adj_ext[1][1]; \
-  paq->gammai##IJ##_adj_ext[2][0] = paq->gamma##f1##_adj_ext[2][0]*paq->gamma##f2##_adj_ext[2][0] - paq->gamma##f3##_adj_ext[2][0]*paq->gamma##f4##_adj_ext[2][0]; \
-  paq->gammai##IJ##_adj_ext[2][1] = paq->gamma##f1##_adj_ext[2][1]*paq->gamma##f2##_adj_ext[2][1] - paq->gamma##f3##_adj_ext[2][1]*paq->gamma##f4##_adj_ext[2][1];
-
 #define BSSN_CALCULATE_CHRISTOFFEL(I, J, K) paq->G##I##J##K = 0.5*( \
     paq->gammai##I##1 * (paq->d##J##g##K##1 + paq->d##K##g##J##1 - paq->d1g##J##K) + \
     paq->gammai##I##2 * (paq->d##J##g##K##2 + paq->d##K##g##J##2 - paq->d2g##J##K) + \
@@ -232,9 +223,9 @@
     paq->d##J##g##K##I + paq->d##K##g##J##I - paq->d##I##g##J##K \
   )
 
-#define BSSN_CALCULATE_DGAMMAI(I, J, K) paq->d##I##gi##J##K = der_ext(paq->gammai##J##K##_adj, paq->gammai##J##K##_adj_ext, I);
+#define BSSN_CALCULATE_DGAMMAI(I, J, K) paq->d##I##gi##J##K = der(paq->gammai##J##K##_adj, I);
 
-#define BSSN_CALCULATE_DGAMMA(I, J, K) paq->d##I##g##J##K = der_ext(paq->gamma##J##K##_adj, paq->gamma##J##K##_adj_ext, I);
+#define BSSN_CALCULATE_DGAMMA(I, J, K) paq->d##I##g##J##K = derivative(paq->i, paq->j, paq->k, I, gamma##J##K##_a);
 
 #define BSSN_CALCULATE_ACONT(I, J) paq->Acont##I##J = ( \
     paq->gammai##I##1*paq->gammai##J##1*paq->A11 + paq->gammai##I##2*paq->gammai##J##1*paq->A21 + paq->gammai##I##3*paq->gammai##J##1*paq->A31 \
@@ -250,8 +241,8 @@
       + 2.0*(paq->gammai12*paq->d1d2g##I##J + paq->gammai13*paq->d1d3g##I##J + paq->gammai23*paq->d2d3g##I##J) \
     ) \
     + 0.5*( \
-      paq->gamma1##I*der_ext(paq->Gamma1_adj, paq->Gamma1_adj_ext, J) + paq->gamma2##I*der_ext(paq->Gamma2_adj, paq->Gamma2_adj_ext, J) + paq->gamma3##I*der_ext(paq->Gamma3_adj, paq->Gamma3_adj_ext, J) + \
-      paq->gamma1##J*der_ext(paq->Gamma1_adj, paq->Gamma1_adj_ext, I) + paq->gamma2##J*der_ext(paq->Gamma2_adj, paq->Gamma2_adj_ext, I) + paq->gamma3##J*der_ext(paq->Gamma3_adj, paq->Gamma3_adj_ext, I) \
+      paq->gamma1##I*derivative(paq->i, paq->j, paq->k, J, Gamma1_a) + paq->gamma2##I*derivative(paq->i, paq->j, paq->k, J, Gamma2_a) + paq->gamma3##I*derivative(paq->i, paq->j, paq->k, J, Gamma3_a) + \
+      paq->gamma1##J*derivative(paq->i, paq->j, paq->k, I, Gamma1_a) + paq->gamma2##J*derivative(paq->i, paq->j, paq->k, I, Gamma2_a) + paq->gamma3##J*derivative(paq->i, paq->j, paq->k, I, Gamma3_a) \
     ) \
     - 0.5*( \
       paq->d1g##I##1*paq->d1gi##J##1 + paq->d1g##I##2*paq->d2gi##J##1 + paq->d1g##I##3*paq->d3gi##J##1 \
@@ -275,8 +266,8 @@
       + 2.0*(paq->gammai12*paq->d1d2g##I##J + paq->gammai13*paq->d1d3g##I##J + paq->gammai23*paq->d2d3g##I##J) \
     ) \
     + 0.5*( \
-      paq->gamma1##I*der_ext(paq->Gamma1_adj, paq->Gamma1_adj_ext, J) + paq->gamma2##I*der_ext(paq->Gamma2_adj, paq->Gamma2_adj_ext, J) + paq->gamma3##I*der_ext(paq->Gamma3_adj, paq->Gamma3_adj_ext, J) + \
-      paq->gamma1##J*der_ext(paq->Gamma1_adj, paq->Gamma1_adj_ext, I) + paq->gamma2##J*der_ext(paq->Gamma2_adj, paq->Gamma2_adj_ext, I) + paq->gamma3##J*der_ext(paq->Gamma3_adj, paq->Gamma3_adj_ext, I) \
+      paq->gamma1##I*derivative(paq->i, paq->j, paq->k, J, Gamma1_a) + paq->gamma2##I*derivative(paq->i, paq->j, paq->k, J, Gamma2_a) + paq->gamma3##I*derivative(paq->i, paq->j, paq->k, J, Gamma3_a) + \
+      paq->gamma1##J*derivative(paq->i, paq->j, paq->k, I, Gamma1_a) + paq->gamma2##J*derivative(paq->i, paq->j, paq->k, I, Gamma2_a) + paq->gamma3##J*derivative(paq->i, paq->j, paq->k, I, Gamma3_a) \
     ) \
     + 0.5*( \
       paq->Gamma1*paq->GL##I##J##1 + paq->Gamma2*paq->GL##I##J##2 + paq->Gamma3*paq->GL##I##J##3 \
@@ -362,29 +353,23 @@
     + 2.0*( \
         paq->G##I##11*paq->Acont11 + paq->G##I##22*paq->Acont22 + paq->G##I##33*paq->Acont33 \
           + 2.0*(paq->G##I##12*paq->Acont12 + paq->G##I##13*paq->Acont13 + paq->G##I##23*paq->Acont23) \
-        - (2.0/3.0) * (paq->gammai##I##1*der_ext(paq->K_adj, paq->K_adj_ext, 1) + paq->gammai##I##2*der_ext(paq->K_adj, paq->K_adj_ext, 2) + paq->gammai##I##3*der_ext(paq->K_adj, paq->K_adj_ext, 3)) \
+        - (2.0/3.0) * (paq->gammai##I##1*derivative(paq->i, paq->j, paq->k, 1, K_a) + paq->gammai##I##2*derivative(paq->i, paq->j, paq->k, 2, K_a) + paq->gammai##I##3*derivative(paq->i, paq->j, paq->k, 3, K_a)) \
         - 8.0*PI*(paq->gammai##I##1*paq->S1 + paq->gammai##I##2*paq->S2 + paq->gammai##I##3*paq->S3) \
         + 6.0 * (paq->Acont##I##1*paq->d1phi + paq->Acont##I##2*paq->d2phi + paq->Acont##I##3*paq->d3phi) \
-        \
-        /* Missing christoffel? */ \
-        /*+ paq->G111*paq->Acont1##I + paq->G221*paq->Acont1##I + paq->G331*paq->Acont1##I */\
-        /*+ paq->G112*paq->Acont2##I + paq->G222*paq->Acont2##I + paq->G332*paq->Acont2##I */\
-        /*+ paq->G113*paq->Acont3##I + paq->G223*paq->Acont3##I + paq->G333*paq->Acont3##I */\
-        \
       ) \
   )
 
 #define BSSN_MI(I) exp(6.0*paq->phi)*( \
-    - 2.0/3.0*der_ext(paq->K_adj, paq->K_adj_ext, I) - 8*PI*paq->S##I \
+    - 2.0/3.0*derivative(paq->i, paq->j, paq->k, I, K_a) - 8*PI*paq->S##I \
     + 6.0*( \
       paq->gammai11*paq->A1##I*paq->d1phi + paq->gammai21*paq->A2##I*paq->d1phi + paq->gammai31*paq->A3##I*paq->d1phi \
       + paq->gammai12*paq->A1##I*paq->d2phi + paq->gammai22*paq->A2##I*paq->d2phi + paq->gammai32*paq->A3##I*paq->d2phi \
       + paq->gammai13*paq->A1##I*paq->d3phi + paq->gammai23*paq->A2##I*paq->d3phi + paq->gammai33*paq->A3##I*paq->d3phi \
     ) + ( \
       /* (gamma^jk D_j A_ki) */ \
-      paq->gammai11*der_ext(paq->A1##I##_adj, paq->A1##I##_adj_ext, 1) + paq->gammai12*der_ext(paq->A1##I##_adj, paq->A1##I##_adj_ext, 2) + paq->gammai13*der_ext(paq->A1##I##_adj, paq->A1##I##_adj_ext, 3) \
-      + paq->gammai21*der_ext(paq->A2##I##_adj, paq->A2##I##_adj_ext, 1) + paq->gammai22*der_ext(paq->A2##I##_adj, paq->A2##I##_adj_ext, 2) + paq->gammai23*der_ext(paq->A2##I##_adj, paq->A2##I##_adj_ext, 3) \
-      + paq->gammai31*der_ext(paq->A3##I##_adj, paq->A3##I##_adj_ext, 1) + paq->gammai32*der_ext(paq->A3##I##_adj, paq->A3##I##_adj_ext, 2) + paq->gammai33*der_ext(paq->A3##I##_adj, paq->A3##I##_adj_ext, 3) \
+      paq->gammai11*derivative(paq->i, paq->j, paq->k, 1, A1##I##_a) + paq->gammai12*derivative(paq->i, paq->j, paq->k, 2, A1##I##_a) + paq->gammai13*derivative(paq->i, paq->j, paq->k, 3, A1##I##_a) \
+      + paq->gammai21*derivative(paq->i, paq->j, paq->k, 1, A2##I##_a) + paq->gammai22*derivative(paq->i, paq->j, paq->k, 2, A2##I##_a) + paq->gammai23*derivative(paq->i, paq->j, paq->k, 3, A2##I##_a) \
+      + paq->gammai31*derivative(paq->i, paq->j, paq->k, 1, A3##I##_a) + paq->gammai32*derivative(paq->i, paq->j, paq->k, 2, A3##I##_a) + paq->gammai33*derivative(paq->i, paq->j, paq->k, 3, A3##I##_a) \
       - paq->Gamma1*paq->A1##I - paq->Gamma2*paq->A2##I - paq->Gamma3*paq->A3##I \
       - paq->GL11##I*paq->Acont11 - paq->GL21##I*paq->Acont21 - paq->GL31##I*paq->Acont31 \
       - paq->GL12##I*paq->Acont12 - paq->GL22##I*paq->Acont22 - paq->GL32##I*paq->Acont32 \
@@ -393,7 +378,7 @@
   )
 
 #define BSSN_MI_SCALE(I) exp(6.0*paq->phi)*( \
-    fabs(2.0/3.0*der_ext(paq->K_adj, paq->K_adj_ext, I)) \
+    fabs(2.0/3.0*derivative(paq->i, paq->j, paq->k, I, K_a)) \
     + fabs(8*PI*paq->S##I) \
     + 6.0*fabs( \
       paq->gammai11*paq->A1##I*paq->d1phi + paq->gammai21*paq->A2##I*paq->d1phi + paq->gammai31*paq->A3##I*paq->d1phi \
@@ -401,9 +386,9 @@
       + paq->gammai13*paq->A1##I*paq->d3phi + paq->gammai23*paq->A2##I*paq->d3phi + paq->gammai33*paq->A3##I*paq->d3phi \
     ) + fabs( \
       /* (gamma^jk D_j A_ki) */ \
-      paq->gammai11*der_ext(paq->A1##I##_adj, paq->A1##I##_adj_ext, 1) + paq->gammai12*der_ext(paq->A1##I##_adj, paq->A1##I##_adj_ext, 2) + paq->gammai13*der_ext(paq->A1##I##_adj, paq->A1##I##_adj_ext, 3) \
-      + paq->gammai21*der_ext(paq->A2##I##_adj, paq->A2##I##_adj_ext, 1) + paq->gammai22*der_ext(paq->A2##I##_adj, paq->A2##I##_adj_ext, 2) + paq->gammai23*der_ext(paq->A2##I##_adj, paq->A2##I##_adj_ext, 3) \
-      + paq->gammai31*der_ext(paq->A3##I##_adj, paq->A3##I##_adj_ext, 1) + paq->gammai32*der_ext(paq->A3##I##_adj, paq->A3##I##_adj_ext, 2) + paq->gammai33*der_ext(paq->A3##I##_adj, paq->A3##I##_adj_ext, 3) \
+      paq->gammai11*derivative(paq->i, paq->j, paq->k, 1, A1##I##_a) + paq->gammai12*derivative(paq->i, paq->j, paq->k, 2, A1##I##_a) + paq->gammai13*derivative(paq->i, paq->j, paq->k, 3, A1##I##_a) \
+      + paq->gammai21*derivative(paq->i, paq->j, paq->k, 1, A2##I##_a) + paq->gammai22*derivative(paq->i, paq->j, paq->k, 2, A2##I##_a) + paq->gammai23*derivative(paq->i, paq->j, paq->k, 3, A2##I##_a) \
+      + paq->gammai31*derivative(paq->i, paq->j, paq->k, 1, A3##I##_a) + paq->gammai32*derivative(paq->i, paq->j, paq->k, 2, A3##I##_a) + paq->gammai33*derivative(paq->i, paq->j, paq->k, 3, A3##I##_a) \
       - paq->Gamma1*paq->A1##I - paq->Gamma2*paq->A2##I - paq->Gamma3*paq->A3##I \
       - paq->GL11##I*paq->Acont11 - paq->GL21##I*paq->Acont21 - paq->GL31##I*paq->Acont31 \
       - paq->GL12##I*paq->Acont12 - paq->GL22##I*paq->Acont22 - paq->GL32##I*paq->Acont32 \
@@ -472,6 +457,13 @@
 #define A21 A12
 #define A31 A13
 #define A32 A23
+
+#define gamma21_a gamma12_a
+#define gamma31_a gamma13_a
+#define gamma32_a gamma23_a
+#define A21_a A12_a
+#define A31_a A13_a
+#define A32_a A23_a
 
 #define A21_adj A12_adj
 #define A31_adj A13_adj

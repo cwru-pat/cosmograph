@@ -38,6 +38,9 @@ void BSSN::set_paq_values(idx_t i, idx_t j, idx_t k, BSSNData *paq)
   // draw data from cache
   set_local_vals(paq);
 
+  // source values
+  set_source_vals(paq);
+
   // pre-compute re-used quantities
   // gammas & derivs first
   calculate_Acont(paq);
@@ -52,29 +55,7 @@ void BSSN::set_paq_values(idx_t i, idx_t j, idx_t k, BSSNData *paq)
   // Ricci depends on DDphi
   calculateRicciTF(paq);
 
-  // source values
-  set_source_vals(paq);
-
   paq->H = hamiltonianConstraintCalc(paq);
-  paq->db = double_derivative_stencil(i, j, k, 1, phi_a) - (
-      1.0/78400.0*phi_a[INDEX(i+8, j, k)] +
-      -1.0/3675.0*phi_a[INDEX(i+7, j, k)] +
-      127.0/44100.0*phi_a[INDEX(i+6, j, k)] +
-      -11.0/525.0*phi_a[INDEX(i+5, j, k)] +
-      53.0/525.0*phi_a[INDEX(i+4, j, k)] +
-      -11.0/35.0*phi_a[INDEX(i+3, j, k)] +
-      1213.0/2100.0*phi_a[INDEX(i+2, j, k)] +
-      411.0/1225.0*phi_a[INDEX(i+1, j, k)] +
-      -480841.0/352800.0*phi_a[INDEX(i+0, j, k)] +
-      411.0/1225.0*phi_a[INDEX(i+1, j, k)] +
-      1213.0/2100.0*phi_a[INDEX(i+2, j, k)] +
-      -11.0/35.0*phi_a[INDEX(i+3, j, k)] +
-      53.0/525.0*phi_a[INDEX(i+4, j, k)] +
-      -11.0/525.0*phi_a[INDEX(i+5, j, k)] +
-      127.0/44100.0*phi_a[INDEX(i+6, j, k)] +
-      -1.0/3675.0*phi_a[INDEX(i+7, j, k)] +
-      1.0/78400.0*phi_a[INDEX(i+8, j, k)]
-    )/dx/dx;
 }
 
 real_t BSSN::hamiltonianConstraintMean()
@@ -494,7 +475,7 @@ void BSSN::init()
   }
 }
 
-real_t BSSN::der_ext(real_t field_adj[3][3][3], real_t field_adj_ext[3][2], int d)
+real_t BSSN::der(real_t field_adj[3][3][3], int d)
 {
   switch (d) {
     case 1:
@@ -538,17 +519,16 @@ void BSSN::set_local_vals(BSSNData *paq)
 {
   SET_LOCAL_INDEXES;
 
-  // Need full mixed 2nd derivatives for all of these
-  SET_LOCAL_VALUES_PFE(gamma11);
-  SET_LOCAL_VALUES_PFE(gamma12);
-  SET_LOCAL_VALUES_PFE(gamma13);
-  SET_LOCAL_VALUES_PFE(gamma22);
-  SET_LOCAL_VALUES_PFE(gamma23);
-  SET_LOCAL_VALUES_PFE(gamma33);
-  SET_LOCAL_VALUES_PFE(phi);
-  SET_LOCAL_VALUES_PFE(K);
+  // Pull out & store the metric at a point and adjacent points
+  SET_LOCAL_VALUES_PF(gamma11);
+  SET_LOCAL_VALUES_PF(gamma12);
+  SET_LOCAL_VALUES_PF(gamma13);
+  SET_LOCAL_VALUES_PF(gamma22);
+  SET_LOCAL_VALUES_PF(gamma23);
+  SET_LOCAL_VALUES_PF(gamma33);
 
-  // compute all of these at each step, rather than pulling them out of memory.
+  // Compute the inverse metric algebraically at each point and adjacent points
+  // (adjacent points needed for computing derivatives later)
   BSSN_COMPUTE_LOCAL_GAMMAI_PF(11, 22, 33, 23, 23);
   BSSN_COMPUTE_LOCAL_GAMMAI_PF(12, 13, 23, 12, 33);
   BSSN_COMPUTE_LOCAL_GAMMAI_PF(13, 12, 23, 13, 22);
@@ -556,27 +536,49 @@ void BSSN::set_local_vals(BSSNData *paq)
   BSSN_COMPUTE_LOCAL_GAMMAI_PF(23, 12, 13, 23, 11);
   BSSN_COMPUTE_LOCAL_GAMMAI_PF(33, 11, 22, 12, 12);
 
-  // adjacent values only
-  SET_LOCAL_VALUES_PF(Gamma1);
-  SET_LOCAL_VALUES_PF(Gamma2);
-  SET_LOCAL_VALUES_PF(Gamma3);
-  SET_LOCAL_VALUES_PF(A11);
-  SET_LOCAL_VALUES_PF(A12);
-  SET_LOCAL_VALUES_PF(A13);
-  SET_LOCAL_VALUES_PF(A22);
-  SET_LOCAL_VALUES_PF(A23);
-  SET_LOCAL_VALUES_PF(A33);
+  // Pull out values of quantities at a single point
+  SET_LOCAL_VALUES_P(phi);
+  SET_LOCAL_VALUES_P(K);
+  SET_LOCAL_VALUES_P(Gamma1);
+  SET_LOCAL_VALUES_P(Gamma2);
+  SET_LOCAL_VALUES_P(Gamma3);
+  SET_LOCAL_VALUES_P(A11);
+  SET_LOCAL_VALUES_P(A12);
+  SET_LOCAL_VALUES_P(A13);
+  SET_LOCAL_VALUES_P(A22);
+  SET_LOCAL_VALUES_P(A23);
+  SET_LOCAL_VALUES_P(A33);
+}
 
-  // try and obtain more accurate derivatives
-  BSSN_APPLY_TO_FIELDS(SET_LOCAL_VALUES_F2);
+void BSSN::set_AltGammaI(idx_t i, idx_t j, idx_t k, BSSNData *paq)
+{
+  paq->i = i;
+  paq->j = j;
+  paq->k = k;
+  paq->idx = NP_INDEX(i,j,k);
 
-  BSSN_COMPUTE_LOCAL_GAMMAI_F2(11, 22, 33, 23, 23);
-  BSSN_COMPUTE_LOCAL_GAMMAI_F2(12, 13, 23, 12, 33);
-  BSSN_COMPUTE_LOCAL_GAMMAI_F2(13, 12, 23, 13, 22);
-  BSSN_COMPUTE_LOCAL_GAMMAI_F2(22, 11, 33, 13, 13);
-  BSSN_COMPUTE_LOCAL_GAMMAI_F2(23, 12, 13, 23, 11);
-  BSSN_COMPUTE_LOCAL_GAMMAI_F2(33, 11, 22, 12, 12);
+  SET_LOCAL_INDEXES;
 
+  // Pull out & store the metric at a point and adjacent points
+  SET_LOCAL_VALUES_PF(gamma11);
+  SET_LOCAL_VALUES_PF(gamma12);
+  SET_LOCAL_VALUES_PF(gamma13);
+  SET_LOCAL_VALUES_PF(gamma22);
+  SET_LOCAL_VALUES_PF(gamma23);
+  SET_LOCAL_VALUES_PF(gamma33);
+
+  // Compute the inverse metric algebraically at each point and adjacent points
+  // (adjacent points needed for computing derivatives later)
+  BSSN_COMPUTE_LOCAL_GAMMAI_PF(11, 22, 33, 23, 23);
+  BSSN_COMPUTE_LOCAL_GAMMAI_PF(12, 13, 23, 12, 33);
+  BSSN_COMPUTE_LOCAL_GAMMAI_PF(13, 12, 23, 13, 22);
+  BSSN_COMPUTE_LOCAL_GAMMAI_PF(22, 11, 33, 13, 13);
+  BSSN_COMPUTE_LOCAL_GAMMAI_PF(23, 12, 13, 23, 11);
+  BSSN_COMPUTE_LOCAL_GAMMAI_PF(33, 11, 22, 12, 12);
+
+  Gamma1_a[paq->idx] = der(paq->gammai11_adj, 1) + der(paq->gammai12_adj, 2) + der(paq->gammai13_adj, 3);
+  Gamma2_a[paq->idx] = der(paq->gammai12_adj, 1) + der(paq->gammai22_adj, 2) + der(paq->gammai23_adj, 3);
+  Gamma3_a[paq->idx] = der(paq->gammai13_adj, 1) + der(paq->gammai23_adj, 2) + der(paq->gammai33_adj, 3);
 }
 
 void BSSN::calculate_Acont(BSSNData *paq)
@@ -607,6 +609,14 @@ void BSSN::calculate_dgammai(BSSNData *paq)
   BSSN_APPLY_TO_IJK_PERMS(BSSN_CALCULATE_DGAMMAI);
 }
 
+void BSSN::calculate_dphi(BSSNData *paq)
+{
+  // normal derivatives of phi
+  paq->d1phi = derivative(paq->i, paq->j, paq->k, 1, phi_a);
+  paq->d2phi = derivative(paq->i, paq->j, paq->k, 2, phi_a);
+  paq->d3phi = derivative(paq->i, paq->j, paq->k, 3, phi_a);
+}
+
 void BSSN::calculate_christoffels(BSSNData *paq)
 {
   // christoffel symbols: \Gamma^i_{jk} = Gijk
@@ -615,21 +625,37 @@ void BSSN::calculate_christoffels(BSSNData *paq)
   BSSN_APPLY_TO_IJK_PERMS(BSSN_CALCULATE_CHRISTOFFEL_LOWER)
 }
 
-void BSSN::calculate_dphi(BSSNData *paq)
+void BSSN::calculateDDphi(BSSNData *paq)
 {
-  // normal derivatives of phi
-  paq->d1phi = der_ext(paq->phi_adj, paq->phi_adj_ext, 1);
-  paq->d2phi = der_ext(paq->phi_adj, paq->phi_adj_ext, 2);
-  paq->d3phi = der_ext(paq->phi_adj, paq->phi_adj_ext, 3);
+  idx_t i = paq->i;
+  idx_t j = paq->j;
+  idx_t k = paq->k;
+
+  // double covariant derivatives, using unitary metric
+  paq->D1D1phi = double_derivative(i, j, k, 1, 1, phi_a) - (paq->G111*paq->d1phi + paq->G211*paq->d2phi + paq->G311*paq->d3phi);
+  paq->D2D2phi = double_derivative(i, j, k, 2, 2, phi_a) - (paq->G122*paq->d1phi + paq->G222*paq->d2phi + paq->G322*paq->d3phi);
+  paq->D3D3phi = double_derivative(i, j, k, 3, 3, phi_a) - (paq->G133*paq->d1phi + paq->G233*paq->d2phi + paq->G333*paq->d3phi);
+
+  paq->D1D2phi = double_derivative(i, j, k, 1, 2, phi_a) - (paq->G112*paq->d1phi + paq->G212*paq->d2phi + paq->G312*paq->d3phi);
+  paq->D1D3phi = double_derivative(i, j, k, 1, 3, phi_a) - (paq->G113*paq->d1phi + paq->G213*paq->d2phi + paq->G313*paq->d3phi);
+  paq->D2D3phi = double_derivative(i, j, k, 2, 3, phi_a) - (paq->G123*paq->d1phi + paq->G223*paq->d2phi + paq->G323*paq->d3phi);  
 }
 
 /* Calculate trace-free ricci tensor components */
 void BSSN::calculateRicciTF(BSSNData *paq)
 {
   // unitary pieces
-  /* BSSN_APPLY_TO_IJ_PERMS(BSSN_CALCULATE_RICCITF_UNITARY) */
-  // should be more accurate but costly:
-  BSSN_APPLY_TO_IJ_PERMS(BSSN_CALCULATE_RICCITF_UNITARY_ALT)
+  BSSN_APPLY_TO_IJ_PERMS(BSSN_CALCULATE_RICCITF_UNITARY)
+  // may be more accurate but computationally intensive:
+  /* BSSN_APPLY_TO_IJ_PERMS(BSSN_CALCULATE_RICCITF_UNITARY_ALT) */
+
+  paq->Uricci11 = paq->ricciTF11;
+  paq->Uricci12 = paq->ricciTF12;
+  paq->Uricci13 = paq->ricciTF13;
+  paq->Uricci22 = paq->ricciTF22;
+  paq->Uricci23 = paq->ricciTF23;
+  paq->Uricci33 = paq->ricciTF33;
+
 
   /* calculate unitary Ricci scalar at this point; ricciTF isn't actually TF yet. */
   paq->unitRicci = paq->ricciTF11*paq->gammai11 + paq->ricciTF22*paq->gammai22 + paq->ricciTF33*paq->gammai33
@@ -672,58 +698,41 @@ void BSSN::calculateRicciTF(BSSNData *paq)
   paq->ricciTF33 -= (1.0/3.0)*paq->gamma33*paq->trace;
 }
 
-void BSSN::calculateDDphi(BSSNData *paq)
-{
-  idx_t i = paq->i;
-  idx_t j = paq->j;
-  idx_t k = paq->k;
+real_t BSSN::ev_gamma11(BSSNData *paq) { return BSSN_DT_GAMMAIJ(1, 1) - KO_dissipation_Q(paq->i, paq->j, paq->k, gamma11_a); }
+real_t BSSN::ev_gamma12(BSSNData *paq) { return BSSN_DT_GAMMAIJ(1, 2) - KO_dissipation_Q(paq->i, paq->j, paq->k, gamma12_a); }
+real_t BSSN::ev_gamma13(BSSNData *paq) { return BSSN_DT_GAMMAIJ(1, 3) - KO_dissipation_Q(paq->i, paq->j, paq->k, gamma13_a); }
+real_t BSSN::ev_gamma22(BSSNData *paq) { return BSSN_DT_GAMMAIJ(2, 2) - KO_dissipation_Q(paq->i, paq->j, paq->k, gamma22_a); }
+real_t BSSN::ev_gamma23(BSSNData *paq) { return BSSN_DT_GAMMAIJ(2, 3) - KO_dissipation_Q(paq->i, paq->j, paq->k, gamma23_a); }
+real_t BSSN::ev_gamma33(BSSNData *paq) { return BSSN_DT_GAMMAIJ(3, 3) - KO_dissipation_Q(paq->i, paq->j, paq->k, gamma33_a); }
 
-  // double covariant derivatives, using unitary metric
-  paq->D1D2phi = double_derivative(i, j, k, 1, 2, phi_a) - (paq->G112*paq->d1phi + paq->G212*paq->d2phi + paq->G312*paq->d3phi);
-  paq->D1D3phi = double_derivative(i, j, k, 1, 3, phi_a) - (paq->G113*paq->d1phi + paq->G213*paq->d2phi + paq->G313*paq->d3phi);
-  paq->D2D3phi = double_derivative(i, j, k, 2, 3, phi_a) - (paq->G123*paq->d1phi + paq->G223*paq->d2phi + paq->G323*paq->d3phi);
+real_t BSSN::ev_A11(BSSNData *paq) { return BSSN_DT_AIJ(1, 1) - KO_dissipation_Q(paq->i, paq->j, paq->k, A11_a); }
+real_t BSSN::ev_A12(BSSNData *paq) { return BSSN_DT_AIJ(1, 2) - KO_dissipation_Q(paq->i, paq->j, paq->k, A12_a); }
+real_t BSSN::ev_A13(BSSNData *paq) { return BSSN_DT_AIJ(1, 3) - KO_dissipation_Q(paq->i, paq->j, paq->k, A13_a); }
+real_t BSSN::ev_A22(BSSNData *paq) { return BSSN_DT_AIJ(2, 2) - KO_dissipation_Q(paq->i, paq->j, paq->k, A22_a); }
+real_t BSSN::ev_A23(BSSNData *paq) { return BSSN_DT_AIJ(2, 3) - KO_dissipation_Q(paq->i, paq->j, paq->k, A23_a); }
+real_t BSSN::ev_A33(BSSNData *paq) { return BSSN_DT_AIJ(3, 3) - KO_dissipation_Q(paq->i, paq->j, paq->k, A33_a); }
 
-  paq->D1D1phi = double_derivative(i, j, k, 1, 1, phi_a) - (paq->G111*paq->d1phi + paq->G211*paq->d2phi + paq->G311*paq->d3phi);
-  paq->D2D2phi = double_derivative(i, j, k, 2, 2, phi_a) - (paq->G122*paq->d1phi + paq->G222*paq->d2phi + paq->G322*paq->d3phi);
-  paq->D3D3phi = double_derivative(i, j, k, 3, 3, phi_a) - (paq->G133*paq->d1phi + paq->G233*paq->d2phi + paq->G333*paq->d3phi);  
-}
-
-real_t BSSN::ev_gamma11(BSSNData *paq) { real_t damping_term = 0.5*dt*paq->gamma11*paq->H; return BSSN_DT_GAMMAIJ(1, 1) /*+ damping_term*/; }
-real_t BSSN::ev_gamma12(BSSNData *paq) { real_t damping_term = 0.5*dt*paq->gamma12*paq->H; return BSSN_DT_GAMMAIJ(1, 2) /*+ damping_term*/; }
-real_t BSSN::ev_gamma13(BSSNData *paq) { real_t damping_term = 0.5*dt*paq->gamma13*paq->H; return BSSN_DT_GAMMAIJ(1, 3) /*+ damping_term*/; }
-real_t BSSN::ev_gamma22(BSSNData *paq) { real_t damping_term = 0.5*dt*paq->gamma22*paq->H; return BSSN_DT_GAMMAIJ(2, 2) /*+ damping_term*/; }
-real_t BSSN::ev_gamma23(BSSNData *paq) { real_t damping_term = 0.5*dt*paq->gamma23*paq->H; return BSSN_DT_GAMMAIJ(2, 3) /*+ damping_term*/; }
-real_t BSSN::ev_gamma33(BSSNData *paq) { real_t damping_term = 0.5*dt*paq->gamma33*paq->H; return BSSN_DT_GAMMAIJ(3, 3) /*+ damping_term*/; }
-
-real_t BSSN::ev_A11(BSSNData *paq) { real_t damping_term = -1.0*dt*paq->A11*paq->H; return BSSN_DT_AIJ(1, 1) /*+ damping_term*/; }
-real_t BSSN::ev_A12(BSSNData *paq) { real_t damping_term = -1.0*dt*paq->A12*paq->H; return BSSN_DT_AIJ(1, 2) /*+ damping_term*/; }
-real_t BSSN::ev_A13(BSSNData *paq) { real_t damping_term = -1.0*dt*paq->A13*paq->H; return BSSN_DT_AIJ(1, 3) /*+ damping_term*/; }
-real_t BSSN::ev_A22(BSSNData *paq) { real_t damping_term = -1.0*dt*paq->A22*paq->H; return BSSN_DT_AIJ(2, 2) /*+ damping_term*/; }
-real_t BSSN::ev_A23(BSSNData *paq) { real_t damping_term = -1.0*dt*paq->A23*paq->H; return BSSN_DT_AIJ(2, 3) /*+ damping_term*/; }
-real_t BSSN::ev_A33(BSSNData *paq) { real_t damping_term = -1.0*dt*paq->A33*paq->H; return BSSN_DT_AIJ(3, 3) /*+ damping_term*/; }
+real_t BSSN::ev_Gamma2(BSSNData *paq) { return BSSN_DT_GAMMAI(2) - KO_dissipation_Q(paq->i, paq->j, paq->k, Gamma2_a); }
+real_t BSSN::ev_Gamma1(BSSNData *paq) { return BSSN_DT_GAMMAI(1) - KO_dissipation_Q(paq->i, paq->j, paq->k, Gamma1_a); }
+real_t BSSN::ev_Gamma3(BSSNData *paq) { return BSSN_DT_GAMMAI(3) - KO_dissipation_Q(paq->i, paq->j, paq->k, Gamma3_a); }
 
 real_t BSSN::ev_K(BSSNData *paq)
 {
   real_t prefactor = -1.0;
   return (
-    prefactor*8.0*exp(-5.0*paq->phi)*paq->H
+      prefactor*8.0*exp(-5.0*paq->phi)*paq->H
     + pw2(paq->K)/3.0 + paq->AijAij
     + 4.0*PI*(paq->rho + paq->S)
+    - KO_dissipation_Q(paq->i, paq->j, paq->k, K_a)
   );
 }
 
 real_t BSSN::ev_phi(BSSNData *paq)
 {
-  real_t damping_term = 0.1*dt*paq->H;
-
   return (
     -1.0/6.0*paq->K
-    /*+ damping_term*/
+    - KO_dissipation_Q(paq->i, paq->j, paq->k, phi_a)
   );
 }
-
-real_t BSSN::ev_Gamma1(BSSNData *paq) { return /*-2.0*exp(-6.0*paq->phi)*(BSSN_MI(1))*/ /*- 20.0*(paq->d1gi11 + paq->d2gi12 + paq->d3gi13 + paq->Gamma1) +*/ BSSN_DT_GAMMAI(1); }
-real_t BSSN::ev_Gamma2(BSSNData *paq) { return /*-2.0*exp(-6.0*paq->phi)*(BSSN_MI(2))*/ /*- 20.0*(paq->d1gi21 + paq->d2gi22 + paq->d3gi23 + paq->Gamma2) +*/ BSSN_DT_GAMMAI(2); }
-real_t BSSN::ev_Gamma3(BSSNData *paq) { return /*-2.0*exp(-6.0*paq->phi)*(BSSN_MI(3))*/ /*- 20.0*(paq->d1gi31 + paq->d2gi32 + paq->d3gi33 + paq->Gamma3) +*/ BSSN_DT_GAMMAI(3); }
 
 }

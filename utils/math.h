@@ -6,6 +6,24 @@
 namespace cosmo
 {
 
+inline real_t KO_dissipation_Q(idx_t i, idx_t j, idx_t k, real_t *field)
+{
+  // Works only for 2nd-order accurate (Odx2) derivatives
+  // accuracy a = 2r - 2
+  // r = (a + 2)/2
+  // for a = 2, r = 2
+  // Q = (-1)^r * (dx)^(2r-1) D_+^r D_- ^r / 2^(2r)
+  //   = dx^3 / 2^6 D_+^2 D_-^2
+  //   = dx^3 / 64 * [stencil: 1, -4, 6, -4, 1]
+  return pow(dx, 3.0)/64*(
+      1.0*field[INDEX(i-2,j,k)] + 1.0*field[INDEX(i,j-2,k)] + 1.0*field[INDEX(i,j,k-2)]
+    - 4.0*field[INDEX(i-1,j,k)] - 4.0*field[INDEX(i,j-1,k)] - 4.0*field[INDEX(i,j,k-1)]
+    + 6.0*field[INDEX(i  ,j,k)] + 6.0*field[INDEX(i,j  ,k)] + 6.0*field[INDEX(i,j,k  )]
+    - 4.0*field[INDEX(i+1,j,k)] - 4.0*field[INDEX(i,j+1,k)] - 4.0*field[INDEX(i,j,k+1)]
+    + 1.0*field[INDEX(i+2,j,k)] + 1.0*field[INDEX(i,j+2,k)] + 1.0*field[INDEX(i,j,k+2)]
+  );
+}
+
 inline real_t derivative_Odx2(idx_t i, idx_t j, idx_t k, int d,
     real_t *field)
 {

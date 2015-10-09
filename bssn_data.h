@@ -21,6 +21,7 @@ typedef struct {
 
   // trace-free ricci tensor components
   real_t ricciTF11, ricciTF12, ricciTF13, ricciTF22, ricciTF23, ricciTF33;
+  real_t Uricci11, Uricci12, Uricci13, Uricci22, Uricci23, Uricci33;
   real_t ricci; // ricci scalar
   real_t unitRicci; // ricci scalar
   // for constraint checking

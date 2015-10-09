@@ -1,11 +1,11 @@
 #ifndef COSMO_DEFINES
 #define COSMO_DEFINES
 
-#define N 64
+#define N 256
 #define POINTS (N*N*N)
 // box size in hubble units
 #define H_LEN_FRAC 0.5
-#define dx (H_LEN_FRAC/N)
+#define dx (H_LEN_FRAC/(1.0*N))
 #define dt (0.1*dx)
 
 // WENO "epsilon" parameter
@@ -209,55 +209,6 @@
          << "|STF11_a=" << bssnSim.fields["STF11_a"][10] \
          << "|STF12_a=" << bssnSim.fields["STF12_a"][10] \
          << " \n"; \
-
-#define DUMPPAQSTUFF \
-bssnSim.clearSrc(); \
-staticSim.addBSSNSrc(bssnSim.fields); \
-lambdaSim.addBSSNSrc(bssnSim.fields); \
-bssnSim.set_paq_values(15, 15, 15, &b_paq); \
-bssnSim.set_paq_values(16, 15, 15, &b_paq_ip); \
-bssnSim.set_paq_values(14, 15, 15, &b_paq_im); \
-bssnSim.set_paq_values(15, 16, 15, &b_paq_jp); \
-bssnSim.set_paq_values(15, 14, 15, &b_paq_jm); \
-bssnSim.set_paq_values(15, 15, 16, &b_paq_kp); \
-bssnSim.set_paq_values(15, 15, 14, &b_paq_km); \
-bssnSim.set_paq_values(17, 15, 15, &b_paq_ipp); \
-bssnSim.set_paq_values(13, 15, 15, &b_paq_imm); \
-bssnSim.set_paq_values(15, 17, 15, &b_paq_jpp); \
-bssnSim.set_paq_values(15, 13, 15, &b_paq_jmm); \
-bssnSim.set_paq_values(15, 15, 17, &b_paq_kpp); \
-bssnSim.set_paq_values(15, 15, 13, &b_paq_kmm); \
-std::cout << "\n" \
-          << " | Calc diff: " << dt/2.0*( \
-0.0\
-            ) \
-          << " | M1 ev Final " << (dt/2.0)*(-4.0/3.0)*( \
-                -1.0*exp(-4.0*b_paq_ipp.phi)*( \
-                  pw2(b_paq_ipp.d1phi) + pw2(b_paq_ipp.d2phi) + pw2(b_paq_ipp.d3phi) \
-                  + b_paq_ipp.D1D1phi + b_paq_ipp.D2D2phi + b_paq_ipp.D3D3phi \
-                ) \
-                + 8.0*exp(-4.0*b_paq_ip.phi)*( \
-                  pw2(b_paq_ip.d1phi) + pw2(b_paq_ip.d2phi) + pw2(b_paq_ip.d3phi) \
-                  + b_paq_ip.D1D1phi + b_paq_ip.D2D2phi + b_paq_ip.D3D3phi \
-                ) \
-                - 8.0*exp(-4.0*b_paq_im.phi)*( \
-                  pw2(b_paq_im.d1phi) + pw2(b_paq_im.d2phi) + pw2(b_paq_im.d3phi) \
-                  + b_paq_im.D1D1phi + b_paq_im.D2D2phi + b_paq_im.D3D3phi \
-                ) \
-                + 1.0*exp(-4.0*b_paq_imm.phi)*( \
-                  pw2(b_paq_imm.d1phi) + pw2(b_paq_imm.d2phi) + pw2(b_paq_imm.d3phi) \
-                  + b_paq_imm.D1D1phi + b_paq_imm.D2D2phi + b_paq_imm.D3D3phi \
-                ) \
-                + 2.0*PI*(-b_paq_ipp.rho + 8.0*b_paq_ip.rho - 8.0*b_paq_im.rho + b_paq_imm.rho) \
-              )/12.0/dx \
-          << " | Mi 1: " << bssnSim.momentumConstraintCalc(&b_paq, 1) \
-          << " | |Mi 1|: " << bssnSim.momentumConstraintScale(&b_paq, 1) \
-          << " | Mi 2: " << bssnSim.momentumConstraintCalc(&b_paq, 2) \
-          << " | |Mi 2|: " << bssnSim.momentumConstraintScale(&b_paq, 2) \
-          << " | Mi 3: " << bssnSim.momentumConstraintCalc(&b_paq, 3) \
-          << " | |Mi 3|: " << bssnSim.momentumConstraintScale(&b_paq, 3) \
-          ;
-
 
 
 #define ACC_DEF_SIM_FIELDS() \

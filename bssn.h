@@ -43,7 +43,10 @@ public:
   real_t dder(real_t field_adj[3][3][3], int d1, int d2);
   real_t der_ext(real_t field_adj[3][3][3], real_t field_adj_ext[3][2], int d);
   real_t dder_ext(real_t field_adj[3][3][3], real_t field_adj_ext[3][2], int d1, int d2);
-  
+
+// TODO: remove debugging?
+void set_AltGammaI(idx_t i, idx_t j, idx_t k, BSSNData *paq);
+
   /* set current local field values */
   void set_source_vals(BSSNData *paq);
   void set_local_vals(BSSNData *paq);
