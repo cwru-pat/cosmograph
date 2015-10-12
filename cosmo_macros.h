@@ -4,12 +4,19 @@
 #define N 32
 #define POINTS (N*N*N)
 // box size in hubble units
-#define H_LEN_FRAC 0.5
+#define H_LEN_FRAC 0.05
 #define dx (H_LEN_FRAC/(1.0*N))
 #define dt (0.1*dx)
 
+#define Odx2_der_dx dx
+// (dx*N/PI*sin(2.0*PI/N))
+#define Odx2_der_dx2 (dx*dx)
+// (dx*dx*pw2(N/PI*sin(PI/N)))
+
 // WENO "epsilon" parameter
 #define EPS 0.0001
+// KO Dissipation "eta" parameter (strength of dissipation)
+#define KO_eta 1.0
 
 #define PI (4.0*atan(1.0))
 #define SIGN(x) (((x) < 0.0) ? -1 : ((x) > 0.0))

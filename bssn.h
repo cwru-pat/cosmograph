@@ -20,6 +20,13 @@ class BSSN
   GEN1_ARRAY_CREATE(ricci);
   GEN1_ARRAY_CREATE(AijAij);
 
+  GEN1_ARRAY_CREATE(gammai11);
+  GEN1_ARRAY_CREATE(gammai12);
+  GEN1_ARRAY_CREATE(gammai13);
+  GEN1_ARRAY_CREATE(gammai22);
+  GEN1_ARRAY_CREATE(gammai23);
+  GEN1_ARRAY_CREATE(gammai33);
+
 public:
   std::map <std::string, real_t *> fields;
 
@@ -39,13 +46,10 @@ public:
   void K4CalcPt(idx_t i, idx_t j, idx_t k, BSSNData *paq);
   void stepTerm();
 
-  real_t der(real_t field_adj[3][3][3], int d);
-  real_t dder(real_t field_adj[3][3][3], int d1, int d2);
-  real_t der_ext(real_t field_adj[3][3][3], real_t field_adj_ext[3][2], int d);
-  real_t dder_ext(real_t field_adj[3][3][3], real_t field_adj_ext[3][2], int d1, int d2);
-
-// TODO: remove debugging?
-void set_AltGammaI(idx_t i, idx_t j, idx_t k, BSSNData *paq);
+// DEBUGGING FUNCTIONS
+void set_gammai_values(idx_t i, idx_t j, idx_t k);
+void calculate_dK(BSSNData *paq);
+void set_detgamma(idx_t i, idx_t j, idx_t k);
 
   /* set current local field values */
   void set_source_vals(BSSNData *paq);
@@ -91,13 +95,15 @@ void set_AltGammaI(idx_t i, idx_t j, idx_t k, BSSNData *paq);
 
   real_t hamiltonianConstraintCalc(BSSNData *paq);
   real_t hamiltonianConstraintScale(BSSNData *paq);
-  real_t hamiltonianConstraintMean();
-  real_t hamiltonianConstraintStDev(real_t mean);
+  real_t hamiltonianConstraintMagMean();
+  real_t hamiltonianConstraintMagStDev(real_t mean);
+  real_t hamiltonianConstraintMagMax();
 
   real_t momentumConstraintCalc(BSSNData *paq, idx_t d);
   real_t momentumConstraintScale(BSSNData *paq, idx_t d);
   real_t momentumConstraintMagMean();
   real_t momentumConstraintMagStDev(real_t mean);
+  real_t momentumConstraintMagMax();
 
   real_t metricConstraintTotalMag();
 

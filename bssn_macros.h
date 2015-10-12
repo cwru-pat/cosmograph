@@ -203,16 +203,6 @@
  * Aux. variable calculations
  */
 
-#define BSSN_COMPUTE_LOCAL_GAMMAI_PF(IJ, f1, f2, f3, f4) \
-  paq->gammai##IJ = paq->gamma##f1*paq->gamma##f2 - paq->gamma##f3*paq->gamma##f4; \
-  paq->gammai##IJ##_adj[0][1][1] = paq->gamma##f1##_adj[0][1][1]*paq->gamma##f2##_adj[0][1][1] - paq->gamma##f3##_adj[0][1][1]*paq->gamma##f4##_adj[0][1][1]; \
-  paq->gammai##IJ##_adj[1][0][1] = paq->gamma##f1##_adj[1][0][1]*paq->gamma##f2##_adj[1][0][1] - paq->gamma##f3##_adj[1][0][1]*paq->gamma##f4##_adj[1][0][1]; \
-  paq->gammai##IJ##_adj[1][1][0] = paq->gamma##f1##_adj[1][1][0]*paq->gamma##f2##_adj[1][1][0] - paq->gamma##f3##_adj[1][1][0]*paq->gamma##f4##_adj[1][1][0]; \
-  paq->gammai##IJ##_adj[1][1][1] = paq->gamma##f1##_adj[1][1][1]*paq->gamma##f2##_adj[1][1][1] - paq->gamma##f3##_adj[1][1][1]*paq->gamma##f4##_adj[1][1][1]; \
-  paq->gammai##IJ##_adj[1][1][2] = paq->gamma##f1##_adj[1][1][2]*paq->gamma##f2##_adj[1][1][2] - paq->gamma##f3##_adj[1][1][2]*paq->gamma##f4##_adj[1][1][2]; \
-  paq->gammai##IJ##_adj[1][2][1] = paq->gamma##f1##_adj[1][2][1]*paq->gamma##f2##_adj[1][2][1] - paq->gamma##f3##_adj[1][2][1]*paq->gamma##f4##_adj[1][2][1]; \
-  paq->gammai##IJ##_adj[2][1][1] = paq->gamma##f1##_adj[2][1][1]*paq->gamma##f2##_adj[2][1][1] - paq->gamma##f3##_adj[2][1][1]*paq->gamma##f4##_adj[2][1][1];
-
 #define BSSN_CALCULATE_CHRISTOFFEL(I, J, K) paq->G##I##J##K = 0.5*( \
     paq->gammai##I##1 * (paq->d##J##g##K##1 + paq->d##K##g##J##1 - paq->d1g##J##K) + \
     paq->gammai##I##2 * (paq->d##J##g##K##2 + paq->d##K##g##J##2 - paq->d2g##J##K) + \
@@ -223,7 +213,7 @@
     paq->d##J##g##K##I + paq->d##K##g##J##I - paq->d##I##g##J##K \
   )
 
-#define BSSN_CALCULATE_DGAMMAI(I, J, K) paq->d##I##gi##J##K = der(paq->gammai##J##K##_adj, I);
+#define BSSN_CALCULATE_DGAMMAI(I, J, K) paq->d##I##gi##J##K = derivative(paq->i, paq->j, paq->k, I, gammai##J##K##_a);
 
 #define BSSN_CALCULATE_DGAMMA(I, J, K) paq->d##I##g##J##K = derivative(paq->i, paq->j, paq->k, I, gamma##J##K##_a);
 
@@ -353,7 +343,7 @@
     + 2.0*( \
         paq->G##I##11*paq->Acont11 + paq->G##I##22*paq->Acont22 + paq->G##I##33*paq->Acont33 \
           + 2.0*(paq->G##I##12*paq->Acont12 + paq->G##I##13*paq->Acont13 + paq->G##I##23*paq->Acont23) \
-        - (2.0/3.0) * (paq->gammai##I##1*derivative(paq->i, paq->j, paq->k, 1, K_a) + paq->gammai##I##2*derivative(paq->i, paq->j, paq->k, 2, K_a) + paq->gammai##I##3*derivative(paq->i, paq->j, paq->k, 3, K_a)) \
+        - (2.0/3.0) * (paq->gammai##I##1*paq->d1K_alt + paq->gammai##I##2*paq->d2K_alt + paq->gammai##I##3*paq->d3K_alt) \
         - 8.0*PI*(paq->gammai##I##1*paq->S1 + paq->gammai##I##2*paq->S2 + paq->gammai##I##3*paq->S3) \
         + 6.0 * (paq->Acont##I##1*paq->d1phi + paq->Acont##I##2*paq->d2phi + paq->Acont##I##3*paq->d3phi) \
       ) \

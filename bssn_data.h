@@ -33,6 +33,10 @@ typedef struct {
     // normal derivatives of
     real_t d1phi, d2phi, d3phi;
 
+  // ders of K
+  real_t d1K, d2K, d3K;
+  real_t d1K_alt, d2K_alt, d3K_alt;
+
   // Contravariant (upstairs index) ext. curvature
   real_t Acont11, Acont12, Acont13, Acont22, Acont23, Acont33;
 

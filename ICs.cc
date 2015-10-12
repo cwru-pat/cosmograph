@@ -129,45 +129,9 @@ void set_conformal_ICs(
   // d^2 exp(\phi) = -2*pi exp(5\phi) * \rho
   // generate gaussian random field xi = exp(phi) (use phi_p as a proxy):
   set_gaussian_random_field(bssn_fields["phi_p"], fourier, &icd);
-  // store extra copy (gets messed up by FFT later)
-  LOOP3(i,j,k)
-  {
-    bssn_fields["phi_f"][NP_INDEX(i,j,k)] = bssn_fields["phi_p"][NP_INDEX(i,j,k)];
-  }
-
-  // set bssn_fields["phi_f"] to have "\grad^2 \xi"
-  fftw_execute_dft_r2c(fourier->p_r2c, bssn_fields["phi_f"], fourier->f_field);
-  for(i=0; i<N; i++)
-  {
-    px = (real_t) (i<=N/2 ? i : i-N);
-    for(j=0; j<N; j++)
-    {
-      py = (real_t) (j<=N/2 ? j : j-N);
-      for(k=0; k<N/2+1; k++)
-      {
-        pz = (real_t) k;
-
-        // Here we choose "1/k^2" such that the derivative stencil
-        // applied later will agree with the metric solution we find.
-        p2 = pw2(2.0*PI)*(
-            pw2(px) + pw2(py) + pw2(pz)
-          )/pw2(H_LEN_FRAC);
-
-        // account for fftw normalization here
-        (fourier->f_field)[FFT_NP_INDEX(i,j,k)][0] *= -p2;
-        (fourier->f_field)[FFT_NP_INDEX(i,j,k)][1] *= -p2;
-      }
-    }
-  }
-  // ignore the zero-mode (average) for now
-  (fourier->f_field[FFT_NP_INDEX(0,0,0)])[0] = 0;
-  (fourier->f_field[FFT_NP_INDEX(0,0,0)])[1] = 0;
-  fftw_execute_dft_c2r(fourier->p_c2r, fourier->f_field, bssn_fields["phi_f"]);
-
   // scale xi and grad^2 xi
   LOOP3(i,j,k) {
     bssn_fields["phi_p"][NP_INDEX(i,j,k)] += 1.0;
-    bssn_fields["phi_f"][NP_INDEX(i,j,k)] /= ((real_t) POINTS);
   }
 
   // rho = -lap(phi)/xi^5/2pi
@@ -175,7 +139,9 @@ void set_conformal_ICs(
     bssn_fields["r_a"][NP_INDEX(i,j,k)] = -0.5/PI/(
       pow(bssn_fields["phi_p"][NP_INDEX(i,j,k)], 5.0)
     )*(
-      bssn_fields["phi_f"][NP_INDEX(i,j,k)]
+      double_derivative(i, j, k, 1, 1, bssn_fields["phi_p"])
+      + double_derivative(i, j, k, 2, 2, bssn_fields["phi_p"])
+      + double_derivative(i, j, k, 3, 3, bssn_fields["phi_p"])
     );
   }
 
