@@ -22,7 +22,11 @@
   function(K);                          \
   function(Gamma1);                     \
   function(Gamma2);                     \
-  function(Gamma3);
+  function(Gamma3);                     \
+  function(Z1);                         \
+  function(Z2);                         \
+  function(Z3);                         \
+  function(theta);
 
 #define BSSN_APPLY_TO_SOURCES(function) \
   function(r);                          \
@@ -100,7 +104,15 @@
   std::swap(Gamma2##reg_prefix_1,           Gamma2##reg_prefix_2);                 \
   std::swap(fields["Gamma2"#reg_prefix_1],  fields["Gamma2"#reg_prefix_2]);        \
   std::swap(Gamma3##reg_prefix_1,           Gamma3##reg_prefix_2);                 \
-  std::swap(fields["Gamma3"#reg_prefix_1],  fields["Gamma3"#reg_prefix_2]);
+  std::swap(fields["Gamma3"#reg_prefix_1],  fields["Gamma3"#reg_prefix_2]);        \
+  std::swap(Z1##reg_prefix_1,               Z1##reg_prefix_2);                     \
+  std::swap(fields["Z1"#reg_prefix_1],      fields["Z1"#reg_prefix_2]);            \
+  std::swap(Z2##reg_prefix_1,               Z2##reg_prefix_2);                     \
+  std::swap(fields["Z2"#reg_prefix_1],      fields["Z2"#reg_prefix_2]);            \
+  std::swap(Z3##reg_prefix_1,               Z3##reg_prefix_2);                     \
+  std::swap(fields["Z3"#reg_prefix_1],      fields["Z3"#reg_prefix_2]);            \
+  std::swap(theta##reg_prefix_1,            theta##reg_prefix_2);                  \
+  std::swap(fields["theta"#reg_prefix_1],   fields["theta"#reg_prefix_2]);
 
 #define BSSN_COPY_ARRAYS(reg_prefix_from, reg_prefix_to)        \
   std::copy(gamma11##reg_prefix_from,  gamma11##reg_prefix_from + POINTS,  gamma11##reg_prefix_to  ); \
@@ -119,7 +131,11 @@
   std::copy(K##reg_prefix_from,        K##reg_prefix_from + POINTS,        K##reg_prefix_to        ); \
   std::copy(Gamma1##reg_prefix_from,   Gamma1##reg_prefix_from + POINTS,   Gamma1##reg_prefix_to   ); \
   std::copy(Gamma2##reg_prefix_from,   Gamma2##reg_prefix_from + POINTS,   Gamma2##reg_prefix_to   ); \
-  std::copy(Gamma3##reg_prefix_from,   Gamma3##reg_prefix_from + POINTS,   Gamma3##reg_prefix_to   );
+  std::copy(Gamma3##reg_prefix_from,   Gamma3##reg_prefix_from + POINTS,   Gamma3##reg_prefix_to   ); \
+  std::copy(Z1##reg_prefix_from,       Z1##reg_prefix_from + POINTS,       Z1##reg_prefix_to       ); \
+  std::copy(Z2##reg_prefix_from,       Z2##reg_prefix_from + POINTS,       Z2##reg_prefix_to       ); \
+  std::copy(Z3##reg_prefix_from,       Z3##reg_prefix_from + POINTS,       Z3##reg_prefix_to       ); \
+  std::copy(theta##reg_prefix_from,    theta##reg_prefix_from + POINTS,    theta##reg_prefix_to    );
 
 #define BSSN_ZERO_ARRAY(reg, index) \
   gamma11##reg[idx] = 0;            \
@@ -138,7 +154,11 @@
   K##reg[idx]       = 0;            \
   Gamma1##reg[idx]  = 0;            \
   Gamma2##reg[idx]  = 0;            \
-  Gamma3##reg[idx]  = 0;
+  Gamma3##reg[idx]  = 0;            \
+  Z1##reg[idx]      = 0;            \
+  Z2##reg[idx]      = 0;            \
+  Z3##reg[idx]      = 0;            \
+  theta##reg[idx]   = 0;
 
 // arr_c[idx] = arr_p[idx] + dt*mult*evfn(arr_a);
 #define BSSN_COMPUTE_RK_STEP(mult) \
@@ -158,7 +178,11 @@
   K_c[paq->idx]       = K_p[paq->idx]       + dt*mult*ev_K(paq);       \
   Gamma1_c[paq->idx]  = Gamma1_p[paq->idx]  + dt*mult*ev_Gamma1(paq);  \
   Gamma2_c[paq->idx]  = Gamma2_p[paq->idx]  + dt*mult*ev_Gamma2(paq);  \
-  Gamma3_c[paq->idx]  = Gamma3_p[paq->idx]  + dt*mult*ev_Gamma3(paq);
+  Gamma3_c[paq->idx]  = Gamma3_p[paq->idx]  + dt*mult*ev_Gamma3(paq);  \
+  Z1_c[paq->idx]      = Z1_p[paq->idx]      + dt*mult*ev_Z1(paq);      \
+  Z2_c[paq->idx]      = Z2_p[paq->idx]      + dt*mult*ev_Z2(paq);      \
+  Z3_c[paq->idx]      = Z3_p[paq->idx]      + dt*mult*ev_Z3(paq);      \
+  theta_c[paq->idx]   = theta_p[paq->idx]   + dt*mult*ev_theta(paq);
 
 #define BSSN_ADD_C_TO_F(mult) \
   gamma11_f[paq->idx] += mult*gamma11_c[paq->idx];  \
@@ -177,7 +201,11 @@
   K_f[paq->idx]       += mult*K_c[paq->idx];        \
   Gamma1_f[paq->idx]  += mult*Gamma1_c[paq->idx];   \
   Gamma2_f[paq->idx]  += mult*Gamma2_c[paq->idx];   \
-  Gamma3_f[paq->idx]  += mult*Gamma3_c[paq->idx];
+  Gamma3_f[paq->idx]  += mult*Gamma3_c[paq->idx];   \
+  Z1_f[paq->idx]      += mult*Z1_c[paq->idx];       \
+  Z2_f[paq->idx]      += mult*Z2_c[paq->idx];       \
+  Z3_f[paq->idx]      += mult*Z3_c[paq->idx];       \
+  theta_f[paq->idx]   += mult*theta_c[paq->idx];
 
 // arr_f = (1.0/3.0)*(arr_f - arr_p) + (1.0/6.0)*evfn(arr_a)
 #define BSSN_FINAL_RK4_STEP() \
@@ -197,7 +225,11 @@
   K_f[paq->idx]       = (1.0/3.0)*(K_f[paq->idx]       - K_p[paq->idx])       + (1.0/6.0)*dt*ev_K(paq);       \
   Gamma1_f[paq->idx]  = (1.0/3.0)*(Gamma1_f[paq->idx]  - Gamma1_p[paq->idx])  + (1.0/6.0)*dt*ev_Gamma1(paq);  \
   Gamma2_f[paq->idx]  = (1.0/3.0)*(Gamma2_f[paq->idx]  - Gamma2_p[paq->idx])  + (1.0/6.0)*dt*ev_Gamma2(paq);  \
-  Gamma3_f[paq->idx]  = (1.0/3.0)*(Gamma3_f[paq->idx]  - Gamma3_p[paq->idx])  + (1.0/6.0)*dt*ev_Gamma3(paq);
+  Gamma3_f[paq->idx]  = (1.0/3.0)*(Gamma3_f[paq->idx]  - Gamma3_p[paq->idx])  + (1.0/6.0)*dt*ev_Gamma3(paq);  \
+  Z1_f[paq->idx]      = (1.0/3.0)*(Z1_f[paq->idx]      - Z1_p[paq->idx])      + (1.0/6.0)*dt*ev_Z1(paq);      \
+  Z2_f[paq->idx]      = (1.0/3.0)*(Z2_f[paq->idx]      - Z2_p[paq->idx])      + (1.0/6.0)*dt*ev_Z2(paq);      \
+  Z3_f[paq->idx]      = (1.0/3.0)*(Z3_f[paq->idx]      - Z3_p[paq->idx])      + (1.0/6.0)*dt*ev_Z3(paq);      \
+  theta_f[paq->idx]   = (1.0/3.0)*(theta_f[paq->idx]   - theta_p[paq->idx])   + (1.0/6.0)*dt*ev_theta(paq);
 
 /*
  * Aux. variable calculations
@@ -332,7 +364,7 @@
 
 #define BSSN_DT_AIJ(I, J) ( \
     exp(-4.0*paq->phi)*(paq->ricciTF##I##J - 8.0*PI*paq->STF##I##J) \
-    + (paq->K*paq->A##I##J - 2.0*( \
+    + ((paq->K + 2.0*paq->theta)*paq->A##I##J - 2.0*( \
         paq->gammai11*paq->A1##I*paq->A1##J + paq->gammai12*paq->A1##I*paq->A2##J + paq->gammai13*paq->A1##I*paq->A3##J \
         + paq->gammai21*paq->A2##I*paq->A1##J + paq->gammai22*paq->A2##I*paq->A2##J + paq->gammai23*paq->A2##I*paq->A3##J \
         + paq->gammai31*paq->A3##I*paq->A1##J + paq->gammai32*paq->A3##I*paq->A2##J + paq->gammai33*paq->A3##I*paq->A3##J \
@@ -343,7 +375,18 @@
     + 2.0*( \
         paq->G##I##11*paq->Acont11 + paq->G##I##22*paq->Acont22 + paq->G##I##33*paq->Acont33 \
           + 2.0*(paq->G##I##12*paq->Acont12 + paq->G##I##13*paq->Acont13 + paq->G##I##23*paq->Acont23) \
-        - (2.0/3.0) * (paq->gammai##I##1*paq->d1K_alt + paq->gammai##I##2*paq->d2K_alt + paq->gammai##I##3*paq->d3K_alt) \
+        - (1.0/3.0) * ( \
+            2.0*(paq->gammai##I##1*paq->d1K + paq->gammai##I##2*paq->d2K + paq->gammai##I##3*paq->d3K) \
+            + paq->gammai##I##1*derivative(paq->i, paq->j, paq->k, 1, theta_a) \
+            + paq->gammai##I##2*derivative(paq->i, paq->j, paq->k, 2, theta_a) \
+            + paq->gammai##I##3*derivative(paq->i, paq->j, paq->k, 3, theta_a) \
+          ) \
+        - Z4c_K1_DAMPING_AMPLITUDE*( \
+            paq->Gamma##I - ( \
+              paq->gammai11*paq->G##I##11 + paq->gammai22*paq->G##I##22 + paq->gammai33*paq->G##I##33 \
+              + 2.0*(paq->gammai12*paq->G##I##12 + paq->gammai13*paq->G##I##13 + paq->gammai23*paq->G##I##23) \
+            ) \
+          ) \
         - 8.0*PI*(paq->gammai##I##1*paq->S1 + paq->gammai##I##2*paq->S2 + paq->gammai##I##3*paq->S3) \
         + 6.0 * (paq->Acont##I##1*paq->d1phi + paq->Acont##I##2*paq->d2phi + paq->Acont##I##3*paq->d3phi) \
       ) \
@@ -351,6 +394,7 @@
 
 #define BSSN_MI(I) exp(6.0*paq->phi)*( \
     - 2.0/3.0*derivative(paq->i, paq->j, paq->k, I, K_a) - 8*PI*paq->S##I \
+    - 2.0/3.0*2.0*derivative(paq->i, paq->j, paq->k, I, theta_a)\
     + 6.0*( \
       paq->gammai11*paq->A1##I*paq->d1phi + paq->gammai21*paq->A2##I*paq->d1phi + paq->gammai31*paq->A3##I*paq->d1phi \
       + paq->gammai12*paq->A1##I*paq->d2phi + paq->gammai22*paq->A2##I*paq->d2phi + paq->gammai32*paq->A3##I*paq->d2phi \

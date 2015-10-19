@@ -85,14 +85,8 @@ void set_gaussian_random_field(real_t *field, Fourier *fourier, ICsData *icd)
           // don't want much power on scales smaller than ~3 pixels
           // Or scales p > 1/(3*dx), or p > N/3
           real_t cutoff = 1.0 / (
-              1.0 +
-                exp(10.0*(fabs(px) - icd->ic_spec_cut))
-                *exp(10.0*(fabs(py) - icd->ic_spec_cut))
-                *exp(10.0*(fabs(pz) - icd->ic_spec_cut))
+              1.0 + exp(10.0*(pmag - icd->ic_spec_cut))
           );
-          if(fabs(px)+0.01 > icd->ic_spec_cut || fabs(py)+0.01 > icd->ic_spec_cut || fabs(pz)+0.01 > icd->ic_spec_cut) {
-            cutoff = 0.0;
-          }
           scale = cutoff*sqrt(cosmo_power_spectrum(pmag, icd));
 
           (fourier->f_field)[fft_index][0] = scale*rand_mag*cos(rand_phase);
@@ -134,15 +128,42 @@ void set_conformal_ICs(
     bssn_fields["phi_p"][NP_INDEX(i,j,k)] += 1.0;
   }
 
-  // rho = -lap(phi)/xi^5/2pi
+
+LOOP3(i,j,k) {
+  // "phi"
+  bssn_fields["phi_c"][NP_INDEX(i,j,k)] = log(bssn_fields["phi_p"][NP_INDEX(i,j,k)]);
+}  
+LOOP3(i,j,k) {
+  // "lap. xi"
+  bssn_fields["phi_f"][NP_INDEX(i,j,k)] = bssn_fields["phi_p"][NP_INDEX(i,j,k)]*(
+      pw2(derivative(i, j, k, 1, bssn_fields["phi_c"]))
+      + pw2(derivative(i, j, k, 2, bssn_fields["phi_c"]))
+      + pw2(derivative(i, j, k, 3, bssn_fields["phi_c"]))
+      + double_derivative(i, j, k, 1, 1, bssn_fields["phi_c"])
+      + double_derivative(i, j, k, 2, 2, bssn_fields["phi_c"])
+      + double_derivative(i, j, k, 3, 3, bssn_fields["phi_c"])
+    );
+
+  // xi * "lap. xi"
+  bssn_fields["phi_a"][NP_INDEX(i,j,k)] = 
+    bssn_fields["phi_f"][NP_INDEX(i,j,k)]*bssn_fields["phi_p"][NP_INDEX(i,j,k)];
+}
+real_t c = average(bssn_fields["phi_a"]) / average(bssn_fields["phi_f"]);
+LOG(iod->log, "Offset constant is: " << c << "\n");
+LOG(iod->log, "Average lap is: " << average(bssn_fields["phi_a"]) << "\n");
+
+
+  // rho = -lap(xi)/xi^5/2pi
   LOOP3(i,j,k) {
     bssn_fields["r_a"][NP_INDEX(i,j,k)] = -0.5/PI/(
       pow(bssn_fields["phi_p"][NP_INDEX(i,j,k)], 5.0)
-    )*(
-      double_derivative(i, j, k, 1, 1, bssn_fields["phi_p"])
-      + double_derivative(i, j, k, 2, 2, bssn_fields["phi_p"])
-      + double_derivative(i, j, k, 3, 3, bssn_fields["phi_p"])
-    );
+    )*bssn_fields["phi_f"][NP_INDEX(i,j,k)];
+
+    // (
+    //   double_derivative(i, j, k, 1, 1, bssn_fields["phi_p"])
+    //   + double_derivative(i, j, k, 2, 2, bssn_fields["phi_p"])
+    //   + double_derivative(i, j, k, 3, 3, bssn_fields["phi_p"])
+    // );
   }
 
   // phi = ln(xi)

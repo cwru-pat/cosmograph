@@ -4,6 +4,15 @@
 #include <sys/stat.h>
 #include <sstream>
 
+#define DETAILS(field) \
+  real_t avg_##field = conformal_average(bssn_fields[#field "_a"], bssn_fields["phi_a"]); \
+  sprintf(data, "%g\t", (double) avg_##field); \
+  gzwrite(datafile, data, strlen(data)); \
+  real_t std_##field = conformal_standard_deviation(bssn_fields[#field "_a"], bssn_fields["phi_a"], avg_##field); \
+  sprintf(data, "%g\t", (double) std_##field); \
+  gzwrite(datafile, data, strlen(data));
+
+
 namespace cosmo
 {
 
@@ -295,6 +304,22 @@ void io_dump_statistics(std::map <std::string, real_t *> & bssn_fields,
   // average volume
   sprintf(data, "%g\t", (double) volume_average(bssn_fields["phi_a"]));
   gzwrite(datafile, data, strlen(data));
+
+  DETAILS(A11)
+  DETAILS(A12)
+  DETAILS(A13)
+  DETAILS(A22)
+  DETAILS(A23)
+  DETAILS(A33)
+  DETAILS(gamma11)
+  DETAILS(gamma12)
+  DETAILS(gamma13)
+  DETAILS(gamma22)
+  DETAILS(gamma23)
+  DETAILS(gamma33)
+  DETAILS(Gamma1)
+  DETAILS(Gamma2)
+  DETAILS(Gamma3)
 
   gzwrite(datafile, "\n", strlen("\n"));
   gzclose(datafile);
