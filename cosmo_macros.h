@@ -1,25 +1,22 @@
 #ifndef COSMO_DEFINES
 #define COSMO_DEFINES
 
-#define N 32
+#define N 128
 #define POINTS (N*N*N)
 // box size in hubble units
 #define H_LEN_FRAC 0.5
 #define dx (H_LEN_FRAC/(1.0*N))
 #define dt (0.1*dx)
 
-#define Odx2_der_dx dx
-// (dx*N/PI*sin(2.0*PI/N)) 
-#define Odx2_der_dx2 (dx*dx)
-// (dx*dx*pw2(N/PI*sin(PI/N)))
-
 // WENO "epsilon" parameter
 #define EPS 0.0001
 
 // Numerical Error Damping strength parameters
 #define KO_eta 0.0
-#define BS_H_DAMPING_AMPLITUDE 0.0
+#define BS_H_DAMPING_AMPLITUDE 40.0
 #define JM_K_DAMPING_AMPLITUDE 0.0
+
+#define Z4c_DAMPING 0
 #define Z4c_K1_DAMPING_AMPLITUDE 0.0
 #define Z4c_K2_DAMPING_AMPLITUDE 0.0
 
@@ -204,24 +201,6 @@
 
 #define FLUX_ARRAY_DELETE(name) \
         delete [] name##_a
-
-// print out a sampling of field values
-#define DUMPSTUFF(extra) \
-         cout << "step #" << s \
-         << ": " << extra \
-         << "|phi_a = " << bssnSim.fields["phi_a"][10] \
-         << "|K_a=" << bssnSim.fields["K_a"][10] \
-         << "|A11_a=" << bssnSim.fields["A11_a"][10] \
-         << "|A12_a=" << bssnSim.fields["A12_a"][10] \
-         << "|gamma11_a=" << bssnSim.fields["gamma11_a"][10] \
-         << "|gamma12_a=" << bssnSim.fields["gamma12_a"][10] \
-         << "|UD_a=" << hydroSim.fields["UD_a"][10] \
-         << "|r_a=" << bssnSim.fields["r_a"][10] \
-         << "|S_a=" << bssnSim.fields["S_a"][10] \
-         << "|STF11_a=" << bssnSim.fields["STF11_a"][10] \
-         << "|STF12_a=" << bssnSim.fields["STF12_a"][10] \
-         << " \n"; \
-
 
 #define ACC_DEF_SIM_FIELDS() \
     real_t * const phi_a = bssnSim.fields["phi_a"];

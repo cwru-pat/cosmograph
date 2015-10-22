@@ -128,42 +128,15 @@ void set_conformal_ICs(
     bssn_fields["phi_p"][NP_INDEX(i,j,k)] += 1.0;
   }
 
-
-LOOP3(i,j,k) {
-  // "phi"
-  bssn_fields["phi_c"][NP_INDEX(i,j,k)] = log(bssn_fields["phi_p"][NP_INDEX(i,j,k)]);
-}  
-LOOP3(i,j,k) {
-  // "lap. xi"
-  bssn_fields["phi_f"][NP_INDEX(i,j,k)] = bssn_fields["phi_p"][NP_INDEX(i,j,k)]*(
-      pw2(derivative(i, j, k, 1, bssn_fields["phi_c"]))
-      + pw2(derivative(i, j, k, 2, bssn_fields["phi_c"]))
-      + pw2(derivative(i, j, k, 3, bssn_fields["phi_c"]))
-      + double_derivative(i, j, k, 1, 1, bssn_fields["phi_c"])
-      + double_derivative(i, j, k, 2, 2, bssn_fields["phi_c"])
-      + double_derivative(i, j, k, 3, 3, bssn_fields["phi_c"])
-    );
-
-  // xi * "lap. xi"
-  bssn_fields["phi_a"][NP_INDEX(i,j,k)] = 
-    bssn_fields["phi_f"][NP_INDEX(i,j,k)]*bssn_fields["phi_p"][NP_INDEX(i,j,k)];
-}
-real_t c = average(bssn_fields["phi_a"]) / average(bssn_fields["phi_f"]);
-LOG(iod->log, "Offset constant is: " << c << "\n");
-LOG(iod->log, "Average lap is: " << average(bssn_fields["phi_a"]) << "\n");
-
-
-  // rho = -lap(xi)/xi^5/2pi
+  // rho = -lap(phi)/xi^5/2pi
   LOOP3(i,j,k) {
     bssn_fields["r_a"][NP_INDEX(i,j,k)] = -0.5/PI/(
       pow(bssn_fields["phi_p"][NP_INDEX(i,j,k)], 5.0)
-    )*bssn_fields["phi_f"][NP_INDEX(i,j,k)];
-
-    // (
-    //   double_derivative(i, j, k, 1, 1, bssn_fields["phi_p"])
-    //   + double_derivative(i, j, k, 2, 2, bssn_fields["phi_p"])
-    //   + double_derivative(i, j, k, 3, 3, bssn_fields["phi_p"])
-    // );
+    )*(
+      double_derivative(i, j, k, 1, 1, bssn_fields["phi_p"])
+      + double_derivative(i, j, k, 2, 2, bssn_fields["phi_p"])
+      + double_derivative(i, j, k, 3, 3, bssn_fields["phi_p"])
+    );
   }
 
   // phi = ln(xi)

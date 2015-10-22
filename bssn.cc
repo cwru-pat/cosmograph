@@ -824,50 +824,66 @@ real_t BSSN::ev_phi(BSSNData *paq)
 
 real_t BSSN::ev_theta(BSSNData *paq)
 {
-  return (
-    0.5*paq->H
-    // gamma^kj d_k Z_j
-    // + paq->gammai11*derivative(paq->i, paq->j, paq->k, 1, Z1_a)
-    // + paq->gammai12*derivative(paq->i, paq->j, paq->k, 1, Z2_a)
-    // + paq->gammai13*derivative(paq->i, paq->j, paq->k, 1, Z3_a)
-    // + paq->gammai12*derivative(paq->i, paq->j, paq->k, 2, Z1_a)
-    // + paq->gammai22*derivative(paq->i, paq->j, paq->k, 2, Z2_a)
-    // + paq->gammai23*derivative(paq->i, paq->j, paq->k, 2, Z3_a)
-    // + paq->gammai13*derivative(paq->i, paq->j, paq->k, 3, Z1_a)
-    // + paq->gammai23*derivative(paq->i, paq->j, paq->k, 3, Z2_a)
-    // + paq->gammai33*derivative(paq->i, paq->j, paq->k, 3, Z3_a)
-    // Z_j d_k gamma^kj
-    // + paq->Z1*paq->d1gi11 + paq->Z2*paq->d1gi12 + paq->Z3*paq->d1gi13
-    // + paq->Z1*paq->d2gi12 + paq->Z2*paq->d2gi22 + paq->Z3*paq->d2gi23
-    // + paq->Z1*paq->d3gi13 + paq->Z2*paq->d3gi23 + paq->Z3*paq->d3gi33
-    // k1(2+k2)*theta
-    - Z4c_K1_DAMPING_AMPLITUDE*(2.0 + Z4c_K2_DAMPING_AMPLITUDE)*paq->theta
-  ) - KO_dissipation_Q(paq->i, paq->j, paq->k, theta_a);
+  #if Z4c_DAMPING > 0
+    return 0;
+  #else 
+    return (
+      0.5*paq->H
+      // gamma^kj d_k Z_j
+      // + paq->gammai11*derivative(paq->i, paq->j, paq->k, 1, Z1_a)
+      // + paq->gammai12*derivative(paq->i, paq->j, paq->k, 1, Z2_a)
+      // + paq->gammai13*derivative(paq->i, paq->j, paq->k, 1, Z3_a)
+      // + paq->gammai12*derivative(paq->i, paq->j, paq->k, 2, Z1_a)
+      // + paq->gammai22*derivative(paq->i, paq->j, paq->k, 2, Z2_a)
+      // + paq->gammai23*derivative(paq->i, paq->j, paq->k, 2, Z3_a)
+      // + paq->gammai13*derivative(paq->i, paq->j, paq->k, 3, Z1_a)
+      // + paq->gammai23*derivative(paq->i, paq->j, paq->k, 3, Z2_a)
+      // + paq->gammai33*derivative(paq->i, paq->j, paq->k, 3, Z3_a)
+      // Z_j d_k gamma^kj
+      // + paq->Z1*paq->d1gi11 + paq->Z2*paq->d1gi12 + paq->Z3*paq->d1gi13
+      // + paq->Z1*paq->d2gi12 + paq->Z2*paq->d2gi22 + paq->Z3*paq->d2gi23
+      // + paq->Z1*paq->d3gi13 + paq->Z2*paq->d3gi23 + paq->Z3*paq->d3gi33
+      // k1(2+k2)*theta
+      - Z4c_K1_DAMPING_AMPLITUDE*(2.0 + Z4c_K2_DAMPING_AMPLITUDE)*paq->theta
+    ) - KO_dissipation_Q(paq->i, paq->j, paq->k, theta_a);
+  #endif
 }
 
 real_t BSSN::ev_Z1(BSSNData *paq)
-{ 
-  return (
-    BSSN_MI(1)
-    + derivative(paq->i, paq->j, paq->k, 1, theta_a)
-    - Z4c_K1_DAMPING_AMPLITUDE*paq->Z1
-  ) - KO_dissipation_Q(paq->i, paq->j, paq->k, Z1_a);
+{
+  #if Z4c_DAMPING > 0
+    return 0;
+  #else 
+    return (
+      BSSN_MI(1)
+      + derivative(paq->i, paq->j, paq->k, 1, theta_a)
+      - Z4c_K1_DAMPING_AMPLITUDE*paq->Z1
+    ) - KO_dissipation_Q(paq->i, paq->j, paq->k, Z1_a);
+  #endif
 }
 real_t BSSN::ev_Z2(BSSNData *paq)
-{ 
-  return (
-    BSSN_MI(2)
-    + derivative(paq->i, paq->j, paq->k, 2, theta_a)
-    - Z4c_K1_DAMPING_AMPLITUDE*paq->Z2
-  ) - KO_dissipation_Q(paq->i, paq->j, paq->k, Z2_a);
+{
+  #if Z4c_DAMPING > 0
+    return 0;
+  #else
+    return (
+      BSSN_MI(2)
+      + derivative(paq->i, paq->j, paq->k, 2, theta_a)
+      - Z4c_K1_DAMPING_AMPLITUDE*paq->Z2
+    ) - KO_dissipation_Q(paq->i, paq->j, paq->k, Z2_a);
+  #endif
 }
 real_t BSSN::ev_Z3(BSSNData *paq)
-{ 
-  return (
-    BSSN_MI(3)
-    + derivative(paq->i, paq->j, paq->k, 3, theta_a)
-    - Z4c_K1_DAMPING_AMPLITUDE*paq->Z3
-  ) - KO_dissipation_Q(paq->i, paq->j, paq->k, Z3_a);
+{
+  #if Z4c_DAMPING > 0
+    return 0;
+  #else
+    return (
+      BSSN_MI(3)
+      + derivative(paq->i, paq->j, paq->k, 3, theta_a)
+      - Z4c_K1_DAMPING_AMPLITUDE*paq->Z3
+    ) - KO_dissipation_Q(paq->i, paq->j, paq->k, Z3_a);
+  #endif
 }
 
 

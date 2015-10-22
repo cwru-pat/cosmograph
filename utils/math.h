@@ -16,7 +16,8 @@ inline real_t KO_dissipation_Q(idx_t i, idx_t j, idx_t k, real_t *field)
   //   = dx^3 / 2^6 D_+^2 D_-^2
   //   = dx^3 / 64 * [stencil: 1, -4, 6, -4, 1]
   // for a = 6, r = 4
-  // Q = (dx)^(7) D_+^r D_- ^r / 2^(2r)
+  // Q = (dx)^(7) D_+^4 D_- ^4 / 2^(8)
+  //   = (dx)^(7)/256 * [stencil: ]
   return KO_eta*pow(dx, 3.0)/64*(
       1.0*field[INDEX(i-2,j,k)] + 1.0*field[INDEX(i,j-2,k)] + 1.0*field[INDEX(i,j,k-2)]
     - 4.0*field[INDEX(i-1,j,k)] - 4.0*field[INDEX(i,j-1,k)] - 4.0*field[INDEX(i,j,k-1)]
@@ -34,19 +35,19 @@ inline real_t derivative_Odx2(idx_t i, idx_t j, idx_t k, int d,
       return ((
         - 1.0/2.0*field[INDEX(i-1,j,k)]
         + 1.0/2.0*field[INDEX(i+1,j,k)]
-      )/Odx2_der_dx);
+      )/dx);
       break;
     case 2:
       return ((
         - 1.0/2.0*field[INDEX(i,j-1,k)]
         + 1.0/2.0*field[INDEX(i,j+1,k)]
-      )/Odx2_der_dx);
+      )/dx);
       break;
     case 3:
       return ((
         - 1.0/2.0*field[INDEX(i,j,k-1)]
         + 1.0/2.0*field[INDEX(i,j,k+1)]
-      )/Odx2_der_dx);
+      )/dx);
       break;
   }
 
@@ -180,21 +181,21 @@ inline real_t mixed_derivative_stencil_Odx2(idx_t i, idx_t j, idx_t k, int d1, i
     return (
       - field[INDEX(i+1,j-1,k)] + field[INDEX(i+1,j+1,k)]
       + field[INDEX(i-1,j-1,k)] - field[INDEX(i-1,j+1,k)]
-    )/4.0/Odx2_der_dx/Odx2_der_dx;
+    )/4.0/dx/dx;
   }
 
   if( (d1 == 1 && d2 == 3) || (d1 == 3 && d2 == 1) ) {
     return (
       - field[INDEX(i+1,j,k-1)] + field[INDEX(i+1,j,k+1)]
       + field[INDEX(i-1,j,k-1)] - field[INDEX(i-1,j,k+1)]
-    )/4.0/Odx2_der_dx/Odx2_der_dx;
+    )/4.0/dx/dx;
   }
 
   if( (d1 == 3 && d2 == 2) || (d1 == 2 && d2 == 3) ) {
     return (
       - field[INDEX(i,j+1,k-1)] + field[INDEX(i,j+1,k+1)]
       + field[INDEX(i,j-1,k-1)] - field[INDEX(i,j-1,k+1)]
-    )/4.0/Odx2_der_dx/Odx2_der_dx;
+    )/4.0/dx/dx;
   }
 
   /* XXX */
@@ -303,21 +304,21 @@ inline real_t double_derivative_stencil_Odx2(idx_t i, idx_t j, idx_t k, int d,
           field[INDEX(i-1,j,k)]
           - 2.0*field[INDEX(i-0,j,k)]
           + field[INDEX(i+1,j,k)]
-        )/Odx2_der_dx2;
+        )/dx/dx;
       break;
     case 2:
       return (
           field[INDEX(i,j-1,k)]
           - 2.0*field[INDEX(i,j-0,k)]
           + field[INDEX(i,j+1,k)]
-        )/Odx2_der_dx2;
+        )/dx/dx;
       break;
     case 3:
       return (
           field[INDEX(i,j,k-1)]
           - 2.0*field[INDEX(i,j,k-0)]
           + field[INDEX(i,j,k+1)]
-        )/Odx2_der_dx2;
+        )/dx/dx;
       break;
   }
 
@@ -458,18 +459,18 @@ inline real_t double_derivative_stencil_Odx8(idx_t i, idx_t j, idx_t k, int d,
 inline real_t derivative(idx_t i, idx_t j, idx_t k, int d,
     real_t *field)
 {
-  return derivative_Odx2(i, j, k, d, field);
+  return derivative_Odx6(i, j, k, d, field);
 }
 
 inline real_t mixed_derivative_stencil(idx_t i, idx_t j, idx_t k, int d1, int d2, real_t *field)
 {
-  return mixed_derivative_stencil_Odx2(i, j, k, d1, d2, field);
+  return mixed_derivative_stencil_Odx6(i, j, k, d1, d2, field);
 }
 
 inline real_t double_derivative_stencil(idx_t i, idx_t j, idx_t k, int d,
     real_t *field)
 {
-  return double_derivative_stencil_Odx2(i, j, k, d, field);
+  return double_derivative_stencil_Odx6(i, j, k, d, field);
 }
 
 /* more generic function for 2nd derivs */
