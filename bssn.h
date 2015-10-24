@@ -17,6 +17,7 @@ class BSSN
   BSSN_APPLY_TO_FIELDS(RK4_ARRAY_CREATE)
   BSSN_APPLY_TO_SOURCES(GEN1_ARRAY_CREATE)
   // additional arrays for output of calculated quantities
+  GEN1_ARRAY_CREATE(dk0_slice_phi);
   GEN1_ARRAY_CREATE(ricci);
   GEN1_ARRAY_CREATE(AijAij);
 

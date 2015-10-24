@@ -10,7 +10,7 @@ peak_amplitude_frac = 0.00000005
 rho_K_lambda_frac = 0.0
 ic_spec_cut = 10
 
-output_dir = fidfix/fiducial
+output_dir = output
 dump_file = calculated
 
 IC_viol_amp = 0.0

@@ -8,6 +8,7 @@ BSSN::BSSN()
   BSSN_APPLY_TO_FIELDS(RK4_ARRAY_ALLOC)
   BSSN_APPLY_TO_SOURCES(GEN1_ARRAY_ALLOC)
   // any additional arrays for calcuated quantities
+  GEN1_ARRAY_ALLOC(dk0_slice_phi);
   GEN1_ARRAY_ALLOC(ricci);
   GEN1_ARRAY_ALLOC(AijAij);
   GEN1_ARRAY_ALLOC(gammai11);
@@ -20,6 +21,7 @@ BSSN::BSSN()
   BSSN_APPLY_TO_FIELDS(RK4_ARRAY_ADDMAP)
   BSSN_APPLY_TO_SOURCES(GEN1_ARRAY_ADDMAP)
   // any additional arrays for calcuated quantities
+  GEN1_ARRAY_ADDMAP(dk0_slice_phi);
   GEN1_ARRAY_ADDMAP(ricci);
   GEN1_ARRAY_ADDMAP(AijAij);
   GEN1_ARRAY_ADDMAP(gammai11);
@@ -35,6 +37,7 @@ BSSN::~BSSN()
   BSSN_APPLY_TO_FIELDS(RK4_ARRAY_DELETE)
   BSSN_APPLY_TO_SOURCES(GEN1_ARRAY_DELETE)
   // any additional arrays for calcuated quantities
+  GEN1_ARRAY_DELETE(dk0_slice_phi);
   GEN1_ARRAY_DELETE(ricci);
   GEN1_ARRAY_DELETE(AijAij);
   GEN1_ARRAY_DELETE(gammai11);
@@ -582,6 +585,8 @@ void BSSN::init()
     Z1_p[idx]  = Z1_a[idx]  = Z1_c[idx]  = Z1_f[idx]   = 0.0;
     Z2_p[idx]  = Z2_a[idx]  = Z2_c[idx]  = Z2_f[idx]   = 0.0;
     Z3_p[idx]  = Z3_a[idx]  = Z3_c[idx]  = Z3_f[idx]   = 0.0;
+
+    dk0_slice_phi_a[idx] = 0.0;
 
     r_a[idx]        = 0.0;
     S_a[idx]        = 0.0;

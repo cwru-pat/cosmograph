@@ -305,6 +305,7 @@ void io_dump_statistics(std::map <std::string, real_t *> & bssn_fields,
   sprintf(data, "%g\t", (double) volume_average(bssn_fields["phi_a"]));
   gzwrite(datafile, data, strlen(data));
 
+/*
   DETAILS(A11)
   DETAILS(A12)
   DETAILS(A13)
@@ -320,6 +321,7 @@ void io_dump_statistics(std::map <std::string, real_t *> & bssn_fields,
   DETAILS(Gamma1)
   DETAILS(Gamma2)
   DETAILS(Gamma3)
+*/
 
   gzwrite(datafile, "\n", strlen("\n"));
   gzclose(datafile);
