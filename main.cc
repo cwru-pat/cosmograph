@@ -190,6 +190,28 @@ int main(int argc, char **argv)
 
     _timer["meta_output_interval"].start();
 
+      #pragma omp parallel for default(shared) private(i, j, k)
+      LOOP3(i, j, k) {
+        idx_t idx = INDEX(i,j,k);
+        real_t K_ref = frw_K0/2.0;
+        // K starts negative, gets closer to 0 monatonically
+        // check to see when simulation has crossed a reference K
+        real_t K2 = bssnSim.fields["K_p"][idx]; // current step is in _p array
+        real_t K1 = bssnSim.fields["K_f"][idx]; // previous step is in _f array after swap
+
+        if( K_ref >= K1 && K_ref <= K2 )
+        {
+          // linear interpolation to determine "time" of K_ref
+          real_t ref_time = (K_ref - K1) / (K2 - K1);
+          // get phi value at this "time"
+          real_t phi2 = bssnSim.fields["phi_p"][idx];
+          real_t phi1 = bssnSim.fields["phi_f"][idx];
+          real_t phi_at_ref = (phi2 - phi1)*ref_time + phi1;
+          // store phi value on the slice
+          bssnSim.fields["dk0_slice_phi_a"][idx] = phi_at_ref;
+        }
+      }
+
       if(s%iodata.meta_output_interval == 0)
       {
         idx_t isNaN = 0;
@@ -237,27 +259,6 @@ int main(int argc, char **argv)
           LOG(iodata.log, "\nNAN detected!\n");
           _timer["meta_output_interval"].stop();
           break;
-        }
-      }
-
-      #pragma omp parallel for default(shared) private(i, j, k)
-      LOOP3(i, j, k) {
-        idx_t idx = INDEX(i,j,k);
-        real_t K_ref = frw_K0/2.0;
-        // K starts negative, gets closer to 0 monatonically
-        // check to see when simulation has crossed a reference K
-        real_t K2 = bssnSim.fields["K_p"][idx]; // current step is in _p array
-        real_t K1 = bssnSim.fields["K_f"][idx]; // previous step is in _f array after swap
-        if( K_ref >= K1 && K_ref <= K2 )
-        {
-          // linear interpolation to determine "time" of K_ref
-          real_t ref_time = (K_ref - K1) / (K2 - K1);
-          // get phi value at this "time"
-          real_t phi2 = bssnSim.fields["phi_p"][idx];
-          real_t phi1 = bssnSim.fields["phi_f"][idx];
-          real_t phi_at_ref = (phi2 - phi1)*ref_time + phi1;
-          // store phi value on the slice
-          bssnSim.fields["dk0_slice_phi_a"][idx] = phi_at_ref;
         }
       }
 
