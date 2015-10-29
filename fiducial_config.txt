@@ -6,7 +6,7 @@ meta_output_interval = 1
 
 omp_num_threads = 32
 
-peak_amplitude_frac = 5.0
+peak_amplitude_frac = 4.0
 rho_K_lambda_frac = 0.0
 ic_spec_cut = 10
 
