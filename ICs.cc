@@ -14,7 +14,7 @@ ICsData cosmo_get_ICsData()
 
   // power spectrum amplitude as a fraction of the density
   real_t peak_amplitude_frac = (real_t) stold(_config["peak_amplitude_frac"]); // fluctuation amplitude
-  real_t peak_amplitude = icd.rho_K_matter*peak_amplitude_frac*(1.0e-7)*(5.0/0.7); // scaling in arb. units
+  real_t peak_amplitude = peak_amplitude_frac*(1.0e-15); // scaling in arb. units
 
   real_t ic_spec_cut = (real_t) stold(_config["ic_spec_cut"]); // power spectrum cutoff parameter
 
@@ -32,8 +32,8 @@ ICsData cosmo_get_ICsData()
 // eg in LCDM, http://ned.ipac.caltech.edu/level5/Sept11/Norman/Norman2.html
 real_t cosmo_power_spectrum(real_t k, ICsData *icd)
 {
-  real_t pre = icd->peak_amplitude*4.0/3.0;
-  return pre*fabs(k)/icd->peak_k/(1.0 + pow(fabs(k)/icd->peak_k, 4.0)/3.0);
+  real_t pre = icd->peak_amplitude;
+  return pre/(1.0 + pow(fabs(k)/icd->peak_k, 4.0)/3.0)/pow(fabs(k)/icd->peak_k, 5.0);
 }
 
 // set a field to an arbitrary gaussian random field

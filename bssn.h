@@ -18,6 +18,9 @@ class BSSN
   BSSN_APPLY_TO_SOURCES(GEN1_ARRAY_CREATE)
   // additional arrays for output of calculated quantities
   GEN1_ARRAY_CREATE(dk0_slice_phi);
+  GEN1_ARRAY_CREATE(KDx);
+  GEN1_ARRAY_CREATE(KDy);
+  GEN1_ARRAY_CREATE(KDz);
   GEN1_ARRAY_CREATE(ricci);
   GEN1_ARRAY_CREATE(AijAij);
 
@@ -51,6 +54,8 @@ public:
 void set_gammai_values(idx_t i, idx_t j, idx_t k);
 void calculate_dK(BSSNData *paq);
 void set_detgamma(idx_t i, idx_t j, idx_t k);
+
+void set_KillingDelta(idx_t i, idx_t j, idx_t k, BSSNData *paq);
 
   /* set current local field values */
   void set_source_vals(BSSNData *paq);

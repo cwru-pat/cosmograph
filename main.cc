@@ -93,6 +93,8 @@ int main(int argc, char **argv)
       {
         BSSNData b_paq = {0}; // data structure associated with bssn sim
         bssnSim.set_paq_values(i,j,k,&b_paq);
+        // Additionally set KD (killing vector "Delta" quantities)
+        bssnSim.set_KillingDelta(i, j, k, &b_paq);
       }
       io_show_progress(s, steps);
       io_data_dump(bssnSim.fields, staticSim.fields, &iodata, s, &fourier);
@@ -217,6 +219,7 @@ int main(int argc, char **argv)
         idx_t isNaN = 0;
 
         // make sure clean data is in _a array
+        // Set values at points
         bssnSim.stepInit(); // copy _p to _a
         bssnSim.clearSrc();
         staticSim.addBSSNSrc(bssnSim.fields);

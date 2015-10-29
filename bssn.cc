@@ -9,6 +9,9 @@ BSSN::BSSN()
   BSSN_APPLY_TO_SOURCES(GEN1_ARRAY_ALLOC)
   // any additional arrays for calcuated quantities
   GEN1_ARRAY_ALLOC(dk0_slice_phi);
+  GEN1_ARRAY_ALLOC(KDx);
+  GEN1_ARRAY_ALLOC(KDy);
+  GEN1_ARRAY_ALLOC(KDz);
   GEN1_ARRAY_ALLOC(ricci);
   GEN1_ARRAY_ALLOC(AijAij);
   GEN1_ARRAY_ALLOC(gammai11);
@@ -22,6 +25,9 @@ BSSN::BSSN()
   BSSN_APPLY_TO_SOURCES(GEN1_ARRAY_ADDMAP)
   // any additional arrays for calcuated quantities
   GEN1_ARRAY_ADDMAP(dk0_slice_phi);
+  GEN1_ARRAY_ADDMAP(KDx);
+  GEN1_ARRAY_ADDMAP(KDy);
+  GEN1_ARRAY_ADDMAP(KDz);
   GEN1_ARRAY_ADDMAP(ricci);
   GEN1_ARRAY_ADDMAP(AijAij);
   GEN1_ARRAY_ADDMAP(gammai11);
@@ -38,6 +44,9 @@ BSSN::~BSSN()
   BSSN_APPLY_TO_SOURCES(GEN1_ARRAY_DELETE)
   // any additional arrays for calcuated quantities
   GEN1_ARRAY_DELETE(dk0_slice_phi);
+  GEN1_ARRAY_DELETE(KDx);
+  GEN1_ARRAY_DELETE(KDy);
+  GEN1_ARRAY_DELETE(KDz);
   GEN1_ARRAY_DELETE(ricci);
   GEN1_ARRAY_DELETE(AijAij);
   GEN1_ARRAY_DELETE(gammai11);
@@ -309,6 +318,17 @@ real_t BSSN::momentumConstraintScale(BSSNData *paq, idx_t d)
   /* xxx */
   throw -1;
   return 0;
+}
+
+void BSSN::set_KillingDelta(idx_t i, idx_t j, idx_t k, BSSNData *paq)
+{
+  idx_t idx = NP_INDEX(i,j,k);
+  // Delta_mu^mu = 2 Grad_mu K^mu_i   (in i direction)
+  //             = 2 _^(3)Gamma^j_ij
+  //             = 2 ( \bar{Gamma}^j_ij + 6 d_i \phi )
+  KDx_a[idx] = 2.0*( paq->G111 + paq->G221 + paq->G331 + 6.0*paq->d1phi );
+  KDy_a[idx] = 2.0*( paq->G112 + paq->G222 + paq->G332 + 6.0*paq->d2phi );
+  KDz_a[idx] = 2.0*( paq->G113 + paq->G223 + paq->G333 + 6.0*paq->d3phi );
 }
 
 void BSSN::set_detgamma(idx_t i, idx_t j, idx_t k)
@@ -587,6 +607,9 @@ void BSSN::init()
     Z3_p[idx]  = Z3_a[idx]  = Z3_c[idx]  = Z3_f[idx]   = 0.0;
 
     dk0_slice_phi_a[idx] = 0.0;
+    KDx_a[idx] = 0.0;
+    KDy_a[idx] = 0.0;
+    KDz_a[idx] = 0.0;
 
     r_a[idx]        = 0.0;
     S_a[idx]        = 0.0;

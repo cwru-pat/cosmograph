@@ -62,6 +62,7 @@ void io_data_dump(std::map <std::string, real_t *> & bssn_fields,
     io_dump_2dslice(bssn_fields["K_p"], "K_slice." + std::to_string(step), iodata);
     io_dump_2dslice(bssn_fields["phi_p"], "phi_slice." + std::to_string(step), iodata);
     io_dump_2dslice(static_field["D_a"], "UD_slice."  + std::to_string(step), iodata);
+    io_dump_2dslice(bssn_fields["gamma11_p"], "gamma11." + std::to_string(step), iodata);
   }
   if(step % iodata->grid_output_interval == 0)
   {
@@ -86,10 +87,15 @@ void io_data_dump(std::map <std::string, real_t *> & bssn_fields,
     io_dump_3dslice(bssn_fields["r_a"],       "r_a."     + std::to_string(step), iodata);
     io_dump_3dslice(bssn_fields["K_a"],       "K_a."     + std::to_string(step), iodata);
     io_dump_3dslice(bssn_fields["phi_a"],     "phi_a."   + std::to_string(step), iodata);
+
+    io_dump_3dslice(bssn_fields["KDx_a"],     "KDx_a."   + std::to_string(step), iodata);
+    io_dump_3dslice(bssn_fields["KDy_a"],     "KDy_a."   + std::to_string(step), iodata);
+    io_dump_3dslice(bssn_fields["KDz_a"],     "KDz_a."   + std::to_string(step), iodata);
   }
   if(step % iodata->spec_output_interval == 0)
   {
     fourier->powerDump(bssn_fields["phi_p"], iodata);
+    fourier->powerDump(bssn_fields["r_a"], iodata);
   }
   if(step % iodata->meta_output_interval == 0)
   {
