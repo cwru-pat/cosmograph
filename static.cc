@@ -16,11 +16,10 @@ Static::~Static()
 
 void Static::addBSSNSrc(std::map <std::string, real_t *> & bssn_fields)
 {
-  idx_t i, j, k;
+  idx_t i=0, j=0, k=0;
   real_t * const r_a = bssn_fields["r_a"];
   real_t * const phi_a = bssn_fields["phi_a"];
 
-  #pragma omp parallel for default(shared) private(i, j, k)
   LOOP3(i,j,k)
   {
     idx_t idx = NP_INDEX(i,j,k);

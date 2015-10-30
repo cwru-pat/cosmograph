@@ -39,7 +39,10 @@ void io_init(IOData *iodata, std::string output_dir)
 
   iodata->log.open(iodata->output_dir + "log.txt");
   LOG(iodata->log, "Log file open.\n");
-  LOG(iodata->log, "Running with  N = " << N  << "\n");
+  LOG(iodata->log, "Running with NX = " << NX
+                           << ", NY = " << NY
+                           << ", NZ = " << NZ
+                           << "\n");
   LOG(iodata->log, "Running with dt = " << dt << "\n");
   LOG(iodata->log, "Running with dx = " << dx << "\n");
 }
@@ -158,21 +161,21 @@ void io_dump_strip(real_t *field, int axis, idx_t n1, idx_t n2, IOData *iodata)
   switch (axis)
   {
     case 1:
-      for(idx_t i=0; i<N; i++)
+      for(idx_t i=0; i<NX; i++)
       {
         sprintf(data, "%g\t", (double) field[INDEX(i,n1,n2)]);
         gzwrite(datafile, data, strlen(data));
       }
       break;
     case 2:
-      for(idx_t j=0; j<N; j++)
+      for(idx_t j=0; j<NY; j++)
       {
         sprintf(data, "%g\t", (double) field[INDEX(n1,j,n2)]);
         gzwrite(datafile, data, strlen(data));
       }
       break;
     case 3:
-      for(idx_t k=0; k<N; k++)
+      for(idx_t k=0; k<NZ; k++)
       {
         sprintf(data, "%g\t", (double) field[INDEX(n1,n2,k)]);
         gzwrite(datafile, data, strlen(data));
@@ -190,14 +193,14 @@ void io_dump_strip(real_t *field, int axis, idx_t n1, idx_t n2, IOData *iodata)
 
 void io_dump_2dslice(real_t *field, std::string filename, IOData *iodata)
 {
-  // dump the first N*N points (a 2-d slice on a boundary)
+  // dump the first NY*NZ points (a 2-d slice on a boundary)
   std::string dump_filename = iodata->output_dir + filename + ".2d_grid.h5.gz";
 
   hid_t       file, space, dset, dcpl;  /* Handles */
   herr_t      status;
   htri_t      avail;
   H5Z_filter_t  filter_type;
-  hsize_t     dims[2] = {N, N},
+  hsize_t     dims[2] = {NY, NZ},
               maxdims[2] = {H5S_UNLIMITED, H5S_UNLIMITED},
               chunk[2] = {6, 6};
 
@@ -225,14 +228,14 @@ void io_dump_2dslice(real_t *field, std::string filename, IOData *iodata)
  */
 void io_dump_3dslice(real_t *field, std::string filename, IOData *iodata)
 {
-  // dump all N*N*N points
+  // dump all NX*NY*NZ points
   std::string dump_filename = iodata->output_dir + filename + ".3d_grid.h5.gz";
 
   hid_t       file, space, dset, dcpl;  /* Handles */
   herr_t      status;
   htri_t      avail;
   H5Z_filter_t  filter_type;
-  hsize_t     dims[3] = {N, N, N},
+  hsize_t     dims[3] = {NX, NY, NZ},
               maxdims[3] = {H5S_UNLIMITED, H5S_UNLIMITED, H5S_UNLIMITED},
               chunk[3] = {6, 6, 6};
 

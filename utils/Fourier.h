@@ -3,6 +3,7 @@
 
 #include <fftw3.h>
 #include <zlib.h>
+#include <math.h>
 #include <string>
 #include <iostream>
 #include "../cosmo_macros.h"
@@ -24,7 +25,7 @@ public:
   ~Fourier();
 
   template<typename IT, typename RT>
-  void Initialize(IT n, RT *field);
+  void Initialize(IT nx, IT ny, IT nz, RT *field);
 
   template<typename RT, typename IOT>
   void powerDump(RT *in, IOT *iodata);
@@ -32,17 +33,17 @@ public:
 
 
 template<typename IT, typename RT>
-void Fourier::Initialize(IT n, RT *field)
+void Fourier::Initialize(IT nx, IT ny, IT nz, RT *field)
 {
   //fftw_malloc
-  f_field = (fftw_complex *) fftw_malloc(n*n*(n/2+1)
+  f_field = (fftw_complex *) fftw_malloc(nx*ny*(nz/2+1)
                                          *((long long) sizeof(fftw_complex)));
 
   // create plans
-  p_r2c = fftw_plan_dft_r2c_3d(n, n, n,
+  p_r2c = fftw_plan_dft_r2c_3d(nx, ny, nz,
                                field, f_field,
                                FFTW_MEASURE);
-  p_c2r = fftw_plan_dft_c2r_3d(n, n, n,
+  p_c2r = fftw_plan_dft_c2r_3d(nx, ny, nz,
                                f_field, field,
                                FFTW_MEASURE);
 }
@@ -54,7 +55,7 @@ void Fourier::powerDump(RT *in, IOT *iodata)
   fftw_execute_dft_r2c(p_r2c, in, f_field);
 
   // average power over angles
-  const int numbins = (int)(1.74*(N/2.0))+1; // Actual number of bins
+  const int numbins = (int) (sqrt(NX*NX + NY*NY + NZ*NZ)/2.0) + 1; // Actual number of bins
   RT array_out[numbins];
   int numpoints[numbins]; // Number of points in each momentum bin
   RT p[numbins];
@@ -72,13 +73,13 @@ void Fourier::powerDump(RT *in, IOT *iodata)
   }
 
   // Perform average over all angles here (~integral d\Omega).
-  for(i=0; i<N; i++)
+  for(i=0; i<NX; i++)
   {
-    px = (i<=N/2 ? i : i-N);
-    for(j=0; j<N; j++)
+    px = (i<=NX/2 ? i : i-NX);
+    for(j=0; j<NY; j++)
     {
-      py = (j<=N/2 ? j : j-N);
-      for(k=1; k<N/2; k++)
+      py = (j<=NY/2 ? j : j-NY);
+      for(k=1; k<NZ/2; k++)
       {
         pz = k;
         pmagnitude = sqrt((RT) (pw2(px) + pw2(py) + pw2(pz)));
@@ -94,8 +95,8 @@ void Fourier::powerDump(RT *in, IOT *iodata)
       numpoints[(int)pmagnitude] += 1;
       f2[(int)pmagnitude] += fp2;
 
-      pz = N/2;
-      k = N/2;
+      pz = NZ/2;
+      k = NZ/2;
       pmagnitude = sqrt((RT) (pw2(px) + pw2(py) + pw2(pz)));
       fp2 = pw2(C_RE((f_field)[FFT_NP_INDEX(i,j,k)])) + pw2(C_IM((f_field)[FFT_NP_INDEX(i,j,k)]));
       numpoints[(int)pmagnitude] += 1;

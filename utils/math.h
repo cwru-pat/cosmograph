@@ -459,18 +459,18 @@ inline real_t double_derivative_stencil_Odx8(idx_t i, idx_t j, idx_t k, int d,
 inline real_t derivative(idx_t i, idx_t j, idx_t k, int d,
     real_t *field)
 {
-  return derivative_Odx6(i, j, k, d, field);
+  return STENCIL_ORDER(derivative_Odx)(i, j, k, d, field);
 }
 
 inline real_t mixed_derivative_stencil(idx_t i, idx_t j, idx_t k, int d1, int d2, real_t *field)
 {
-  return mixed_derivative_stencil_Odx6(i, j, k, d1, d2, field);
+  return STENCIL_ORDER(mixed_derivative_stencil_Odx)(i, j, k, d1, d2, field);
 }
 
 inline real_t double_derivative_stencil(idx_t i, idx_t j, idx_t k, int d,
     real_t *field)
 {
-  return double_derivative_stencil_Odx6(i, j, k, d, field);
+  return STENCIL_ORDER(double_derivative_stencil_Odx)(i, j, k, d, field);
 }
 
 /* more generic function for 2nd derivs */
@@ -491,7 +491,8 @@ inline real_t average(real_t *field)
 {
   // note this may have poor precision for large datasets
   real_t sum = 0.0; 
-  idx_t i, j, k;
+  idx_t i=0, j=0, k=0;
+  
   #pragma omp parallel for default(shared) private(i, j, k) reduction(+:sum)
   LOOP3(i, j, k)
   {
@@ -503,7 +504,8 @@ inline real_t average(real_t *field)
 inline real_t volume_average(real_t *phi)
 {
   real_t sum = 0.0; 
-  idx_t i, j, k;
+  idx_t i=0, j=0, k=0;
+
   #pragma omp parallel for default(shared) private(i, j, k) reduction(+:sum)
   LOOP3(i, j, k)
   {
@@ -515,7 +517,8 @@ inline real_t volume_average(real_t *phi)
 inline real_t conformal_average(real_t *field, real_t *phi)
 {
   real_t sum = 0.0; 
-  idx_t i, j, k;
+  idx_t i=0, j=0, k=0;
+
   #pragma omp parallel for default(shared) private(i, j, k) reduction(+:sum)
   LOOP3(i, j, k)
   {
@@ -528,7 +531,7 @@ inline real_t conformal_average(real_t *field, real_t *phi)
 inline real_t max(real_t *field)
 {
   // note this may have poor precision for large datasets
-  idx_t i, j, k;
+  idx_t i=0, j=0, k=0;
   real_t max = field[0];
   LOOP3(i, j, k)
   {
@@ -542,7 +545,7 @@ inline real_t max(real_t *field)
 inline real_t standard_deviation(real_t *field, real_t avg)
 {
   // note this may have poor precision for large datasets
-  idx_t i, j, k;
+  idx_t i=0, j=0, k=0;
   real_t sum = 0.0;
   #pragma omp parallel for default(shared) private(i, j, k) reduction(+:sum)
   LOOP3(i, j, k)
@@ -561,7 +564,7 @@ inline real_t standard_deviation(real_t *field)
 inline real_t conformal_standard_deviation(real_t *field, real_t *phi, real_t avg)
 {
   real_t sum = 0.0; 
-  idx_t i, j, k;
+  idx_t i=0, j=0, k=0;
 
   #pragma omp parallel for default(shared) private(i, j, k) reduction(+:sum)
   LOOP3(i, j, k)
@@ -580,7 +583,7 @@ inline real_t conformal_standard_deviation(real_t *field, real_t *phi)
 
 inline idx_t numNaNs(real_t *field)
 {
-  idx_t i, j, k;
+  idx_t i=0, j=0, k=0;
   idx_t NaNs = 0;
   
   #pragma omp parallel for default(shared) private(i, j, k) reduction(+:NaNs)

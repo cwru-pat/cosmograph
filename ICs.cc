@@ -71,19 +71,23 @@ void set_gaussian_random_field(real_t *field, Fourier *fourier, ICsData *icd)
         real_t rand_phase = angular_distribution(gen);
 
         // only store momentum values for relevant bins
-        if( fabs(px) < (real_t) N/2+1 + 0.01 && fabs(py) < (real_t) N/2+1 + 0.01 && fabs(pz) < (real_t) N/2+1 + 0.01 )
+        if( fabs(px) < (real_t) NX/2+1 + 0.01 && fabs(py) < (real_t) NY/2+1 + 0.01 && fabs(pz) < (real_t) NZ/2+1 + 0.01 )
         {
           idx_t fft_index = FFT_NP_INDEX(
-            px > -0.5 ? ROUND_2_IDXT(px) : N + ROUND_2_IDXT(px),
-            py > -0.5 ? ROUND_2_IDXT(py) : N + ROUND_2_IDXT(py),
-            pz > -0.5 ? ROUND_2_IDXT(pz) : N + ROUND_2_IDXT(pz)
+            px > -0.5 ? ROUND_2_IDXT(px) : NX + ROUND_2_IDXT(px),
+            py > -0.5 ? ROUND_2_IDXT(py) : NY + ROUND_2_IDXT(py),
+            pz > -0.5 ? ROUND_2_IDXT(pz) : NZ + ROUND_2_IDXT(pz)
           );
 
-          pmag = sqrt(pw2(px) + pw2(py) + pw2(pz));
+          pmag = sqrt(
+            pw2(px * ( (real_t) N / (real_t) NX ) )
+             + pw2(py * ( (real_t) N / (real_t) NY ))
+             + pw2(pz * ( (real_t) N / (real_t) NZ ))
+            );
 
           // Scale by power spectrum
           // don't want much power on scales smaller than ~3 pixels
-          // Or scales p > 1/(3*dx), or p > N/3
+          // Or scales p > 1/(3*dx)
           real_t cutoff = 1.0 / (
               1.0 + exp(10.0*(pmag - icd->ic_spec_cut))
           );

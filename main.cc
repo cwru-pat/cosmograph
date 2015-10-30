@@ -14,7 +14,7 @@ ConfigParser _config;
 int main(int argc, char **argv)
 {
   _timer["MAIN"].start();
-  idx_t i, j, k, s, steps;
+  idx_t i=0, j=0, k=0, s=0, steps=0;
 
   // read in config file
   if(argc != 2)
@@ -51,9 +51,9 @@ int main(int argc, char **argv)
     BSSN bssnSim;
     bssnSim.init();
 
-    // generic reusable fourier class for N^3 arrays
+    // generic reusable fourier class for NX*NY*NZ arrays
     Fourier fourier;
-    fourier.Initialize(N, staticSim.fields["D_a"] /* just any N^3 array for planning */);
+    fourier.Initialize(NX, NY, NZ, staticSim.fields["D_a"] /* just any array for planning */);
 
     // "conformal" initial conditions:
     LOG(iodata.log, "Using conformal initial conditions...\n");
@@ -99,7 +99,6 @@ int main(int argc, char **argv)
       io_show_progress(s, steps);
       io_data_dump(bssnSim.fields, staticSim.fields, &iodata, s, &fourier);
     _timer["output"].stop();
-
 
     // Run RK steps explicitly here (ties together BSSN + Hydro stuff).
     // See bssn class or hydro class for more comments.

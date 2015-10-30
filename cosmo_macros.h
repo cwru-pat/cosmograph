@@ -2,7 +2,10 @@
 #define COSMO_DEFINES
 
 #define N 128
-#define POINTS (N*N*N)
+#define NX N
+#define NY N
+#define NZ N
+#define POINTS ((NX)*(NY)*(NZ))
 // box size in hubble units
 #define H_LEN_FRAC 0.5
 #define dx (H_LEN_FRAC/(1.0*N))
@@ -20,6 +23,9 @@
 #define Z4c_K1_DAMPING_AMPLITUDE 0.0
 #define Z4c_K2_DAMPING_AMPLITUDE 0.0
 
+// Stencil order
+#define STENCIL_ORDER(function) function##6
+
 #define PI (4.0*atan(1.0))
 #define SIGN(x) (((x) < 0.0) ? -1 : ((x) > 0.0))
 #define pw2(x) ((x)*(x))
@@ -30,27 +36,27 @@
 #define RESTRICT __restrict__
 
 // standard index, implementing periodic boundary conditions
-#define INDEX(i,j,k) ( ((i+N)%N)*N*N + ((j+N)%N)*N + (k+N)%N )
+#define INDEX(i,j,k) ( ((i+NX)%(NX))*(NY)*(NZ) + ((j+NY)%(NY))*(NZ) + (k+NZ)%(NZ) )
 // indexing without periodicity
-#define NP_INDEX(i,j,k) (N*N*(i) + N*(j) + (k))
+#define NP_INDEX(i,j,k) ((NZ)*(NY)*(i) + (NZ)*(j) + (k))
 // indexing of flux arrays; indexes cell boundaries with 'd' = 1,2,3, using periodic BCs
-#define F_INDEX(i,j,k,d) (((i+N)%N)*N*N*3 + ((j+N)%N)*N*3 + ((k+N)%N)*3 + (d+2)%3 )
+#define F_INDEX(i,j,k,d) ( ((i+NX)%(NX))*(NY)*(NZ)*3 + ((j+NY)%(NY))*(NZ)*3 + (k+NZ)%(NZ)*3 + (d+2)%3 )
 // non-periodic indexing of flux arrays; indexes cell boundaries with 'd' = 1,2,3
-#define F_NP_INDEX(i,j,k,d) ((i)*N*N*3 + (j)*N*3 + (k)*3 + (d+2)%3 )
+#define F_NP_INDEX(i,j,k,d) ( (NZ)*(NY)*(i)*3 + (NZ)*(j)*3 + (k)*3 + (d+2)%3 )
 // FFT indexing
-#define FFT_INDEX(i,j,k) ((N/2+1)*N*((i+N)%N) + (N/2+1)*((j+N)%N) + ((k+N)%N))
+#define FFT_INDEX(i,j,k) ((NZ/2+1)*NY*((i+NX)%NX) + (NZ/2+1)*((j+NY)%NY) + ((k+NZ)%NZ))
 // FFT indexing without periodicity
-#define FFT_NP_INDEX(i,j,k) ((N/2+1)*N*(i) + (N/2+1)*(j) + (k))
+#define FFT_NP_INDEX(i,j,k) ((NZ/2+1)*NY*(i) + (NZ/2+1)*(j) + (k))
 
 #define LOOP3(i,j,k) \
-  for(i=0; i<N; ++i) \
-    for(j=0; j<N; ++j) \
-      for(k=0; k<N; ++k)
+  for(i=0; i<NX; ++i) \
+    for(j=0; j<NY; ++j) \
+      for(k=0; k<NZ; ++k)
 
 #define INTERNAL_LOOP3(i,j,k) \
-  for(i=1; i<N-1; ++i) \
-    for(j=1; j<N-1; ++j) \
-      for(k=1; k<N-1; ++k)
+  for(i=1; i<NX-1; ++i) \
+    for(j=1; j<NY-1; ++j) \
+      for(k=1; k<NZ-1; ++k)
 
 #define DECLARE_REAL_T(name) real_t name
 
@@ -143,10 +149,10 @@
         real_t * name##_a, * name##_c, * name##_p, * name##_f
 
 #define RK4_ARRAY_ALLOC(name) \
-        name##_a   = new real_t[N*N*N]; \
-        name##_c   = new real_t[N*N*N]; \
-        name##_p   = new real_t[N*N*N]; \
-        name##_f   = new real_t[N*N*N]
+        name##_a   = new real_t[POINTS]; \
+        name##_c   = new real_t[POINTS]; \
+        name##_p   = new real_t[POINTS]; \
+        name##_f   = new real_t[POINTS]
 
 #define RK4_ARRAY_DELETE(name) \
         delete [] name##_a;    \
@@ -165,8 +171,8 @@
         real_t * name##_f, * name##_a
 
 #define GEN2_ARRAY_ALLOC(name) \
-        name##_f   = new real_t[N*N*N]; \
-        name##_a   = new real_t[N*N*N]
+        name##_f   = new real_t[POINTS]; \
+        name##_a   = new real_t[POINTS]
 
 #define GEN2_ARRAY_DELETE(name) \
         delete [] name##_f;    \
@@ -182,7 +188,7 @@
         real_t * name##_a
 
 #define GEN1_ARRAY_ALLOC(name) \
-        name##_a   = new real_t[N*N*N]
+        name##_a   = new real_t[POINTS]
 
 #define GEN1_ARRAY_DELETE(name) \
         delete [] name##_a
@@ -197,7 +203,7 @@
         real_t * name##_a
 
 #define FLUX_ARRAY_ALLOC(name) \
-        name##_a   = new real_t[N*N*N*3]
+        name##_a   = new real_t[POINTS*3]
 
 #define FLUX_ARRAY_DELETE(name) \
         delete [] name##_a
