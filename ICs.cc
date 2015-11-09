@@ -33,7 +33,7 @@ ICsData cosmo_get_ICsData()
 real_t cosmo_power_spectrum(real_t k, ICsData *icd)
 {
   real_t pre = icd->peak_amplitude;
-  return pre/(1.0 + pow(fabs(k)/icd->peak_k, 4.0)/3.0)/pow(fabs(k)/icd->peak_k, 5.0);
+  return pre/(1.0 + pow(fabs(k)/icd->peak_k, 4.0)/3.0)/pow(fabs(k)/icd->peak_k, 3.0);
 }
 
 // set a field to an arbitrary gaussian random field

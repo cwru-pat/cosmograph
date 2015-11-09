@@ -5,28 +5,62 @@
  * applying functions to lots of vars
  */
 
-#define BSSN_APPLY_TO_FIELDS(function)  \
-  function(gamma11);                    \
-  function(gamma12);                    \
-  function(gamma13);                    \
-  function(gamma22);                    \
-  function(gamma23);                    \
-  function(gamma33);                    \
-  function(phi);                        \
-  function(A11);                        \
-  function(A12);                        \
-  function(A13);                        \
-  function(A22);                        \
-  function(A23);                        \
-  function(A33);                        \
-  function(K);                          \
-  function(Gamma1);                     \
-  function(Gamma2);                     \
-  function(Gamma3);                     \
-  function(Z1);                         \
-  function(Z2);                         \
-  function(Z3);                         \
-  function(theta);
+#if Z4c_DAMPING > 0
+  #define Z4c_APPLY_TO_FIELDS(function)  \
+    function(Z1);                        \
+    function(Z2);                        \
+    function(Z3);                        \
+    function(theta);
+  #define Z4c_APPLY_TO_FIELDS_ARGS(function, ...) \
+    function(Z1, __VA_ARGS__);                    \
+    function(Z2, __VA_ARGS__);                    \
+    function(Z3, __VA_ARGS__);                    \
+    function(theta, __VA_ARGS__);
+#else
+  #define Z4c_APPLY_TO_FIELDS(function)
+  #define Z4c_APPLY_TO_FIELDS_ARGS(function, ...)
+#endif
+
+
+#define BSSN_APPLY_TO_FIELDS_ARGS(function, ...)   \
+  function(gamma11, __VA_ARGS__);                  \
+  function(gamma12, __VA_ARGS__);                  \
+  function(gamma13, __VA_ARGS__);                  \
+  function(gamma22, __VA_ARGS__);                  \
+  function(gamma23, __VA_ARGS__);                  \
+  function(gamma33, __VA_ARGS__);                  \
+  function(phi, __VA_ARGS__);                      \
+  function(A11, __VA_ARGS__);                      \
+  function(A12, __VA_ARGS__);                      \
+  function(A13, __VA_ARGS__);                      \
+  function(A22, __VA_ARGS__);                      \
+  function(A23, __VA_ARGS__);                      \
+  function(A33, __VA_ARGS__);                      \
+  function(K, __VA_ARGS__);                        \
+  function(Gamma1, __VA_ARGS__);                   \
+  function(Gamma2, __VA_ARGS__);                   \
+  function(Gamma3, __VA_ARGS__);                   \
+  Z4c_APPLY_TO_FIELDS_ARGS(function, __VA_ARGS__)
+
+#define BSSN_APPLY_TO_FIELDS(function) \
+  function(gamma11);                   \
+  function(gamma12);                   \
+  function(gamma13);                   \
+  function(gamma22);                   \
+  function(gamma23);                   \
+  function(gamma33);                   \
+  function(phi);                       \
+  function(A11);                       \
+  function(A12);                       \
+  function(A13);                       \
+  function(A22);                       \
+  function(A23);                       \
+  function(A33);                       \
+  function(K);                         \
+  function(Gamma1);                    \
+  function(Gamma2);                    \
+  function(Gamma3);                    \
+  Z4c_APPLY_TO_FIELDS(function)
 
 #define BSSN_APPLY_TO_SOURCES(function) \
   function(r);                          \
@@ -70,166 +104,61 @@
   function(3, 2, 3);                  \
   function(3, 3, 3);
 
-#define BSSN_SWAP_ARRAYS(reg_prefix_1, reg_prefix_2)                               \
-  std::swap(gamma11##reg_prefix_1,          gamma11##reg_prefix_2);                \
-  std::swap(fields["gamma11"#reg_prefix_1], fields["gamma11"#reg_prefix_2]);       \
-  std::swap(gamma12##reg_prefix_1,          gamma12##reg_prefix_2);                \
-  std::swap(fields["gamma12"#reg_prefix_1], fields["gamma12"#reg_prefix_2]);       \
-  std::swap(gamma13##reg_prefix_1,          gamma13##reg_prefix_2);                \
-  std::swap(fields["gamma13"#reg_prefix_1], fields["gamma13"#reg_prefix_2]);       \
-  std::swap(gamma22##reg_prefix_1,          gamma22##reg_prefix_2);                \
-  std::swap(fields["gamma22"#reg_prefix_1], fields["gamma22"#reg_prefix_2]);       \
-  std::swap(gamma23##reg_prefix_1,          gamma23##reg_prefix_2);                \
-  std::swap(fields["gamma23"#reg_prefix_1], fields["gamma23"#reg_prefix_2]);       \
-  std::swap(gamma33##reg_prefix_1,          gamma33##reg_prefix_2);                \
-  std::swap(fields["gamma33"#reg_prefix_1], fields["gamma33"#reg_prefix_2]);       \
-  std::swap(phi##reg_prefix_1,              phi##reg_prefix_2);                    \
-  std::swap(fields["phi"#reg_prefix_1],     fields["phi"#reg_prefix_2]);           \
-  std::swap(A11##reg_prefix_1,              A11##reg_prefix_2);                    \
-  std::swap(fields["A11"#reg_prefix_1],     fields["A11"#reg_prefix_2]);           \
-  std::swap(A12##reg_prefix_1,              A12##reg_prefix_2);                    \
-  std::swap(fields["A12"#reg_prefix_1],     fields["A12"#reg_prefix_2]);           \
-  std::swap(A13##reg_prefix_1,              A13##reg_prefix_2);                    \
-  std::swap(fields["A13"#reg_prefix_1],     fields["A13"#reg_prefix_2]);           \
-  std::swap(A22##reg_prefix_1,              A22##reg_prefix_2);                    \
-  std::swap(fields["A22"#reg_prefix_1],     fields["A22"#reg_prefix_2]);           \
-  std::swap(A23##reg_prefix_1,              A23##reg_prefix_2);                    \
-  std::swap(fields["A23"#reg_prefix_1],     fields["A23"#reg_prefix_2]);           \
-  std::swap(A33##reg_prefix_1,              A33##reg_prefix_2);                    \
-  std::swap(fields["A33"#reg_prefix_1],     fields["A33"#reg_prefix_2]);           \
-  std::swap(K##reg_prefix_1,                K##reg_prefix_2);                      \
-  std::swap(fields["K"#reg_prefix_1],       fields["K"#reg_prefix_2]);             \
-  std::swap(Gamma1##reg_prefix_1,           Gamma1##reg_prefix_2);                 \
-  std::swap(fields["Gamma1"#reg_prefix_1],  fields["Gamma1"#reg_prefix_2]);        \
-  std::swap(Gamma2##reg_prefix_1,           Gamma2##reg_prefix_2);                 \
-  std::swap(fields["Gamma2"#reg_prefix_1],  fields["Gamma2"#reg_prefix_2]);        \
-  std::swap(Gamma3##reg_prefix_1,           Gamma3##reg_prefix_2);                 \
-  std::swap(fields["Gamma3"#reg_prefix_1],  fields["Gamma3"#reg_prefix_2]);        \
-  std::swap(Z1##reg_prefix_1,               Z1##reg_prefix_2);                     \
-  std::swap(fields["Z1"#reg_prefix_1],      fields["Z1"#reg_prefix_2]);            \
-  std::swap(Z2##reg_prefix_1,               Z2##reg_prefix_2);                     \
-  std::swap(fields["Z2"#reg_prefix_1],      fields["Z2"#reg_prefix_2]);            \
-  std::swap(Z3##reg_prefix_1,               Z3##reg_prefix_2);                     \
-  std::swap(fields["Z3"#reg_prefix_1],      fields["Z3"#reg_prefix_2]);            \
-  std::swap(theta##reg_prefix_1,            theta##reg_prefix_2);                  \
-  std::swap(fields["theta"#reg_prefix_1],   fields["theta"#reg_prefix_2]);
 
-#define BSSN_COPY_ARRAYS(reg_prefix_from, reg_prefix_to)        \
-  std::copy(gamma11##reg_prefix_from,  gamma11##reg_prefix_from + POINTS,  gamma11##reg_prefix_to  ); \
-  std::copy(gamma12##reg_prefix_from,  gamma12##reg_prefix_from + POINTS,  gamma12##reg_prefix_to  ); \
-  std::copy(gamma13##reg_prefix_from,  gamma13##reg_prefix_from + POINTS,  gamma13##reg_prefix_to  ); \
-  std::copy(gamma22##reg_prefix_from,  gamma22##reg_prefix_from + POINTS,  gamma22##reg_prefix_to  ); \
-  std::copy(gamma23##reg_prefix_from,  gamma23##reg_prefix_from + POINTS,  gamma23##reg_prefix_to  ); \
-  std::copy(gamma33##reg_prefix_from,  gamma33##reg_prefix_from + POINTS,  gamma33##reg_prefix_to  ); \
-  std::copy(phi##reg_prefix_from,      phi##reg_prefix_from + POINTS,      phi##reg_prefix_to      ); \
-  std::copy(A11##reg_prefix_from,      A11##reg_prefix_from + POINTS,      A11##reg_prefix_to      ); \
-  std::copy(A12##reg_prefix_from,      A12##reg_prefix_from + POINTS,      A12##reg_prefix_to      ); \
-  std::copy(A13##reg_prefix_from,      A13##reg_prefix_from + POINTS,      A13##reg_prefix_to      ); \
-  std::copy(A22##reg_prefix_from,      A22##reg_prefix_from + POINTS,      A22##reg_prefix_to      ); \
-  std::copy(A23##reg_prefix_from,      A23##reg_prefix_from + POINTS,      A23##reg_prefix_to      ); \
-  std::copy(A33##reg_prefix_from,      A33##reg_prefix_from + POINTS,      A33##reg_prefix_to      ); \
-  std::copy(K##reg_prefix_from,        K##reg_prefix_from + POINTS,        K##reg_prefix_to        ); \
-  std::copy(Gamma1##reg_prefix_from,   Gamma1##reg_prefix_from + POINTS,   Gamma1##reg_prefix_to   ); \
-  std::copy(Gamma2##reg_prefix_from,   Gamma2##reg_prefix_from + POINTS,   Gamma2##reg_prefix_to   ); \
-  std::copy(Gamma3##reg_prefix_from,   Gamma3##reg_prefix_from + POINTS,   Gamma3##reg_prefix_to   ); \
-  std::copy(Z1##reg_prefix_from,       Z1##reg_prefix_from + POINTS,       Z1##reg_prefix_to       ); \
-  std::copy(Z2##reg_prefix_from,       Z2##reg_prefix_from + POINTS,       Z2##reg_prefix_to       ); \
-  std::copy(Z3##reg_prefix_from,       Z3##reg_prefix_from + POINTS,       Z3##reg_prefix_to       ); \
-  std::copy(theta##reg_prefix_from,    theta##reg_prefix_from + POINTS,    theta##reg_prefix_to    );
 
-#define BSSN_ZERO_ARRAY(reg, index) \
-  gamma11##reg[idx] = 0;            \
-  gamma12##reg[idx] = 0;            \
-  gamma13##reg[idx] = 0;            \
-  gamma22##reg[idx] = 0;            \
-  gamma23##reg[idx] = 0;            \
-  gamma33##reg[idx] = 0;            \
-  phi##reg[idx]     = 0;            \
-  A11##reg[idx]     = 0;            \
-  A12##reg[idx]     = 0;            \
-  A13##reg[idx]     = 0;            \
-  A22##reg[idx]     = 0;            \
-  A23##reg[idx]     = 0;            \
-  A33##reg[idx]     = 0;            \
-  K##reg[idx]       = 0;            \
-  Gamma1##reg[idx]  = 0;            \
-  Gamma2##reg[idx]  = 0;            \
-  Gamma3##reg[idx]  = 0;            \
-  Z1##reg[idx]      = 0;            \
-  Z2##reg[idx]      = 0;            \
-  Z3##reg[idx]      = 0;            \
-  theta##reg[idx]   = 0;
+#define BSSN_SWAP_REGISTERS(field, reg_prefix_1, reg_prefix_2) \
+  std::swap(field##reg_prefix_1, field##reg_prefix_2);
+
+#define BSSN_SWAP_MAPS(field, reg_prefix_1, reg_prefix_2) \
+  std::swap(fields[#field #reg_prefix_1], fields[#field #reg_prefix_2]);
+
+#define BSSN_SWAP_ARRAYS(reg_prefix_1, reg_prefix_2) \
+  BSSN_APPLY_TO_FIELDS_ARGS(BSSN_SWAP_REGISTERS, reg_prefix_1, reg_prefix_2) \
+  BSSN_APPLY_TO_FIELDS_ARGS(BSSN_SWAP_MAPS, reg_prefix_1, reg_prefix_2)
+
+
+
+#define BSSN_COPY_FIELD(field, reg_prefix_from, reg_prefix_to) \
+  std::copy(field##reg_prefix_from, field##reg_prefix_from + POINTS, field##reg_prefix_to);
+
+#define BSSN_COPY_ARRAYS(reg_prefix_from, reg_prefix_to) \
+  BSSN_APPLY_TO_FIELDS_ARGS(BSSN_COPY_FIELD, reg_prefix_from, reg_prefix_to)
+
+
+
+#define BSSN_ZERO_FIELD(field, reg, index) \
+  field##reg[index] = 0;
+
+#define BSSN_ZERO_ARRAYS(reg, index) \
+  BSSN_APPLY_TO_FIELDS_ARGS(BSSN_ZERO_FIELD, reg, index)
+
+
 
 // arr_c[idx] = arr_p[idx] + dt*mult*evfn(arr_a);
+#define BSSN_COMPUTE_RK_STEP_FIELD(field, mult) \
+  field##_c[paq->idx] = field##_p[paq->idx] + dt*mult*ev_##field(paq);
+
 #define BSSN_COMPUTE_RK_STEP(mult) \
-  gamma11_c[paq->idx] = gamma11_p[paq->idx] + dt*mult*ev_gamma11(paq); \
-  gamma12_c[paq->idx] = gamma12_p[paq->idx] + dt*mult*ev_gamma12(paq); \
-  gamma13_c[paq->idx] = gamma13_p[paq->idx] + dt*mult*ev_gamma13(paq); \
-  gamma22_c[paq->idx] = gamma22_p[paq->idx] + dt*mult*ev_gamma22(paq); \
-  gamma23_c[paq->idx] = gamma23_p[paq->idx] + dt*mult*ev_gamma23(paq); \
-  gamma33_c[paq->idx] = gamma33_p[paq->idx] + dt*mult*ev_gamma33(paq); \
-  phi_c[paq->idx]     = phi_p[paq->idx]     + dt*mult*ev_phi(paq);     \
-  A11_c[paq->idx]     = A11_p[paq->idx]     + dt*mult*ev_A11(paq);     \
-  A12_c[paq->idx]     = A12_p[paq->idx]     + dt*mult*ev_A12(paq);     \
-  A13_c[paq->idx]     = A13_p[paq->idx]     + dt*mult*ev_A13(paq);     \
-  A22_c[paq->idx]     = A22_p[paq->idx]     + dt*mult*ev_A22(paq);     \
-  A23_c[paq->idx]     = A23_p[paq->idx]     + dt*mult*ev_A23(paq);     \
-  A33_c[paq->idx]     = A33_p[paq->idx]     + dt*mult*ev_A33(paq);     \
-  K_c[paq->idx]       = K_p[paq->idx]       + dt*mult*ev_K(paq);       \
-  Gamma1_c[paq->idx]  = Gamma1_p[paq->idx]  + dt*mult*ev_Gamma1(paq);  \
-  Gamma2_c[paq->idx]  = Gamma2_p[paq->idx]  + dt*mult*ev_Gamma2(paq);  \
-  Gamma3_c[paq->idx]  = Gamma3_p[paq->idx]  + dt*mult*ev_Gamma3(paq);  \
-  Z1_c[paq->idx]      = Z1_p[paq->idx]      + dt*mult*ev_Z1(paq);      \
-  Z2_c[paq->idx]      = Z2_p[paq->idx]      + dt*mult*ev_Z2(paq);      \
-  Z3_c[paq->idx]      = Z3_p[paq->idx]      + dt*mult*ev_Z3(paq);      \
-  theta_c[paq->idx]   = theta_p[paq->idx]   + dt*mult*ev_theta(paq);
+  BSSN_APPLY_TO_FIELDS_ARGS(BSSN_COMPUTE_RK_STEP_FIELD, mult)
+
+
+
+#define BSSN_ADD_C_TO_F_FIELD(field, mult) \
+  field##_f[paq->idx] += mult*field##_c[paq->idx];
 
 #define BSSN_ADD_C_TO_F(mult) \
-  gamma11_f[paq->idx] += mult*gamma11_c[paq->idx];  \
-  gamma12_f[paq->idx] += mult*gamma12_c[paq->idx];  \
-  gamma13_f[paq->idx] += mult*gamma13_c[paq->idx];  \
-  gamma22_f[paq->idx] += mult*gamma22_c[paq->idx];  \
-  gamma23_f[paq->idx] += mult*gamma23_c[paq->idx];  \
-  gamma33_f[paq->idx] += mult*gamma33_c[paq->idx];  \
-  phi_f[paq->idx]     += mult*phi_c[paq->idx];      \
-  A11_f[paq->idx]     += mult*A11_c[paq->idx];      \
-  A12_f[paq->idx]     += mult*A12_c[paq->idx];      \
-  A13_f[paq->idx]     += mult*A13_c[paq->idx];      \
-  A22_f[paq->idx]     += mult*A22_c[paq->idx];      \
-  A23_f[paq->idx]     += mult*A23_c[paq->idx];      \
-  A33_f[paq->idx]     += mult*A33_c[paq->idx];      \
-  K_f[paq->idx]       += mult*K_c[paq->idx];        \
-  Gamma1_f[paq->idx]  += mult*Gamma1_c[paq->idx];   \
-  Gamma2_f[paq->idx]  += mult*Gamma2_c[paq->idx];   \
-  Gamma3_f[paq->idx]  += mult*Gamma3_c[paq->idx];   \
-  Z1_f[paq->idx]      += mult*Z1_c[paq->idx];       \
-  Z2_f[paq->idx]      += mult*Z2_c[paq->idx];       \
-  Z3_f[paq->idx]      += mult*Z3_c[paq->idx];       \
-  theta_f[paq->idx]   += mult*theta_c[paq->idx];
+  BSSN_APPLY_TO_FIELDS_ARGS(BSSN_ADD_C_TO_F_FIELD, mult)
+
+
 
 // arr_f = (1.0/3.0)*(arr_f - arr_p) + (1.0/6.0)*evfn(arr_a)
 #define BSSN_FINAL_RK4_STEP() \
-  gamma11_f[paq->idx] = (1.0/3.0)*(gamma11_f[paq->idx] - gamma11_p[paq->idx]) + (1.0/6.0)*dt*ev_gamma11(paq); \
-  gamma12_f[paq->idx] = (1.0/3.0)*(gamma12_f[paq->idx] - gamma12_p[paq->idx]) + (1.0/6.0)*dt*ev_gamma12(paq); \
-  gamma13_f[paq->idx] = (1.0/3.0)*(gamma13_f[paq->idx] - gamma13_p[paq->idx]) + (1.0/6.0)*dt*ev_gamma13(paq); \
-  gamma22_f[paq->idx] = (1.0/3.0)*(gamma22_f[paq->idx] - gamma22_p[paq->idx]) + (1.0/6.0)*dt*ev_gamma22(paq); \
-  gamma23_f[paq->idx] = (1.0/3.0)*(gamma23_f[paq->idx] - gamma23_p[paq->idx]) + (1.0/6.0)*dt*ev_gamma23(paq); \
-  gamma33_f[paq->idx] = (1.0/3.0)*(gamma33_f[paq->idx] - gamma33_p[paq->idx]) + (1.0/6.0)*dt*ev_gamma33(paq); \
-  phi_f[paq->idx]     = (1.0/3.0)*(phi_f[paq->idx]     - phi_p[paq->idx])     + (1.0/6.0)*dt*ev_phi(paq);     \
-  A11_f[paq->idx]     = (1.0/3.0)*(A11_f[paq->idx]     - A11_p[paq->idx])     + (1.0/6.0)*dt*ev_A11(paq);     \
-  A12_f[paq->idx]     = (1.0/3.0)*(A12_f[paq->idx]     - A12_p[paq->idx])     + (1.0/6.0)*dt*ev_A12(paq);     \
-  A13_f[paq->idx]     = (1.0/3.0)*(A13_f[paq->idx]     - A13_p[paq->idx])     + (1.0/6.0)*dt*ev_A13(paq);     \
-  A22_f[paq->idx]     = (1.0/3.0)*(A22_f[paq->idx]     - A22_p[paq->idx])     + (1.0/6.0)*dt*ev_A22(paq);     \
-  A23_f[paq->idx]     = (1.0/3.0)*(A23_f[paq->idx]     - A23_p[paq->idx])     + (1.0/6.0)*dt*ev_A23(paq);     \
-  A33_f[paq->idx]     = (1.0/3.0)*(A33_f[paq->idx]     - A33_p[paq->idx])     + (1.0/6.0)*dt*ev_A33(paq);     \
-  K_f[paq->idx]       = (1.0/3.0)*(K_f[paq->idx]       - K_p[paq->idx])       + (1.0/6.0)*dt*ev_K(paq);       \
-  Gamma1_f[paq->idx]  = (1.0/3.0)*(Gamma1_f[paq->idx]  - Gamma1_p[paq->idx])  + (1.0/6.0)*dt*ev_Gamma1(paq);  \
-  Gamma2_f[paq->idx]  = (1.0/3.0)*(Gamma2_f[paq->idx]  - Gamma2_p[paq->idx])  + (1.0/6.0)*dt*ev_Gamma2(paq);  \
-  Gamma3_f[paq->idx]  = (1.0/3.0)*(Gamma3_f[paq->idx]  - Gamma3_p[paq->idx])  + (1.0/6.0)*dt*ev_Gamma3(paq);  \
-  Z1_f[paq->idx]      = (1.0/3.0)*(Z1_f[paq->idx]      - Z1_p[paq->idx])      + (1.0/6.0)*dt*ev_Z1(paq);      \
-  Z2_f[paq->idx]      = (1.0/3.0)*(Z2_f[paq->idx]      - Z2_p[paq->idx])      + (1.0/6.0)*dt*ev_Z2(paq);      \
-  Z3_f[paq->idx]      = (1.0/3.0)*(Z3_f[paq->idx]      - Z3_p[paq->idx])      + (1.0/6.0)*dt*ev_Z3(paq);      \
-  theta_f[paq->idx]   = (1.0/3.0)*(theta_f[paq->idx]   - theta_p[paq->idx])   + (1.0/6.0)*dt*ev_theta(paq);
+  BSSN_APPLY_TO_FIELDS(BSSN_FINAL_RK4_STEP_FIELD)
+
+#define BSSN_FINAL_RK4_STEP_FIELD(field) \
+  field##_f[paq->idx] = (1.0/3.0)*(field##_f[paq->idx] - field##_p[paq->idx]) + (1.0/6.0)*dt*ev_##field(paq);
+
+
 
 /*
  * Aux. variable calculations
@@ -377,9 +306,7 @@
           + 2.0*(paq->G##I##12*paq->Acont12 + paq->G##I##13*paq->Acont13 + paq->G##I##23*paq->Acont23) \
         - (1.0/3.0) * ( \
             2.0*(paq->gammai##I##1*paq->d1K + paq->gammai##I##2*paq->d2K + paq->gammai##I##3*paq->d3K) \
-            + paq->gammai##I##1*derivative(paq->i, paq->j, paq->k, 1, theta_a) \
-            + paq->gammai##I##2*derivative(paq->i, paq->j, paq->k, 2, theta_a) \
-            + paq->gammai##I##3*derivative(paq->i, paq->j, paq->k, 3, theta_a) \
+            + paq->gammai##I##1*paq->d1theta + paq->gammai##I##2*paq->d2theta + paq->gammai##I##3*paq->d3theta \
           ) \
         - Z4c_K1_DAMPING_AMPLITUDE*( \
             paq->Gamma##I - ( \
@@ -394,7 +321,7 @@
 
 #define BSSN_MI(I) exp(6.0*paq->phi)*( \
     - 2.0/3.0*derivative(paq->i, paq->j, paq->k, I, K_a) - 8*PI*paq->S##I \
-    - 2.0/3.0*2.0*derivative(paq->i, paq->j, paq->k, I, theta_a)\
+    - 2.0/3.0*2.0*paq->d##I##theta \
     + 6.0*( \
       paq->gammai11*paq->A1##I*paq->d1phi + paq->gammai21*paq->A2##I*paq->d1phi + paq->gammai31*paq->A3##I*paq->d1phi \
       + paq->gammai12*paq->A1##I*paq->d2phi + paq->gammai22*paq->A2##I*paq->d2phi + paq->gammai32*paq->A3##I*paq->d2phi \

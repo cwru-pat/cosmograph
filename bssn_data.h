@@ -35,7 +35,6 @@ typedef struct {
 
   // ders of K
   real_t d1K, d2K, d3K;
-  real_t d1K_alt, d2K_alt, d3K_alt;
 
   // Contravariant (upstairs index) ext. curvature
   real_t Acont11, Acont12, Acont13, Acont22, Acont23, Acont33;
@@ -87,10 +86,6 @@ typedef struct {
   // local copies of current field values
   BSSN_APPLY_TO_FIELDS(DECLARE_REAL_T)
 
-  // local copies of adjacent current field values for fast derivatives
-  BSSN_APPLY_TO_FIELDS(DECLARE_ADJACENT_REAL_T)
-  BSSN_APPLY_TO_FIELDS(DECLARE_ADJ_ADJACENT_REAL_T)
-
   // Source terms
   real_t rho, S;
   real_t S1, S2, S3;
@@ -100,6 +95,14 @@ typedef struct {
   real_t H;
   // Misc. debugging calc
   real_t db;
+
+  // additional variables to handle absence of Z4c terms in macros
+  // (make sure these get initialized to 0!)
+  real_t d1theta, d2theta, d3theta;
+  #if Z4c_DAMPING <= 0
+    real_t theta;
+  #endif
+
 
 } BSSNData;
 
