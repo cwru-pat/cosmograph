@@ -8,64 +8,21 @@ BSSN::BSSN()
   // BSSN fields
   BSSN_APPLY_TO_FIELDS(RK4_ARRAY_ALLOC)
   BSSN_APPLY_TO_FIELDS(RK4_ARRAY_ADDMAP)
+
   // BSSN source fields
   BSSN_APPLY_TO_SOURCES(GEN1_ARRAY_ALLOC)
   BSSN_APPLY_TO_SOURCES(GEN1_ARRAY_ADDMAP)
 
   // any additional arrays for calcuated quantities
-  GEN1_ARRAY_ALLOC(dk0_slice_phi);
-  GEN1_ARRAY_ADDMAP(dk0_slice_phi);
-
-  GEN1_ARRAY_ALLOC(KDx);
-  GEN1_ARRAY_ADDMAP(KDx);
-
-  GEN1_ARRAY_ALLOC(KDy);
-  GEN1_ARRAY_ADDMAP(KDy);
-
-  GEN1_ARRAY_ALLOC(KDz);
-  GEN1_ARRAY_ADDMAP(KDz);
-
-  GEN1_ARRAY_ALLOC(ricci);
-  GEN1_ARRAY_ADDMAP(ricci);
-
-  GEN1_ARRAY_ALLOC(AijAij);
-  GEN1_ARRAY_ADDMAP(AijAij);
-
-  GEN1_ARRAY_ALLOC(gammai11);
-  GEN1_ARRAY_ADDMAP(gammai11);
-
-  GEN1_ARRAY_ALLOC(gammai12);
-  GEN1_ARRAY_ADDMAP(gammai12);
-
-  GEN1_ARRAY_ALLOC(gammai13);
-  GEN1_ARRAY_ADDMAP(gammai13);
-
-  GEN1_ARRAY_ALLOC(gammai22);
-  GEN1_ARRAY_ADDMAP(gammai22);
-
-  GEN1_ARRAY_ALLOC(gammai23);
-  GEN1_ARRAY_ADDMAP(gammai23);
-
-  GEN1_ARRAY_ALLOC(gammai33);
-  GEN1_ARRAY_ADDMAP(gammai33);
+  BSSN_APPLY_TO_GEN1_EXTRAS(GEN1_ARRAY_ALLOC)
+  BSSN_APPLY_TO_GEN1_EXTRAS(GEN1_ARRAY_ADDMAP)
 }
 
 BSSN::~BSSN()
 {
   BSSN_APPLY_TO_FIELDS(RK4_ARRAY_DELETE)
   BSSN_APPLY_TO_SOURCES(GEN1_ARRAY_DELETE)
-  GEN1_ARRAY_DELETE(dk0_slice_phi);
-  GEN1_ARRAY_DELETE(KDx);
-  GEN1_ARRAY_DELETE(KDy);
-  GEN1_ARRAY_DELETE(KDz);
-  GEN1_ARRAY_DELETE(ricci);
-  GEN1_ARRAY_DELETE(AijAij);
-  GEN1_ARRAY_DELETE(gammai11);
-  GEN1_ARRAY_DELETE(gammai12);
-  GEN1_ARRAY_DELETE(gammai13);
-  GEN1_ARRAY_DELETE(gammai22);
-  GEN1_ARRAY_DELETE(gammai23);
-  GEN1_ARRAY_DELETE(gammai33);
+  BSSN_APPLY_TO_GEN1_EXTRAS(GEN1_ARRAY_DELETE)
 }
 
 void BSSN::set_gammai_values(idx_t i, idx_t j, idx_t k)
@@ -89,9 +46,6 @@ void BSSN::set_paq_values(idx_t i, idx_t j, idx_t k, BSSNData *paq)
 
   // draw data from cache
   set_local_vals(paq);
-
-  // source values
-  set_source_vals(paq);
 
   // pre-compute re-used quantities
   // gammas & derivs first
@@ -302,18 +256,7 @@ void BSSN::clearSrc()
   LOOP3(i, j, k)
   {
     idx_t idx = NP_INDEX(i,j,k);
-
-    r_a[idx]   = 0.0;
-    S_a[idx]   = 0.0;
-    S1_a[idx]  = 0.0;
-    S2_a[idx]  = 0.0;
-    S3_a[idx]  = 0.0;
-    STF11_a[idx] = 0.0;
-    STF12_a[idx] = 0.0;
-    STF13_a[idx] = 0.0;
-    STF22_a[idx] = 0.0;
-    STF23_a[idx] = 0.0;
-    STF33_a[idx] = 0.0;
+    BSSN_ZERO_SOURCES()
   }
 }
 
@@ -327,107 +270,25 @@ void BSSN::init()
     idx = NP_INDEX(i,j,k);
 
     // default flat static vacuum spacetime.
-    gamma11_p[idx] = gamma11_a[idx] = gamma11_c[idx] = gamma11_f[idx]  = 1.0;
-    gamma12_p[idx] = gamma12_a[idx] = gamma12_c[idx] = gamma12_f[idx]  = 0.0;
-    gamma13_p[idx] = gamma13_a[idx] = gamma13_c[idx] = gamma13_f[idx]  = 0.0;
-    gamma22_p[idx] = gamma22_a[idx] = gamma22_c[idx] = gamma22_f[idx]  = 1.0;
-    gamma23_p[idx] = gamma23_a[idx] = gamma23_c[idx] = gamma23_f[idx]  = 0.0;
-    gamma33_p[idx] = gamma33_a[idx] = gamma33_c[idx] = gamma33_f[idx]  = 1.0;
-    
-    phi_p[idx]     = phi_a[idx]     = phi_c[idx]     = phi_f[idx]      = 0.0;
-    
-    A11_p[idx]     = A11_a[idx]     = A11_c[idx]     = A11_f[idx]      = 0.0;
-    A12_p[idx]     = A12_a[idx]     = A12_c[idx]     = A12_f[idx]      = 0.0;
-    A13_p[idx]     = A13_a[idx]     = A13_c[idx]     = A13_f[idx]      = 0.0;
-    A22_p[idx]     = A22_a[idx]     = A22_c[idx]     = A22_f[idx]      = 0.0;
-    A23_p[idx]     = A23_a[idx]     = A23_c[idx]     = A23_f[idx]      = 0.0;
-    A33_p[idx]     = A33_a[idx]     = A33_c[idx]     = A33_f[idx]      = 0.0;
+    BSSN_ZERO_ARRAYS(_p, idx)
+    BSSN_ZERO_ARRAYS(_a, idx)
+    BSSN_ZERO_ARRAYS(_c, idx)
+    BSSN_ZERO_ARRAYS(_f, idx)
 
-    K_p[idx]       = K_a[idx]       = K_c[idx]       = K_f[idx]        = 0.0;
-
-    Gamma1_p[idx]  = Gamma1_a[idx]  = Gamma1_c[idx]  = Gamma1_f[idx]   = 0.0;
-    Gamma2_p[idx]  = Gamma2_a[idx]  = Gamma2_c[idx]  = Gamma2_f[idx]   = 0.0;
-    Gamma3_p[idx]  = Gamma3_a[idx]  = Gamma3_c[idx]  = Gamma3_f[idx]   = 0.0;
-
-    #if Z4c_DAMPING > 0
-      theta_p[idx]  = theta_a[idx]  = theta_c[idx]  = theta_f[idx]   = 0.0;
-      Z1_p[idx]  = Z1_a[idx]  = Z1_c[idx]  = Z1_f[idx]   = 0.0;
-      Z2_p[idx]  = Z2_a[idx]  = Z2_c[idx]  = Z2_f[idx]   = 0.0;
-      Z3_p[idx]  = Z3_a[idx]  = Z3_c[idx]  = Z3_f[idx]   = 0.0;
-    #endif
-
-    dk0_slice_phi_a[idx] = 0.0;
-    KDx_a[idx] = 0.0;
-    KDy_a[idx] = 0.0;
-    KDz_a[idx] = 0.0;
-
-    r_a[idx]        = 0.0;
-    S_a[idx]        = 0.0;
-    S1_a[idx]       = 0.0;
-    S2_a[idx]       = 0.0;
-    S3_a[idx]       = 0.0;
-    STF11_a[idx]      = 0.0;
-    STF12_a[idx]      = 0.0;
-    STF13_a[idx]      = 0.0;
-    STF22_a[idx]      = 0.0;
-    STF23_a[idx]      = 0.0;
-    STF33_a[idx]      = 0.0;
+    BSSN_ZERO_GEN1_EXTRAS()
+    BSSN_ZERO_SOURCES()
   }
 }
-
-/* Set local source term values */
-void BSSN::set_source_vals(BSSNData *paq)
-{
-  idx_t idx = paq->idx;
-
-  paq->rho = r_a[idx];
-  paq->S = S_a[idx];
-
-  paq->S1 = S1_a[idx];
-  paq->S2 = S2_a[idx];
-  paq->S3 = S3_a[idx];
-
-  paq->STF11 = STF11_a[idx];
-  paq->STF12 = STF12_a[idx];
-  paq->STF13 = STF13_a[idx];
-  paq->STF22 = STF22_a[idx];
-  paq->STF23 = STF23_a[idx];
-  paq->STF33 = STF33_a[idx];
-}
-
 
 /* set current local field values */
 void BSSN::set_local_vals(BSSNData *paq)
 {
   SET_LOCAL_INDEXES;
 
-  // Pull out & store the metric at a point and adjacent points
-  SET_LOCAL_VALUES_P(gamma11);
-  SET_LOCAL_VALUES_P(gamma12);
-  SET_LOCAL_VALUES_P(gamma13);
-  SET_LOCAL_VALUES_P(gamma22);
-  SET_LOCAL_VALUES_P(gamma23);
-  SET_LOCAL_VALUES_P(gamma33);
-
-  SET_LOCAL_VALUES_P(gammai11);
-  SET_LOCAL_VALUES_P(gammai12);
-  SET_LOCAL_VALUES_P(gammai13);
-  SET_LOCAL_VALUES_P(gammai22);
-  SET_LOCAL_VALUES_P(gammai23);
-  SET_LOCAL_VALUES_P(gammai33);
-
   // Pull out values of quantities at a single point
-  SET_LOCAL_VALUES_P(phi);
-  SET_LOCAL_VALUES_P(K);
-  SET_LOCAL_VALUES_P(Gamma1);
-  SET_LOCAL_VALUES_P(Gamma2);
-  SET_LOCAL_VALUES_P(Gamma3);
-  SET_LOCAL_VALUES_P(A11);
-  SET_LOCAL_VALUES_P(A12);
-  SET_LOCAL_VALUES_P(A13);
-  SET_LOCAL_VALUES_P(A22);
-  SET_LOCAL_VALUES_P(A23);
-  SET_LOCAL_VALUES_P(A33);
+  BSSN_APPLY_TO_FIELDS(SET_LOCAL_VALUES_P);
+  BSSN_APPLY_TO_GEN1_EXTRAS(SET_LOCAL_VALUES_P);
+  BSSN_APPLY_TO_SOURCES(SET_LOCAL_VALUES_P);
 }
 
 
@@ -664,7 +525,7 @@ real_t BSSN::ev_K(BSSNData *paq)
 {
   return (
     pw2(paq->K + 2.0*paq->theta)/3.0 + paq->AijAij
-    + 4.0*PI*(paq->rho + paq->S)
+    + 4.0*PI*(paq->r + paq->S)
     - 1.0*JM_K_DAMPING_AMPLITUDE*paq->H*exp(-5.0*paq->phi)
     + Z4c_K1_DAMPING_AMPLITUDE*(1.0 - Z4c_K2_DAMPING_AMPLITUDE)*paq->theta
     - KO_dissipation_Q(paq->i, paq->j, paq->k, K_a)
@@ -794,13 +655,13 @@ real_t BSSN::hamiltonianConstraintMagMax()
 
 real_t BSSN::hamiltonianConstraintCalc(BSSNData *paq)
 {
-  return -exp(5.0*paq->phi)/8.0*(paq->ricci + 2.0/3.0*pw2(paq->K + 2.0*paq->theta) - paq->AijAij - 16.0*PI*paq->rho);
+  return -exp(5.0*paq->phi)/8.0*(paq->ricci + 2.0/3.0*pw2(paq->K + 2.0*paq->theta) - paq->AijAij - 16.0*PI*paq->r);
 }
 
 real_t BSSN::hamiltonianConstraintScale(BSSNData *paq)
 {
   // sqrt sum of sq. of terms for appx. mag / scale
-  return (exp(5.0*paq->phi)/8.0)*sqrt( pw2(paq->ricci) + pw2(paq->AijAij) + pw2(2.0/3.0*pw2(paq->K + 2.0*paq->theta)) + pw2(16.0*PI*paq->rho) );
+  return (exp(5.0*paq->phi)/8.0)*sqrt( pw2(paq->ricci) + pw2(paq->AijAij) + pw2(2.0/3.0*pw2(paq->K + 2.0*paq->theta)) + pw2(16.0*PI*paq->r) );
 }
 
 real_t BSSN::metricConstraintTotalMag()

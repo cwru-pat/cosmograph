@@ -75,6 +75,20 @@
   function(STF23);                      \
   function(STF33);
 
+#define BSSN_APPLY_TO_GEN1_EXTRAS(function) \
+  function(gammai11);                       \
+  function(gammai12);                       \
+  function(gammai13);                       \
+  function(gammai22);                       \
+  function(gammai23);                       \
+  function(gammai33);                       \
+  function(dk0_slice_phi);                  \
+  function(KDx);                            \
+  function(KDy);                            \
+  function(KDz);                            \
+  function(ricci);                          \
+  function(AijAij);
+
 #define BSSN_APPLY_TO_IJ_PERMS(function) \
   function(1, 1);                        \
   function(1, 2);                        \
@@ -126,11 +140,25 @@
 
 
 
-#define BSSN_ZERO_FIELD(field, reg, index) \
-  field##reg[index] = 0;
+#define BSSN_ZERO_FIELD(field, reg, idx) \
+  field##reg[idx] = 0.0;
 
-#define BSSN_ZERO_ARRAYS(reg, index) \
-  BSSN_APPLY_TO_FIELDS_ARGS(BSSN_ZERO_FIELD, reg, index)
+#define BSSN_ZERO_ARRAYS(reg, idx) \
+  BSSN_APPLY_TO_FIELDS_ARGS(BSSN_ZERO_FIELD, reg, idx)
+
+
+
+// macro requires idx to be set
+#define BSSN_ZERO_GEN1_FIELD(field) \
+  field##_a[idx] = 0.0;
+
+// macro requires idx to be set
+#define BSSN_ZERO_GEN1_EXTRAS() \
+  BSSN_APPLY_TO_GEN1_EXTRAS(BSSN_ZERO_GEN1_FIELD)
+
+// macro requires idx to be set
+#define BSSN_ZERO_SOURCES() \
+  BSSN_APPLY_TO_SOURCES(BSSN_ZERO_GEN1_FIELD)
 
 
 

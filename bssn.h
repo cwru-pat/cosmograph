@@ -16,20 +16,7 @@ class BSSN
   /* arrays for storing fields */
   BSSN_APPLY_TO_FIELDS(RK4_ARRAY_CREATE)
   BSSN_APPLY_TO_SOURCES(GEN1_ARRAY_CREATE)
-  GEN1_ARRAY_CREATE(gammai11);
-  GEN1_ARRAY_CREATE(gammai12);
-  GEN1_ARRAY_CREATE(gammai13);
-  GEN1_ARRAY_CREATE(gammai22);
-  GEN1_ARRAY_CREATE(gammai23);
-  GEN1_ARRAY_CREATE(gammai33);
-
-  // additional arrays for output of calculated quantities
-  GEN1_ARRAY_CREATE(dk0_slice_phi);
-  GEN1_ARRAY_CREATE(KDx);
-  GEN1_ARRAY_CREATE(KDy);
-  GEN1_ARRAY_CREATE(KDz);
-  GEN1_ARRAY_CREATE(ricci);
-  GEN1_ARRAY_CREATE(AijAij);
+  BSSN_APPLY_TO_GEN1_EXTRAS(GEN1_ARRAY_CREATE)
 
 public:
   std::map <std::string, real_t *> fields;
@@ -65,7 +52,6 @@ public:
 
     /* set current local field values */
       void set_local_vals(BSSNData *paq);
-      void set_source_vals(BSSNData *paq);
 
     /* Calculate independent quantities */
       void calculate_Acont(BSSNData *paq);

@@ -22,10 +22,8 @@ typedef struct {
   // trace-free ricci tensor components
   real_t ricciTF11, ricciTF12, ricciTF13, ricciTF22, ricciTF23, ricciTF33;
   real_t Uricci11, Uricci12, Uricci13, Uricci22, Uricci23, Uricci33;
-  real_t ricci; // ricci scalar
   real_t unitRicci; // ricci scalar
   // for constraint checking
-  real_t AijAij;
 
   // derivatives of phi
     // covariant double-derivatives 
@@ -38,13 +36,6 @@ typedef struct {
 
   // Contravariant (upstairs index) ext. curvature
   real_t Acont11, Acont12, Acont13, Acont22, Acont23, Acont33;
-
-  // inverse metric
-  real_t gammai11, gammai12, gammai13, gammai22, gammai23, gammai33;
-  real_t gammai11_adj[3][3][3], gammai12_adj[3][3][3], gammai13_adj[3][3][3],
-         gammai22_adj[3][3][3], gammai23_adj[3][3][3], gammai33_adj[3][3][3];
-  real_t gammai11_adj_ext[3][2], gammai12_adj_ext[3][2], gammai13_adj_ext[3][2],
-         gammai22_adj_ext[3][2], gammai23_adj_ext[3][2], gammai33_adj_ext[3][2];
 
   // Christoffel symbols
   real_t G111, G112, G113, G122, G123, G133,
@@ -85,11 +76,10 @@ typedef struct {
 
   // local copies of current field values
   BSSN_APPLY_TO_FIELDS(DECLARE_REAL_T)
-
   // Source terms
-  real_t rho, S;
-  real_t S1, S2, S3;
-  real_t STF11, STF12, STF13, STF22, STF23, STF33;
+  BSSN_APPLY_TO_SOURCES(DECLARE_REAL_T)
+  // "extra" fields
+  BSSN_APPLY_TO_GEN1_EXTRAS(DECLARE_REAL_T)
 
   // H constraint calc.
   real_t H;
@@ -102,7 +92,6 @@ typedef struct {
   #if Z4c_DAMPING <= 0
     real_t theta;
   #endif
-
 
 } BSSNData;
 
