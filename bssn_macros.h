@@ -7,14 +7,8 @@
 
 #if Z4c_DAMPING > 0
   #define Z4c_APPLY_TO_FIELDS(function)  \
-    function(Z1);                        \
-    function(Z2);                        \
-    function(Z3);                        \
     function(theta);
   #define Z4c_APPLY_TO_FIELDS_ARGS(function, ...) \
-    function(Z1, __VA_ARGS__);                    \
-    function(Z2, __VA_ARGS__);                    \
-    function(Z3, __VA_ARGS__);                    \
     function(theta, __VA_ARGS__);
 #else
   #define Z4c_APPLY_TO_FIELDS(function)
@@ -40,6 +34,7 @@
   function(Gamma1, __VA_ARGS__);                   \
   function(Gamma2, __VA_ARGS__);                   \
   function(Gamma3, __VA_ARGS__);                   \
+  function(alpha, __VA_ARGS__);                    \
   Z4c_APPLY_TO_FIELDS_ARGS(function, __VA_ARGS__)
 
 #define BSSN_APPLY_TO_FIELDS(function) \
@@ -60,6 +55,7 @@
   function(Gamma1);                    \
   function(Gamma2);                    \
   function(Gamma3);                    \
+  function(alpha);                     \
   Z4c_APPLY_TO_FIELDS(function)
 
 #define BSSN_APPLY_TO_SOURCES(function) \
@@ -212,6 +208,14 @@
     + paq->gammai##I##1*paq->gammai##J##3*paq->A13 + paq->gammai##I##2*paq->gammai##J##3*paq->A23 + paq->gammai##I##3*paq->gammai##J##3*paq->A33 \
   );
 
+// needs the gamma*ldlphi vars defined:
+// not actually trace free yet!
+#define BSSN_CALCULATE_DIDJALPHA(I, J) paq->D##I##D##J##aTF = double_derivative(paq->i, paq->j, paq->k, I, J, alpha_a) - ( \
+    (paq->G1##I##J + 2.0*( (1==I)*paq->d##J##phi + (1==J)*paq->d##I##phi - paq->gamma##I##J*gamma1ldlphi))*paq->d1a + \
+    (paq->G2##I##J + 2.0*( (2==I)*paq->d##J##phi + (2==J)*paq->d##I##phi - paq->gamma##I##J*gamma2ldlphi))*paq->d2a + \
+    (paq->G3##I##J + 2.0*( (3==I)*paq->d##J##phi + (3==J)*paq->d##I##phi - paq->gamma##I##J*gamma3ldlphi))*paq->d3a \
+  );
+
 // unitary piece only:
 // calculated using http://relativity.livingreviews.org/Articles/lrr-2011-6/fulltext.html
 #define BSSN_CALCULATE_RICCITF_UNITARY(I, J) paq->ricciTF##I##J = ( \
@@ -316,12 +320,12 @@
  */
 
 #define BSSN_DT_GAMMAIJ(I, J) ( \
-    - 2.0*paq->A##I##J \
+    - 2.0*paq->alpha*paq->A##I##J \
   )
 
 #define BSSN_DT_AIJ(I, J) ( \
-    exp(-4.0*paq->phi)*(paq->ricciTF##I##J - 8.0*PI*paq->STF##I##J) \
-    + ((paq->K + 2.0*paq->theta)*paq->A##I##J - 2.0*( \
+    exp(-4.0*paq->phi)*( paq->alpha*(paq->ricciTF##I##J - 8.0*PI*paq->STF##I##J) - paq->D##I##D##J##aTF ) \
+    + paq->alpha*((paq->K + 2.0*paq->theta)*paq->A##I##J - 2.0*( \
         paq->gammai11*paq->A1##I*paq->A1##J + paq->gammai12*paq->A1##I*paq->A2##J + paq->gammai13*paq->A1##I*paq->A3##J \
         + paq->gammai21*paq->A2##I*paq->A1##J + paq->gammai22*paq->A2##I*paq->A2##J + paq->gammai23*paq->A2##I*paq->A3##J \
         + paq->gammai31*paq->A3##I*paq->A1##J + paq->gammai32*paq->A3##I*paq->A2##J + paq->gammai33*paq->A3##I*paq->A3##J \
@@ -329,14 +333,15 @@
   )
 
 #define BSSN_DT_GAMMAI(I) ( \
-    + 2.0*( \
+    - 2.0*(paq->Acont##I##1*paq->d1a + paq->Acont##I##2*paq->d2a + paq->Acont##I##3*paq->d3a) \
+    + 2.0*paq->alpha*( \
         paq->G##I##11*paq->Acont11 + paq->G##I##22*paq->Acont22 + paq->G##I##33*paq->Acont33 \
           + 2.0*(paq->G##I##12*paq->Acont12 + paq->G##I##13*paq->Acont13 + paq->G##I##23*paq->Acont23) \
         - (1.0/3.0) * ( \
             2.0*(paq->gammai##I##1*paq->d1K + paq->gammai##I##2*paq->d2K + paq->gammai##I##3*paq->d3K) \
             + paq->gammai##I##1*paq->d1theta + paq->gammai##I##2*paq->d2theta + paq->gammai##I##3*paq->d3theta \
           ) \
-        - Z4c_K1_DAMPING_AMPLITUDE*( \
+        - 2.0*paq->alpha*Z4c_K1_DAMPING_AMPLITUDE*( \
             paq->Gamma##I - ( \
               paq->gammai11*paq->G##I##11 + paq->gammai22*paq->G##I##22 + paq->gammai33*paq->G##I##33 \
               + 2.0*(paq->gammai12*paq->G##I##12 + paq->gammai13*paq->G##I##13 + paq->gammai23*paq->G##I##23) \
@@ -392,7 +397,7 @@
 // metric derivs
 
 #define SET_DKM00(k) paq->d##k##m00 = DKM00(k);
-#define DKM00(k) 0.0;
+#define DKM00(k) -2.0*paq->alpha*paq->d##k##a;
 
 #define SET_DKM0I(k, i) paq->d##k##m0##i = DKM0I(k, i);
 #define DKM0I(k, i) \
@@ -410,7 +415,7 @@
 
 #define SET_M00() paq->m00 = M00();
 #define M00() (\
-      -1.0 + exp(4.0*paq->phi) \
+      -paq->alpha*paq->alpha \
     );
 
 #define SET_M0I(i) paq->m0##i = M0I(i);
@@ -422,7 +427,7 @@
 // inverse metric
 
 #define SET_Mi00() paq->mi00 = Mi00();
-#define Mi00() -1.0;
+#define Mi00() -1.0/paq->alpha/paq->alpha;
 
 #define SET_Mi0I(i) paq->mi0##i = Mi0I(i);
 #define Mi0I(i) 0.0;
@@ -472,6 +477,11 @@
 #define D2D1phi D1D2phi
 #define D3D1phi D1D3phi
 #define D3D2phi D2D3phi
+
+// covariant double-derivatives of alpha
+#define D2D1aTF D1D2aTF
+#define D3D1aTF D1D3aTF
+#define D3D2aTF D2D3aTF
 
 // Inverse ext. curvature
 #define Acont21 Acont12

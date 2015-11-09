@@ -53,7 +53,7 @@ void BSSN::set_paq_values(idx_t i, idx_t j, idx_t k, BSSNData *paq)
   calculate_dgamma(paq);
   calculate_ddgamma(paq);
   calculate_dgammai(paq);
-  calculate_dphi(paq);
+  calculate_dalpha_dphi(paq);
   calculate_dK(paq);
   #if Z4c_DAMPING > 0
     calculate_dtheta(paq);
@@ -63,6 +63,7 @@ void BSSN::set_paq_values(idx_t i, idx_t j, idx_t k, BSSNData *paq)
   calculate_conformal_christoffels(paq);
   // DDw depend on christoffels, metric, and derivs
   calculateDDphi(paq);
+  calculateDDalphaTF(paq);
   // Ricci depends on DDphi
   calculateRicciTF(paq);
 
@@ -277,6 +278,12 @@ void BSSN::init()
 
     BSSN_ZERO_GEN1_EXTRAS()
     BSSN_ZERO_SOURCES()
+
+    // non-zero fields:
+    gamma11_p[idx] = gamma11_a[idx] = gamma11_c[idx] = gamma11_f[idx] = 1.0;
+    gamma22_p[idx] = gamma22_a[idx] = gamma22_c[idx] = gamma22_f[idx] = 1.0;
+    gamma33_p[idx] = gamma33_a[idx] = gamma33_c[idx] = gamma33_f[idx] = 1.0;
+    alpha_p[idx] = alpha_a[idx] = alpha_c[idx] = alpha_f[idx] = 1.0;
   }
 }
 
@@ -327,12 +334,17 @@ void BSSN::calculate_dgammai(BSSNData *paq)
   BSSN_APPLY_TO_IJK_PERMS(BSSN_CALCULATE_DGAMMAI);
 }
 
-void BSSN::calculate_dphi(BSSNData *paq)
+void BSSN::calculate_dalpha_dphi(BSSNData *paq)
 {
   // normal derivatives of phi
   paq->d1phi = derivative(paq->i, paq->j, paq->k, 1, phi_a);
   paq->d2phi = derivative(paq->i, paq->j, paq->k, 2, phi_a);
   paq->d3phi = derivative(paq->i, paq->j, paq->k, 3, phi_a);
+
+  // normal derivatives of alpha
+  paq->d1a = derivative(paq->i, paq->j, paq->k, 1, alpha_a);
+  paq->d2a = derivative(paq->i, paq->j, paq->k, 2, alpha_a);
+  paq->d3a = derivative(paq->i, paq->j, paq->k, 3, alpha_a);
 }
 
 void BSSN::calculate_dK(BSSNData *paq)
@@ -383,6 +395,31 @@ void BSSN::calculateDDphi(BSSNData *paq)
   paq->D1D2phi = double_derivative(i, j, k, 1, 2, phi_a) - (paq->G112*paq->d1phi + paq->G212*paq->d2phi + paq->G312*paq->d3phi);
   paq->D1D3phi = double_derivative(i, j, k, 1, 3, phi_a) - (paq->G113*paq->d1phi + paq->G213*paq->d2phi + paq->G313*paq->d3phi);
   paq->D2D3phi = double_derivative(i, j, k, 2, 3, phi_a) - (paq->G123*paq->d1phi + paq->G223*paq->d2phi + paq->G323*paq->d3phi);  
+}
+
+void BSSN::calculateDDalphaTF(BSSNData *paq)
+{
+  // double covariant derivatives - use non-unitary metric - extra pieces that depend on phi!
+  // the gammaIldlphi are needed for the BSSN_CALCULATE_DIDJALPHA macro
+  real_t gamma1ldlphi = paq->gammai11*paq->d1phi + paq->gammai12*paq->d2phi + paq->gammai13*paq->d3phi;
+  real_t gamma2ldlphi = paq->gammai21*paq->d1phi + paq->gammai22*paq->d2phi + paq->gammai23*paq->d3phi;
+  real_t gamma3ldlphi = paq->gammai31*paq->d1phi + paq->gammai32*paq->d2phi + paq->gammai33*paq->d3phi;
+  // Calculates full (not trace-free) piece:
+  BSSN_APPLY_TO_IJ_PERMS(BSSN_CALCULATE_DIDJALPHA)
+
+  // subtract trace
+  // Note that \bar{gamma}_{ij}*\bar{gamma}^{kl}R_{kl} = (unbarred), used below.
+  paq->DDaTR = paq->gammai11*paq->D1D1aTF + paq->gammai22*paq->D2D2aTF + paq->gammai33*paq->D3D3aTF
+      + 2.0*(paq->gammai12*paq->D1D2aTF + paq->gammai13*paq->D1D3aTF + paq->gammai23*paq->D2D3aTF);
+  paq->D1D1aTF -= (1/3.0)*paq->gamma11*paq->DDaTR;
+  paq->D1D2aTF -= (1/3.0)*paq->gamma12*paq->DDaTR;
+  paq->D1D3aTF -= (1/3.0)*paq->gamma13*paq->DDaTR;
+  paq->D2D2aTF -= (1/3.0)*paq->gamma22*paq->DDaTR;
+  paq->D2D3aTF -= (1/3.0)*paq->gamma23*paq->DDaTR;
+  paq->D3D3aTF -= (1/3.0)*paq->gamma33*paq->DDaTR;
+
+  // scale trace back (=> contracted with "real" metric)
+  paq->DDaTR *= exp(-4.0*paq->phi);
 }
 
 /* Calculate trace-free ricci tensor components */
@@ -524,8 +561,11 @@ real_t BSSN::ev_Gamma3(BSSNData *paq) { return BSSN_DT_GAMMAI(3) - KO_dissipatio
 real_t BSSN::ev_K(BSSNData *paq)
 {
   return (
-    pw2(paq->K + 2.0*paq->theta)/3.0 + paq->AijAij
-    + 4.0*PI*(paq->r + paq->S)
+    - paq->DDaTR
+    + paq->alpha*(
+      pw2(paq->K + 2.0*paq->theta)/3.0 + paq->AijAij
+    )
+    + 4.0*PI*paq->alpha*(paq->r + paq->S)
     - 1.0*JM_K_DAMPING_AMPLITUDE*paq->H*exp(-5.0*paq->phi)
     + Z4c_K1_DAMPING_AMPLITUDE*(1.0 - Z4c_K2_DAMPING_AMPLITUDE)*paq->theta
     - KO_dissipation_Q(paq->i, paq->j, paq->k, K_a)
@@ -536,11 +576,16 @@ real_t BSSN::ev_phi(BSSNData *paq)
 {
   return (
     0.1*BS_H_DAMPING_AMPLITUDE*dt*paq->H
-    -1.0/6.0*(
+    -1.0/6.0*paq->alpha*(
       paq->K + 2.0*paq->theta
     )
     - KO_dissipation_Q(paq->i, paq->j, paq->k, phi_a)
   );
+}
+
+real_t BSSN::ev_alpha(BSSNData *paq)
+{
+  return 0.0;
 }
 
 
@@ -548,36 +593,11 @@ real_t BSSN::ev_phi(BSSNData *paq)
 real_t BSSN::ev_theta(BSSNData *paq)
 {
   return (
-    0.5*paq->H
-    - Z4c_K1_DAMPING_AMPLITUDE*(2.0 + Z4c_K2_DAMPING_AMPLITUDE)*paq->theta
+    0.5*paq->alpha*(
+      paq->ricci + 2.0/3.0*pw2(paq->K + 2.0*paq->theta) - paq->AijAij - 16.0*PI*paq->r
+    )
+    - paq->alpha*Z4c_K1_DAMPING_AMPLITUDE*(2.0 + Z4c_K2_DAMPING_AMPLITUDE)*paq->theta
   ) - KO_dissipation_Q(paq->i, paq->j, paq->k, theta_a);
-}
-
-real_t BSSN::ev_Z1(BSSNData *paq)
-{
-  return (
-    BSSN_MI(1)
-    + derivative(paq->i, paq->j, paq->k, 1, theta_a)
-    - Z4c_K1_DAMPING_AMPLITUDE*paq->Z1
-  ) - KO_dissipation_Q(paq->i, paq->j, paq->k, Z1_a);
-}
-
-real_t BSSN::ev_Z2(BSSNData *paq)
-{
-  return (
-    BSSN_MI(2)
-    + derivative(paq->i, paq->j, paq->k, 2, theta_a)
-    - Z4c_K1_DAMPING_AMPLITUDE*paq->Z2
-  ) - KO_dissipation_Q(paq->i, paq->j, paq->k, Z2_a);
-}
-
-real_t BSSN::ev_Z3(BSSNData *paq)
-{
-  return (
-    BSSN_MI(3)
-    + derivative(paq->i, paq->j, paq->k, 3, theta_a)
-    - Z4c_K1_DAMPING_AMPLITUDE*paq->Z3
-  ) - KO_dissipation_Q(paq->i, paq->j, paq->k, Z3_a);
 }
 #endif
 

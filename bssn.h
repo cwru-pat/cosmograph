@@ -58,7 +58,7 @@ public:
       void calculate_dgamma(BSSNData *paq);
       void calculate_ddgamma(BSSNData *paq);
       void calculate_dgammai(BSSNData *paq);
-      void calculate_dphi(BSSNData *paq);
+      void calculate_dalpha_dphi(BSSNData *paq);
       void calculate_dK(BSSNData *paq);
       #if Z4c_DAMPING > 0
         void calculate_dtheta(BSSNData *paq);
@@ -70,6 +70,7 @@ public:
     /* Calculate doubly-"dependent" quantities (depend on previously calc'd vals) */
       void calculateDDphi(BSSNData *paq);
       void calculateRicciTF(BSSNData *paq);
+      void calculateDDalphaTF(BSSNData *paq);
 
     /* (optional) Calculations of additional quantities */
       void set_KillingDelta(idx_t i, idx_t j, idx_t k, BSSNData *paq);
@@ -94,6 +95,8 @@ public:
     real_t ev_Gamma1(BSSNData *paq);
     real_t ev_Gamma2(BSSNData *paq);
     real_t ev_Gamma3(BSSNData *paq);
+
+    real_t ev_alpha(BSSNData *paq);
 
     #if Z4c_DAMPING > 0
       real_t ev_Z1(BSSNData *paq);
