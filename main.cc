@@ -58,6 +58,8 @@ int main(int argc, char **argv)
     // "conformal" initial conditions:
     LOG(iodata.log, "Using conformal initial conditions...\n");
     set_conformal_ICs(bssnSim.fields, staticSim.fields, &fourier, &iodata);
+    // LOG(iodata.log, "Using stability test initial conditions...\n");
+    // set_stability_test_ICs(bssnSim.fields, staticSim.fields);
 
     // Trial FRW class
     staticSim.addBSSNSrc(bssnSim.fields);
@@ -235,26 +237,23 @@ int main(int argc, char **argv)
         }
 
         // Constraint Violation Calculations
-        real_t mean_hamiltonian_constraint = bssnSim.hamiltonianConstraintMagMean();
-        real_t stdev_hamiltonian_constraint = bssnSim.hamiltonianConstraintMagStDev(mean_hamiltonian_constraint);
-        real_t max_hamiltonian_constraint = bssnSim.hamiltonianConstraintMagMax();
-        real_t mean_momentum_constraint = bssnSim.momentumConstraintMagMean();
-        real_t stdev_momentum_constraint = bssnSim.momentumConstraintMagStDev(mean_momentum_constraint);
-        real_t max_momentum_constraint = bssnSim.momentumConstraintMagMax();
-        io_dump_data(mean_hamiltonian_constraint, &iodata, "H_violations");
-        io_dump_data(stdev_hamiltonian_constraint, &iodata, "H_violations");
-        io_dump_data(max_hamiltonian_constraint, &iodata, "H_violations");
-        io_dump_data(mean_momentum_constraint, &iodata, "M_violations");
-        io_dump_data(stdev_momentum_constraint, &iodata, "M_violations");
-        io_dump_data(max_momentum_constraint, &iodata, "M_violations");
+        real_t mean_hamiltonian_constraint_mag = bssnSim.hamiltonianConstraintMagMean();
+        real_t stdev_hamiltonian_constraint_mag = bssnSim.hamiltonianConstraintMagStDev(mean_hamiltonian_constraint_mag);
+        real_t max_hamiltonian_constraint_mag = bssnSim.hamiltonianConstraintMagMax();
+        io_dump_data(mean_hamiltonian_constraint_mag, &iodata, "H_violations");
+        io_dump_data(stdev_hamiltonian_constraint_mag, &iodata, "H_violations");
+        io_dump_data(max_hamiltonian_constraint_mag, &iodata, "H_violations");
 
-        // LOG(iodata.log,
-        //   "\nFractional Mean / St. Dev Momentum constraint violation is: " <<
-        //   mean_momentum_constraint << " / " << stdev_momentum_constraint <<
-        //   "\nFractional Mean / St. Dev Hamiltonian constraint violation is: " <<
-        //   mean_hamiltonian_constraint << " / " << stdev_hamiltonian_constraint <<
-        //   "\n"
-        // );
+        real_t max_hamiltonian_constraint = bssnSim.hamiltonianConstraintMax();
+        LOG(iodata.log, "\nMax H violation: " << max_hamiltonian_constraint << "\n");
+        io_dump_data(max_hamiltonian_constraint, &iodata, "H_violations");
+
+        real_t mean_momentum_constraint_mag = bssnSim.momentumConstraintMagMean();
+        real_t stdev_momentum_constraint_mag = bssnSim.momentumConstraintMagStDev(mean_momentum_constraint_mag);
+        real_t max_momentum_constraint_mag = bssnSim.momentumConstraintMagMax();
+        io_dump_data(mean_momentum_constraint_mag, &iodata, "M_violations");
+        io_dump_data(stdev_momentum_constraint_mag, &iodata, "M_violations");
+        io_dump_data(max_momentum_constraint_mag, &iodata, "M_violations");
 
         if(numNaNs(bssnSim.fields["phi_a"]) > 0)
         {

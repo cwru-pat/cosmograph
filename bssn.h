@@ -112,6 +112,8 @@ public:
     real_t hamiltonianConstraintMagStDev(real_t mean);
     real_t hamiltonianConstraintMagMax();
 
+    real_t hamiltonianConstraintMax();
+
     real_t momentumConstraintCalc(BSSNData *paq, idx_t d);
     real_t momentumConstraintScale(BSSNData *paq, idx_t d);
     real_t momentumConstraintMagMean();

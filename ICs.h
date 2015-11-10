@@ -21,15 +21,12 @@ void set_conformal_ICs(
   std::map <std::string, real_t *> & hydro_fields,
   Fourier *fourier, IOData *iod);
 
-void set_flat_dynamic_ICs(
+void set_stability_test_ICs(
   std::map <std::string, real_t *> & bssn_fields,
-  std::map <std::string, real_t *> & hydro_fields,
-  Fourier *fourier, IOData *iod);
+  std::map <std::string, real_t *> & static_fields);
 
-void set_flat_static_ICs(
-  std::map <std::string, real_t *> & bssn_fields,
-  std::map <std::string, real_t *> & hydro_fields,
-  Fourier *fourier, IOData *iod);
+void set_linear_wave_ICs(
+  std::map <std::string, real_t *> & bssn_fields);
 
 } // namespace cosmo
 

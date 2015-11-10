@@ -705,6 +705,30 @@ real_t BSSN::metricConstraintTotalMag()
   return constraint_mag;
 }
 
+real_t BSSN::hamiltonianConstraintMax()
+{
+  idx_t i, j, k;
+  real_t max_hamiltonian_constraint = 0.0;
+
+  #pragma omp parallel for default(shared) private(i, j, k)
+  LOOP3(i,j,k)
+  {
+    BSSNData b_paq = {0};
+    set_paq_values(i, j, k, &b_paq);
+    real_t violation = hamiltonianConstraintCalc(&b_paq);
+
+    #pragma omp critical
+    {
+      if(fabs(violation) > max_hamiltonian_constraint)
+      {
+        max_hamiltonian_constraint = fabs(violation);
+      }
+    }
+  }
+
+  return max_hamiltonian_constraint;
+}
+
 real_t BSSN::momentumConstraintMagMean()
 {
   idx_t i, j, k;

@@ -1,7 +1,7 @@
 #ifndef COSMO_DEFINES
 #define COSMO_DEFINES
 
-#define N 128
+#define N 64
 #define NX N
 #define NY N
 #define NZ N
@@ -19,8 +19,8 @@
 #define BS_H_DAMPING_AMPLITUDE 40.0
 #define JM_K_DAMPING_AMPLITUDE 0.0
 
-#define Z4c_DAMPING 0
-#define Z4c_K1_DAMPING_AMPLITUDE 0.0
+#define Z4c_DAMPING 1
+#define Z4c_K1_DAMPING_AMPLITUDE 0.05
 #define Z4c_K2_DAMPING_AMPLITUDE 0.0
 
 // Stencil order
