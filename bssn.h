@@ -4,6 +4,7 @@
 #include "cosmo.h"
 #include "globals.h"
 
+#include "frw.h"
 #include "bssn_data.h"
 #include "bssn_macros.h"
 
@@ -31,16 +32,16 @@ public:
     void regSwap_c_a();
 
     /* functions to outline / perform RK integration */
-    void step(BSSNData *paq);
+    void step(BSSNData *paq, FRW<real_t> *frw);
     void stepInit();
-    void K1Calc(BSSNData *paq);
-    void K1CalcPt(idx_t i, idx_t j, idx_t k, BSSNData *paq);
-    void K2Calc(BSSNData *paq);
-    void K2CalcPt(idx_t i, idx_t j, idx_t k, BSSNData *paq);
-    void K3Calc(BSSNData *paq);
-    void K3CalcPt(idx_t i, idx_t j, idx_t k, BSSNData *paq);
-    void K4Calc(BSSNData *paq);
-    void K4CalcPt(idx_t i, idx_t j, idx_t k, BSSNData *paq);
+    void K1Calc(BSSNData *paq, FRW<real_t> *frw);
+    void K1CalcPt(idx_t i, idx_t j, idx_t k, BSSNData *paq, FRW<real_t> *frw);
+    void K2Calc(BSSNData *paq, FRW<real_t> *frw);
+    void K2CalcPt(idx_t i, idx_t j, idx_t k, BSSNData *paq, FRW<real_t> *frw);
+    void K3Calc(BSSNData *paq, FRW<real_t> *frw);
+    void K3CalcPt(idx_t i, idx_t j, idx_t k, BSSNData *paq, FRW<real_t> *frw);
+    void K4Calc(BSSNData *paq, FRW<real_t> *frw);
+    void K4CalcPt(idx_t i, idx_t j, idx_t k, BSSNData *paq, FRW<real_t> *frw);
     void stepTerm();    
 
   /* functions to pre-calculate quantities before RK steps */
@@ -48,12 +49,12 @@ public:
     void set_detgamma(idx_t i, idx_t j, idx_t k);
 
   /* calculating quantities during an RK step */
-    void set_paq_values(idx_t i, idx_t j, idx_t k, BSSNData *paq);
+    void set_paq_values(idx_t i, idx_t j, idx_t k, BSSNData *paq, FRW<real_t> *frw);
 
     /* set current local field values */
       void set_local_vals(BSSNData *paq);
 
-    /* Calculate independent quantities */
+    /* Calculate quantities only dependent on FRW soln in paq*/
       void calculate_Acont(BSSNData *paq);
       void calculate_dgamma(BSSNData *paq);
       void calculate_ddgamma(BSSNData *paq);
@@ -98,6 +99,8 @@ public:
 
     real_t ev_alpha(BSSNData *paq);
 
+    real_t ev_rho0(BSSNData *paq);
+
     #if Z4c_DAMPING > 0
       real_t ev_Z1(BSSNData *paq);
       real_t ev_Z2(BSSNData *paq);
@@ -106,21 +109,17 @@ public:
     #endif
 
   /* constraint violation calculations */
-    real_t hamiltonianConstraintCalc(BSSNData *paq);
-    real_t hamiltonianConstraintScale(BSSNData *paq);
-    real_t hamiltonianConstraintMagMean();
-    real_t hamiltonianConstraintMagStDev(real_t mean);
-    real_t hamiltonianConstraintMagMax();
-
-    real_t hamiltonianConstraintMax();
+    void setHamiltonianConstraintCalcs(real_t H_values[7], FRW<real_t> *frw, bool reset_paq);
+    real_t hamiltonianConstraintCalc(idx_t idx);
+    real_t hamiltonianConstraintScale(idx_t idx);
 
     real_t momentumConstraintCalc(BSSNData *paq, idx_t d);
     real_t momentumConstraintScale(BSSNData *paq, idx_t d);
-    real_t momentumConstraintMagMean();
-    real_t momentumConstraintMagStDev(real_t mean);
-    real_t momentumConstraintMagMax();
+    real_t momentumConstraintMagMean(FRW<real_t> *frw);
+    real_t momentumConstraintMagStDev(real_t mean, FRW<real_t> *frw);
+    real_t momentumConstraintMagMax(FRW<real_t> *frw);
 
-    real_t metricConstraintTotalMag();
+    real_t metricConstraintTotalMag(FRW<real_t> *frw);
 
 };
 

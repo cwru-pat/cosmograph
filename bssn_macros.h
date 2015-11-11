@@ -35,6 +35,7 @@
   function(Gamma2, __VA_ARGS__);                   \
   function(Gamma3, __VA_ARGS__);                   \
   function(alpha, __VA_ARGS__);                    \
+  function(rho0, __VA_ARGS__);                     \
   Z4c_APPLY_TO_FIELDS_ARGS(function, __VA_ARGS__)
 
 #define BSSN_APPLY_TO_FIELDS(function) \
@@ -56,6 +57,7 @@
   function(Gamma2);                    \
   function(Gamma3);                    \
   function(alpha);                     \
+  function(rho0);                      \
   Z4c_APPLY_TO_FIELDS(function)
 
 #define BSSN_APPLY_TO_SOURCES(function) \

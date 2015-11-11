@@ -65,8 +65,11 @@ int main(int argc, char **argv)
     staticSim.addBSSNSrc(bssnSim.fields);
     real_t frw_rho = average(bssnSim.fields["r_a"]);
     real_t frw_K0  = -sqrt(24.0*PI*frw_rho);
-    FRW<real_t> frw (0.0, frw_K0 /* K */);
-    frw.addFluid(frw_rho /* rho */, 0.0 /* 'w' */);
+    // FRW<real_t> frw (0.0, frw_K0 /* K */);
+    // frw.addFluid(frw_rho /* rho */, 0.0 /* 'w' */);
+    // no background for now
+    FRW<real_t> frw (0.0, 0.0);
+    frw.addFluid(0.0, 0.0);
 
   _timer["init"].stop();
 
@@ -94,7 +97,7 @@ int main(int argc, char **argv)
       LOOP3(i,j,k)
       {
         BSSNData b_paq = {0}; // data structure associated with bssn sim
-        bssnSim.set_paq_values(i,j,k,&b_paq);
+        bssnSim.set_paq_values(i,j,k,&b_paq, &frw);
         // Additionally set KD (killing vector "Delta" quantities)
         bssnSim.set_KillingDelta(i, j, k, &b_paq);
       }
@@ -118,7 +121,7 @@ int main(int argc, char **argv)
     LOOP3(i, j, k)
     {
       BSSNData b_paq = {0}; // data structure associated with bssn sim
-      bssnSim.K1CalcPt(i, j, k, &b_paq);
+      bssnSim.K1CalcPt(i, j, k, &b_paq, &frw);
     }
 
     // Intermediate RK step is now in _c register, move to _a for use in next step.
@@ -140,7 +143,7 @@ int main(int argc, char **argv)
       LOOP3(i, j, k)
       {
         BSSNData b_paq = {0}; // data structure associated with bssn sim
-        bssnSim.K2CalcPt(i, j, k, &b_paq);
+        bssnSim.K2CalcPt(i, j, k, &b_paq, &frw);
       }
 
       // Intermediate RK step is now in _c register, move to _a for use in next step.
@@ -160,7 +163,7 @@ int main(int argc, char **argv)
       LOOP3(i, j, k)
       {
         BSSNData b_paq = {0}; // data structure associated with bssn sim
-        bssnSim.K3CalcPt(i, j, k, &b_paq);
+        bssnSim.K3CalcPt(i, j, k, &b_paq, &frw);
       }
 
       // Intermediate RK step is now in _c register, move to _a for use in next step.
@@ -180,7 +183,7 @@ int main(int argc, char **argv)
       LOOP3(i, j, k)
       {
         BSSNData b_paq = {0}; // data structure associated with bssn sim
-        bssnSim.K4CalcPt(i, j, k, &b_paq);
+        bssnSim.K4CalcPt(i, j, k, &b_paq, &frw);
       }
 
     // Wrap up
@@ -218,6 +221,7 @@ int main(int argc, char **argv)
       if(s%iodata.meta_output_interval == 0)
       {
         idx_t isNaN = 0;
+        real_t H_calcs[7];
 
         // make sure clean data is in _a array
         // Set values at points
@@ -233,24 +237,19 @@ int main(int argc, char **argv)
         #pragma omp parallel for default(shared) private(i, j, k)
         LOOP3(i, j, k) {
           BSSNData b_paq = {0}; // data structure associated with bssn sim
-          bssnSim.set_paq_values(i,j,k,&b_paq);
+          bssnSim.set_paq_values(i,j,k,&b_paq, &frw);
         }
 
         // Constraint Violation Calculations
-        real_t mean_hamiltonian_constraint_mag = bssnSim.hamiltonianConstraintMagMean();
-        real_t stdev_hamiltonian_constraint_mag = bssnSim.hamiltonianConstraintMagStDev(mean_hamiltonian_constraint_mag);
-        real_t max_hamiltonian_constraint_mag = bssnSim.hamiltonianConstraintMagMax();
-        io_dump_data(mean_hamiltonian_constraint_mag, &iodata, "H_violations");
-        io_dump_data(stdev_hamiltonian_constraint_mag, &iodata, "H_violations");
-        io_dump_data(max_hamiltonian_constraint_mag, &iodata, "H_violations");
+        bssnSim.setHamiltonianConstraintCalcs(H_calcs, &frw, false);
+        io_dump_data(H_calcs[4], &iodata, "H_violations"); // mean(H/[H])
+        io_dump_data(H_calcs[5], &iodata, "H_violations"); // stdev(H/[H])
+        io_dump_data(H_calcs[6], &iodata, "H_violations"); // mean(H/[H])
+        io_dump_data(H_calcs[2], &iodata, "H_violations"); // max(H)
 
-        real_t max_hamiltonian_constraint = bssnSim.hamiltonianConstraintMax();
-        LOG(iodata.log, "\nMax H violation: " << max_hamiltonian_constraint << "\n");
-        io_dump_data(max_hamiltonian_constraint, &iodata, "H_violations");
-
-        real_t mean_momentum_constraint_mag = bssnSim.momentumConstraintMagMean();
-        real_t stdev_momentum_constraint_mag = bssnSim.momentumConstraintMagStDev(mean_momentum_constraint_mag);
-        real_t max_momentum_constraint_mag = bssnSim.momentumConstraintMagMax();
+        real_t mean_momentum_constraint_mag = bssnSim.momentumConstraintMagMean(&frw);
+        real_t stdev_momentum_constraint_mag = bssnSim.momentumConstraintMagStDev(mean_momentum_constraint_mag, &frw);
+        real_t max_momentum_constraint_mag = bssnSim.momentumConstraintMagMax(&frw);
         io_dump_data(mean_momentum_constraint_mag, &iodata, "M_violations");
         io_dump_data(stdev_momentum_constraint_mag, &iodata, "M_violations");
         io_dump_data(max_momentum_constraint_mag, &iodata, "M_violations");

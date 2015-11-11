@@ -37,6 +37,19 @@ public:
   {
     return K;
   }
+  RT get_rho()
+  {
+    RT rho_tot = 0;
+    for(auto& x: fluids)
+    {
+      // source is 4*pi*(3*rho + S)
+      // = 4*pi*(3*rho + 3*P)
+      // = 12*pi*rho*(1 + w)
+      rho_tot += x.first;
+    }
+
+    return rho_tot;
+  }
 };
 
 template <typename RT>

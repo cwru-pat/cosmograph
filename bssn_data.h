@@ -100,6 +100,11 @@ typedef struct {
     real_t theta;
   #endif
 
+  // Reference FRW quantities
+  real_t phi_FRW;
+  real_t K_FRW;
+  real_t rho_FRW;
+
 } BSSNData;
 
 } /* namespace cosmo */

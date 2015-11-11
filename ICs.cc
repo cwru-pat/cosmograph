@@ -152,27 +152,27 @@ void set_conformal_ICs(
 
   // Make sure min density value > 0
   // Set conserved density variable field
-  real_t min = bssn_fields["r_a"][NP_INDEX(0,0,0)] + icd.rho_K_matter;
+  real_t min = icd.rho_K_matter;
   real_t max = min;
   LOOP3(i,j,k)
   {
-    // add bad ICs to K
+    idx_t idx = NP_INDEX(i,j,k);
 
-    bssn_fields["K_p"][NP_INDEX(i,j,k)] = -sqrt(24.0*PI*(icd.rho_K_matter));
-    bssn_fields["K_f"][NP_INDEX(i,j,k)] = -sqrt(24.0*PI*(icd.rho_K_matter));
+    bssn_fields["K_p"][idx] = -sqrt(24.0*PI*(icd.rho_K_matter));
+    bssn_fields["K_f"][idx] = -sqrt(24.0*PI*(icd.rho_K_matter));
 
-    static_field["D_a"][NP_INDEX(i,j,k)] = icd.rho_K_matter + bssn_fields["r_a"][NP_INDEX(i,j,k)];
-    static_field["D_a"][NP_INDEX(i,j,k)] *= exp(6.0*bssn_fields["phi_p"][NP_INDEX(i,j,k)]);
+    static_field["D_a"][idx] = icd.rho_K_matter + bssn_fields["r_a"][idx];
+    static_field["D_a"][idx] *= exp(6.0*bssn_fields["phi_p"][idx]);
 
-    if(static_field["D_a"][NP_INDEX(i,j,k)] < min)
+    if(static_field["D_a"][idx] < min)
     {
-      min = static_field["D_a"][NP_INDEX(i,j,k)];
+      min = static_field["D_a"][idx];
     }
-    if(static_field["D_a"][NP_INDEX(i,j,k)] > max)
+    if(static_field["D_a"][idx] > max)
     {
-      max = static_field["D_a"][NP_INDEX(i,j,k)];
+      max = static_field["D_a"][idx];
     }
-    if(static_field["D_a"][NP_INDEX(i,j,k)] != static_field["D_a"][NP_INDEX(i,j,k)])
+    if(static_field["D_a"][idx] != static_field["D_a"][idx])
     {
       LOG(iod->log, "Error: NaN energy density.\n");
       throw -1;
@@ -188,7 +188,18 @@ void set_conformal_ICs(
     throw -1;
   }
 
-  // populate "field" with random values
+  #if MATTER_IN_RHO0
+  // transfer matter content to BSSN's rho0 field & remove from D and external source fields
+  LOOP3(i,j,k)
+  {
+    idx_t idx = NP_INDEX(i,j,k); 
+    bssn_fields["rho0_a"][idx] = bssn_fields["rho0_f"][idx] = bssn_fields["rho0_p"][idx]
+      = icd.rho_K_matter + bssn_fields["r_a"][idx];
+    static_field["D_a"][idx] = bssn_fields["r_a"][idx] = 0.0;
+  }
+  #endif
+
+  // populate field with random values
   std::random_device rd;
   std::mt19937 gen(7.0 /*rd()*/);
   std::normal_distribution<real_t> gaussian_distribution;

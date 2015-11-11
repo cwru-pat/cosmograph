@@ -23,6 +23,9 @@
 #define Z4c_K1_DAMPING_AMPLITUDE 0.05
 #define Z4c_K2_DAMPING_AMPLITUDE 0.0
 
+// alternative matter coupling
+#define MATTER_IN_RHO0 false
+
 // Stencil order
 #define STENCIL_ORDER(function) function##6
 
