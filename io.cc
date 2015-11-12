@@ -5,11 +5,11 @@
 #include <sstream>
 
 #define DETAILS(field) \
-  real_t avg_##field = conformal_average(bssn_fields[#field "_a"], bssn_fields["phi_a"]); \
-  sprintf(data, "%g\t", (double) avg_##field); \
+  real_t avg_##field = conformal_average(bssn_fields[#field "_a"], bssn_fields["DIFFphi_a"], phi_FRW); \
+  sprintf(data, "%.15g\t", (double) avg_##field); \
   gzwrite(datafile, data, strlen(data)); \
-  real_t std_##field = conformal_standard_deviation(bssn_fields[#field "_a"], bssn_fields["phi_a"], avg_##field); \
-  sprintf(data, "%g\t", (double) std_##field); \
+  real_t std_##field = conformal_standard_deviation(bssn_fields[#field "_a"], bssn_fields["DIFFphi_a"], phi_FRW, avg_##field); \
+  sprintf(data, "%.15g\t", (double) std_##field); \
   gzwrite(datafile, data, strlen(data));
 
 
@@ -58,38 +58,28 @@ void io_config_backup(IOData *iodata, std::string config_file)
 
 void io_data_dump(std::map <std::string, real_t *> & bssn_fields,
                   std::map <std::string, real_t *> & static_field,
-                  IOData *iodata, idx_t step, Fourier *fourier)
+                  IOData *iodata, idx_t step, Fourier *fourier, FRW<real_t> *frw)
 {
   if(step % iodata->slice_output_interval == 0)
   {
-    io_dump_2dslice(bssn_fields["K_p"], "K_slice." + std::to_string(step), iodata);
-    io_dump_2dslice(bssn_fields["phi_p"], "phi_slice." + std::to_string(step), iodata);
-    io_dump_2dslice(static_field["D_a"], "UD_slice."  + std::to_string(step), iodata);
-    io_dump_2dslice(bssn_fields["gamma11_p"], "gamma11." + std::to_string(step), iodata);
+    io_dump_2dslice(bssn_fields["DIFFK_a"], "DIFFK_slice." + std::to_string(step), iodata);
+    io_dump_2dslice(bssn_fields["DIFFphi_a"], "DIFFphi_slice." + std::to_string(step), iodata);
+    io_dump_2dslice(static_field["DIFFD_a"], "DIFFUD_slice."  + std::to_string(step), iodata);
+    io_dump_2dslice(bssn_fields["DIFFgamma11_a"], "DIFFgamma11." + std::to_string(step), iodata);
   }
   if(step % iodata->grid_output_interval == 0)
   {
-    io_dump_3dslice(bssn_fields["gamma11_p"], "gamma11." + std::to_string(step), iodata);
-    io_dump_3dslice(bssn_fields["gamma12_p"], "gamma12." + std::to_string(step), iodata);
-    io_dump_3dslice(bssn_fields["gamma13_p"], "gamma13." + std::to_string(step), iodata);
-    io_dump_3dslice(bssn_fields["gamma22_p"], "gamma22." + std::to_string(step), iodata);
-    io_dump_3dslice(bssn_fields["gamma23_p"], "gamma23." + std::to_string(step), iodata);
-    io_dump_3dslice(bssn_fields["gamma33_p"], "gamma33." + std::to_string(step), iodata);
-    io_dump_3dslice(bssn_fields["phi_p"],     "phi."     + std::to_string(step), iodata);
-    io_dump_3dslice(bssn_fields["A11_p"],     "A11."     + std::to_string(step), iodata);
-    io_dump_3dslice(bssn_fields["A12_p"],     "A12."     + std::to_string(step), iodata);
-    io_dump_3dslice(bssn_fields["A13_p"],     "A13."     + std::to_string(step), iodata);
-    io_dump_3dslice(bssn_fields["A22_p"],     "A22."     + std::to_string(step), iodata);
-    io_dump_3dslice(bssn_fields["A23_p"],     "A23."     + std::to_string(step), iodata);
-    io_dump_3dslice(bssn_fields["A33_p"],     "A33."     + std::to_string(step), iodata);
-    io_dump_3dslice(bssn_fields["K_p"],       "K."       + std::to_string(step), iodata);
+    io_dump_3dslice(bssn_fields["DIFFgamma11_a"], "DIFFgamma11." + std::to_string(step), iodata);
+    io_dump_3dslice(bssn_fields["DIFFgamma12_a"], "DIFFgamma12." + std::to_string(step), iodata);
+    io_dump_3dslice(bssn_fields["DIFFgamma13_a"], "DIFFgamma13." + std::to_string(step), iodata);
+    io_dump_3dslice(bssn_fields["DIFFgamma22_a"], "DIFFgamma22." + std::to_string(step), iodata);
+    io_dump_3dslice(bssn_fields["DIFFgamma23_a"], "DIFFgamma23." + std::to_string(step), iodata);
+    io_dump_3dslice(bssn_fields["DIFFgamma33_a"], "DIFFgamma33." + std::to_string(step), iodata);
+    io_dump_3dslice(bssn_fields["DIFFphi_a"],     "DIFFphi."     + std::to_string(step), iodata);
+    io_dump_3dslice(bssn_fields["DIFFK_a"],       "DIFFK."       + std::to_string(step), iodata);
     io_dump_3dslice(bssn_fields["ricci_a"],   "ricci."   + std::to_string(step), iodata);
     io_dump_3dslice(bssn_fields["AijAij_a"],  "AijAij."  + std::to_string(step), iodata);
-    io_dump_3dslice(static_field["D_a"],      "D."       + std::to_string(step), iodata);
-
-    io_dump_3dslice(bssn_fields["r_a"],       "r_a."     + std::to_string(step), iodata);
-    io_dump_3dslice(bssn_fields["K_a"],       "K_a."     + std::to_string(step), iodata);
-    io_dump_3dslice(bssn_fields["phi_a"],     "phi_a."   + std::to_string(step), iodata);
+    io_dump_3dslice(static_field["DIFFD_a"],      "DIFFUD."       + std::to_string(step), iodata);
 
     io_dump_3dslice(bssn_fields["KDx_a"],     "KDx_a."   + std::to_string(step), iodata);
     io_dump_3dslice(bssn_fields["KDy_a"],     "KDy_a."   + std::to_string(step), iodata);
@@ -97,13 +87,13 @@ void io_data_dump(std::map <std::string, real_t *> & bssn_fields,
   }
   if(step % iodata->spec_output_interval == 0)
   {
-    fourier->powerDump(bssn_fields["phi_p"], iodata);
-    fourier->powerDump(bssn_fields["r_a"], iodata);
+    fourier->powerDump(bssn_fields["DIFFphi_a"], iodata);
+    fourier->powerDump(bssn_fields["DIFFr_a"], iodata);
   }
   if(step % iodata->meta_output_interval == 0)
   {
     // some statistical values
-    io_dump_statistics(bssn_fields, static_field, iodata);
+    io_dump_statistics(bssn_fields, static_field, iodata, frw);
   }
 }
 
@@ -260,77 +250,56 @@ void io_dump_3dslice(real_t *field, std::string filename, IOData *iodata)
 
 void io_dump_statistics(std::map <std::string, real_t *> & bssn_fields,
                         std::map <std::string, real_t *> & static_field,
-                        IOData *iodata)
+                        IOData *iodata, FRW<real_t> *frw)
 {
   std::string filename = iodata->dump_file;
+  char data[30];
 
-  // output misc. info about simulation here.
-  char data[20];
-  std::string dump_filename = iodata->output_dir + filename + ".dat.gz";
 
+  // dump FRW quantities
+  std::string dump_filename = iodata->output_dir + filename + ".frwdat.gz";
   gzFile datafile = gzopen(dump_filename.c_str(), "ab");
   if(datafile == Z_NULL) {
     LOG(iodata->log, "Error opening file: " << dump_filename << "\n");
     return;
   }
 
+  real_t phi_FRW = frw->get_phi();
+  sprintf(data, "%g\t", (double) phi_FRW);
+  gzwrite(datafile, data, strlen(data));
+  real_t K_FRW = frw->get_K();
+  sprintf(data, "%g\t", (double) K_FRW);
+  gzwrite(datafile, data, strlen(data));
+  real_t rho_FRW = frw->get_rho();
+  sprintf(data, "%g\t", (double) rho_FRW);
+  gzwrite(datafile, data, strlen(data));
+  real_t S_FRW = frw->get_S();
+  sprintf(data, "%g\t", (double) S_FRW);
+  gzwrite(datafile, data, strlen(data));
+
+  gzwrite(datafile, "\n", strlen("\n"));
+  gzclose(datafile);
+
+
+  // output misc. info about simulation here.
+  dump_filename = iodata->output_dir + filename + ".dat.gz";
+  datafile = gzopen(dump_filename.c_str(), "ab");
+  if(datafile == Z_NULL) {
+    LOG(iodata->log, "Error opening file: " << dump_filename << "\n");
+    return;
+  }
+
   // phi output
-  real_t avg_phi = conformal_average(bssn_fields["phi_a"], bssn_fields["phi_a"]);
-  sprintf(data, "%g\t", (double) avg_phi);
-  gzwrite(datafile, data, strlen(data));
-
-  real_t std_phi = conformal_standard_deviation(bssn_fields["phi_a"], bssn_fields["phi_a"], avg_phi);
-  sprintf(data, "%g\t", (double) std_phi);
-  gzwrite(datafile, data, strlen(data));
-
+  DETAILS(DIFFphi)
   // K output
-  real_t avg_K = conformal_average(bssn_fields["K_a"], bssn_fields["phi_a"]);
-  sprintf(data, "%g\t", (double) avg_K);
-  gzwrite(datafile, data, strlen(data));
-
-  real_t std_K = conformal_standard_deviation(bssn_fields["K_a"], bssn_fields["phi_a"], avg_K);
-  sprintf(data, "%g\t", (double) std_K);
-  gzwrite(datafile, data, strlen(data));
-
+  DETAILS(DIFFK)
   // rho output
-  real_t avg_rho = conformal_average(bssn_fields["r_a"], bssn_fields["phi_a"]);
-  sprintf(data, "%g\t", (double) avg_rho);
-  gzwrite(datafile, data, strlen(data));
-
-  real_t std_rho = conformal_standard_deviation(bssn_fields["r_a"], bssn_fields["phi_a"], avg_rho);
-  sprintf(data, "%g\t", (double) std_rho);
-  gzwrite(datafile, data, strlen(data));
-
+  DETAILS(DIFFr)
   // ricci output
-  real_t avg_ricci = conformal_average(bssn_fields["ricci_a"], bssn_fields["phi_a"]);
-  sprintf(data, "%g\t", (double) avg_ricci);
-  gzwrite(datafile, data, strlen(data));
-
-  real_t std_ricci = conformal_standard_deviation(bssn_fields["ricci_a"], bssn_fields["phi_a"], avg_ricci);
-  sprintf(data, "%g\t", (double) std_ricci);
-  gzwrite(datafile, data, strlen(data));
-
+  DETAILS(ricci)
   // average volume
-  sprintf(data, "%g\t", (double) volume_average(bssn_fields["phi_a"]));
+  sprintf(data, "%g\t", (double) volume_average(bssn_fields["DIFFphi_a"], phi_FRW));
   gzwrite(datafile, data, strlen(data));
-
-/*
-  DETAILS(A11)
-  DETAILS(A12)
-  DETAILS(A13)
-  DETAILS(A22)
-  DETAILS(A23)
-  DETAILS(A33)
-  DETAILS(gamma11)
-  DETAILS(gamma12)
-  DETAILS(gamma13)
-  DETAILS(gamma22)
-  DETAILS(gamma23)
-  DETAILS(gamma33)
-  DETAILS(Gamma1)
-  DETAILS(Gamma2)
-  DETAILS(Gamma3)
-*/
 
   gzwrite(datafile, "\n", strlen("\n"));
   gzclose(datafile);

@@ -45,7 +45,7 @@ public:
     void stepTerm();    
 
   /* functions to pre-calculate quantities before RK steps */
-    void set_gammai_values(idx_t i, idx_t j, idx_t k);
+    void set_DIFFgammai_values(idx_t i, idx_t j, idx_t k);
     void set_detgamma(idx_t i, idx_t j, idx_t k);
 
   /* calculating quantities during an RK step */
@@ -79,27 +79,25 @@ public:
       void set_full_metric_der(BSSNData *paq);
 
   /* Evolution functions */
-    real_t ev_gamma11(BSSNData *paq);
-    real_t ev_gamma12(BSSNData *paq);
-    real_t ev_gamma13(BSSNData *paq);
-    real_t ev_gamma22(BSSNData *paq);
-    real_t ev_gamma23(BSSNData *paq);
-    real_t ev_gamma33(BSSNData *paq);
+    real_t ev_DIFFgamma11(BSSNData *paq);
+    real_t ev_DIFFgamma12(BSSNData *paq);
+    real_t ev_DIFFgamma13(BSSNData *paq);
+    real_t ev_DIFFgamma22(BSSNData *paq);
+    real_t ev_DIFFgamma23(BSSNData *paq);
+    real_t ev_DIFFgamma33(BSSNData *paq);
     real_t ev_A11(BSSNData *paq);
     real_t ev_A12(BSSNData *paq);
     real_t ev_A13(BSSNData *paq);
     real_t ev_A22(BSSNData *paq);
     real_t ev_A23(BSSNData *paq);
     real_t ev_A33(BSSNData *paq);
-    real_t ev_K(BSSNData *paq);
-    real_t ev_phi(BSSNData *paq);
+    real_t ev_DIFFK(BSSNData *paq);
+    real_t ev_DIFFphi(BSSNData *paq);
     real_t ev_Gamma1(BSSNData *paq);
     real_t ev_Gamma2(BSSNData *paq);
     real_t ev_Gamma3(BSSNData *paq);
 
-    real_t ev_alpha(BSSNData *paq);
-
-    real_t ev_rho0(BSSNData *paq);
+    real_t ev_DIFFalpha(BSSNData *paq);
 
     #if Z4c_DAMPING > 0
       real_t ev_Z1(BSSNData *paq);
@@ -110,8 +108,8 @@ public:
 
   /* constraint violation calculations */
     void setHamiltonianConstraintCalcs(real_t H_values[7], FRW<real_t> *frw, bool reset_paq);
-    real_t hamiltonianConstraintCalc(idx_t idx);
-    real_t hamiltonianConstraintScale(idx_t idx);
+    real_t hamiltonianConstraintCalc(idx_t idx, FRW<real_t> *frw);
+    real_t hamiltonianConstraintScale(idx_t idx, FRW<real_t> *frw);
 
     real_t momentumConstraintCalc(BSSNData *paq, idx_t d);
     real_t momentumConstraintScale(BSSNData *paq, idx_t d);

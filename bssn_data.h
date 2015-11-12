@@ -13,11 +13,20 @@ typedef struct {
 
   idx_t i, j, k, idx;
 
+  // local copies of current field values
+  BSSN_APPLY_TO_FIELDS(DECLARE_REAL_T)
+  // Source terms
+  BSSN_APPLY_TO_SOURCES(DECLARE_REAL_T)
+  // "extra" fields
+  BSSN_APPLY_TO_GEN1_EXTRAS(DECLARE_REAL_T)
+
+  // non-differenced quantities
+  real_t phi, K, r, S, alpha;
+  real_t gamma11, gamma12, gamma13, gamma22, gamma23, gamma33;
+  real_t gammai11, gammai12, gammai13, gammai22, gammai23, gammai33;
+
   // generic var for misc. expressions
   real_t trace, expression;
-
-  // constraint violation terms
-  real_t m1, m2, m3;
 
   // trace-free ricci tensor components
   real_t ricciTF11, ricciTF12, ricciTF13, ricciTF22, ricciTF23, ricciTF33;
@@ -81,13 +90,6 @@ typedef struct {
          d2m00, d2m01, d2m02, d2m03, d2m11, d2m12, d2m13, d2m22, d2m23, d2m33,
          d3m00, d3m01, d3m02, d3m03, d3m11, d3m12, d3m13, d3m22, d3m23, d3m33;
 
-  // local copies of current field values
-  BSSN_APPLY_TO_FIELDS(DECLARE_REAL_T)
-  // Source terms
-  BSSN_APPLY_TO_SOURCES(DECLARE_REAL_T)
-  // "extra" fields
-  BSSN_APPLY_TO_GEN1_EXTRAS(DECLARE_REAL_T)
-
   // H constraint calc.
   real_t H;
   // Misc. debugging calc
@@ -103,7 +105,7 @@ typedef struct {
   // Reference FRW quantities
   real_t phi_FRW;
   real_t K_FRW;
-  real_t rho_FRW;
+  real_t rho_FRW, S_FRW;
 
 } BSSNData;
 

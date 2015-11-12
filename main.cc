@@ -44,8 +44,6 @@ int main(int argc, char **argv)
     // Static matter (w=0)
     Static staticSim;
     staticSim.init();
-    // DE
-    Lambda lambdaSim;
 
     // GR Fields
     BSSN bssnSim;
@@ -53,23 +51,14 @@ int main(int argc, char **argv)
 
     // generic reusable fourier class for NX*NY*NZ arrays
     Fourier fourier;
-    fourier.Initialize(NX, NY, NZ, staticSim.fields["D_a"] /* just any array for planning */);
+    fourier.Initialize(NX, NY, NZ, staticSim.fields["DIFFD_a"] /* just any array for planning */);
+
+    // Standard FRW spacetime integrator
+    FRW<real_t> frw (0.0, 0.0);
 
     // "conformal" initial conditions:
     LOG(iodata.log, "Using conformal initial conditions...\n");
-    set_conformal_ICs(bssnSim.fields, staticSim.fields, &fourier, &iodata);
-    // LOG(iodata.log, "Using stability test initial conditions...\n");
-    // set_stability_test_ICs(bssnSim.fields, staticSim.fields);
-
-    // Trial FRW class
-    staticSim.addBSSNSrc(bssnSim.fields);
-    real_t frw_rho = average(bssnSim.fields["r_a"]);
-    real_t frw_K0  = -sqrt(24.0*PI*frw_rho);
-    // FRW<real_t> frw (0.0, frw_K0 /* K */);
-    // frw.addFluid(frw_rho /* rho */, 0.0 /* 'w' */);
-    // no background for now
-    FRW<real_t> frw (0.0, 0.0);
-    frw.addFluid(0.0, 0.0);
+    set_conformal_ICs(bssnSim.fields, staticSim.fields, &fourier, &iodata, &frw);
 
   _timer["init"].stop();
 
@@ -85,8 +74,7 @@ int main(int argc, char **argv)
       bssnSim.stepInit();
       // clear existing source data
       bssnSim.clearSrc();
-      staticSim.addBSSNSrc(bssnSim.fields);
-      lambdaSim.addBSSNSrc(bssnSim.fields);
+      staticSim.addBSSNSrc(bssnSim.fields, &frw);
 
     // output simulation information
     // these generally output any data in the _a registers (which should 
@@ -102,7 +90,7 @@ int main(int argc, char **argv)
         bssnSim.set_KillingDelta(i, j, k, &b_paq);
       }
       io_show_progress(s, steps);
-      io_data_dump(bssnSim.fields, staticSim.fields, &iodata, s, &fourier);
+      io_data_dump(bssnSim.fields, staticSim.fields, &iodata, s, &fourier, &frw);
     _timer["output"].stop();
 
     // Run RK steps explicitly here (ties together BSSN + Hydro stuff).
@@ -113,9 +101,10 @@ int main(int argc, char **argv)
     // Pre-set detgamma and set gammai in _a register
     #pragma omp parallel for default(shared) private(i, j, k)
     LOOP3(i, j, k) {
-      bssnSim.set_detgamma(i,j,k);
-      bssnSim.set_gammai_values(i, j, k);
+      bssnSim.set_detgamma(i, j, k);
+      bssnSim.set_DIFFgammai_values(i, j, k);
     }
+    // FRW simulation should be in the correct state here
     // First RK step, Set Hydro Vars, & calc. constraint
     #pragma omp parallel for default(shared) private(i, j, k)
     LOOP3(i, j, k)
@@ -128,16 +117,20 @@ int main(int argc, char **argv)
     bssnSim.regSwap_c_a();
     // reset source using new metric
     bssnSim.clearSrc();
-    staticSim.addBSSNSrc(bssnSim.fields);
-    lambdaSim.addBSSNSrc(bssnSim.fields);
-
+    staticSim.addBSSNSrc(bssnSim.fields, &frw);
 
     // Subsequent BSSN steps
+      // FRW simulation should progress to t -> t + dt/2
+      for(int d=0; d<FRW_SUBSTEPS/2; ++d)
+      {
+        frw.step(dt/( (real_t) FRW_SUBSTEPS) );
+      }
+
       // Second RK step
       #pragma omp parallel for default(shared) private(i, j, k)
       LOOP3(i, j, k) {
-        bssnSim.set_detgamma(i,j,k);
-        bssnSim.set_gammai_values(i, j, k);
+        bssnSim.set_detgamma(i, j, k);
+        bssnSim.set_DIFFgammai_values(i, j, k);
       }
       #pragma omp parallel for default(shared) private(i, j, k)
       LOOP3(i, j, k)
@@ -150,14 +143,13 @@ int main(int argc, char **argv)
       bssnSim.regSwap_c_a();
       // reset source using new metric
       bssnSim.clearSrc();
-      staticSim.addBSSNSrc(bssnSim.fields);
-      lambdaSim.addBSSNSrc(bssnSim.fields);
+      staticSim.addBSSNSrc(bssnSim.fields, &frw);
 
       // Third RK step
       #pragma omp parallel for default(shared) private(i, j, k)
       LOOP3(i, j, k) {
-        bssnSim.set_detgamma(i,j,k);
-        bssnSim.set_gammai_values(i, j, k);
+        bssnSim.set_detgamma(i, j, k);
+        bssnSim.set_DIFFgammai_values(i, j, k);
       }
       #pragma omp parallel for default(shared) private(i, j, k)
       LOOP3(i, j, k)
@@ -170,14 +162,20 @@ int main(int argc, char **argv)
       bssnSim.regSwap_c_a();
       // reset source using new metric
       bssnSim.clearSrc();
-      staticSim.addBSSNSrc(bssnSim.fields);
-      lambdaSim.addBSSNSrc(bssnSim.fields);
+      staticSim.addBSSNSrc(bssnSim.fields, &frw);
+
+      // FRW simulation should progress to t -> t + dt
+      // (progress dt/2 further)
+      for(int d=0; d<FRW_SUBSTEPS/2; ++d)
+      {
+        frw.step(dt/( (real_t) FRW_SUBSTEPS) );
+      }
 
       // Fourth RK step
       #pragma omp parallel for default(shared) private(i, j, k)
       LOOP3(i, j, k) {
-        bssnSim.set_detgamma(i,j,k);
-        bssnSim.set_gammai_values(i, j, k);
+        bssnSim.set_detgamma(i, j, k);
+        bssnSim.set_DIFFgammai_values(i, j, k);
       }
       #pragma omp parallel for default(shared) private(i, j, k)
       LOOP3(i, j, k)
@@ -196,28 +194,6 @@ int main(int argc, char **argv)
 
     _timer["meta_output_interval"].start();
 
-      #pragma omp parallel for default(shared) private(i, j, k)
-      LOOP3(i, j, k) {
-        idx_t idx = INDEX(i,j,k);
-        real_t K_ref = frw_K0/2.0;
-        // K starts negative, gets closer to 0 monatonically
-        // check to see when simulation has crossed a reference K
-        real_t K2 = bssnSim.fields["K_p"][idx]; // current step is in _p array
-        real_t K1 = bssnSim.fields["K_f"][idx]; // previous step is in _f array after swap
-
-        if( K_ref >= K1 && K_ref <= K2 )
-        {
-          // linear interpolation to determine "time" of K_ref
-          real_t ref_time = (K_ref - K1) / (K2 - K1);
-          // get phi value at this "time"
-          real_t phi2 = bssnSim.fields["phi_p"][idx];
-          real_t phi1 = bssnSim.fields["phi_f"][idx];
-          real_t phi_at_ref = (phi2 - phi1)*ref_time + phi1;
-          // store phi value on the slice
-          bssnSim.fields["dk0_slice_phi_a"][idx] = phi_at_ref;
-        }
-      }
-
       if(s%iodata.meta_output_interval == 0)
       {
         idx_t isNaN = 0;
@@ -227,12 +203,11 @@ int main(int argc, char **argv)
         // Set values at points
         bssnSim.stepInit(); // copy _p to _a
         bssnSim.clearSrc();
-        staticSim.addBSSNSrc(bssnSim.fields);
-        lambdaSim.addBSSNSrc(bssnSim.fields);
+        staticSim.addBSSNSrc(bssnSim.fields, &frw);
         #pragma omp parallel for default(shared) private(i, j, k)
         LOOP3(i, j, k) {
-          bssnSim.set_detgamma(i,j,k);
-          bssnSim.set_gammai_values(i, j, k);
+          bssnSim.set_detgamma(i, j, k);
+          bssnSim.set_DIFFgammai_values(i, j, k);
         }
         #pragma omp parallel for default(shared) private(i, j, k)
         LOOP3(i, j, k) {
@@ -254,7 +229,7 @@ int main(int argc, char **argv)
         io_dump_data(stdev_momentum_constraint_mag, &iodata, "M_violations");
         io_dump_data(max_momentum_constraint_mag, &iodata, "M_violations");
 
-        if(numNaNs(bssnSim.fields["phi_a"]) > 0)
+        if(numNaNs(bssnSim.fields["DIFFphi_a"]) > 0)
         {
           LOG(iodata.log, "\nNAN detected!\n");
           _timer["meta_output_interval"].stop();
@@ -269,7 +244,7 @@ int main(int argc, char **argv)
 
   _timer["output"].start();
   io_dump_3dslice(bssnSim.fields["dk0_slice_phi_a"], "dk0_slice_phi", &iodata);
-  LOG(iodata.log, "\nAverage conformal factor reached " << average(bssnSim.fields["phi_p"]) << "\n");
+  LOG(iodata.log, "\nAverage conformal factor reached " << average(bssnSim.fields["DIFFphi_p"]) << "\n");
   LOG(iodata.log, "Ending simulation.\n");
   _timer["output"].stop();
 

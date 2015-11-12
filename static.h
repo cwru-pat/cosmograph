@@ -12,7 +12,7 @@ class Static
 {
   /* Fluid field */
   // just a density variable
-  GEN1_ARRAY_CREATE(D);
+  GEN1_ARRAY_CREATE(DIFFD);
 
 public:
   std::map <std::string, real_t *> fields;
@@ -20,7 +20,7 @@ public:
   Static();
   ~Static();
 
-  void addBSSNSrc(std::map <std::string, real_t *> & bssn_fields);
+  void addBSSNSrc(std::map <std::string, real_t *> & bssn_fields, FRW<real_t> *frw);
 
   void init();
 };

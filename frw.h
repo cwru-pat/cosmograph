@@ -24,11 +24,24 @@ public:
     K = K_in;
   }
 
+  // eulerian integration step
+  void step(RT h);
+
+  // "set" variables
+  void set_phi(RT phi_in)
+  {
+    phi = phi_in;
+  }
+  void set_K(RT K_in)
+  {
+    K = K_in;
+  }
   void addFluid(RT rho_in, RT w_in)
   {
     fluids.emplace_back(rho_in, w_in);
   }
-  void step(RT h);
+  
+  // get variables
   RT get_phi()
   {
     return phi;
@@ -42,13 +55,21 @@ public:
     RT rho_tot = 0;
     for(auto& x: fluids)
     {
-      // source is 4*pi*(3*rho + S)
-      // = 4*pi*(3*rho + 3*P)
-      // = 12*pi*rho*(1 + w)
       rho_tot += x.first;
     }
 
     return rho_tot;
+  }
+  RT get_S()
+  {
+    RT S_tot = 0;
+    for(auto& x: fluids)
+    {
+      // S is 3*P = 3*w*rho
+      S_tot += 3.0*x.second*x.first;
+    }
+
+    return S_tot;
   }
 };
 

@@ -25,16 +25,17 @@ BSSN::~BSSN()
   BSSN_APPLY_TO_GEN1_EXTRAS(GEN1_ARRAY_DELETE)
 }
 
-void BSSN::set_gammai_values(idx_t i, idx_t j, idx_t k)
+void BSSN::set_DIFFgammai_values(idx_t i, idx_t j, idx_t k)
 {
   // Compute the inverse metric algebraically at each point
+  // assumes det(gamma) = 1
   idx_t idx = NP_INDEX(i,j,k);
-  gammai11_a[idx] = gamma22_a[idx]*gamma33_a[idx] - gamma23_a[idx]*gamma23_a[idx];
-  gammai12_a[idx] = gamma13_a[idx]*gamma23_a[idx] - gamma12_a[idx]*gamma33_a[idx];
-  gammai13_a[idx] = gamma12_a[idx]*gamma23_a[idx] - gamma13_a[idx]*gamma22_a[idx];
-  gammai22_a[idx] = gamma11_a[idx]*gamma33_a[idx] - gamma13_a[idx]*gamma13_a[idx];
-  gammai23_a[idx] = gamma12_a[idx]*gamma13_a[idx] - gamma23_a[idx]*gamma11_a[idx];
-  gammai33_a[idx] = gamma11_a[idx]*gamma22_a[idx] - gamma12_a[idx]*gamma12_a[idx];
+  DIFFgammai11_a[idx] = DIFFgamma22_a[idx] + DIFFgamma33_a[idx] - pw2(DIFFgamma23_a[idx]) + DIFFgamma22_a[idx]*DIFFgamma33_a[idx];
+  DIFFgammai22_a[idx] = DIFFgamma11_a[idx] + DIFFgamma33_a[idx] - pw2(DIFFgamma13_a[idx]) + DIFFgamma11_a[idx]*DIFFgamma33_a[idx];
+  DIFFgammai33_a[idx] = DIFFgamma11_a[idx] + DIFFgamma22_a[idx] - pw2(DIFFgamma12_a[idx]) + DIFFgamma11_a[idx]*DIFFgamma22_a[idx];
+  DIFFgammai12_a[idx] = DIFFgamma13_a[idx]*DIFFgamma23_a[idx] - DIFFgamma12_a[idx]*(1.0 + DIFFgamma33_a[idx]);
+  DIFFgammai13_a[idx] = DIFFgamma12_a[idx]*DIFFgamma23_a[idx] - DIFFgamma13_a[idx]*(1.0 + DIFFgamma22_a[idx]);
+  DIFFgammai23_a[idx] = DIFFgamma12_a[idx]*DIFFgamma13_a[idx] - DIFFgamma23_a[idx]*(1.0 + DIFFgamma11_a[idx]);
 }
 
 void BSSN::set_paq_values(idx_t i, idx_t j, idx_t k, BSSNData *paq, FRW<real_t> *frw)
@@ -48,9 +49,29 @@ void BSSN::set_paq_values(idx_t i, idx_t j, idx_t k, BSSNData *paq, FRW<real_t> 
   paq->phi_FRW = frw->get_phi();
   paq->K_FRW = frw->get_K();
   paq->rho_FRW = frw->get_rho();
+  paq->S_FRW = frw->get_S();
 
   // draw data from cache
   set_local_vals(paq);
+
+  // non-DIFF quantities
+  paq->phi      =   paq->DIFFphi + paq->phi_FRW;
+  paq->K        =   paq->DIFFK + paq->K_FRW;
+  paq->gamma11  =   paq->DIFFgamma11 + 1.0;
+  paq->gamma12  =   paq->DIFFgamma12;
+  paq->gamma13  =   paq->DIFFgamma13;
+  paq->gamma22  =   paq->DIFFgamma22 + 1.0;
+  paq->gamma23  =   paq->DIFFgamma23;
+  paq->gamma33  =   paq->DIFFgamma33 + 1.0;
+  paq->gammai11 =   paq->DIFFgammai11 + 1.0;
+  paq->gammai12 =   paq->DIFFgammai12;
+  paq->gammai13 =   paq->DIFFgammai13;
+  paq->gammai22 =   paq->DIFFgammai22 + 1.0;
+  paq->gammai23 =   paq->DIFFgammai23;
+  paq->gammai33 =   paq->DIFFgammai33 + 1.0;
+  paq->r        =   paq->DIFFr + paq->rho_FRW;
+  paq->S        =   paq->DIFFS + paq->S_FRW;
+  paq->alpha    =   paq->DIFFalpha + 1.0;
 
   // pre-compute re-used quantities
   // gammas & derivs first
@@ -73,35 +94,38 @@ void BSSN::set_paq_values(idx_t i, idx_t j, idx_t k, BSSNData *paq, FRW<real_t> 
   calculateRicciTF(paq);
 
   // H depends on AijAij and ricci arrays
-  paq->H = hamiltonianConstraintCalc(paq->idx);
+  paq->H = hamiltonianConstraintCalc(paq->idx, frw);
 }
 
+// TODO: rewrite this in terms of difference variables?
+/*
+ * DIFFgamma -> DIFFgamma/det(gamma) + (1-1/det(gamma))*delta
+ */
 void BSSN::set_detgamma(idx_t i, idx_t j, idx_t k)
 {
-  idx_t idx = NP_INDEX(i,j,k);
+  // idx_t idx = NP_INDEX(i,j,k);
 
-  real_t det_p = pow(
-    - gamma13_p[idx] * gamma13_p[idx] * gamma22_p[idx]
-    + 2.0*gamma12_p[idx] * gamma13_p[idx] * gamma23_p[idx]
-    - gamma11_p[idx] * gamma23_p[idx] * gamma23_p[idx]
-    - gamma12_p[idx] * gamma12_p[idx] * gamma33_p[idx]
-    + gamma11_p[idx] * gamma22_p[idx] * gamma33_p[idx]
-  , 1.0/3.0);
+  // real_t det_p = pow(
+  //   - gamma13_p[idx] * gamma13_p[idx] * gamma22_p[idx]
+  //   + 2.0*gamma12_p[idx] * gamma13_p[idx] * gamma23_p[idx]
+  //   - gamma11_p[idx] * gamma23_p[idx] * gamma23_p[idx]
+  //   - gamma12_p[idx] * gamma12_p[idx] * gamma33_p[idx]
+  //   + gamma11_p[idx] * gamma22_p[idx] * gamma33_p[idx]
+  // , 1.0/3.0);
 
-  gamma11_p[idx] /= det_p; gamma12_p[idx] /= det_p; gamma13_p[idx] /= det_p; gamma22_p[idx] /= det_p; gamma23_p[idx] /= det_p; gamma33_p[idx] /= det_p;
-  A11_p[idx] /= det_p; A12_p[idx] /= det_p; A13_p[idx] /= det_p; A22_p[idx] /= det_p; A23_p[idx] /= det_p; A33_p[idx] /= det_p;
+  // gamma11_p[idx] /= det_p; gamma12_p[idx] /= det_p; gamma13_p[idx] /= det_p; gamma22_p[idx] /= det_p; gamma23_p[idx] /= det_p; gamma33_p[idx] /= det_p;
+  // A11_p[idx] /= det_p; A12_p[idx] /= det_p; A13_p[idx] /= det_p; A22_p[idx] /= det_p; A23_p[idx] /= det_p; A33_p[idx] /= det_p;
 
-  real_t det_a = pow(
-    - gamma13_a[idx] * gamma13_a[idx] * gamma22_a[idx]
-    + 2.0*gamma12_a[idx] * gamma13_a[idx] * gamma23_a[idx]
-    - gamma11_a[idx] * gamma23_a[idx] * gamma23_a[idx]
-    - gamma12_a[idx] * gamma12_a[idx] * gamma33_a[idx]
-    + gamma11_a[idx] * gamma22_a[idx] * gamma33_a[idx]
-  , 1.0/3.0);
+  // real_t det_a = pow(
+  //   - gamma13_a[idx] * gamma13_a[idx] * gamma22_a[idx]
+  //   + 2.0*gamma12_a[idx] * gamma13_a[idx] * gamma23_a[idx]
+  //   - gamma11_a[idx] * gamma23_a[idx] * gamma23_a[idx]
+  //   - gamma12_a[idx] * gamma12_a[idx] * gamma33_a[idx]
+  //   + gamma11_a[idx] * gamma22_a[idx] * gamma33_a[idx]
+  // , 1.0/3.0);
 
-  gamma11_a[idx] /= det_a; gamma12_a[idx] /= det_a; gamma13_a[idx] /= det_a; gamma22_a[idx] /= det_a; gamma23_a[idx] /= det_a; gamma33_a[idx] /= det_a;
-  A11_a[idx] /= det_a; A12_a[idx] /= det_a; A13_a[idx] /= det_a; A22_a[idx] /= det_a; A23_a[idx] /= det_a; A33_a[idx] /= det_a;
-
+  // gamma11_a[idx] /= det_a; gamma12_a[idx] /= det_a; gamma13_a[idx] /= det_a; gamma22_a[idx] /= det_a; gamma23_a[idx] /= det_a; gamma33_a[idx] /= det_a;
+  // A11_a[idx] /= det_a; A12_a[idx] /= det_a; A13_a[idx] /= det_a; A22_a[idx] /= det_a; A23_a[idx] /= det_a; A33_a[idx] /= det_a;
 }
 
 // Full RK step (More useful when not evolving the source simultaneously)
@@ -284,12 +308,6 @@ void BSSN::init()
 
     BSSN_ZERO_GEN1_EXTRAS()
     BSSN_ZERO_SOURCES()
-
-    // non-zero fields:
-    gamma11_p[idx] = gamma11_a[idx] = gamma11_c[idx] = gamma11_f[idx] = 1.0;
-    gamma22_p[idx] = gamma22_a[idx] = gamma22_c[idx] = gamma22_f[idx] = 1.0;
-    gamma33_p[idx] = gamma33_a[idx] = gamma33_c[idx] = gamma33_f[idx] = 1.0;
-    alpha_p[idx] = alpha_a[idx] = alpha_c[idx] = alpha_f[idx] = 1.0;
   }
 }
 
@@ -343,22 +361,22 @@ void BSSN::calculate_dgammai(BSSNData *paq)
 void BSSN::calculate_dalpha_dphi(BSSNData *paq)
 {
   // normal derivatives of phi
-  paq->d1phi = derivative(paq->i, paq->j, paq->k, 1, phi_a);
-  paq->d2phi = derivative(paq->i, paq->j, paq->k, 2, phi_a);
-  paq->d3phi = derivative(paq->i, paq->j, paq->k, 3, phi_a);
+  paq->d1phi = derivative(paq->i, paq->j, paq->k, 1, DIFFphi_a);
+  paq->d2phi = derivative(paq->i, paq->j, paq->k, 2, DIFFphi_a);
+  paq->d3phi = derivative(paq->i, paq->j, paq->k, 3, DIFFphi_a);
 
   // normal derivatives of alpha
-  paq->d1a = derivative(paq->i, paq->j, paq->k, 1, alpha_a);
-  paq->d2a = derivative(paq->i, paq->j, paq->k, 2, alpha_a);
-  paq->d3a = derivative(paq->i, paq->j, paq->k, 3, alpha_a);
+  paq->d1a = derivative(paq->i, paq->j, paq->k, 1, DIFFalpha_a);
+  paq->d2a = derivative(paq->i, paq->j, paq->k, 2, DIFFalpha_a);
+  paq->d3a = derivative(paq->i, paq->j, paq->k, 3, DIFFalpha_a);
 }
 
 void BSSN::calculate_dK(BSSNData *paq)
 {
   // normal derivatives of phi
-  paq->d1K = derivative(paq->i, paq->j, paq->k, 1, K_a);
-  paq->d2K = derivative(paq->i, paq->j, paq->k, 2, K_a);
-  paq->d3K = derivative(paq->i, paq->j, paq->k, 3, K_a);
+  paq->d1K = derivative(paq->i, paq->j, paq->k, 1, DIFFK_a);
+  paq->d2K = derivative(paq->i, paq->j, paq->k, 2, DIFFK_a);
+  paq->d3K = derivative(paq->i, paq->j, paq->k, 3, DIFFK_a);
 }
 
 #if Z4c_DAMPING > 0
@@ -394,13 +412,13 @@ void BSSN::calculateDDphi(BSSNData *paq)
   idx_t k = paq->k;
 
   // double covariant derivatives, using unitary metric
-  paq->D1D1phi = double_derivative(i, j, k, 1, 1, phi_a) - (paq->G111*paq->d1phi + paq->G211*paq->d2phi + paq->G311*paq->d3phi);
-  paq->D2D2phi = double_derivative(i, j, k, 2, 2, phi_a) - (paq->G122*paq->d1phi + paq->G222*paq->d2phi + paq->G322*paq->d3phi);
-  paq->D3D3phi = double_derivative(i, j, k, 3, 3, phi_a) - (paq->G133*paq->d1phi + paq->G233*paq->d2phi + paq->G333*paq->d3phi);
+  paq->D1D1phi = double_derivative(i, j, k, 1, 1, DIFFphi_a) - (paq->G111*paq->d1phi + paq->G211*paq->d2phi + paq->G311*paq->d3phi);
+  paq->D2D2phi = double_derivative(i, j, k, 2, 2, DIFFphi_a) - (paq->G122*paq->d1phi + paq->G222*paq->d2phi + paq->G322*paq->d3phi);
+  paq->D3D3phi = double_derivative(i, j, k, 3, 3, DIFFphi_a) - (paq->G133*paq->d1phi + paq->G233*paq->d2phi + paq->G333*paq->d3phi);
 
-  paq->D1D2phi = double_derivative(i, j, k, 1, 2, phi_a) - (paq->G112*paq->d1phi + paq->G212*paq->d2phi + paq->G312*paq->d3phi);
-  paq->D1D3phi = double_derivative(i, j, k, 1, 3, phi_a) - (paq->G113*paq->d1phi + paq->G213*paq->d2phi + paq->G313*paq->d3phi);
-  paq->D2D3phi = double_derivative(i, j, k, 2, 3, phi_a) - (paq->G123*paq->d1phi + paq->G223*paq->d2phi + paq->G323*paq->d3phi);  
+  paq->D1D2phi = double_derivative(i, j, k, 1, 2, DIFFphi_a) - (paq->G112*paq->d1phi + paq->G212*paq->d2phi + paq->G312*paq->d3phi);
+  paq->D1D3phi = double_derivative(i, j, k, 1, 3, DIFFphi_a) - (paq->G113*paq->d1phi + paq->G213*paq->d2phi + paq->G313*paq->d3phi);
+  paq->D2D3phi = double_derivative(i, j, k, 2, 3, DIFFphi_a) - (paq->G123*paq->d1phi + paq->G223*paq->d2phi + paq->G323*paq->d3phi);  
 }
 
 void BSSN::calculateDDalphaTF(BSSNData *paq)
@@ -546,12 +564,12 @@ Evolution equation calculations
 ******************************************************************************
 */
 
-real_t BSSN::ev_gamma11(BSSNData *paq) { return BSSN_DT_GAMMAIJ(1, 1) + 0.5*BS_H_DAMPING_AMPLITUDE*dt*paq->H*paq->gamma11 - KO_dissipation_Q(paq->i, paq->j, paq->k, gamma11_a); }
-real_t BSSN::ev_gamma12(BSSNData *paq) { return BSSN_DT_GAMMAIJ(1, 2) + 0.5*BS_H_DAMPING_AMPLITUDE*dt*paq->H*paq->gamma12 - KO_dissipation_Q(paq->i, paq->j, paq->k, gamma12_a); }
-real_t BSSN::ev_gamma13(BSSNData *paq) { return BSSN_DT_GAMMAIJ(1, 3) + 0.5*BS_H_DAMPING_AMPLITUDE*dt*paq->H*paq->gamma13 - KO_dissipation_Q(paq->i, paq->j, paq->k, gamma13_a); }
-real_t BSSN::ev_gamma22(BSSNData *paq) { return BSSN_DT_GAMMAIJ(2, 2) + 0.5*BS_H_DAMPING_AMPLITUDE*dt*paq->H*paq->gamma22 - KO_dissipation_Q(paq->i, paq->j, paq->k, gamma22_a); }
-real_t BSSN::ev_gamma23(BSSNData *paq) { return BSSN_DT_GAMMAIJ(2, 3) + 0.5*BS_H_DAMPING_AMPLITUDE*dt*paq->H*paq->gamma23 - KO_dissipation_Q(paq->i, paq->j, paq->k, gamma23_a); }
-real_t BSSN::ev_gamma33(BSSNData *paq) { return BSSN_DT_GAMMAIJ(3, 3) + 0.5*BS_H_DAMPING_AMPLITUDE*dt*paq->H*paq->gamma33 - KO_dissipation_Q(paq->i, paq->j, paq->k, gamma33_a); }
+real_t BSSN::ev_DIFFgamma11(BSSNData *paq) { return BSSN_DT_DIFFGAMMAIJ(1, 1) + 0.5*BS_H_DAMPING_AMPLITUDE*dt*paq->H*paq->DIFFgamma11 - KO_dissipation_Q(paq->i, paq->j, paq->k, DIFFgamma11_a); }
+real_t BSSN::ev_DIFFgamma12(BSSNData *paq) { return BSSN_DT_DIFFGAMMAIJ(1, 2) + 0.5*BS_H_DAMPING_AMPLITUDE*dt*paq->H*paq->DIFFgamma12 - KO_dissipation_Q(paq->i, paq->j, paq->k, DIFFgamma12_a); }
+real_t BSSN::ev_DIFFgamma13(BSSNData *paq) { return BSSN_DT_DIFFGAMMAIJ(1, 3) + 0.5*BS_H_DAMPING_AMPLITUDE*dt*paq->H*paq->DIFFgamma13 - KO_dissipation_Q(paq->i, paq->j, paq->k, DIFFgamma13_a); }
+real_t BSSN::ev_DIFFgamma22(BSSNData *paq) { return BSSN_DT_DIFFGAMMAIJ(2, 2) + 0.5*BS_H_DAMPING_AMPLITUDE*dt*paq->H*paq->DIFFgamma22 - KO_dissipation_Q(paq->i, paq->j, paq->k, DIFFgamma22_a); }
+real_t BSSN::ev_DIFFgamma23(BSSNData *paq) { return BSSN_DT_DIFFGAMMAIJ(2, 3) + 0.5*BS_H_DAMPING_AMPLITUDE*dt*paq->H*paq->DIFFgamma23 - KO_dissipation_Q(paq->i, paq->j, paq->k, DIFFgamma23_a); }
+real_t BSSN::ev_DIFFgamma33(BSSNData *paq) { return BSSN_DT_DIFFGAMMAIJ(3, 3) + 0.5*BS_H_DAMPING_AMPLITUDE*dt*paq->H*paq->DIFFgamma33 - KO_dissipation_Q(paq->i, paq->j, paq->k, DIFFgamma33_a); }
 
 real_t BSSN::ev_A11(BSSNData *paq) { return BSSN_DT_AIJ(1, 1) - 1.0*BS_H_DAMPING_AMPLITUDE*dt*paq->A11*paq->H - KO_dissipation_Q(paq->i, paq->j, paq->k, A11_a); }
 real_t BSSN::ev_A12(BSSNData *paq) { return BSSN_DT_AIJ(1, 2) - 1.0*BS_H_DAMPING_AMPLITUDE*dt*paq->A12*paq->H - KO_dissipation_Q(paq->i, paq->j, paq->k, A12_a); }
@@ -564,39 +582,40 @@ real_t BSSN::ev_Gamma1(BSSNData *paq) { return BSSN_DT_GAMMAI(1) - KO_dissipatio
 real_t BSSN::ev_Gamma2(BSSNData *paq) { return BSSN_DT_GAMMAI(2) - KO_dissipation_Q(paq->i, paq->j, paq->k, Gamma2_a); }
 real_t BSSN::ev_Gamma3(BSSNData *paq) { return BSSN_DT_GAMMAI(3) - KO_dissipation_Q(paq->i, paq->j, paq->k, Gamma3_a); }
 
-real_t BSSN::ev_K(BSSNData *paq)
+real_t BSSN::ev_DIFFK(BSSNData *paq)
 {
   return (
     - paq->DDaTR
     + paq->alpha*(
-      pw2(paq->K + 2.0*paq->theta)/3.0 + paq->AijAij
+        paq->AijAij
+        + 1.0/3.0*(paq->DIFFK + 2.0*paq->theta)*(paq->DIFFK + 2.0*paq->theta + 2.0*paq->K_FRW)
     )
-    + 4.0*PI*paq->alpha*(paq->r + paq->rho0 + paq->S)
+    + 4.0*PI*paq->alpha*(paq->DIFFr + paq->DIFFS)
+    - paq->DIFFalpha*(
+        1.0/3.0*pw2(paq->K_FRW)
+        + 4.0*PI*(paq->rho_FRW + paq->S_FRW)
+      )
     - 1.0*JM_K_DAMPING_AMPLITUDE*paq->H*exp(-5.0*paq->phi)
     + Z4c_K1_DAMPING_AMPLITUDE*(1.0 - Z4c_K2_DAMPING_AMPLITUDE)*paq->theta
-    - KO_dissipation_Q(paq->i, paq->j, paq->k, K_a)
+    - KO_dissipation_Q(paq->i, paq->j, paq->k, DIFFK_a)
   );
 }
 
-real_t BSSN::ev_phi(BSSNData *paq)
+real_t BSSN::ev_DIFFphi(BSSNData *paq)
 {
   return (
     0.1*BS_H_DAMPING_AMPLITUDE*dt*paq->H
-    -1.0/6.0*paq->alpha*(
-      paq->K + 2.0*paq->theta
+    -1.0/6.0*(
+      paq->alpha*(paq->DIFFK + 2.0*paq->theta)
+      - paq->DIFFalpha*paq->K_FRW
     )
-    - KO_dissipation_Q(paq->i, paq->j, paq->k, phi_a)
+    - KO_dissipation_Q(paq->i, paq->j, paq->k, DIFFphi_a)
   );
 }
 
-real_t BSSN::ev_alpha(BSSNData *paq)
+real_t BSSN::ev_DIFFalpha(BSSNData *paq)
 {
-  return 0.0;
-}
-
-real_t BSSN::ev_rho0(BSSNData *paq)
-{
-  return (paq->K + 2.0*paq->theta)*paq->rho0;
+  return 0.0 - KO_dissipation_Q(paq->i, paq->j, paq->k, DIFFalpha_a);
 }
 
 #if Z4c_DAMPING > 0
@@ -604,7 +623,7 @@ real_t BSSN::ev_theta(BSSNData *paq)
 {
   return (
     0.5*paq->alpha*(
-      paq->ricci + 2.0/3.0*pw2(paq->K + 2.0*paq->theta) - paq->AijAij - 16.0*PI*( paq->r + paq->rho0 )
+      paq->ricci + 2.0/3.0*pw2(paq->K + 2.0*paq->theta) - paq->AijAij - 16.0*PI*( paq->r )
     )
     - paq->alpha*Z4c_K1_DAMPING_AMPLITUDE*(2.0 + Z4c_K2_DAMPING_AMPLITUDE)*paq->theta
   ) - KO_dissipation_Q(paq->i, paq->j, paq->k, theta_a);
@@ -637,7 +656,7 @@ void BSSN::setHamiltonianConstraintCalcs(real_t H_values[7], FRW<real_t> *frw, b
     #pragma omp parallel for default(shared) private(i, j, k)
     LOOP3(i, j, k) {
       set_detgamma(i,j,k);
-      set_gammai_values(i, j, k);
+      set_DIFFgammai_values(i, j, k);
     }
     #pragma omp parallel for default(shared) private(i, j, k)
     LOOP3(i,j,k)
@@ -651,8 +670,8 @@ void BSSN::setHamiltonianConstraintCalcs(real_t H_values[7], FRW<real_t> *frw, b
   LOOP3(i,j,k)
   {
     idx_t idx = NP_INDEX(i,j,k);
-    real_t H = hamiltonianConstraintCalc(idx);
-    real_t H_scale = hamiltonianConstraintScale(idx);
+    real_t H = hamiltonianConstraintCalc(idx, frw);
+    real_t H_scale = hamiltonianConstraintScale(idx, frw);
     real_t H_scaled = H/H_scale;
 
     mean_H += H;
@@ -680,8 +699,8 @@ void BSSN::setHamiltonianConstraintCalcs(real_t H_values[7], FRW<real_t> *frw, b
   {
     idx_t idx = NP_INDEX(i,j,k);
 
-    real_t H = hamiltonianConstraintCalc(idx);
-    real_t H_scale = hamiltonianConstraintScale(idx);
+    real_t H = hamiltonianConstraintCalc(idx, frw);
+    real_t H_scale = hamiltonianConstraintScale(idx, frw);
     real_t H_scaled = H/H_scale;
 
     stdev_H += pw2(H - mean_H);
@@ -702,15 +721,27 @@ void BSSN::setHamiltonianConstraintCalcs(real_t H_values[7], FRW<real_t> *frw, b
   return;
 }
 
-real_t BSSN::hamiltonianConstraintCalc(idx_t idx)
+real_t BSSN::hamiltonianConstraintCalc(idx_t idx, FRW<real_t> *frw)
 {
-  return -exp(5.0*phi_a[idx])/8.0*(ricci_a[idx] + 2.0/3.0*pw2(K_a[idx] + 2.0*theta_a[idx]) - AijAij_a[idx] - 16.0*PI*( r_a[idx] + rho0_a[idx] ) );
+  real_t K_FRW = frw->get_K();
+  real_t phi_FRW = frw->get_phi();
+  real_t rho_FRW = frw->get_rho();
+
+  return -exp(5.0*(DIFFphi_a[idx] + phi_FRW))/8.0*(
+    ricci_a[idx] + 2.0/3.0*pw2(K_FRW + DIFFK_a[idx] + 2.0*theta_a[idx]) - AijAij_a[idx] - 16.0*PI*(DIFFr_a[idx] + rho_FRW)
+  );
 }
 
-real_t BSSN::hamiltonianConstraintScale(idx_t idx)
+real_t BSSN::hamiltonianConstraintScale(idx_t idx, FRW<real_t> *frw)
 {
+  real_t K_FRW = frw->get_K();
+  real_t phi_FRW = frw->get_phi();
+  real_t rho_FRW = frw->get_rho();
+
   // sqrt sum of sq. of terms for appx. mag / scale
-  return (exp(5.0*phi_a[idx])/8.0)*sqrt( pw2(ricci_a[idx]) + pw2(AijAij_a[idx]) + pw2(2.0/3.0*pw2(K_a[idx] + 2.0*theta_a[idx])) + pw2(16.0*PI*( r_a[idx] + rho0_a[idx] ) ) );
+  return (exp(5.0*(DIFFphi_a[idx] + phi_FRW))/8.0)*
+    sqrt( pw2(ricci_a[idx]) + pw2(AijAij_a[idx]) + pw2(2.0/3.0*pw2(K_FRW + DIFFK_a[idx] + 2.0*theta_a[idx])) + pw2(16.0*PI*(DIFFr_a[idx] + rho_FRW))
+  );
 }
 
 real_t BSSN::metricConstraintTotalMag(FRW<real_t> *frw)

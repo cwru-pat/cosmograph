@@ -10,6 +10,9 @@
 #define H_LEN_FRAC 0.5
 #define dx (H_LEN_FRAC/(1.0*N))
 #define dt (0.1*dx)
+#define FRW_SUBSTEPS 100
+
+#define USE_DIFFERENCES true
 
 // WENO "epsilon" parameter
 #define EPS 0.0001
@@ -22,9 +25,6 @@
 #define Z4c_DAMPING 1
 #define Z4c_K1_DAMPING_AMPLITUDE 0.05
 #define Z4c_K2_DAMPING_AMPLITUDE 0.0
-
-// alternative matter coupling
-#define MATTER_IN_RHO0 false
 
 // Stencil order
 #define STENCIL_ORDER(function) function##6

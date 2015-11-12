@@ -6,6 +6,7 @@
 
 #include "ICs_data.h"
 #include "io_data.h"
+#include "frw.h"
 
 namespace cosmo
 {
@@ -19,7 +20,7 @@ void set_gaussian_random_field(real_t *field, Fourier *fourier, ICsData *icd);
 void set_conformal_ICs(
   std::map <std::string, real_t *> & bssn_fields,
   std::map <std::string, real_t *> & hydro_fields,
-  Fourier *fourier, IOData *iod);
+  Fourier *fourier, IOData *iod, FRW<real_t> *frw);
 
 void set_stability_test_ICs(
   std::map <std::string, real_t *> & bssn_fields,

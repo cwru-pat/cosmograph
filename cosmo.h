@@ -43,7 +43,6 @@ typedef long int idx_t;
 #include "bssn.h"
 #include "bssn_data.h"
 #include "static.h"
-#include "lambda.h"
 #include "frw.h"
 
 #endif

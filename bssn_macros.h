@@ -17,52 +17,50 @@
 
 
 #define BSSN_APPLY_TO_FIELDS_ARGS(function, ...)   \
-  function(gamma11, __VA_ARGS__);                  \
-  function(gamma12, __VA_ARGS__);                  \
-  function(gamma13, __VA_ARGS__);                  \
-  function(gamma22, __VA_ARGS__);                  \
-  function(gamma23, __VA_ARGS__);                  \
-  function(gamma33, __VA_ARGS__);                  \
-  function(phi, __VA_ARGS__);                      \
+  function(DIFFgamma11, __VA_ARGS__);              \
+  function(DIFFgamma12, __VA_ARGS__);              \
+  function(DIFFgamma13, __VA_ARGS__);              \
+  function(DIFFgamma22, __VA_ARGS__);              \
+  function(DIFFgamma23, __VA_ARGS__);              \
+  function(DIFFgamma33, __VA_ARGS__);              \
+  function(DIFFphi, __VA_ARGS__);                  \
   function(A11, __VA_ARGS__);                      \
   function(A12, __VA_ARGS__);                      \
   function(A13, __VA_ARGS__);                      \
   function(A22, __VA_ARGS__);                      \
   function(A23, __VA_ARGS__);                      \
   function(A33, __VA_ARGS__);                      \
-  function(K, __VA_ARGS__);                        \
+  function(DIFFK, __VA_ARGS__);                    \
   function(Gamma1, __VA_ARGS__);                   \
   function(Gamma2, __VA_ARGS__);                   \
   function(Gamma3, __VA_ARGS__);                   \
-  function(alpha, __VA_ARGS__);                    \
-  function(rho0, __VA_ARGS__);                     \
+  function(DIFFalpha, __VA_ARGS__);                \
   Z4c_APPLY_TO_FIELDS_ARGS(function, __VA_ARGS__)
 
 #define BSSN_APPLY_TO_FIELDS(function) \
-  function(gamma11);                   \
-  function(gamma12);                   \
-  function(gamma13);                   \
-  function(gamma22);                   \
-  function(gamma23);                   \
-  function(gamma33);                   \
-  function(phi);                       \
+  function(DIFFgamma11);               \
+  function(DIFFgamma12);               \
+  function(DIFFgamma13);               \
+  function(DIFFgamma22);               \
+  function(DIFFgamma23);               \
+  function(DIFFgamma33);               \
+  function(DIFFphi);                   \
   function(A11);                       \
   function(A12);                       \
   function(A13);                       \
   function(A22);                       \
   function(A23);                       \
   function(A33);                       \
-  function(K);                         \
+  function(DIFFK);                     \
   function(Gamma1);                    \
   function(Gamma2);                    \
   function(Gamma3);                    \
-  function(alpha);                     \
-  function(rho0);                      \
+  function(DIFFalpha);                 \
   Z4c_APPLY_TO_FIELDS(function)
 
 #define BSSN_APPLY_TO_SOURCES(function) \
-  function(r);                          \
-  function(S);                          \
+  function(DIFFr);                      \
+  function(DIFFS);                      \
   function(S1);                         \
   function(S2);                         \
   function(S3);                         \
@@ -74,12 +72,12 @@
   function(STF33);
 
 #define BSSN_APPLY_TO_GEN1_EXTRAS(function) \
-  function(gammai11);                       \
-  function(gammai12);                       \
-  function(gammai13);                       \
-  function(gammai22);                       \
-  function(gammai23);                       \
-  function(gammai33);                       \
+  function(DIFFgammai11);                   \
+  function(DIFFgammai12);                   \
+  function(DIFFgammai13);                   \
+  function(DIFFgammai22);                   \
+  function(DIFFgammai23);                   \
+  function(DIFFgammai33);                   \
   function(dk0_slice_phi);                  \
   function(KDx);                            \
   function(KDy);                            \
@@ -200,9 +198,9 @@
     paq->d##J##g##K##I + paq->d##K##g##J##I - paq->d##I##g##J##K \
   )
 
-#define BSSN_CALCULATE_DGAMMAI(I, J, K) paq->d##I##gi##J##K = derivative(paq->i, paq->j, paq->k, I, gammai##J##K##_a);
+#define BSSN_CALCULATE_DGAMMAI(I, J, K) paq->d##I##gi##J##K = derivative(paq->i, paq->j, paq->k, I, DIFFgammai##J##K##_a);
 
-#define BSSN_CALCULATE_DGAMMA(I, J, K) paq->d##I##g##J##K = derivative(paq->i, paq->j, paq->k, I, gamma##J##K##_a);
+#define BSSN_CALCULATE_DGAMMA(I, J, K) paq->d##I##g##J##K = derivative(paq->i, paq->j, paq->k, I, DIFFgamma##J##K##_a);
 
 #define BSSN_CALCULATE_ACONT(I, J) paq->Acont##I##J = ( \
     paq->gammai##I##1*paq->gammai##J##1*paq->A11 + paq->gammai##I##2*paq->gammai##J##1*paq->A21 + paq->gammai##I##3*paq->gammai##J##1*paq->A31 \
@@ -212,7 +210,7 @@
 
 // needs the gamma*ldlphi vars defined:
 // not actually trace free yet!
-#define BSSN_CALCULATE_DIDJALPHA(I, J) paq->D##I##D##J##aTF = double_derivative(paq->i, paq->j, paq->k, I, J, alpha_a) - ( \
+#define BSSN_CALCULATE_DIDJALPHA(I, J) paq->D##I##D##J##aTF = double_derivative(paq->i, paq->j, paq->k, I, J, DIFFalpha_a) - ( \
     (paq->G1##I##J + 2.0*( (1==I)*paq->d##J##phi + (1==J)*paq->d##I##phi - paq->gamma##I##J*gamma1ldlphi))*paq->d1a + \
     (paq->G2##I##J + 2.0*( (2==I)*paq->d##J##phi + (2==J)*paq->d##I##phi - paq->gamma##I##J*gamma2ldlphi))*paq->d2a + \
     (paq->G3##I##J + 2.0*( (3==I)*paq->d##J##phi + (3==J)*paq->d##I##phi - paq->gamma##I##J*gamma3ldlphi))*paq->d3a \
@@ -309,19 +307,19 @@
 
 
 #define BSSN_CALCULATE_DIDJGAMMA_PERMS(I, J)           \
-  paq->d##I##d##J##g11 = double_derivative(paq->i, paq->j, paq->k, I, J, gamma11_a); \
-  paq->d##I##d##J##g12 = double_derivative(paq->i, paq->j, paq->k, I, J, gamma12_a); \
-  paq->d##I##d##J##g13 = double_derivative(paq->i, paq->j, paq->k, I, J, gamma13_a); \
-  paq->d##I##d##J##g22 = double_derivative(paq->i, paq->j, paq->k, I, J, gamma22_a); \
-  paq->d##I##d##J##g23 = double_derivative(paq->i, paq->j, paq->k, I, J, gamma23_a); \
-  paq->d##I##d##J##g33 = double_derivative(paq->i, paq->j, paq->k, I, J, gamma33_a)
+  paq->d##I##d##J##g11 = double_derivative(paq->i, paq->j, paq->k, I, J, DIFFgamma11_a); \
+  paq->d##I##d##J##g12 = double_derivative(paq->i, paq->j, paq->k, I, J, DIFFgamma12_a); \
+  paq->d##I##d##J##g13 = double_derivative(paq->i, paq->j, paq->k, I, J, DIFFgamma13_a); \
+  paq->d##I##d##J##g22 = double_derivative(paq->i, paq->j, paq->k, I, J, DIFFgamma22_a); \
+  paq->d##I##d##J##g23 = double_derivative(paq->i, paq->j, paq->k, I, J, DIFFgamma23_a); \
+  paq->d##I##d##J##g33 = double_derivative(paq->i, paq->j, paq->k, I, J, DIFFgamma33_a)
 
 
 /*
  * Evolution equations for indexed components
  */
 
-#define BSSN_DT_GAMMAIJ(I, J) ( \
+#define BSSN_DT_DIFFGAMMAIJ(I, J) ( \
     - 2.0*paq->alpha*paq->A##I##J \
   )
 
@@ -355,7 +353,7 @@
   )
 
 #define BSSN_MI(I) exp(6.0*paq->phi)*( \
-    - 2.0/3.0*derivative(paq->i, paq->j, paq->k, I, K_a) - 8*PI*paq->S##I \
+    - 2.0/3.0*derivative(paq->i, paq->j, paq->k, I, DIFFK_a) - 8*PI*paq->S##I \
     - 2.0/3.0*2.0*paq->d##I##theta \
     + 6.0*( \
       paq->gammai11*paq->A1##I*paq->d1phi + paq->gammai21*paq->A2##I*paq->d1phi + paq->gammai31*paq->A3##I*paq->d1phi \
@@ -374,7 +372,7 @@
   )
 
 #define BSSN_MI_SCALE(I) exp(6.0*paq->phi)*( \
-    fabs(2.0/3.0*derivative(paq->i, paq->j, paq->k, I, K_a)) \
+    fabs(2.0/3.0*derivative(paq->i, paq->j, paq->k, I, DIFFK_a)) \
     + fabs(8*PI*paq->S##I) \
     + 6.0*fabs( \
       paq->gammai11*paq->A1##I*paq->d1phi + paq->gammai21*paq->A2##I*paq->d1phi + paq->gammai31*paq->A3##I*paq->d1phi \
@@ -454,9 +452,16 @@
 #define A31 A13
 #define A32 A23
 
-#define gamma21_a gamma12_a
-#define gamma31_a gamma13_a
-#define gamma32_a gamma23_a
+#define DIFFgamma21 DIFFgamma12
+#define DIFFgamma31 DIFFgamma13
+#define DIFFgamma32 DIFFgamma23
+#define DIFFgammai21 DIFFgammai12
+#define DIFFgammai31 DIFFgammai13
+#define DIFFgammai32 DIFFgammai23
+
+#define DIFFgamma21_a DIFFgamma12_a
+#define DIFFgamma31_a DIFFgamma13_a
+#define DIFFgamma32_a DIFFgamma23_a
 #define A21_a A12_a
 #define A31_a A13_a
 #define A32_a A23_a

@@ -501,7 +501,7 @@ inline real_t average(real_t *field)
   return sum/POINTS;
 }
 
-inline real_t volume_average(real_t *phi)
+inline real_t volume_average(real_t *DIFFphi, real_t phi_FRW)
 {
   real_t sum = 0.0; 
   idx_t i=0, j=0, k=0;
@@ -509,12 +509,12 @@ inline real_t volume_average(real_t *phi)
   #pragma omp parallel for default(shared) private(i, j, k) reduction(+:sum)
   LOOP3(i, j, k)
   {
-    sum += exp(6.0*phi[NP_INDEX(i,j,k)]);
+    sum += exp(6.0*(DIFFphi[NP_INDEX(i,j,k)] + phi_FRW));
   }
   return sum/POINTS;
 }
 
-inline real_t conformal_average(real_t *field, real_t *phi)
+inline real_t conformal_average(real_t *field, real_t *DIFFphi, real_t phi_FRW)
 {
   real_t sum = 0.0; 
   idx_t i=0, j=0, k=0;
@@ -522,9 +522,9 @@ inline real_t conformal_average(real_t *field, real_t *phi)
   #pragma omp parallel for default(shared) private(i, j, k) reduction(+:sum)
   LOOP3(i, j, k)
   {
-    sum += exp(6.0*phi[NP_INDEX(i,j,k)])*field[NP_INDEX(i,j,k)];
+    sum += exp(6.0*(DIFFphi[NP_INDEX(i,j,k)] + phi_FRW))*field[NP_INDEX(i,j,k)];
   }
-  real_t vol = volume_average(phi);
+  real_t vol = volume_average(DIFFphi, phi_FRW);
   return sum/POINTS/vol;
 }
 
@@ -561,7 +561,7 @@ inline real_t standard_deviation(real_t *field)
   return standard_deviation(field, avg);
 }
 
-inline real_t conformal_standard_deviation(real_t *field, real_t *phi, real_t avg)
+inline real_t conformal_standard_deviation(real_t *field, real_t *DIFFphi, real_t phi_FRW, real_t avg)
 {
   real_t sum = 0.0; 
   idx_t i=0, j=0, k=0;
@@ -569,16 +569,16 @@ inline real_t conformal_standard_deviation(real_t *field, real_t *phi, real_t av
   #pragma omp parallel for default(shared) private(i, j, k) reduction(+:sum)
   LOOP3(i, j, k)
   {
-    sum += exp(6.0*phi[NP_INDEX(i,j,k)])*pw2(avg - field[NP_INDEX(i,j,k)]);
+    sum += exp(6.0*(DIFFphi[NP_INDEX(i,j,k)] + phi_FRW))*pw2(avg - field[NP_INDEX(i,j,k)]);
   }
-  real_t vol = volume_average(phi);
+  real_t vol = volume_average(DIFFphi, phi_FRW);
   return sqrt(sum/(POINTS-1)/vol);
 }
 
-inline real_t conformal_standard_deviation(real_t *field, real_t *phi)
+inline real_t conformal_standard_deviation(real_t *field, real_t *DIFFphi, real_t phi_FRW)
 {
-  real_t avg = conformal_average(field, phi);
-  return conformal_standard_deviation(field, phi, avg);
+  real_t avg = conformal_average(field, DIFFphi, phi_FRW);
+  return conformal_standard_deviation(field, DIFFphi, phi_FRW, avg);
 }
 
 inline idx_t numNaNs(real_t *field)
