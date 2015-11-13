@@ -662,7 +662,7 @@ void BSSN::setHamiltonianConstraintCalcs(real_t H_values[7], FRW<real_t> *frw, b
     LOOP3(i,j,k)
     {
       BSSNData b_paq = {0};
-      set_paq_values(i, j, k, &b_paq, frw); // sets AijAij and Ricci too)
+      set_paq_values(i, j, k, &b_paq, frw); // sets AijAij and Ricci too
     }
   }
 
@@ -727,8 +727,14 @@ real_t BSSN::hamiltonianConstraintCalc(idx_t idx, FRW<real_t> *frw)
   real_t phi_FRW = frw->get_phi();
   real_t rho_FRW = frw->get_rho();
 
+  #if Z4c_DAMPING
+    real_t theta = theta_a[idx];
+  #else
+    real_t theta = 0.0;
+  #endif
+
   return -exp(5.0*(DIFFphi_a[idx] + phi_FRW))/8.0*(
-    ricci_a[idx] + 2.0/3.0*pw2(K_FRW + DIFFK_a[idx] + 2.0*theta_a[idx]) - AijAij_a[idx] - 16.0*PI*(DIFFr_a[idx] + rho_FRW)
+    ricci_a[idx] + 2.0/3.0*pw2(K_FRW + DIFFK_a[idx] + 2.0*theta) - AijAij_a[idx] - 16.0*PI*(DIFFr_a[idx] + rho_FRW)
   );
 }
 
@@ -738,118 +744,115 @@ real_t BSSN::hamiltonianConstraintScale(idx_t idx, FRW<real_t> *frw)
   real_t phi_FRW = frw->get_phi();
   real_t rho_FRW = frw->get_rho();
 
+  #if Z4c_DAMPING
+    real_t theta = theta_a[idx];
+  #else
+    real_t theta = 0.0;
+  #endif
+
   // sqrt sum of sq. of terms for appx. mag / scale
   return (exp(5.0*(DIFFphi_a[idx] + phi_FRW))/8.0)*
-    sqrt( pw2(ricci_a[idx]) + pw2(AijAij_a[idx]) + pw2(2.0/3.0*pw2(K_FRW + DIFFK_a[idx] + 2.0*theta_a[idx])) + pw2(16.0*PI*(DIFFr_a[idx] + rho_FRW))
+    sqrt( pw2(ricci_a[idx]) + pw2(AijAij_a[idx]) + pw2(2.0/3.0*pw2(K_FRW + DIFFK_a[idx] + 2.0*theta)) + pw2(16.0*PI*(DIFFr_a[idx] + rho_FRW))
   );
 }
 
-real_t BSSN::metricConstraintTotalMag(FRW<real_t> *frw)
+
+void BSSN::setMomentumConstraintCalcs(real_t M_values[7], FRW<real_t> *frw)
 {
   idx_t i, j, k;
-  real_t constraint_mag = 0.0;
-
-  #pragma omp parallel for default(shared) private(i, j, k) reduction(+:constraint_mag)
-  LOOP3(i,j,k)
-  {
-    BSSNData b_paq = {0};
-    set_paq_values(i, j, k, &b_paq, frw);
-
-    constraint_mag += fabs(
-      -1.0 +
-      b_paq.gamma11*b_paq.gamma22*b_paq.gamma33 + 2.0*b_paq.gamma12*b_paq.gamma13*b_paq.gamma23
-      - b_paq.gamma11*pw2(b_paq.gamma23) - b_paq.gamma22*pw2(b_paq.gamma13) - b_paq.gamma33*pw2(b_paq.gamma12)
-    );
-  }
-
-  return constraint_mag;
-}
-
-real_t BSSN::momentumConstraintMagMean(FRW<real_t> *frw)
-{
-  idx_t i, j, k;
-  real_t momentum_constraint_mag = 0.0;
-
-  #pragma omp parallel for default(shared) private(i, j, k) reduction(+:momentum_constraint_mag)
-  LOOP3(i,j,k)
-  {
-    BSSNData b_paq = {0};
-    set_paq_values(i, j, k, &b_paq, frw);
-
-    real_t Mi2 = sqrt(
-      pw2(momentumConstraintCalc(&b_paq, 1))
-      + pw2(momentumConstraintCalc(&b_paq, 2))
-      + pw2(momentumConstraintCalc(&b_paq, 3))
-    );
-    real_t MiScale2 = sqrt(
-      pw2(momentumConstraintScale(&b_paq, 1))
-      + pw2(momentumConstraintScale(&b_paq, 2))
-      + pw2(momentumConstraintScale(&b_paq, 3))
-    );
-    momentum_constraint_mag += Mi2/MiScale2;
-  }
-
-  return momentum_constraint_mag/POINTS;
-}
-
-real_t BSSN::momentumConstraintMagStDev(real_t mean, FRW<real_t> *frw)
-{
-  idx_t i, j, k;
-  real_t stdev_momentum_constraint = 0.0;
-
-  #pragma omp parallel for default(shared) private(i, j, k) reduction(+:stdev_momentum_constraint)
-  LOOP3(i,j,k)
-  {
-    BSSNData b_paq = {0};
-    set_paq_values(i, j, k, &b_paq, frw);
-
-    real_t momentum_constraint_mag = sqrt(
-      pw2(momentumConstraintCalc(&b_paq, 1))
-      + pw2(momentumConstraintCalc(&b_paq, 2))
-      + pw2(momentumConstraintCalc(&b_paq, 3))
-    ) / sqrt(
-      pw2(momentumConstraintScale(&b_paq, 1))
-      + pw2(momentumConstraintScale(&b_paq, 2))
-      + pw2(momentumConstraintScale(&b_paq, 3))
-    );
-
-    stdev_momentum_constraint += pw2(momentum_constraint_mag - mean);
-  }
-
-  return sqrt(stdev_momentum_constraint/(POINTS-1.0));
-}
-
-real_t BSSN::momentumConstraintMagMax(FRW<real_t> *frw)
-{
-  idx_t i, j, k;
-  real_t momentum_constraint_max = 0.0;
+  // unscaled quantities
+  real_t mean_M = 0.0;
+  real_t stdev_M = 0.0;
+  real_t max_M = 0.0;
+  // the "scale"
+  real_t mean_M_scale = 0.0;
+  //scaled quantities
+  real_t mean_M_scaled = 0.0;
+  real_t stdev_M_scaled = 0.0;
+  real_t max_M_scaled = 0.0;
 
   #pragma omp parallel for default(shared) private(i, j, k)
+  LOOP3(i, j, k) {
+    set_detgamma(i,j,k);
+    set_DIFFgammai_values(i, j, k);
+  }
+
+  #pragma omp parallel for default(shared) private(i, j, k) reduction(+:mean_M,mean_M_scale,mean_M_scaled)
   LOOP3(i,j,k)
   {
-    BSSNData b_paq = {0};
-    set_paq_values(i, j, k, &b_paq, frw);
+    idx_t idx = NP_INDEX(i,j,k);
 
-    real_t Mi2 = sqrt(
+    BSSNData b_paq = {0};
+    set_paq_values(i, j, k, &b_paq, frw); // sets AijAij and Ricci too
+
+    real_t M = sqrt(
       pw2(momentumConstraintCalc(&b_paq, 1))
       + pw2(momentumConstraintCalc(&b_paq, 2))
       + pw2(momentumConstraintCalc(&b_paq, 3))
     );
-    real_t MiScale2 = sqrt(
+    real_t M_scale = sqrt(
       pw2(momentumConstraintScale(&b_paq, 1))
       + pw2(momentumConstraintScale(&b_paq, 2))
       + pw2(momentumConstraintScale(&b_paq, 3))
     );
-    
+    real_t M_scaled = M/M_scale;
+
+    mean_M += M;
+    mean_M_scale += M_scale;
+    mean_M_scaled += M_scaled;
+
     #pragma omp critical
     {
-      if(Mi2/MiScale2 > momentum_constraint_max) {
-        momentum_constraint_max = Mi2/MiScale2;
+      if(fabs(M) > max_M)
+      {
+        max_M = fabs(M);
+      }
+      if(fabs(M_scaled) > max_M_scaled)
+      {
+        max_M_scaled = fabs(M_scaled);
       }
     }
   }
+  mean_M /= POINTS;
+  mean_M_scaled /= POINTS;
 
-  return momentum_constraint_max;
+  // stdev relies on mean calcs
+  #pragma omp parallel for default(shared) private(i, j, k) reduction(+:stdev_M,stdev_M_scaled)
+  LOOP3(i,j,k)
+  {
+    idx_t idx = NP_INDEX(i,j,k);
+
+    BSSNData b_paq = {0};
+    set_paq_values(i, j, k, &b_paq, frw); // sets AijAij and Ricci too
+
+    real_t M = sqrt(
+      pw2(momentumConstraintCalc(&b_paq, 1))
+      + pw2(momentumConstraintCalc(&b_paq, 2))
+      + pw2(momentumConstraintCalc(&b_paq, 3))
+    );
+    real_t M_scale = sqrt(
+      pw2(momentumConstraintScale(&b_paq, 1))
+      + pw2(momentumConstraintScale(&b_paq, 2))
+      + pw2(momentumConstraintScale(&b_paq, 3))
+    );
+    real_t M_scaled = M/M_scale;
+
+    stdev_M += pw2(M - mean_M);
+    stdev_M_scaled += pw2(M_scaled - mean_M_scaled);
+  }
+
+  stdev_M = sqrt(stdev_M/(POINTS-1.0));
+  stdev_M_scaled = sqrt(stdev_M_scaled/(POINTS-1.0));
+
+  M_values[0] = mean_M;
+  M_values[1] = stdev_M;
+  M_values[2] = max_M;
+  M_values[3] = mean_M_scale;
+  M_values[4] = mean_M_scaled;
+  M_values[5] = stdev_M_scaled;
+  M_values[6] = max_M_scaled;
+
+  return;
 }
 
 real_t BSSN::momentumConstraintCalc(BSSNData *paq, idx_t d)
@@ -886,6 +889,28 @@ real_t BSSN::momentumConstraintScale(BSSNData *paq, idx_t d)
   /* xxx */
   throw -1;
   return 0;
+}
+
+
+real_t BSSN::metricConstraintTotalMag(FRW<real_t> *frw)
+{
+  idx_t i, j, k;
+  real_t constraint_mag = 0.0;
+
+  #pragma omp parallel for default(shared) private(i, j, k) reduction(+:constraint_mag)
+  LOOP3(i,j,k)
+  {
+    BSSNData b_paq = {0};
+    set_paq_values(i, j, k, &b_paq, frw);
+
+    constraint_mag += fabs(
+      -1.0 +
+      b_paq.gamma11*b_paq.gamma22*b_paq.gamma33 + 2.0*b_paq.gamma12*b_paq.gamma13*b_paq.gamma23
+      - b_paq.gamma11*pw2(b_paq.gamma23) - b_paq.gamma22*pw2(b_paq.gamma13) - b_paq.gamma33*pw2(b_paq.gamma12)
+    );
+  }
+
+  return constraint_mag;
 }
 
 }

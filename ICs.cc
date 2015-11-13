@@ -190,14 +190,7 @@ std::cout << std::flush;
     throw -1;
   }
 
-  // populate field with random values
-  std::random_device rd;
-  std::mt19937 gen(7.0 /*rd()*/);
-  std::normal_distribution<real_t> gaussian_distribution;
-  // calling these here before looping suppresses a warning (bug)
-  gaussian_distribution(gen);
-
-  #if USE_DIFFERENCES
+  #if USE_REFERENCE_FRW
     // Set values in reference FRW integrator
     real_t rho_FRW_w0 = icd.rho_K_matter;
     real_t rho_FRW_Lambda = icd.rho_K_lambda;

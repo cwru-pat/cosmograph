@@ -197,7 +197,7 @@ int main(int argc, char **argv)
       if(s%iodata.meta_output_interval == 0)
       {
         idx_t isNaN = 0;
-        real_t H_calcs[7];
+        real_t H_calcs[7], M_calcs[7];
 
         // make sure clean data is in _a array
         // Set values at points
@@ -222,12 +222,11 @@ int main(int argc, char **argv)
         io_dump_data(H_calcs[6], &iodata, "H_violations"); // mean(H/[H])
         io_dump_data(H_calcs[2], &iodata, "H_violations"); // max(H)
 
-        real_t mean_momentum_constraint_mag = bssnSim.momentumConstraintMagMean(&frw);
-        real_t stdev_momentum_constraint_mag = bssnSim.momentumConstraintMagStDev(mean_momentum_constraint_mag, &frw);
-        real_t max_momentum_constraint_mag = bssnSim.momentumConstraintMagMax(&frw);
-        io_dump_data(mean_momentum_constraint_mag, &iodata, "M_violations");
-        io_dump_data(stdev_momentum_constraint_mag, &iodata, "M_violations");
-        io_dump_data(max_momentum_constraint_mag, &iodata, "M_violations");
+        bssnSim.setMomentumConstraintCalcs(M_calcs, &frw);
+        io_dump_data(M_calcs[4], &iodata, "M_violations"); // mean(M/[M])
+        io_dump_data(M_calcs[5], &iodata, "M_violations"); // stdev(M/[M])
+        io_dump_data(M_calcs[6], &iodata, "M_violations"); // mean(M/[M])
+        io_dump_data(M_calcs[2], &iodata, "M_violations"); // max(M)
 
         if(numNaNs(bssnSim.fields["DIFFphi_a"]) > 0)
         {

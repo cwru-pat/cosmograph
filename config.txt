@@ -1,5 +1,5 @@
-steps = 6001
-grid_output_interval = 3000
+steps = 30001
+grid_output_interval = 6000
 slice_output_interval = 100
 spec_output_interval = 500
 meta_output_interval = 1
@@ -10,7 +10,7 @@ peak_amplitude_frac = 5.0
 rho_K_lambda_frac = 0.0
 ic_spec_cut = 10
 
-output_dir = output
+output_dir = output_longrun
 dump_file = calculated
 
 IC_viol_amp = 0.0

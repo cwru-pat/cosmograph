@@ -111,11 +111,9 @@ public:
     real_t hamiltonianConstraintCalc(idx_t idx, FRW<real_t> *frw);
     real_t hamiltonianConstraintScale(idx_t idx, FRW<real_t> *frw);
 
+    void setMomentumConstraintCalcs(real_t M_values[7], FRW<real_t> *frw);
     real_t momentumConstraintCalc(BSSNData *paq, idx_t d);
     real_t momentumConstraintScale(BSSNData *paq, idx_t d);
-    real_t momentumConstraintMagMean(FRW<real_t> *frw);
-    real_t momentumConstraintMagStDev(real_t mean, FRW<real_t> *frw);
-    real_t momentumConstraintMagMax(FRW<real_t> *frw);
 
     real_t metricConstraintTotalMag(FRW<real_t> *frw);
 

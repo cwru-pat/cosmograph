@@ -15,9 +15,6 @@ inline real_t KO_dissipation_Q(idx_t i, idx_t j, idx_t k, real_t *field)
   // Q = (-1)^r * (dx)^(2r-1) D_+^r D_- ^r / 2^(2r)
   //   = dx^3 / 2^6 D_+^2 D_-^2
   //   = dx^3 / 64 * [stencil: 1, -4, 6, -4, 1]
-  // for a = 6, r = 4
-  // Q = (dx)^(7) D_+^4 D_- ^4 / 2^(8)
-  //   = (dx)^(7)/256 * [stencil: ]
   return KO_eta*pow(dx, 3.0)/64*(
       1.0*field[INDEX(i-2,j,k)] + 1.0*field[INDEX(i,j-2,k)] + 1.0*field[INDEX(i,j,k-2)]
     - 4.0*field[INDEX(i-1,j,k)] - 4.0*field[INDEX(i,j-1,k)] - 4.0*field[INDEX(i,j,k-1)]
@@ -25,6 +22,11 @@ inline real_t KO_dissipation_Q(idx_t i, idx_t j, idx_t k, real_t *field)
     - 4.0*field[INDEX(i+1,j,k)] - 4.0*field[INDEX(i,j+1,k)] - 4.0*field[INDEX(i,j,k+1)]
     + 1.0*field[INDEX(i+2,j,k)] + 1.0*field[INDEX(i,j+2,k)] + 1.0*field[INDEX(i,j,k+2)]
   );
+
+  // for a = 6, r = 4
+  // Q = (dx)^(7) D_+^4 D_- ^4 / 2^(8)
+  //   = (dx)^(7)/256 * [stencil: ]
+  // ...
 }
 
 inline real_t derivative_Odx2(idx_t i, idx_t j, idx_t k, int d,
@@ -289,6 +291,66 @@ inline real_t mixed_derivative_stencil_Odx6(idx_t i, idx_t j, idx_t k, int d1, i
         + field[INDEX(i,j-3,k-3)] - field[INDEX(i,j-3,k+3)]
       )
     )/360.0/dx/dx;
+  }
+
+  /* XXX */
+  return 0;
+}
+
+inline real_t mixed_derivative_stencil_Odx8(idx_t i, idx_t j, idx_t k, int d1, int d2, real_t *field)
+{
+  if( (d1 == 1 && d2 == 2) || (d1 == 2 && d2 == 1) ) {
+    return (
+      2.0/5.0*(
+        - field[INDEX(i+1,j-1,k)] + field[INDEX(i+1,j+1,k)]
+        + field[INDEX(i-1,j-1,k)] - field[INDEX(i-1,j+1,k)]
+      ) - 1.0/20.0*(
+        - field[INDEX(i+2,j-2,k)] + field[INDEX(i+2,j+2,k)]
+        + field[INDEX(i-2,j-2,k)] - field[INDEX(i-2,j+2,k)]
+      ) + 2.0/315.0*(
+        - field[INDEX(i+3,j-3,k)] + field[INDEX(i+3,j+3,k)]
+        + field[INDEX(i-3,j-3,k)] - field[INDEX(i-3,j+3,k)]
+      ) + 1.0/2240.0*(
+        - field[INDEX(i+4,j-4,k)] + field[INDEX(i+4,j+4,k)]
+        + field[INDEX(i-4,j-4,k)] - field[INDEX(i-4,j+4,k)]
+      )
+    )/dx/dx;
+  }
+
+  if( (d1 == 1 && d2 == 3) || (d1 == 3 && d2 == 1) ) {
+    return (
+      2.0/5.0*(
+        - field[INDEX(i+1,j,k-1)] + field[INDEX(i+1,j,k+1)]
+        + field[INDEX(i-1,j,k-1)] - field[INDEX(i-1,j,k+1)]
+      ) - 1.0/20.0*(
+        - field[INDEX(i+2,j,k-2)] + field[INDEX(i+2,j,k+2)]
+        + field[INDEX(i-2,j,k-2)] - field[INDEX(i-2,j,k+2)]
+      ) + 2.0/315.0*(
+        - field[INDEX(i+3,j,k-3)] + field[INDEX(i+3,j,k+3)]
+        + field[INDEX(i-3,j,k-3)] - field[INDEX(i-3,j,k+3)]
+      ) + 1.0/2240.0*(
+        - field[INDEX(i+4,j,k-4)] + field[INDEX(i+4,j,k+4)]
+        + field[INDEX(i-4,j,k-4)] - field[INDEX(i-4,j,k+4)]
+      )
+    )/dx/dx;
+  }
+
+  if( (d1 == 3 && d2 == 2) || (d1 == 2 && d2 == 3) ) {
+    return (
+      2.0/5.0*(
+        - field[INDEX(i,j+1,k-1)] + field[INDEX(i,j+1,k+1)]
+        + field[INDEX(i,j-1,k-1)] - field[INDEX(i,j-1,k+1)]
+      ) - 1.0/20.0*(
+        - field[INDEX(i,j+2,k-2)] + field[INDEX(i,j+2,k+2)]
+        + field[INDEX(i,j-2,k-2)] - field[INDEX(i,j-2,k+2)]
+      ) + 2.0/315.0*(
+        - field[INDEX(i,j+3,k-3)] + field[INDEX(i,j+3,k+3)]
+        + field[INDEX(i,j-3,k-3)] - field[INDEX(i,j-3,k+3)]
+      ) + 1.0/2240.0*(
+        - field[INDEX(i,j+4,k-4)] + field[INDEX(i,j+4,k+4)]
+        + field[INDEX(i,j-4,k-4)] - field[INDEX(i,j-4,k+4)]
+      )
+    )/dx/dx;
   }
 
   /* XXX */
