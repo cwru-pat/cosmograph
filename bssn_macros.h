@@ -72,12 +72,6 @@
   function(STF33);
 
 #define BSSN_APPLY_TO_GEN1_EXTRAS(function) \
-  function(DIFFgammai11);                   \
-  function(DIFFgammai12);                   \
-  function(DIFFgammai13);                   \
-  function(DIFFgammai22);                   \
-  function(DIFFgammai23);                   \
-  function(DIFFgammai33);                   \
   function(dk0_slice_phi);                  \
   function(KDx);                            \
   function(KDy);                            \
@@ -198,8 +192,6 @@
     paq->d##J##g##K##I + paq->d##K##g##J##I - paq->d##I##g##J##K \
   )
 
-#define BSSN_CALCULATE_DGAMMAI(I, J, K) paq->d##I##gi##J##K = derivative(paq->i, paq->j, paq->k, I, DIFFgammai##J##K##_a);
-
 #define BSSN_CALCULATE_DGAMMA(I, J, K) paq->d##I##g##J##K = derivative(paq->i, paq->j, paq->k, I, DIFFgamma##J##K##_a);
 
 #define BSSN_CALCULATE_ACONT(I, J) paq->Acont##I##J = ( \
@@ -216,8 +208,6 @@
     (paq->G3##I##J + 2.0*( (3==I)*paq->d##J##phi + (3==J)*paq->d##I##phi - paq->gamma##I##J*gamma3ldlphi))*paq->d3a \
   );
 
-// unitary piece only:
-// calculated using http://relativity.livingreviews.org/Articles/lrr-2011-6/fulltext.html
 #define BSSN_CALCULATE_RICCITF_UNITARY(I, J) paq->ricciTF##I##J = ( \
     - 0.5*( \
       paq->gammai11*paq->d1d1g##I##J + paq->gammai22*paq->d2d2g##I##J + paq->gammai33*paq->d3d3g##I##J \
@@ -227,34 +217,9 @@
       paq->gamma1##I*derivative(paq->i, paq->j, paq->k, J, Gamma1_a) + paq->gamma2##I*derivative(paq->i, paq->j, paq->k, J, Gamma2_a) + paq->gamma3##I*derivative(paq->i, paq->j, paq->k, J, Gamma3_a) + \
       paq->gamma1##J*derivative(paq->i, paq->j, paq->k, I, Gamma1_a) + paq->gamma2##J*derivative(paq->i, paq->j, paq->k, I, Gamma2_a) + paq->gamma3##J*derivative(paq->i, paq->j, paq->k, I, Gamma3_a) \
     ) \
-    - 0.5*( \
-      paq->d1g##I##1*paq->d1gi##J##1 + paq->d1g##I##2*paq->d2gi##J##1 + paq->d1g##I##3*paq->d3gi##J##1 \
-        + paq->d2g##I##1*paq->d1gi##J##2 + paq->d2g##I##2*paq->d2gi##J##2 + paq->d2g##I##3*paq->d3gi##J##2 \
-        + paq->d3g##I##1*paq->d1gi##J##3 + paq->d3g##I##2*paq->d2gi##J##3 + paq->d3g##I##3*paq->d3gi##J##3 \
-      + paq->d1g##J##1*paq->d1gi##I##1 + paq->d1g##J##2*paq->d2gi##I##1 + paq->d1g##J##3*paq->d3gi##I##1 \
-        + paq->d2g##J##1*paq->d1gi##I##2 + paq->d2g##J##2*paq->d2gi##I##2 + paq->d2g##J##3*paq->d3gi##I##2 \
-        + paq->d3g##J##1*paq->d1gi##I##3 + paq->d3g##J##2*paq->d2gi##I##3 + paq->d3g##J##3*paq->d3gi##I##3 \
-      - paq->Gamma1*paq->d1g##I##J - paq->Gamma2*paq->d2g##I##J - paq->Gamma3*paq->d3g##I##J \
-    ) \
-    - ( \
-        paq->G1##I##1*paq->G1##J##1 + paq->G1##I##2*paq->G2##J##1 + paq->G1##I##3*paq->G3##J##1 \
-      + paq->G2##I##1*paq->G1##J##2 + paq->G2##I##2*paq->G2##J##2 + paq->G2##I##3*paq->G3##J##2 \
-      + paq->G3##I##1*paq->G1##J##3 + paq->G3##I##2*paq->G2##J##3 + paq->G3##I##3*paq->G3##J##3 \
-    ) \
-  );
-
-#define BSSN_CALCULATE_RICCITF_UNITARY_ALT(I, J) paq->ricciTF##I##J = ( \
-    - 0.5*( \
-      paq->gammai11*paq->d1d1g##I##J + paq->gammai22*paq->d2d2g##I##J + paq->gammai33*paq->d3d3g##I##J \
-      + 2.0*(paq->gammai12*paq->d1d2g##I##J + paq->gammai13*paq->d1d3g##I##J + paq->gammai23*paq->d2d3g##I##J) \
-    ) \
     + 0.5*( \
-      paq->gamma1##I*derivative(paq->i, paq->j, paq->k, J, Gamma1_a) + paq->gamma2##I*derivative(paq->i, paq->j, paq->k, J, Gamma2_a) + paq->gamma3##I*derivative(paq->i, paq->j, paq->k, J, Gamma3_a) + \
-      paq->gamma1##J*derivative(paq->i, paq->j, paq->k, I, Gamma1_a) + paq->gamma2##J*derivative(paq->i, paq->j, paq->k, I, Gamma2_a) + paq->gamma3##J*derivative(paq->i, paq->j, paq->k, I, Gamma3_a) \
-    ) \
-    + 0.5*( \
-      paq->Gamma1*paq->GL##I##J##1 + paq->Gamma2*paq->GL##I##J##2 + paq->Gamma3*paq->GL##I##J##3 \
-      + paq->Gamma1*paq->GL##J##I##1 + paq->Gamma2*paq->GL##J##I##2 + paq->Gamma3*paq->GL##J##I##3 \
+      paq->Gammad1*paq->GL##I##J##1 + paq->Gammad2*paq->GL##I##J##2 + paq->Gammad3*paq->GL##I##J##3 \
+      + paq->Gammad1*paq->GL##J##I##1 + paq->Gammad2*paq->GL##J##I##2 + paq->Gammad3*paq->GL##J##I##3 \
     ) \
     + paq->gammai11*( \
         paq->G11##I*paq->GL##J##11 + paq->G21##I*paq->GL##J##21 + paq->G31##I*paq->GL##J##31 \
@@ -342,10 +307,7 @@
             + paq->gammai##I##1*paq->d1theta + paq->gammai##I##2*paq->d2theta + paq->gammai##I##3*paq->d3theta \
           ) \
         - 2.0*paq->alpha*Z4c_K1_DAMPING_AMPLITUDE*( \
-            paq->Gamma##I - ( \
-              paq->gammai11*paq->G##I##11 + paq->gammai22*paq->G##I##22 + paq->gammai33*paq->G##I##33 \
-              + 2.0*(paq->gammai12*paq->G##I##12 + paq->gammai13*paq->G##I##13 + paq->gammai23*paq->G##I##23) \
-            ) \
+            paq->Gamma##I - paq->Gammad##I \
           ) \
         - 8.0*PI*(paq->gammai##I##1*paq->S1 + paq->gammai##I##2*paq->S2 + paq->gammai##I##3*paq->S3) \
         + 6.0 * (paq->Acont##I##1*paq->d1phi + paq->Acont##I##2*paq->d2phi + paq->Acont##I##3*paq->d3phi) \
@@ -527,17 +489,6 @@
 #define d3g21 d3g12
 #define d3g31 d3g13
 #define d3g32 d3g23
-
-// inverse metric derivatives
-#define d1gi21 d1gi12
-#define d1gi31 d1gi13
-#define d1gi32 d1gi23
-#define d2gi21 d2gi12
-#define d2gi31 d2gi13
-#define d2gi32 d2gi23
-#define d3gi21 d3gi12
-#define d3gi31 d3gi13
-#define d3gi32 d3gi23
 
 // second derivatives of the metric
 // bad metric indices

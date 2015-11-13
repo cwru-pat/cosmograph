@@ -98,12 +98,6 @@ int main(int argc, char **argv)
     _timer["RK_steps"].start();
 
 
-    // Pre-set detgamma and set gammai in _a register
-    #pragma omp parallel for default(shared) private(i, j, k)
-    LOOP3(i, j, k) {
-      bssnSim.set_detgamma(i, j, k);
-      bssnSim.set_DIFFgammai_values(i, j, k);
-    }
     // FRW simulation should be in the correct state here
     // First RK step, Set Hydro Vars, & calc. constraint
     #pragma omp parallel for default(shared) private(i, j, k)
@@ -128,11 +122,6 @@ int main(int argc, char **argv)
 
       // Second RK step
       #pragma omp parallel for default(shared) private(i, j, k)
-      LOOP3(i, j, k) {
-        bssnSim.set_detgamma(i, j, k);
-        bssnSim.set_DIFFgammai_values(i, j, k);
-      }
-      #pragma omp parallel for default(shared) private(i, j, k)
       LOOP3(i, j, k)
       {
         BSSNData b_paq = {0}; // data structure associated with bssn sim
@@ -146,11 +135,6 @@ int main(int argc, char **argv)
       staticSim.addBSSNSrc(bssnSim.fields, &frw);
 
       // Third RK step
-      #pragma omp parallel for default(shared) private(i, j, k)
-      LOOP3(i, j, k) {
-        bssnSim.set_detgamma(i, j, k);
-        bssnSim.set_DIFFgammai_values(i, j, k);
-      }
       #pragma omp parallel for default(shared) private(i, j, k)
       LOOP3(i, j, k)
       {
@@ -172,11 +156,6 @@ int main(int argc, char **argv)
       }
 
       // Fourth RK step
-      #pragma omp parallel for default(shared) private(i, j, k)
-      LOOP3(i, j, k) {
-        bssnSim.set_detgamma(i, j, k);
-        bssnSim.set_DIFFgammai_values(i, j, k);
-      }
       #pragma omp parallel for default(shared) private(i, j, k)
       LOOP3(i, j, k)
       {
@@ -206,11 +185,6 @@ int main(int argc, char **argv)
         staticSim.addBSSNSrc(bssnSim.fields, &frw);
         #pragma omp parallel for default(shared) private(i, j, k)
         LOOP3(i, j, k) {
-          bssnSim.set_detgamma(i, j, k);
-          bssnSim.set_DIFFgammai_values(i, j, k);
-        }
-        #pragma omp parallel for default(shared) private(i, j, k)
-        LOOP3(i, j, k) {
           BSSNData b_paq = {0}; // data structure associated with bssn sim
           bssnSim.set_paq_values(i,j,k,&b_paq, &frw);
         }
@@ -219,13 +193,13 @@ int main(int argc, char **argv)
         bssnSim.setHamiltonianConstraintCalcs(H_calcs, &frw, false);
         io_dump_data(H_calcs[4], &iodata, "H_violations"); // mean(H/[H])
         io_dump_data(H_calcs[5], &iodata, "H_violations"); // stdev(H/[H])
-        io_dump_data(H_calcs[6], &iodata, "H_violations"); // mean(H/[H])
+        io_dump_data(H_calcs[6], &iodata, "H_violations"); // max(H/[H])
         io_dump_data(H_calcs[2], &iodata, "H_violations"); // max(H)
 
         bssnSim.setMomentumConstraintCalcs(M_calcs, &frw);
         io_dump_data(M_calcs[4], &iodata, "M_violations"); // mean(M/[M])
         io_dump_data(M_calcs[5], &iodata, "M_violations"); // stdev(M/[M])
-        io_dump_data(M_calcs[6], &iodata, "M_violations"); // mean(M/[M])
+        io_dump_data(M_calcs[6], &iodata, "M_violations"); // max(M/[M])
         io_dump_data(M_calcs[2], &iodata, "M_violations"); // max(M)
 
         if(numNaNs(bssnSim.fields["DIFFphi_a"]) > 0)

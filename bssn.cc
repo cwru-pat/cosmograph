@@ -25,17 +25,17 @@ BSSN::~BSSN()
   BSSN_APPLY_TO_GEN1_EXTRAS(GEN1_ARRAY_DELETE)
 }
 
-void BSSN::set_DIFFgammai_values(idx_t i, idx_t j, idx_t k)
+void BSSN::set_gammai_values(idx_t i, idx_t j, idx_t k, BSSNData *paq)
 {
   // Compute the inverse metric algebraically at each point
   // assumes det(gamma) = 1
   idx_t idx = NP_INDEX(i,j,k);
-  DIFFgammai11_a[idx] = DIFFgamma22_a[idx] + DIFFgamma33_a[idx] - pw2(DIFFgamma23_a[idx]) + DIFFgamma22_a[idx]*DIFFgamma33_a[idx];
-  DIFFgammai22_a[idx] = DIFFgamma11_a[idx] + DIFFgamma33_a[idx] - pw2(DIFFgamma13_a[idx]) + DIFFgamma11_a[idx]*DIFFgamma33_a[idx];
-  DIFFgammai33_a[idx] = DIFFgamma11_a[idx] + DIFFgamma22_a[idx] - pw2(DIFFgamma12_a[idx]) + DIFFgamma11_a[idx]*DIFFgamma22_a[idx];
-  DIFFgammai12_a[idx] = DIFFgamma13_a[idx]*DIFFgamma23_a[idx] - DIFFgamma12_a[idx]*(1.0 + DIFFgamma33_a[idx]);
-  DIFFgammai13_a[idx] = DIFFgamma12_a[idx]*DIFFgamma23_a[idx] - DIFFgamma13_a[idx]*(1.0 + DIFFgamma22_a[idx]);
-  DIFFgammai23_a[idx] = DIFFgamma12_a[idx]*DIFFgamma13_a[idx] - DIFFgamma23_a[idx]*(1.0 + DIFFgamma11_a[idx]);
+  paq->gammai11 = 1.0 + DIFFgamma22_a[idx] + DIFFgamma33_a[idx] - pw2(DIFFgamma23_a[idx]) + DIFFgamma22_a[idx]*DIFFgamma33_a[idx];
+  paq->gammai22 = 1.0 + DIFFgamma11_a[idx] + DIFFgamma33_a[idx] - pw2(DIFFgamma13_a[idx]) + DIFFgamma11_a[idx]*DIFFgamma33_a[idx];
+  paq->gammai33 = 1.0 + DIFFgamma11_a[idx] + DIFFgamma22_a[idx] - pw2(DIFFgamma12_a[idx]) + DIFFgamma11_a[idx]*DIFFgamma22_a[idx];
+  paq->gammai12 = DIFFgamma13_a[idx]*DIFFgamma23_a[idx] - DIFFgamma12_a[idx]*(1.0 + DIFFgamma33_a[idx]);
+  paq->gammai13 = DIFFgamma12_a[idx]*DIFFgamma23_a[idx] - DIFFgamma13_a[idx]*(1.0 + DIFFgamma22_a[idx]);
+  paq->gammai23 = DIFFgamma12_a[idx]*DIFFgamma13_a[idx] - DIFFgamma23_a[idx]*(1.0 + DIFFgamma11_a[idx]);
 }
 
 void BSSN::set_paq_values(idx_t i, idx_t j, idx_t k, BSSNData *paq, FRW<real_t> *frw)
@@ -53,6 +53,7 @@ void BSSN::set_paq_values(idx_t i, idx_t j, idx_t k, BSSNData *paq, FRW<real_t> 
 
   // draw data from cache
   set_local_vals(paq);
+  set_gammai_values(i, j, k, paq);
 
   // non-DIFF quantities
   paq->phi      =   paq->DIFFphi + paq->phi_FRW;
@@ -63,12 +64,6 @@ void BSSN::set_paq_values(idx_t i, idx_t j, idx_t k, BSSNData *paq, FRW<real_t> 
   paq->gamma22  =   paq->DIFFgamma22 + 1.0;
   paq->gamma23  =   paq->DIFFgamma23;
   paq->gamma33  =   paq->DIFFgamma33 + 1.0;
-  paq->gammai11 =   paq->DIFFgammai11 + 1.0;
-  paq->gammai12 =   paq->DIFFgammai12;
-  paq->gammai13 =   paq->DIFFgammai13;
-  paq->gammai22 =   paq->DIFFgammai22 + 1.0;
-  paq->gammai23 =   paq->DIFFgammai23;
-  paq->gammai33 =   paq->DIFFgammai33 + 1.0;
   paq->r        =   paq->DIFFr + paq->rho_FRW;
   paq->S        =   paq->DIFFS + paq->S_FRW;
   paq->alpha    =   paq->DIFFalpha + 1.0;
@@ -78,7 +73,6 @@ void BSSN::set_paq_values(idx_t i, idx_t j, idx_t k, BSSNData *paq, FRW<real_t> 
   calculate_Acont(paq);
   calculate_dgamma(paq);
   calculate_ddgamma(paq);
-  calculate_dgammai(paq);
   calculate_dalpha_dphi(paq);
   calculate_dK(paq);
   #if Z4c_DAMPING > 0
@@ -95,37 +89,6 @@ void BSSN::set_paq_values(idx_t i, idx_t j, idx_t k, BSSNData *paq, FRW<real_t> 
 
   // H depends on AijAij and ricci arrays
   paq->H = hamiltonianConstraintCalc(paq->idx, frw);
-}
-
-// TODO: rewrite this in terms of difference variables?
-/*
- * DIFFgamma -> DIFFgamma/det(gamma) + (1-1/det(gamma))*delta
- */
-void BSSN::set_detgamma(idx_t i, idx_t j, idx_t k)
-{
-  // idx_t idx = NP_INDEX(i,j,k);
-
-  // real_t det_p = pow(
-  //   - gamma13_p[idx] * gamma13_p[idx] * gamma22_p[idx]
-  //   + 2.0*gamma12_p[idx] * gamma13_p[idx] * gamma23_p[idx]
-  //   - gamma11_p[idx] * gamma23_p[idx] * gamma23_p[idx]
-  //   - gamma12_p[idx] * gamma12_p[idx] * gamma33_p[idx]
-  //   + gamma11_p[idx] * gamma22_p[idx] * gamma33_p[idx]
-  // , 1.0/3.0);
-
-  // gamma11_p[idx] /= det_p; gamma12_p[idx] /= det_p; gamma13_p[idx] /= det_p; gamma22_p[idx] /= det_p; gamma23_p[idx] /= det_p; gamma33_p[idx] /= det_p;
-  // A11_p[idx] /= det_p; A12_p[idx] /= det_p; A13_p[idx] /= det_p; A22_p[idx] /= det_p; A23_p[idx] /= det_p; A33_p[idx] /= det_p;
-
-  // real_t det_a = pow(
-  //   - gamma13_a[idx] * gamma13_a[idx] * gamma22_a[idx]
-  //   + 2.0*gamma12_a[idx] * gamma13_a[idx] * gamma23_a[idx]
-  //   - gamma11_a[idx] * gamma23_a[idx] * gamma23_a[idx]
-  //   - gamma12_a[idx] * gamma12_a[idx] * gamma33_a[idx]
-  //   + gamma11_a[idx] * gamma22_a[idx] * gamma33_a[idx]
-  // , 1.0/3.0);
-
-  // gamma11_a[idx] /= det_a; gamma12_a[idx] /= det_a; gamma13_a[idx] /= det_a; gamma22_a[idx] /= det_a; gamma23_a[idx] /= det_a; gamma33_a[idx] /= det_a;
-  // A11_a[idx] /= det_a; A12_a[idx] /= det_a; A13_a[idx] /= det_a; A22_a[idx] /= det_a; A23_a[idx] /= det_a; A33_a[idx] /= det_a;
 }
 
 // Full RK step (More useful when not evolving the source simultaneously)
@@ -352,12 +315,6 @@ void BSSN::calculate_ddgamma(BSSNData *paq)
   BSSN_APPLY_TO_IJ_PERMS(BSSN_CALCULATE_DIDJGAMMA_PERMS)
 }
 
-/* Calculate metric derivatives */
-void BSSN::calculate_dgammai(BSSNData *paq)
-{
-  BSSN_APPLY_TO_IJK_PERMS(BSSN_CALCULATE_DGAMMAI);
-}
-
 void BSSN::calculate_dalpha_dphi(BSSNData *paq)
 {
   // normal derivatives of phi
@@ -403,6 +360,13 @@ void BSSN::calculate_conformal_christoffels(BSSNData *paq)
   BSSN_APPLY_TO_IJK_PERMS(BSSN_CALCULATE_CHRISTOFFEL)
   // "lowered" christoffel symbols: \Gamma_{ijk} = GLijk
   BSSN_APPLY_TO_IJK_PERMS(BSSN_CALCULATE_CHRISTOFFEL_LOWER)
+
+  paq->Gammad1 = paq->G111*paq->gammai11 + paq->G122*paq->gammai22 + paq->G133*paq->gammai33
+    + 2.0*(paq->G112*paq->gammai12 + paq->G113*paq->gammai13 + paq->G123*paq->gammai23);
+  paq->Gammad2 = paq->G211*paq->gammai11 + paq->G222*paq->gammai22 + paq->G233*paq->gammai33
+    + 2.0*(paq->G212*paq->gammai12 + paq->G213*paq->gammai13 + paq->G223*paq->gammai23);
+  paq->Gammad3 = paq->G311*paq->gammai11 + paq->G322*paq->gammai22 + paq->G333*paq->gammai33
+    + 2.0*(paq->G312*paq->gammai12 + paq->G313*paq->gammai13 + paq->G323*paq->gammai23);
 }
 
 void BSSN::calculateDDphi(BSSNData *paq)
@@ -450,9 +414,7 @@ void BSSN::calculateDDalphaTF(BSSNData *paq)
 void BSSN::calculateRicciTF(BSSNData *paq)
 {
   // unitary pieces
-  /*BSSN_APPLY_TO_IJ_PERMS(BSSN_CALCULATE_RICCITF_UNITARY)*/
-  // may be more accurate but computationally intensive:
-   BSSN_APPLY_TO_IJ_PERMS(BSSN_CALCULATE_RICCITF_UNITARY_ALT) 
+  BSSN_APPLY_TO_IJ_PERMS(BSSN_CALCULATE_RICCITF_UNITARY)
 
   paq->Uricci11 = paq->ricciTF11;
   paq->Uricci12 = paq->ricciTF12;
@@ -654,11 +616,6 @@ void BSSN::setHamiltonianConstraintCalcs(real_t H_values[7], FRW<real_t> *frw, b
   if(reset_paq)
   {
     #pragma omp parallel for default(shared) private(i, j, k)
-    LOOP3(i, j, k) {
-      set_detgamma(i,j,k);
-      set_DIFFgammai_values(i, j, k);
-    }
-    #pragma omp parallel for default(shared) private(i, j, k)
     LOOP3(i,j,k)
     {
       BSSNData b_paq = {0};
@@ -770,12 +727,6 @@ void BSSN::setMomentumConstraintCalcs(real_t M_values[7], FRW<real_t> *frw)
   real_t mean_M_scaled = 0.0;
   real_t stdev_M_scaled = 0.0;
   real_t max_M_scaled = 0.0;
-
-  #pragma omp parallel for default(shared) private(i, j, k)
-  LOOP3(i, j, k) {
-    set_detgamma(i,j,k);
-    set_DIFFgammai_values(i, j, k);
-  }
 
   #pragma omp parallel for default(shared) private(i, j, k) reduction(+:mean_M,mean_M_scale,mean_M_scaled)
   LOOP3(i,j,k)

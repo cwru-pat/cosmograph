@@ -63,15 +63,13 @@ typedef struct {
          GL211, GL212, GL213, GL222, GL223, GL233,
          GL311, GL312, GL313, GL322, GL323, GL333;
 
+  // contraction of christoffel symbols ("Gamma_d" in Z4c)
+  real_t Gammad1, Gammad2, Gammad3;
+
   // derivatives of the metric, d_i g_jk
   real_t d1g11, d1g12, d1g13, d1g22, d1g23, d1g33,
          d2g11, d2g12, d2g13, d2g22, d2g23, d2g33,
          d3g11, d3g12, d3g13, d3g22, d3g23, d3g33;
-
-  // derivatives of the inverse metric d_i g^jk
-  real_t d1gi11, d1gi12, d1gi13, d1gi22, d1gi23, d1gi33,
-         d2gi11, d2gi12, d2gi13, d2gi22, d2gi23, d2gi33,
-         d3gi11, d3gi12, d3gi13, d3gi22, d3gi23, d3gi33;
 
   // second derivatives of the metric d_i d_j g_kl
   real_t d1d1g11, d1d1g12, d1d1g13, d1d1g22, d1d1g23, d1d1g33,

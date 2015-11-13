@@ -12,6 +12,7 @@
   sprintf(data, "%.15g\t", (double) std_##field); \
   gzwrite(datafile, data, strlen(data));
 
+#define STRINGIFY(function) #function
 
 namespace cosmo
 {
@@ -27,9 +28,25 @@ void io_init(IOData *iodata, std::string output_dir)
     iodata->output_dir += '/';
   }
 
-  /* create data_dir */
+  /* Create data_dir if needed */
   if(len_dir_name != 0)
     mkdir(iodata->output_dir.c_str(), 0755);
+
+  /* check for conflicting data in directory */
+  if(std::ifstream(iodata->output_dir + "log.txt"))
+  {
+    LOG(iodata->log, "Data files in output directory seem to already exist!");
+    int s=1;
+    while(std::ifstream(
+        (iodata->output_dir).substr(0,iodata->output_dir.length()-1) + "." + std::to_string(s) + "/log.txt"
+      ))
+      s += 1;
+
+    iodata->output_dir = (iodata->output_dir).substr(0,iodata->output_dir.length()-1) + "." + std::to_string(s);
+    LOG(iodata->log, " Using '" << iodata->output_dir << "' instead.\n");
+    iodata->output_dir += '/';
+    mkdir(iodata->output_dir.c_str(), 0755);
+  }
 
   iodata->slice_output_interval = stoi(_config["slice_output_interval"]);
   iodata->grid_output_interval = stoi(_config["grid_output_interval"]);
@@ -45,6 +62,18 @@ void io_init(IOData *iodata, std::string output_dir)
                            << "\n");
   LOG(iodata->log, "Running with dt = " << dt << "\n");
   LOG(iodata->log, "Running with dx = " << dx << "\n");
+
+  LOG(iodata->log, "Other parameters: \n");
+  LOG(iodata->log, "  H_LEN_FRAC = " << H_LEN_FRAC << "\n");
+  LOG(iodata->log, "  FRW_SUBSTEPS = " << FRW_SUBSTEPS << "\n");
+  LOG(iodata->log, "  USE_REFERENCE_FRW = " << USE_REFERENCE_FRW << "\n");
+  LOG(iodata->log, "  KO_eta = " << KO_eta << "\n");
+  LOG(iodata->log, "  BS_H_DAMPING_AMPLITUDE = " << BS_H_DAMPING_AMPLITUDE << "\n");
+  LOG(iodata->log, "  JM_K_DAMPING_AMPLITUDE = " << JM_K_DAMPING_AMPLITUDE << "\n");
+  LOG(iodata->log, "  Z4c_DAMPING = " << Z4c_DAMPING << "\n");
+  LOG(iodata->log, "  Z4c_K1_DAMPING_AMPLITUDE = " << Z4c_K1_DAMPING_AMPLITUDE << "\n");
+  LOG(iodata->log, "  Z4c_K2_DAMPING_AMPLITUDE = " << Z4c_K2_DAMPING_AMPLITUDE << "\n");
+  LOG(iodata->log, "  STENCIL_ORDER = " << STRINGIFY(STENCIL_ORDER(Odx)) << "\n");
 }
 
 void io_config_backup(IOData *iodata, std::string config_file)

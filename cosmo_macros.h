@@ -19,7 +19,7 @@
 
 // Numerical Error Damping strength parameters
 #define KO_eta 0.0
-#define BS_H_DAMPING_AMPLITUDE 40.0
+#define BS_H_DAMPING_AMPLITUDE 100.0
 #define JM_K_DAMPING_AMPLITUDE 0.0
 
 #define Z4c_DAMPING 0

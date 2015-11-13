@@ -42,23 +42,19 @@ public:
     void K3CalcPt(idx_t i, idx_t j, idx_t k, BSSNData *paq, FRW<real_t> *frw);
     void K4Calc(BSSNData *paq, FRW<real_t> *frw);
     void K4CalcPt(idx_t i, idx_t j, idx_t k, BSSNData *paq, FRW<real_t> *frw);
-    void stepTerm();    
-
-  /* functions to pre-calculate quantities before RK steps */
-    void set_DIFFgammai_values(idx_t i, idx_t j, idx_t k);
-    void set_detgamma(idx_t i, idx_t j, idx_t k);
+    void stepTerm();
 
   /* calculating quantities during an RK step */
     void set_paq_values(idx_t i, idx_t j, idx_t k, BSSNData *paq, FRW<real_t> *frw);
 
     /* set current local field values */
       void set_local_vals(BSSNData *paq);
+      void set_gammai_values(idx_t i, idx_t j, idx_t k, BSSNData *paq);
 
     /* Calculate quantities only dependent on FRW soln in paq*/
       void calculate_Acont(BSSNData *paq);
       void calculate_dgamma(BSSNData *paq);
       void calculate_ddgamma(BSSNData *paq);
-      void calculate_dgammai(BSSNData *paq);
       void calculate_dalpha_dphi(BSSNData *paq);
       void calculate_dK(BSSNData *paq);
       #if Z4c_DAMPING > 0
