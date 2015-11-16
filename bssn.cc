@@ -42,7 +42,10 @@ void BSSN::set_DIFFgamma_Aij_norm()
 {
   idx_t i, j, k;
 
-/* Breaks conservation of trace: need to come up with something else to preserve trace + determinant constraints. 
+  /* This potentially breaks conservation of trace:
+   * need to come up with something else to preserve both
+   * trace + determinant constraints.
+   */
   #pragma omp parallel for default(shared) private(i, j, k)
   LOOP3(i, j, k)
   {
@@ -86,14 +89,13 @@ void BSSN::set_DIFFgamma_Aij_norm()
     real_t trA = gammai11*A11_a[idx] + gammai22*A22_a[idx] + gammai33*A33_a[idx]
       + 2.0*(gammai12*A12_a[idx] + gammai13*A13_a[idx] + gammai23*A23_a[idx]);
     // A_ij -> ( A_ij - 1/3 gamma_ij A )
-    A11_a[idx] = ( A11_a[idx] - 1.0/3.0*(1.0 + DIFFgamma11_a[idx])*trA );
-    A22_a[idx] = ( A22_a[idx] - 1.0/3.0*(1.0 + DIFFgamma22_a[idx])*trA );
-    A33_a[idx] = ( A33_a[idx] - 1.0/3.0*(1.0 + DIFFgamma33_a[idx])*trA );
-    A12_a[idx] = ( A12_a[idx] - 1.0/3.0*DIFFgamma12_a[idx]*trA );
-    A13_a[idx] = ( A13_a[idx] - 1.0/3.0*DIFFgamma13_a[idx]*trA );
-    A23_a[idx] = ( A23_a[idx] - 1.0/3.0*DIFFgamma23_a[idx]*trA );
+    A11_a[idx] = ( A11_a[idx] - 1.0/3.0*(1.0 + DIFFgamma11_a[idx])*trA ) / (1.0 - one_minus_det_gamma_thirdpow);
+    A22_a[idx] = ( A22_a[idx] - 1.0/3.0*(1.0 + DIFFgamma22_a[idx])*trA ) / (1.0 - one_minus_det_gamma_thirdpow);
+    A33_a[idx] = ( A33_a[idx] - 1.0/3.0*(1.0 + DIFFgamma33_a[idx])*trA ) / (1.0 - one_minus_det_gamma_thirdpow);
+    A12_a[idx] = ( A12_a[idx] - 1.0/3.0*DIFFgamma12_a[idx]*trA ) / (1.0 - one_minus_det_gamma_thirdpow);
+    A13_a[idx] = ( A13_a[idx] - 1.0/3.0*DIFFgamma13_a[idx]*trA ) / (1.0 - one_minus_det_gamma_thirdpow);
+    A23_a[idx] = ( A23_a[idx] - 1.0/3.0*DIFFgamma23_a[idx]*trA ) / (1.0 - one_minus_det_gamma_thirdpow);
   }
-*/
 }
 
 void BSSN::set_paq_values(idx_t i, idx_t j, idx_t k, BSSNData *paq, FRW<real_t> *frw)
@@ -180,12 +182,19 @@ void BSSN::step(BSSNData *paq, FRW<real_t> *frw)
 void BSSN::regSwap_c_a()
 {
   BSSN_SWAP_ARRAYS(_c, _a);
+  #if NORMALIZE_GAMMAIJ_AIJ
+    set_DIFFgamma_Aij_norm(); // norms _a register
+  #endif
 }
 
 // Init _a register with _p values, _f with 0
 void BSSN::stepInit()
 {
   BSSN_COPY_ARRAYS(_p, _a);
+  #if NORMALIZE_GAMMAIJ_AIJ
+    set_DIFFgamma_Aij_norm(); // norms _a register
+    BSSN_COPY_ARRAYS(_a, _p);
+  #endif
   idx_t i, j, k;
   #pragma omp parallel for default(shared) private(i, j, k)
   LOOP3(i, j, k)

@@ -30,6 +30,7 @@
 /*****/
 
 #define USE_REFERENCE_FRW true
+#define NORMALIZE_GAMMAIJ_AIJ true
 
 // Numerical Error Damping strength parameters
 #define KO_ETA 1.0

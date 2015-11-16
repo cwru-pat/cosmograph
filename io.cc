@@ -71,6 +71,7 @@ void io_init(IOData *iodata, std::string output_dir)
   LOG(iodata->log, "  H_LEN_FRAC = " << H_LEN_FRAC << "\n");
   LOG(iodata->log, "  FRW_SUBSTEPS = " << FRW_SUBSTEPS << "\n");
   LOG(iodata->log, "  USE_REFERENCE_FRW = " << USE_REFERENCE_FRW << "\n");
+  LOG(iodata->log, "  NORMALIZE_GAMMAIJ_AIJ = " << NORMALIZE_GAMMAIJ_AIJ << "\n");
   LOG(iodata->log, "  KO_ETA = " << KO_ETA << "\n");
   LOG(iodata->log, "  BS_H_DAMPING_AMPLITUDE = " << BS_H_DAMPING_AMPLITUDE << "\n");
   LOG(iodata->log, "  JM_K_DAMPING_AMPLITUDE = " << JM_K_DAMPING_AMPLITUDE << "\n");
