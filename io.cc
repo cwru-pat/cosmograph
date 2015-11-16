@@ -12,7 +12,11 @@
   sprintf(data, "%.15g\t", (double) std_##field); \
   gzwrite(datafile, data, strlen(data));
 
-#define STRINGIFY(function) #function
+
+#define STRINGIFY_STRINGIFIER(function) #function
+#define STRINGIFY_EVALUATOR(function) STRINGIFY_STRINGIFIER(function)
+#define STRINGIFY(function) STRINGIFY_EVALUATOR(function)
+
 
 namespace cosmo
 {
@@ -67,13 +71,16 @@ void io_init(IOData *iodata, std::string output_dir)
   LOG(iodata->log, "  H_LEN_FRAC = " << H_LEN_FRAC << "\n");
   LOG(iodata->log, "  FRW_SUBSTEPS = " << FRW_SUBSTEPS << "\n");
   LOG(iodata->log, "  USE_REFERENCE_FRW = " << USE_REFERENCE_FRW << "\n");
-  LOG(iodata->log, "  KO_eta = " << KO_eta << "\n");
+  LOG(iodata->log, "  KO_ETA = " << KO_ETA << "\n");
   LOG(iodata->log, "  BS_H_DAMPING_AMPLITUDE = " << BS_H_DAMPING_AMPLITUDE << "\n");
   LOG(iodata->log, "  JM_K_DAMPING_AMPLITUDE = " << JM_K_DAMPING_AMPLITUDE << "\n");
   LOG(iodata->log, "  Z4c_DAMPING = " << Z4c_DAMPING << "\n");
   LOG(iodata->log, "  Z4c_K1_DAMPING_AMPLITUDE = " << Z4c_K1_DAMPING_AMPLITUDE << "\n");
   LOG(iodata->log, "  Z4c_K2_DAMPING_AMPLITUDE = " << Z4c_K2_DAMPING_AMPLITUDE << "\n");
-  LOG(iodata->log, "  STENCIL_ORDER = " << STRINGIFY(STENCIL_ORDER(Odx)) << "\n");
+  LOG(iodata->log, "  STENCIL_ORDER = " << STRINGIFY(STENCIL_ORDER_FUNCTION(Odx)) << "\n");
+  #ifdef HARMONIC_ALPHA
+    LOG(iodata->log, "  HARMONIC_ALPHA = " << HARMONIC_ALPHA << "\n");
+  #endif
 }
 
 void io_config_backup(IOData *iodata, std::string config_file)

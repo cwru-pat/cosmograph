@@ -50,6 +50,7 @@ public:
     /* set current local field values */
       void set_local_vals(BSSNData *paq);
       void set_gammai_values(idx_t i, idx_t j, idx_t k, BSSNData *paq);
+      void set_DIFFgamma_Aij_norm();
 
     /* Calculate quantities only dependent on FRW soln in paq*/
       void calculate_Acont(BSSNData *paq);

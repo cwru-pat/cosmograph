@@ -1,6 +1,7 @@
 #ifndef COSMO_DEFINES
 #define COSMO_DEFINES
 
+/* Cosmological run parameters: 
 #define N 64
 #define NX N
 #define NY N
@@ -11,23 +12,50 @@
 #define dx (H_LEN_FRAC/(1.0*N))
 #define dt (0.1*dx)
 #define FRW_SUBSTEPS 100
+****/
+
+/* Stability test parameters: */
+#define R 1
+#define N 50
+#define NX (50*R)
+// NY, NZ should be at least the # points in the stencil
+#define NY 10
+#define NZ 10
+#define POINTS ((NX)*(NY)*(NZ))
+// box size in hubble units
+#define H_LEN_FRAC 0.5
+#define dx (1.0/NX)
+#define dt (0.1*dx)
+#define FRW_SUBSTEPS 0
+/*****/
 
 #define USE_REFERENCE_FRW true
 
-// WENO "epsilon" parameter
-#define EPS 0.0001
-
 // Numerical Error Damping strength parameters
-#define KO_eta 0.0
-#define BS_H_DAMPING_AMPLITUDE 100.0
+#define KO_ETA 1.0
+#define BS_H_DAMPING_AMPLITUDE 0.0
 #define JM_K_DAMPING_AMPLITUDE 0.0
 
 #define Z4c_DAMPING 0
-#define Z4c_K1_DAMPING_AMPLITUDE 0.05
-#define Z4c_K2_DAMPING_AMPLITUDE 0.0
+#if Z4c_DAMPING > 0
+  #define Z4c_K1_DAMPING_AMPLITUDE 1.0
+  #define Z4c_K2_DAMPING_AMPLITUDE 0.0
+#else
+  #define Z4c_K1_DAMPING_AMPLITUDE 0.0
+  #define Z4c_K2_DAMPING_AMPLITUDE 0.0
+#endif
+
+#define HARMONIC_ALPHA false
 
 // Stencil order
-#define STENCIL_ORDER(function) function##6
+#define STENCIL_ORDER 8
+
+#define STENCIL_CONCATENATOR(function, order) function ## order
+#define STENCIL_EVALUATOR(function, order) STENCIL_CONCATENATOR(function, order)
+#define STENCIL_ORDER_FUNCTION(function) STENCIL_EVALUATOR(function, STENCIL_ORDER)
+
+// WENO "epsilon" parameter
+#define EPS 0.0001
 
 #define PI (4.0*atan(1.0))
 #define SIGN(x) (((x) < 0.0) ? -1 : ((x) > 0.0))

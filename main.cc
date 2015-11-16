@@ -56,9 +56,22 @@ int main(int argc, char **argv)
     // Standard FRW spacetime integrator
     FRW<real_t> frw (0.0, 0.0);
 
-    // "conformal" initial conditions:
-    LOG(iodata.log, "Using conformal initial conditions...\n");
-    set_conformal_ICs(bssnSim.fields, staticSim.fields, &fourier, &iodata, &frw);
+    if(_config["ICs"] == "apples_stability")
+    {
+      LOG(iodata.log, "Using apples stability test initial conditions...\n");
+      set_stability_test_ICs(bssnSim.fields, staticSim.fields);
+    }
+    else if(_config["ICs"] == "apples_wave")
+    {
+      LOG(iodata.log, "Using apples wave test initial conditions...\n");
+      set_linear_wave_ICs(bssnSim.fields);
+    }
+    else
+    {
+      // "conformal" cosmological initial conditions:
+      LOG(iodata.log, "Using conformal initial conditions...\n");
+      set_conformal_ICs(bssnSim.fields, staticSim.fields, &fourier, &iodata, &frw);
+    }
 
   _timer["init"].stop();
 
@@ -201,6 +214,15 @@ int main(int argc, char **argv)
         io_dump_data(M_calcs[5], &iodata, "M_violations"); // stdev(M/[M])
         io_dump_data(M_calcs[6], &iodata, "M_violations"); // max(M/[M])
         io_dump_data(M_calcs[2], &iodata, "M_violations"); // max(M)
+
+        real_t maxdiff = 0.0;
+        LOOP3(i, j, k) {
+          idx_t idx = INDEX(i,j,k);
+          if(fabs(bssnSim.fields["DIFFgamma11_a"][idx]) > maxdiff) {
+            maxdiff = fabs(bssnSim.fields["DIFFgamma11_a"][idx]);
+          }
+        }
+        io_dump_data(maxdiff, &iodata, "g11_violations"); // max(gxx - 1)
 
         if(numNaNs(bssnSim.fields["DIFFphi_a"]) > 0)
         {

@@ -38,6 +38,64 @@ void BSSN::set_gammai_values(idx_t i, idx_t j, idx_t k, BSSNData *paq)
   paq->gammai23 = DIFFgamma12_a[idx]*DIFFgamma13_a[idx] - DIFFgamma23_a[idx]*(1.0 + DIFFgamma11_a[idx]);
 }
 
+void BSSN::set_DIFFgamma_Aij_norm()
+{
+  idx_t i, j, k;
+
+/* Breaks conservation of trace: need to come up with something else to preserve trace + determinant constraints. 
+  #pragma omp parallel for default(shared) private(i, j, k)
+  LOOP3(i, j, k)
+  {
+    idx_t idx = NP_INDEX(i,j,k);
+
+    // 1 - det(1 + DiffGamma)
+    real_t one_minus_det_gamma = -1.0*(
+      DIFFgamma11_a[idx] + DIFFgamma22_a[idx] + DIFFgamma33_a[idx]
+      - pw2(DIFFgamma12_a[idx]) - pw2(DIFFgamma13_a[idx]) - pw2(DIFFgamma23_a[idx])
+      + DIFFgamma11_a[idx]*DIFFgamma22_a[idx] + DIFFgamma11_a[idx]*DIFFgamma33_a[idx] + DIFFgamma22_a[idx]*DIFFgamma33_a[idx]
+      - pw2(DIFFgamma23_a[idx])*DIFFgamma11_a[idx] - pw2(DIFFgamma13_a[idx])*DIFFgamma22_a[idx] - pw2(DIFFgamma12_a[idx])*DIFFgamma33_a[idx]
+      + 2.0*DIFFgamma12_a[idx]*DIFFgamma13_a[idx]*DIFFgamma23_a[idx] + DIFFgamma11_a[idx]*DIFFgamma22_a[idx]*DIFFgamma33_a[idx]
+    );
+
+    // accurately compute 1 - det(g)^(1/3), without roundoff error
+    // = -( det(g)^(1/3) - 1 )
+    // = -( exp{log[det(g)^(1/3)]} - 1 )
+    // = -( expm1{log[det(g)]/3} )
+    // = -expm1{log1p[-one_minus_det_gamma]/3.0}
+    real_t one_minus_det_gamma_thirdpow = -1.0*expm1(log1p(-1.0*one_minus_det_gamma)/3.0);
+
+    // Perform the equivalent of re-scaling the conformal metric so det(gamma) = 1
+    // gamma -> gamma / det(gamma)^(1/3)
+    // DIFFgamma -> (delta + DiffGamma) / det(gamma)^(1/3) - delta
+    //            = ( DiffGamma + delta*[1 - det(gamma)^(1/3)] ) / ( 1 - [1 - det(1 + DiffGamma)^1/3] )
+    DIFFgamma11_a[idx] = (DIFFgamma11_a[idx] + one_minus_det_gamma_thirdpow) / (1.0 - one_minus_det_gamma_thirdpow);
+    DIFFgamma22_a[idx] = (DIFFgamma22_a[idx] + one_minus_det_gamma_thirdpow) / (1.0 - one_minus_det_gamma_thirdpow);
+    DIFFgamma33_a[idx] = (DIFFgamma33_a[idx] + one_minus_det_gamma_thirdpow) / (1.0 - one_minus_det_gamma_thirdpow);
+    DIFFgamma12_a[idx] = (DIFFgamma12_a[idx]) / (1.0 - one_minus_det_gamma_thirdpow);
+    DIFFgamma13_a[idx] = (DIFFgamma13_a[idx]) / (1.0 - one_minus_det_gamma_thirdpow);
+    DIFFgamma23_a[idx] = (DIFFgamma23_a[idx]) / (1.0 - one_minus_det_gamma_thirdpow);
+
+    // re-scale A_ij / ensure it is trace-free
+    // need inverse gamma for finding Tr(A)
+    real_t gammai11 = 1.0 + DIFFgamma22_a[idx] + DIFFgamma33_a[idx] - pw2(DIFFgamma23_a[idx]) + DIFFgamma22_a[idx]*DIFFgamma33_a[idx];
+    real_t gammai22 = 1.0 + DIFFgamma11_a[idx] + DIFFgamma33_a[idx] - pw2(DIFFgamma13_a[idx]) + DIFFgamma11_a[idx]*DIFFgamma33_a[idx];
+    real_t gammai33 = 1.0 + DIFFgamma11_a[idx] + DIFFgamma22_a[idx] - pw2(DIFFgamma12_a[idx]) + DIFFgamma11_a[idx]*DIFFgamma22_a[idx];
+    real_t gammai12 = DIFFgamma13_a[idx]*DIFFgamma23_a[idx] - DIFFgamma12_a[idx]*(1.0 + DIFFgamma33_a[idx]);
+    real_t gammai13 = DIFFgamma12_a[idx]*DIFFgamma23_a[idx] - DIFFgamma13_a[idx]*(1.0 + DIFFgamma22_a[idx]);
+    real_t gammai23 = DIFFgamma12_a[idx]*DIFFgamma13_a[idx] - DIFFgamma23_a[idx]*(1.0 + DIFFgamma11_a[idx]);
+    real_t trA = gammai11*A11_a[idx] + gammai22*A22_a[idx] + gammai33*A33_a[idx]
+      + 2.0*(gammai12*A12_a[idx] + gammai13*A13_a[idx] + gammai23*A23_a[idx]);
+    // A_ij -> ( A_ij - 1/3 gamma_ij A )
+    A11_a[idx] = ( A11_a[idx] - 1.0/3.0*(1.0 + DIFFgamma11_a[idx])*trA );
+    A22_a[idx] = ( A22_a[idx] - 1.0/3.0*(1.0 + DIFFgamma22_a[idx])*trA );
+    A33_a[idx] = ( A33_a[idx] - 1.0/3.0*(1.0 + DIFFgamma33_a[idx])*trA );
+    A12_a[idx] = ( A12_a[idx] - 1.0/3.0*DIFFgamma12_a[idx]*trA );
+    A13_a[idx] = ( A13_a[idx] - 1.0/3.0*DIFFgamma13_a[idx]*trA );
+    A23_a[idx] = ( A23_a[idx] - 1.0/3.0*DIFFgamma23_a[idx]*trA );
+  }
+*/
+}
+
 void BSSN::set_paq_values(idx_t i, idx_t j, idx_t k, BSSNData *paq, FRW<real_t> *frw)
 {
   paq->i = i;
@@ -389,22 +447,21 @@ void BSSN::calculateDDalphaTF(BSSNData *paq)
 {
   // double covariant derivatives - use non-unitary metric - extra pieces that depend on phi!
   // the gammaIldlphi are needed for the BSSN_CALCULATE_DIDJALPHA macro
-  real_t gamma1ldlphi = paq->gammai11*paq->d1phi + paq->gammai12*paq->d2phi + paq->gammai13*paq->d3phi;
-  real_t gamma2ldlphi = paq->gammai21*paq->d1phi + paq->gammai22*paq->d2phi + paq->gammai23*paq->d3phi;
-  real_t gamma3ldlphi = paq->gammai31*paq->d1phi + paq->gammai32*paq->d2phi + paq->gammai33*paq->d3phi;
+  real_t gammai1ldlphi = paq->gammai11*paq->d1phi + paq->gammai12*paq->d2phi + paq->gammai13*paq->d3phi;
+  real_t gammai2ldlphi = paq->gammai21*paq->d1phi + paq->gammai22*paq->d2phi + paq->gammai23*paq->d3phi;
+  real_t gammai3ldlphi = paq->gammai31*paq->d1phi + paq->gammai32*paq->d2phi + paq->gammai33*paq->d3phi;
   // Calculates full (not trace-free) piece:
   BSSN_APPLY_TO_IJ_PERMS(BSSN_CALCULATE_DIDJALPHA)
 
-  // subtract trace
-  // Note that \bar{gamma}_{ij}*\bar{gamma}^{kl}R_{kl} = (unbarred), used below.
+  // subtract trace (traced with full spatial metric but subtracted later)
   paq->DDaTR = paq->gammai11*paq->D1D1aTF + paq->gammai22*paq->D2D2aTF + paq->gammai33*paq->D3D3aTF
       + 2.0*(paq->gammai12*paq->D1D2aTF + paq->gammai13*paq->D1D3aTF + paq->gammai23*paq->D2D3aTF);
-  paq->D1D1aTF -= (1/3.0)*paq->gamma11*paq->DDaTR;
-  paq->D1D2aTF -= (1/3.0)*paq->gamma12*paq->DDaTR;
-  paq->D1D3aTF -= (1/3.0)*paq->gamma13*paq->DDaTR;
-  paq->D2D2aTF -= (1/3.0)*paq->gamma22*paq->DDaTR;
-  paq->D2D3aTF -= (1/3.0)*paq->gamma23*paq->DDaTR;
-  paq->D3D3aTF -= (1/3.0)*paq->gamma33*paq->DDaTR;
+  paq->D1D1aTF -= (1.0/3.0)*paq->gamma11*paq->DDaTR;
+  paq->D1D2aTF -= (1.0/3.0)*paq->gamma12*paq->DDaTR;
+  paq->D1D3aTF -= (1.0/3.0)*paq->gamma13*paq->DDaTR;
+  paq->D2D2aTF -= (1.0/3.0)*paq->gamma22*paq->DDaTR;
+  paq->D2D3aTF -= (1.0/3.0)*paq->gamma23*paq->DDaTR;
+  paq->D3D3aTF -= (1.0/3.0)*paq->gamma33*paq->DDaTR;
 
   // scale trace back (=> contracted with "real" metric)
   paq->DDaTR *= exp(-4.0*paq->phi);
@@ -577,6 +634,11 @@ real_t BSSN::ev_DIFFphi(BSSNData *paq)
 
 real_t BSSN::ev_DIFFalpha(BSSNData *paq)
 {
+  #ifdef HARMONIC_ALPHA
+    #if HARMONIC_ALPHA
+      return -1.0*pw2(paq->alpha)*paq->K;
+    #endif
+  #endif
   return 0.0 - KO_dissipation_Q(paq->i, paq->j, paq->k, DIFFalpha_a);
 }
 
