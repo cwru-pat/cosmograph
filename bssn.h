@@ -58,8 +58,11 @@ public:
       void calculate_ddgamma(BSSNData *paq);
       void calculate_dalpha_dphi(BSSNData *paq);
       void calculate_dK(BSSNData *paq);
-      #if Z4c_DAMPING > 0
+      #if USE_Z4c_DAMPING
         void calculate_dtheta(BSSNData *paq);
+      #endif
+      #if USE_BSSN_SHIFT
+        void calculate_dbeta(BSSNData *paq);
       #endif
 
     /* Calculate "dependent" quantities (depend on previously calc'd vals) */
@@ -96,11 +99,14 @@ public:
 
     real_t ev_DIFFalpha(BSSNData *paq);
 
-    #if Z4c_DAMPING > 0
-      real_t ev_Z1(BSSNData *paq);
-      real_t ev_Z2(BSSNData *paq);
-      real_t ev_Z3(BSSNData *paq);
+    #if USE_Z4c_DAMPING
       real_t ev_theta(BSSNData *paq);
+    #endif
+
+    #if USE_BSSN_SHIFT
+      real_t ev_beta1(BSSNData *paq);
+      real_t ev_beta2(BSSNData *paq);
+      real_t ev_beta3(BSSNData *paq);
     #endif
 
   /* constraint violation calculations */

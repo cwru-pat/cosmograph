@@ -330,12 +330,12 @@ void set_linear_wave_ICs(
   LOOP3(i,j,k)
   {
     bssn_fields["DIFFgamma22_p"][NP_INDEX(i,j,k)] = 1.0e-8*sin( 2.0*PI*((real_t) i)*dx );
-    bssn_fields["DIFFgamma22_a"][NP_INDEX(i,j,k)] = bssn_fields["gamma22_p"][NP_INDEX(i,j,k)];
-    bssn_fields["DIFFgamma22_f"][NP_INDEX(i,j,k)] = bssn_fields["gamma22_p"][NP_INDEX(i,j,k)];
+    bssn_fields["DIFFgamma22_a"][NP_INDEX(i,j,k)] = bssn_fields["DIFFgamma22_p"][NP_INDEX(i,j,k)];
+    bssn_fields["DIFFgamma22_f"][NP_INDEX(i,j,k)] = bssn_fields["DIFFgamma22_p"][NP_INDEX(i,j,k)];
 
     bssn_fields["DIFFgamma33_p"][NP_INDEX(i,j,k)] = -1.0e-8*sin( 2.0*PI*((real_t) i)*dx );
-    bssn_fields["DIFFgamma33_a"][NP_INDEX(i,j,k)] = bssn_fields["gamma33_p"][NP_INDEX(i,j,k)];
-    bssn_fields["DIFFgamma33_f"][NP_INDEX(i,j,k)] = bssn_fields["gamma33_p"][NP_INDEX(i,j,k)];
+    bssn_fields["DIFFgamma33_a"][NP_INDEX(i,j,k)] = bssn_fields["DIFFgamma33_p"][NP_INDEX(i,j,k)];
+    bssn_fields["DIFFgamma33_f"][NP_INDEX(i,j,k)] = bssn_fields["DIFFgamma33_p"][NP_INDEX(i,j,k)];
 
     bssn_fields["A22_p"][NP_INDEX(i,j,k)] = PI*1.0e-8*cos( 2.0*PI*((real_t) i)*dx );
     bssn_fields["A22_a"][NP_INDEX(i,j,k)] = bssn_fields["A22_p"][NP_INDEX(i,j,k)];

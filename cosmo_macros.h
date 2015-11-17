@@ -34,19 +34,20 @@
 
 // Numerical Error Damping strength parameters
 #define KO_ETA 1.0
-#define BS_H_DAMPING_AMPLITUDE 0.0
+#define BS_H_DAMPING_AMPLITUDE 1.0
 #define JM_K_DAMPING_AMPLITUDE 0.0
 
-#define Z4c_DAMPING 0
-#if Z4c_DAMPING > 0
-  #define Z4c_K1_DAMPING_AMPLITUDE 1.0
+#define USE_Z4c_DAMPING true
+#if USE_Z4c_DAMPING
+  #define Z4c_K1_DAMPING_AMPLITUDE 0.05
   #define Z4c_K2_DAMPING_AMPLITUDE 0.0
 #else
   #define Z4c_K1_DAMPING_AMPLITUDE 0.0
   #define Z4c_K2_DAMPING_AMPLITUDE 0.0
 #endif
 
-#define HARMONIC_ALPHA false
+#define USE_HARMONIC_ALPHA false
+#define USE_BSSN_SHIFT false
 
 // Stencil order
 #define STENCIL_ORDER 8

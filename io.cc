@@ -75,13 +75,12 @@ void io_init(IOData *iodata, std::string output_dir)
   LOG(iodata->log, "  KO_ETA = " << KO_ETA << "\n");
   LOG(iodata->log, "  BS_H_DAMPING_AMPLITUDE = " << BS_H_DAMPING_AMPLITUDE << "\n");
   LOG(iodata->log, "  JM_K_DAMPING_AMPLITUDE = " << JM_K_DAMPING_AMPLITUDE << "\n");
-  LOG(iodata->log, "  Z4c_DAMPING = " << Z4c_DAMPING << "\n");
+  LOG(iodata->log, "  USE_Z4c_DAMPING = " << USE_Z4c_DAMPING << "\n");
   LOG(iodata->log, "  Z4c_K1_DAMPING_AMPLITUDE = " << Z4c_K1_DAMPING_AMPLITUDE << "\n");
   LOG(iodata->log, "  Z4c_K2_DAMPING_AMPLITUDE = " << Z4c_K2_DAMPING_AMPLITUDE << "\n");
   LOG(iodata->log, "  STENCIL_ORDER = " << STRINGIFY(STENCIL_ORDER_FUNCTION(Odx)) << "\n");
-  #ifdef HARMONIC_ALPHA
-    LOG(iodata->log, "  HARMONIC_ALPHA = " << HARMONIC_ALPHA << "\n");
-  #endif
+  LOG(iodata->log, "  USE_HARMONIC_ALPHA = " << USE_HARMONIC_ALPHA << "\n");
+  LOG(iodata->log, "  USE_BSSN_SHIFT = " << USE_BSSN_SHIFT << "\n");
 }
 
 void io_config_backup(IOData *iodata, std::string config_file)
@@ -177,7 +176,7 @@ void io_show_progress(idx_t s, idx_t maxs) // terminal output only
 void io_dump_strip(real_t *field, int axis, idx_t n1, idx_t n2, IOData *iodata)
 {
   std::string filename = iodata->output_dir + "strip.dat.gz";
-  char data[20];
+  char data[35];
 
   gzFile datafile = gzopen(filename.c_str(), "ab");
   if(datafile == Z_NULL) {
@@ -190,21 +189,21 @@ void io_dump_strip(real_t *field, int axis, idx_t n1, idx_t n2, IOData *iodata)
     case 1:
       for(idx_t i=0; i<NX; i++)
       {
-        sprintf(data, "%g\t", (double) field[INDEX(i,n1,n2)]);
+        sprintf(data, "%.15g\t", (double) field[INDEX(i,n1,n2)]);
         gzwrite(datafile, data, strlen(data));
       }
       break;
     case 2:
       for(idx_t j=0; j<NY; j++)
       {
-        sprintf(data, "%g\t", (double) field[INDEX(n1,j,n2)]);
+        sprintf(data, "%.15g\t", (double) field[INDEX(n1,j,n2)]);
         gzwrite(datafile, data, strlen(data));
       }
       break;
     case 3:
       for(idx_t k=0; k<NZ; k++)
       {
-        sprintf(data, "%g\t", (double) field[INDEX(n1,n2,k)]);
+        sprintf(data, "%.15g\t", (double) field[INDEX(n1,n2,k)]);
         gzwrite(datafile, data, strlen(data));
       }
       break;
@@ -290,8 +289,7 @@ void io_dump_statistics(std::map <std::string, real_t *> & bssn_fields,
                         IOData *iodata, FRW<real_t> *frw)
 {
   std::string filename = iodata->dump_file;
-  char data[30];
-
+  char data[35];
 
   // dump FRW quantities
   std::string dump_filename = iodata->output_dir + filename + ".frwdat.gz";
@@ -302,16 +300,16 @@ void io_dump_statistics(std::map <std::string, real_t *> & bssn_fields,
   }
 
   real_t phi_FRW = frw->get_phi();
-  sprintf(data, "%g\t", (double) phi_FRW);
+  sprintf(data, "%.15g\t", (double) phi_FRW);
   gzwrite(datafile, data, strlen(data));
   real_t K_FRW = frw->get_K();
-  sprintf(data, "%g\t", (double) K_FRW);
+  sprintf(data, "%.15g\t", (double) K_FRW);
   gzwrite(datafile, data, strlen(data));
   real_t rho_FRW = frw->get_rho();
-  sprintf(data, "%g\t", (double) rho_FRW);
+  sprintf(data, "%.15g\t", (double) rho_FRW);
   gzwrite(datafile, data, strlen(data));
   real_t S_FRW = frw->get_S();
-  sprintf(data, "%g\t", (double) S_FRW);
+  sprintf(data, "%.15g\t", (double) S_FRW);
   gzwrite(datafile, data, strlen(data));
 
   gzwrite(datafile, "\n", strlen("\n"));
@@ -335,7 +333,7 @@ void io_dump_statistics(std::map <std::string, real_t *> & bssn_fields,
   // ricci output
   DETAILS(ricci)
   // average volume
-  sprintf(data, "%g\t", (double) volume_average(bssn_fields["DIFFphi_a"], phi_FRW));
+  sprintf(data, "%.15g\t", (double) volume_average(bssn_fields["DIFFphi_a"], phi_FRW));
   gzwrite(datafile, data, strlen(data));
 
   gzwrite(datafile, "\n", strlen("\n"));
@@ -345,7 +343,7 @@ void io_dump_statistics(std::map <std::string, real_t *> & bssn_fields,
 void io_dump_data(real_t value, IOData *iodata, std::string filename)
 {
   // output misc. info about simulation here.
-  char data[20];
+  char data[35];
   std::string dump_filename = iodata->output_dir + filename + ".dat.gz";
 
   gzFile datafile = gzopen(dump_filename.c_str(), "ab");
@@ -354,7 +352,7 @@ void io_dump_data(real_t value, IOData *iodata, std::string filename)
     return;
   }
 
-  sprintf(data, "%g", (double) value);
+  sprintf(data, "%.15g", (double) value);
   gzwrite(datafile, data, strlen(data));
 
   gzwrite(datafile, "\n", strlen("\n"));

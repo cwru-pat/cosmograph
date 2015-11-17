@@ -61,7 +61,7 @@ int main(int argc, char **argv)
       LOG(iodata.log, "Using apples stability test initial conditions...\n");
       set_stability_test_ICs(bssnSim.fields, staticSim.fields);
     }
-    else if(_config["ICs"] == "apples_wave")
+    else if(_config["ICs"] == "apples_linwave")
     {
       LOG(iodata.log, "Using apples wave test initial conditions...\n");
       set_linear_wave_ICs(bssnSim.fields);
@@ -214,6 +214,8 @@ int main(int argc, char **argv)
         io_dump_data(M_calcs[5], &iodata, "M_violations"); // stdev(M/[M])
         io_dump_data(M_calcs[6], &iodata, "M_violations"); // max(M/[M])
         io_dump_data(M_calcs[2], &iodata, "M_violations"); // max(M)
+
+        io_dump_strip(bssnSim.fields["DIFFgamma11_a"], 1, 0, 0, &iodata);
 
         real_t maxdiff = 0.0;
         LOOP3(i, j, k) {

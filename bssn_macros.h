@@ -5,7 +5,7 @@
  * applying functions to lots of vars
  */
 
-#if Z4c_DAMPING > 0
+#if USE_Z4c_DAMPING
   #define Z4c_APPLY_TO_FIELDS(function)  \
     function(theta);
   #define Z4c_APPLY_TO_FIELDS_ARGS(function, ...) \
@@ -15,6 +15,19 @@
   #define Z4c_APPLY_TO_FIELDS_ARGS(function, ...)
 #endif
 
+#if USE_BSSN_SHIFT
+  #define BSSN_APPLY_TO_SHIFT(function)  \
+    function(beta1); \
+    function(beta2); \
+    function(beta3);
+  #define BSSN_APPLY_TO_SHIFT_ARGS(function, ...) \
+    function(beta1, __VA_ARGS__); \
+    function(beta2, __VA_ARGS__); \
+    function(beta3, __VA_ARGS__);
+#else
+  #define BSSN_APPLY_TO_SHIFT(function)
+  #define BSSN_APPLY_TO_SHIFT_ARGS(function, ...)
+#endif
 
 #define BSSN_APPLY_TO_FIELDS_ARGS(function, ...)   \
   function(DIFFgamma11, __VA_ARGS__);              \
@@ -35,7 +48,8 @@
   function(Gamma2, __VA_ARGS__);                   \
   function(Gamma3, __VA_ARGS__);                   \
   function(DIFFalpha, __VA_ARGS__);                \
-  Z4c_APPLY_TO_FIELDS_ARGS(function, __VA_ARGS__)
+  Z4c_APPLY_TO_FIELDS_ARGS(function, __VA_ARGS__)  \
+  BSSN_APPLY_TO_SHIFT_ARGS(function, __VA_ARGS__)
 
 #define BSSN_APPLY_TO_FIELDS(function) \
   function(DIFFgamma11);               \
@@ -56,7 +70,8 @@
   function(Gamma2);                    \
   function(Gamma3);                    \
   function(DIFFalpha);                 \
-  Z4c_APPLY_TO_FIELDS(function)
+  Z4c_APPLY_TO_FIELDS(function)        \
+  BSSN_APPLY_TO_SHIFT(function)
 
 #define BSSN_APPLY_TO_SOURCES(function) \
   function(DIFFr);                      \
@@ -286,6 +301,9 @@
 
 #define BSSN_DT_DIFFGAMMAIJ(I, J) ( \
     - 2.0*paq->alpha*paq->A##I##J \
+    + paq->gamma##I##1*paq->d##J##beta1 + paq->gamma##I##2*paq->d##J##beta2 + paq->gamma##I##3*paq->d##J##beta3 \
+    + paq->gamma##J##1*paq->d##I##beta1 + paq->gamma##J##2*paq->d##I##beta2 + paq->gamma##J##3*paq->d##I##beta3 \
+    - (2.0/3.0)*paq->gamma##I##J*(paq->d1beta1 + paq->d2beta2 + paq->d3beta3) \
   )
 
 #define BSSN_DT_AIJ(I, J) ( \
@@ -295,9 +313,17 @@
         + paq->gammai21*paq->A2##I*paq->A1##J + paq->gammai22*paq->A2##I*paq->A2##J + paq->gammai23*paq->A2##I*paq->A3##J \
         + paq->gammai31*paq->A3##I*paq->A1##J + paq->gammai32*paq->A3##I*paq->A2##J + paq->gammai33*paq->A3##I*paq->A3##J \
       )) \
+    + paq->beta1*derivative(paq->i, paq->j, paq->k, 1, A##I##J##_a) \
+    + paq->beta2*derivative(paq->i, paq->j, paq->k, 2, A##I##J##_a) \
+    + paq->beta3*derivative(paq->i, paq->j, paq->k, 3, A##I##J##_a) \
+    + paq->A##I##1*paq->d##J##beta1 + paq->A##I##2*paq->d##J##beta2 + paq->A##I##3*paq->d##J##beta3 \
+    + paq->A##J##1*paq->d##I##beta1 + paq->A##J##2*paq->d##I##beta2 + paq->A##J##3*paq->d##I##beta3 \
+    - (2.0/3.0)*paq->A##I##J*(paq->d1beta1 + paq->d2beta2 + paq->d3beta3) \
   )
 
-#define BSSN_DT_GAMMAI(I) ( \
+#define BSSN_DT_GAMMAI(I) (BSSN_DT_GAMMAI_NOSHIFT(I) + BSSN_DT_GAMMAI_SHIFT(I))
+
+#define BSSN_DT_GAMMAI_NOSHIFT(I) ( \
     - 2.0*(paq->Acont##I##1*paq->d1a + paq->Acont##I##2*paq->d2a + paq->Acont##I##3*paq->d3a) \
     + 2.0*paq->alpha*( \
         paq->G##I##11*paq->Acont11 + paq->G##I##22*paq->Acont22 + paq->G##I##33*paq->Acont33 \
@@ -312,7 +338,28 @@
         - 8.0*PI*(paq->gammai##I##1*paq->S1 + paq->gammai##I##2*paq->S2 + paq->gammai##I##3*paq->S3) \
         + 6.0 * (paq->Acont##I##1*paq->d1phi + paq->Acont##I##2*paq->d2phi + paq->Acont##I##3*paq->d3phi) \
       ) \
+    )
+
+#if USE_BSSN_SHIFT
+#define BSSN_DT_GAMMAI_SHIFT(I) ( \
+    + paq->beta1*der(paq->i, paq->j, paq->k, 1, Gamma##I##_a) \
+    + paq->beta2*der(paq->i, paq->j, paq->k, 2, Gamma##I##_a) \
+    + paq->beta3*der(paq->i, paq->j, paq->k, 3, Gamma##I##_a) \
+    - paq->Gamma1*paq->d1beta##I + paq->Gamma2*paq->d2beta##I + paq->Gamma3*paq->d3beta##I \
+    + (2.0/3.0) * paq->Gamma##I * (paq->d1beta1 + paq->d2beta2 + paq->d3beta3) \
+    + (1.0/3.0) * ( \
+        paq->gammai##I##1*double_derivative(paq->i, paq->j, paq->k, 1, 1, beta1_a) + paq->gammai##I##1*double_derivative(paq->i, paq->j, paq->k, 2, 1, beta2_a) + paq->gammai##I##1*double_derivative(paq->i, paq->j, paq->k, 3, 1, beta3_a) +  \
+        paq->gammai##I##2*double_derivative(paq->i, paq->j, paq->k, 1, 2, beta1_a) + paq->gammai##I##2*double_derivative(paq->i, paq->j, paq->k, 2, 2, beta2_a) + paq->gammai##I##2*double_derivative(paq->i, paq->j, paq->k, 3, 2, beta3_a) +  \
+        paq->gammai##I##3*double_derivative(paq->i, paq->j, paq->k, 1, 3, beta1_a) + paq->gammai##I##3*double_derivative(paq->i, paq->j, paq->k, 2, 3, beta2_a) + paq->gammai##I##3*double_derivative(paq->i, paq->j, paq->k, 3, 3, beta3_a) \
+      ) \
+    + ( \
+        paq->gammai11*double_derivative(paq->i, paq->j, paq->k, 1, 1, beta##I##_a) + paq->gammai22*double_derivative(paq->i, paq->j, paq->k, 2, 2, beta##I##_a) + paq->gammai33*double_derivative(paq->i, paq->j, paq->k, 3, 3, beta##I##_a) \
+        + 2.0*(paq->gammai12*double_derivative(paq->i, paq->j, paq->k, 1, 2, beta##I##_a) + paq->gammai13*double_derivative(paq->i, paq->j, paq->k, 1, 3, beta##I##_a) + paq->gammai23*double_derivative(paq->i, paq->j, paq->k, 2, 3, beta##I##_a)) \
+      ) \
   )
+#else
+#define BSSN_DT_GAMMAI_SHIFT(I) 0.0
+#endif
 
 #define BSSN_MI(I) exp(6.0*paq->phi)*( \
     - 2.0/3.0*derivative(paq->i, paq->j, paq->k, I, DIFFK_a) - 8*PI*paq->S##I \
@@ -359,14 +406,24 @@
 // metric derivs
 
 #define SET_DKM00(k) paq->d##k##m00 = DKM00(k);
-#define DKM00(k) -2.0*paq->alpha*paq->d##k##a;
+#define DKM00(k) \
+      -2.0*paq->alpha*paq->d##k##a \
+      + paq->d##k##m11*paq->beta1*paq->beta1 + paq->d##k##m22*paq->beta2*paq->beta2 + paq->d##k##m33*paq->beta3*paq->beta3 \
+      + 2.0*(paq->d##k##m12*paq->beta1*paq->beta2 + paq->d##k##m13*paq->beta1*paq->beta3 + paq->d##k##m23*paq->beta2*paq->beta3) \
+      + 2.0*exp(4.0*paq->phi)*( \
+          paq->gamma11*paq->d##k##beta1*paq->beta1 + paq->gamma12*paq->d##k##beta2*paq->beta1 + paq->gamma13*paq->d##k##beta3*paq->beta1 \
+          + paq->gamma12*paq->d##k##beta1*paq->beta2 + paq->gamma22*paq->d##k##beta2*paq->beta2 + paq->gamma23*paq->d##k##beta3*paq->beta2 \
+          + paq->gamma13*paq->d##k##beta1*paq->beta3 + paq->gamma23*paq->d##k##beta2*paq->beta3 + paq->gamma33*paq->d##k##beta3*paq->beta3 \
+        );
+
 
 #define SET_DKM0I(k, i) paq->d##k##m0##i = DKM0I(k, i);
 #define DKM0I(k, i) \
       exp(4.0*paq->phi)*( \
-        (paq->d##k##g1##i + 4.0*paq->d##k##phi*paq->gamma1##i) \
-        + (paq->d##k##g2##i + 4.0*paq->d##k##phi*paq->gamma2##i) \
-        + (paq->d##k##g3##i + 4.0*paq->d##k##phi*paq->gamma3##i) \
+        paq->gamma1##i * paq->d##k##beta##1 + paq->gamma2##i * paq->d##k##beta##2 + paq->gamma3##i * paq->d##k##beta##3 \
+        + (paq->d##k##g1##i + 4.0*paq->d##k##phi*paq->gamma1##i) * paq->beta##1   \
+        + (paq->d##k##g2##i + 4.0*paq->d##k##phi*paq->gamma2##i) * paq->beta##2 \
+        + (paq->d##k##g3##i + 4.0*paq->d##k##phi*paq->gamma3##i) * paq->beta##3 \
       );
 
 #define SET_DKMIJ(k, i, j) paq->d##k##m##i##j = DKMIJ(k, i, j);
@@ -376,12 +433,14 @@
 // metric
 
 #define SET_M00() paq->m00 = M00();
-#define M00() (\
-      -paq->alpha*paq->alpha \
-    );
+#define M00() \
+      -paq->alpha*paq->alpha + exp(4.0*paq->phi)*( \
+        paq->gamma11*paq->beta1*paq->beta1 + paq->gamma22*paq->beta2*paq->beta2 + paq->gamma33*paq->beta3*paq->beta3 \
+        + 2.0*(paq->gamma12*paq->beta1*paq->beta2 + paq->gamma13*paq->beta1*paq->beta3 + paq->gamma23*paq->beta2*paq->beta3) \
+      );
 
 #define SET_M0I(i) paq->m0##i = M0I(i);
-#define M0I(i) 0.0;
+#define M0I(i) exp(4.0*paq->phi)*(paq->gamma1##i*paq->beta1 + paq->gamma2##i*paq->beta2 + paq->gamma3##i*paq->beta3);
 
 #define SET_MIJ(i, j) paq->m##i##j = MIJ(i, j);
 #define MIJ(i, j) exp(4.0*paq->phi)*(paq->gamma##i##j);
@@ -392,10 +451,10 @@
 #define Mi00() -1.0/paq->alpha/paq->alpha;
 
 #define SET_Mi0I(i) paq->mi0##i = Mi0I(i);
-#define Mi0I(i) 0.0;
+#define Mi0I(i) 1.0/paq->alpha/paq->alpha*paq->beta##i;
 
 #define SET_MiIJ(i, j) paq->mi##i##j = MiIJ(i, j);
-#define MiIJ(i, j) exp(-4.0*paq->phi)*(paq->gamma##i##j);
+#define MiIJ(i, j) exp(-4.0*paq->phi)*(paq->gamma##i##j) - 1.0/paq->alpha/paq->alpha*paq->beta##i*paq->beta##j;
 
 
 

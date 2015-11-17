@@ -93,11 +93,22 @@ typedef struct {
   // Misc. debugging calc
   real_t db;
 
+  real_t d1theta, d2theta, d3theta;
   // additional variables to handle absence of Z4c terms in macros
   // (make sure these get initialized to 0!)
-  real_t d1theta, d2theta, d3theta;
-  #if Z4c_DAMPING <= 0
+  #if !USE_Z4c_DAMPING
     real_t theta;
+  #endif
+
+  // additional variables to handle absence of shift terms in macros
+  // (make sure these get initialized to 0!)
+  real_t d1beta1, d2beta1, d3beta1;
+  real_t d1beta2, d2beta2, d3beta2;
+  real_t d1beta3, d2beta3, d3beta3;
+  #if !USE_BSSN_SHIFT
+    real_t beta1;
+    real_t beta2;
+    real_t beta3;
   #endif
 
   // Reference FRW quantities

@@ -135,8 +135,11 @@ void BSSN::set_paq_values(idx_t i, idx_t j, idx_t k, BSSNData *paq, FRW<real_t> 
   calculate_ddgamma(paq);
   calculate_dalpha_dphi(paq);
   calculate_dK(paq);
-  #if Z4c_DAMPING > 0
+  #if USE_Z4c_DAMPING
     calculate_dtheta(paq);
+  #endif
+  #if USE_BSSN_SHIFT
+    calculate_dbeta(paq);
   #endif
 
   // Christoffels depend on metric & derivs.
@@ -403,7 +406,7 @@ void BSSN::calculate_dK(BSSNData *paq)
   paq->d3K = derivative(paq->i, paq->j, paq->k, 3, DIFFK_a);
 }
 
-#if Z4c_DAMPING > 0
+#if USE_Z4c_DAMPING
 void BSSN::calculate_dtheta(BSSNData *paq)
 {
   // normal derivatives of phi
@@ -413,6 +416,20 @@ void BSSN::calculate_dtheta(BSSNData *paq)
 }
 #endif
 
+#if USE_BSSN_SHIFT
+void BSSN::calculate_dbeta(BSSNData *paq)
+{
+  paq->d1beta1 = derivative(paq->i, paq->j, paq->k, 1, beta1_a);
+  paq->d1beta2 = derivative(paq->i, paq->j, paq->k, 1, beta2_a);
+  paq->d1beta3 = derivative(paq->i, paq->j, paq->k, 1, beta3_a);
+  paq->d2beta1 = derivative(paq->i, paq->j, paq->k, 2, beta1_a);
+  paq->d2beta2 = derivative(paq->i, paq->j, paq->k, 2, beta2_a);
+  paq->d2beta3 = derivative(paq->i, paq->j, paq->k, 2, beta3_a);
+  paq->d3beta1 = derivative(paq->i, paq->j, paq->k, 3, beta1_a);
+  paq->d3beta2 = derivative(paq->i, paq->j, paq->k, 3, beta2_a);
+  paq->d3beta3 = derivative(paq->i, paq->j, paq->k, 3, beta3_a);
+}
+#endif
 
 
 /*
@@ -623,6 +640,7 @@ real_t BSSN::ev_DIFFK(BSSNData *paq)
         1.0/3.0*pw2(paq->K_FRW)
         + 4.0*PI*(paq->rho_FRW + paq->S_FRW)
       )
+    + paq->beta1*paq->d1K + paq->beta2*paq->d2K + paq->beta3*paq->d3K
     - 1.0*JM_K_DAMPING_AMPLITUDE*paq->H*exp(-5.0*paq->phi)
     + Z4c_K1_DAMPING_AMPLITUDE*(1.0 - Z4c_K2_DAMPING_AMPLITUDE)*paq->theta
     - KO_dissipation_Q(paq->i, paq->j, paq->k, DIFFK_a)
@@ -636,22 +654,22 @@ real_t BSSN::ev_DIFFphi(BSSNData *paq)
     -1.0/6.0*(
       paq->alpha*(paq->DIFFK + 2.0*paq->theta)
       - paq->DIFFalpha*paq->K_FRW
+      - ( paq->d1beta1 + paq->d2beta2 + paq->d3beta3 )
     )
+    + paq->beta1*paq->d1phi + paq->beta2*paq->d2phi + paq->beta3*paq->d3phi
     - KO_dissipation_Q(paq->i, paq->j, paq->k, DIFFphi_a)
   );
 }
 
 real_t BSSN::ev_DIFFalpha(BSSNData *paq)
 {
-  #ifdef HARMONIC_ALPHA
-    #if HARMONIC_ALPHA
-      return -1.0*pw2(paq->alpha)*paq->K;
-    #endif
+  #if HARMONIC_ALPHA
+    return -1.0*pw2(paq->alpha)*paq->K;
   #endif
   return 0.0 - KO_dissipation_Q(paq->i, paq->j, paq->k, DIFFalpha_a);
 }
 
-#if Z4c_DAMPING > 0
+#if USE_Z4c_DAMPING
 real_t BSSN::ev_theta(BSSNData *paq)
 {
   return (
@@ -660,6 +678,23 @@ real_t BSSN::ev_theta(BSSNData *paq)
     )
     - paq->alpha*Z4c_K1_DAMPING_AMPLITUDE*(2.0 + Z4c_K2_DAMPING_AMPLITUDE)*paq->theta
   ) - KO_dissipation_Q(paq->i, paq->j, paq->k, theta_a);
+}
+#endif
+
+#if USE_BSSN_SHIFT
+real_t BSSN::ev_beta1(BSSNData *paq)
+{
+  return 0.0;
+}
+
+real_t BSSN::ev_beta2(BSSNData *paq)
+{
+  return 0.0;
+}
+
+real_t BSSN::ev_beta3(BSSNData *paq)
+{
+  return 0.0;
 }
 #endif
 
@@ -755,7 +790,7 @@ real_t BSSN::hamiltonianConstraintCalc(idx_t idx, FRW<real_t> *frw)
   real_t phi_FRW = frw->get_phi();
   real_t rho_FRW = frw->get_rho();
 
-  #if Z4c_DAMPING
+  #if USE_Z4c_DAMPING
     real_t theta = theta_a[idx];
   #else
     real_t theta = 0.0;
@@ -772,7 +807,7 @@ real_t BSSN::hamiltonianConstraintScale(idx_t idx, FRW<real_t> *frw)
   real_t phi_FRW = frw->get_phi();
   real_t rho_FRW = frw->get_rho();
 
-  #if Z4c_DAMPING
+  #if USE_Z4c_DAMPING
     real_t theta = theta_a[idx];
   #else
     real_t theta = 0.0;
