@@ -69,7 +69,6 @@ void io_init(IOData *iodata, std::string output_dir)
 
   LOG(iodata->log, "Other parameters: \n");
   LOG(iodata->log, "  H_LEN_FRAC = " << H_LEN_FRAC << "\n");
-  LOG(iodata->log, "  FRW_SUBSTEPS = " << FRW_SUBSTEPS << "\n");
   LOG(iodata->log, "  USE_REFERENCE_FRW = " << USE_REFERENCE_FRW << "\n");
   LOG(iodata->log, "  NORMALIZE_GAMMAIJ_AIJ = " << NORMALIZE_GAMMAIJ_AIJ << "\n");
   LOG(iodata->log, "  KO_ETA = " << KO_ETA << "\n");
@@ -98,28 +97,28 @@ void io_data_dump(std::map <std::string, real_t *> & bssn_fields,
 {
   if(step % iodata->slice_output_interval == 0)
   {
-    io_dump_2dslice(bssn_fields["DIFFK_a"], "DIFFK_slice." + std::to_string(step), iodata);
-    io_dump_2dslice(bssn_fields["DIFFphi_a"], "DIFFphi_slice." + std::to_string(step), iodata);
-    io_dump_2dslice(static_field["DIFFD_a"], "DIFFUD_slice."  + std::to_string(step), iodata);
-    io_dump_2dslice(bssn_fields["DIFFgamma11_a"], "DIFFgamma11." + std::to_string(step), iodata);
+    // io_dump_2dslice(bssn_fields["DIFFK_a"], "DIFFK_slice." + std::to_string(step), iodata);
+    // io_dump_2dslice(bssn_fields["DIFFphi_a"], "DIFFphi_slice." + std::to_string(step), iodata);
+    // io_dump_2dslice(static_field["DIFFD_a"], "DIFFUD_slice."  + std::to_string(step), iodata);
+    // io_dump_2dslice(bssn_fields["DIFFgamma11_a"], "DIFFgamma11." + std::to_string(step), iodata);
   }
   if(step % iodata->grid_output_interval == 0)
   {
-    io_dump_3dslice(bssn_fields["DIFFgamma11_a"], "DIFFgamma11." + std::to_string(step), iodata);
-    io_dump_3dslice(bssn_fields["DIFFgamma12_a"], "DIFFgamma12." + std::to_string(step), iodata);
-    io_dump_3dslice(bssn_fields["DIFFgamma13_a"], "DIFFgamma13." + std::to_string(step), iodata);
-    io_dump_3dslice(bssn_fields["DIFFgamma22_a"], "DIFFgamma22." + std::to_string(step), iodata);
-    io_dump_3dslice(bssn_fields["DIFFgamma23_a"], "DIFFgamma23." + std::to_string(step), iodata);
-    io_dump_3dslice(bssn_fields["DIFFgamma33_a"], "DIFFgamma33." + std::to_string(step), iodata);
-    io_dump_3dslice(bssn_fields["DIFFphi_a"],     "DIFFphi."     + std::to_string(step), iodata);
-    io_dump_3dslice(bssn_fields["DIFFK_a"],       "DIFFK."       + std::to_string(step), iodata);
-    io_dump_3dslice(bssn_fields["ricci_a"],   "ricci."   + std::to_string(step), iodata);
-    io_dump_3dslice(bssn_fields["AijAij_a"],  "AijAij."  + std::to_string(step), iodata);
-    io_dump_3dslice(static_field["DIFFD_a"],      "DIFFUD."       + std::to_string(step), iodata);
+    // io_dump_3dslice(bssn_fields["DIFFgamma11_a"], "DIFFgamma11." + std::to_string(step), iodata);
+    // io_dump_3dslice(bssn_fields["DIFFgamma12_a"], "DIFFgamma12." + std::to_string(step), iodata);
+    // io_dump_3dslice(bssn_fields["DIFFgamma13_a"], "DIFFgamma13." + std::to_string(step), iodata);
+    // io_dump_3dslice(bssn_fields["DIFFgamma22_a"], "DIFFgamma22." + std::to_string(step), iodata);
+    // io_dump_3dslice(bssn_fields["DIFFgamma23_a"], "DIFFgamma23." + std::to_string(step), iodata);
+    // io_dump_3dslice(bssn_fields["DIFFgamma33_a"], "DIFFgamma33." + std::to_string(step), iodata);
+    // io_dump_3dslice(bssn_fields["DIFFphi_a"],     "DIFFphi."     + std::to_string(step), iodata);
+    // io_dump_3dslice(bssn_fields["DIFFK_a"],       "DIFFK."       + std::to_string(step), iodata);
+    // io_dump_3dslice(bssn_fields["ricci_a"],   "ricci."   + std::to_string(step), iodata);
+    // io_dump_3dslice(bssn_fields["AijAij_a"],  "AijAij."  + std::to_string(step), iodata);
+    // io_dump_3dslice(static_field["DIFFD_a"],      "DIFFUD."       + std::to_string(step), iodata);
 
-    io_dump_3dslice(bssn_fields["KDx_a"],     "KDx_a."   + std::to_string(step), iodata);
-    io_dump_3dslice(bssn_fields["KDy_a"],     "KDy_a."   + std::to_string(step), iodata);
-    io_dump_3dslice(bssn_fields["KDz_a"],     "KDz_a."   + std::to_string(step), iodata);
+    // io_dump_3dslice(bssn_fields["KDx_a"],     "KDx_a."   + std::to_string(step), iodata);
+    // io_dump_3dslice(bssn_fields["KDy_a"],     "KDy_a."   + std::to_string(step), iodata);
+    // io_dump_3dslice(bssn_fields["KDz_a"],     "KDz_a."   + std::to_string(step), iodata);
   }
   if(step % iodata->spec_output_interval == 0)
   {

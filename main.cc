@@ -94,16 +94,61 @@ int main(int argc, char **argv)
     // be identical to _p at this point).
     _timer["output"].start();
       // set_paq_values calculates ricci_a and AijAij_a data, needed for output
+      // and subsequent constraint calculations
       #pragma omp parallel for default(shared) private(i, j, k)
       LOOP3(i,j,k)
       {
         BSSNData b_paq = {0}; // data structure associated with bssn sim
-        bssnSim.set_paq_values(i,j,k,&b_paq, &frw);
+        bssnSim.set_paq_values(i, j, k, &b_paq, &frw);
         // Additionally set KD (killing vector "Delta" quantities)
         bssnSim.set_KillingDelta(i, j, k, &b_paq);
       }
-      io_show_progress(s, steps);
       io_data_dump(bssnSim.fields, staticSim.fields, &iodata, s, &fourier, &frw);
+      _timer["meta_output_interval"].start();
+        if(s%iodata.meta_output_interval == 0)
+        {
+          idx_t isNaN = 0;
+          real_t H_calcs[7], M_calcs[7];
+
+          // Constraint Violation Calculations
+          bssnSim.setHamiltonianConstraintCalcs(H_calcs, &frw, false);
+          io_dump_data(H_calcs[4], &iodata, "H_violations"); // mean(H/[H])
+          io_dump_data(H_calcs[5], &iodata, "H_violations"); // stdev(H/[H])
+          io_dump_data(H_calcs[6], &iodata, "H_violations"); // max(H/[H])
+          io_dump_data(H_calcs[2], &iodata, "H_violations"); // max(H)
+
+          bssnSim.setMomentumConstraintCalcs(M_calcs, &frw);
+          io_dump_data(M_calcs[4], &iodata, "M_violations"); // mean(M/[M])
+          io_dump_data(M_calcs[5], &iodata, "M_violations"); // stdev(M/[M])
+          io_dump_data(M_calcs[6], &iodata, "M_violations"); // max(M/[M])
+          io_dump_data(M_calcs[2], &iodata, "M_violations"); // max(M)
+
+          if(s<15)
+          {
+            LOG(iodata.log, "\nInitial max(H/[H]): " << H_calcs[6]
+                            << ", Initial max(M/[M]): " << M_calcs[6] << "\n");
+          }
+
+          io_dump_strip(bssnSim.fields["DIFFgamma11_a"], 1, 0, 0, &iodata);
+
+          real_t maxdiff = 0.0;
+          LOOP3(i, j, k) {
+            idx_t idx = INDEX(i,j,k);
+            if(fabs(bssnSim.fields["DIFFgamma11_a"][idx]) > maxdiff) {
+              maxdiff = fabs(bssnSim.fields["DIFFgamma11_a"][idx]);
+            }
+          }
+          io_dump_data(maxdiff, &iodata, "g11_violations"); // max(gxx - 1)
+
+          if(numNaNs(bssnSim.fields["DIFFphi_a"]) > 0)
+          {
+            LOG(iodata.log, "\nNAN detected!\n");
+            _timer["meta_output_interval"].stop();
+            break;
+          }
+        }
+      _timer["meta_output_interval"].stop();
+      io_show_progress(s, steps);
     _timer["output"].stop();
 
     // Run RK steps explicitly here (ties together BSSN + Hydro stuff).
@@ -119,6 +164,7 @@ int main(int argc, char **argv)
       BSSNData b_paq = {0}; // data structure associated with bssn sim
       bssnSim.K1CalcPt(i, j, k, &b_paq, &frw);
     }
+    frw.P1_step(dt);
 
     // Intermediate RK step is now in _c register, move to _a for use in next step.
     bssnSim.regSwap_c_a();
@@ -127,12 +173,6 @@ int main(int argc, char **argv)
     staticSim.addBSSNSrc(bssnSim.fields, &frw);
 
     // Subsequent BSSN steps
-      // FRW simulation should progress to t -> t + dt/2
-      for(int d=0; d<FRW_SUBSTEPS/2; ++d)
-      {
-        frw.step(dt/( (real_t) FRW_SUBSTEPS) );
-      }
-
       // Second RK step
       #pragma omp parallel for default(shared) private(i, j, k)
       LOOP3(i, j, k)
@@ -140,6 +180,7 @@ int main(int argc, char **argv)
         BSSNData b_paq = {0}; // data structure associated with bssn sim
         bssnSim.K2CalcPt(i, j, k, &b_paq, &frw);
       }
+      frw.P2_step(dt);
 
       // Intermediate RK step is now in _c register, move to _a for use in next step.
       bssnSim.regSwap_c_a();
@@ -154,19 +195,13 @@ int main(int argc, char **argv)
         BSSNData b_paq = {0}; // data structure associated with bssn sim
         bssnSim.K3CalcPt(i, j, k, &b_paq, &frw);
       }
+      frw.P3_step(dt);
 
       // Intermediate RK step is now in _c register, move to _a for use in next step.
       bssnSim.regSwap_c_a();
       // reset source using new metric
       bssnSim.clearSrc();
       staticSim.addBSSNSrc(bssnSim.fields, &frw);
-
-      // FRW simulation should progress to t -> t + dt
-      // (progress dt/2 further)
-      for(int d=0; d<FRW_SUBSTEPS/2; ++d)
-      {
-        frw.step(dt/( (real_t) FRW_SUBSTEPS) );
-      }
 
       // Fourth RK step
       #pragma omp parallel for default(shared) private(i, j, k)
@@ -175,6 +210,7 @@ int main(int argc, char **argv)
         BSSNData b_paq = {0}; // data structure associated with bssn sim
         bssnSim.K4CalcPt(i, j, k, &b_paq, &frw);
       }
+      frw.RK_total_step(dt);
 
     // Wrap up
       // bssn _f <-> _p
@@ -183,66 +219,12 @@ int main(int argc, char **argv)
 
     _timer["RK_steps"].stop();
 
-
-    _timer["meta_output_interval"].start();
-
-      if(s%iodata.meta_output_interval == 0)
-      {
-        idx_t isNaN = 0;
-        real_t H_calcs[7], M_calcs[7];
-
-        // make sure clean data is in _a array
-        // Set values at points
-        bssnSim.stepInit(); // copy _p to _a
-        bssnSim.clearSrc();
-        staticSim.addBSSNSrc(bssnSim.fields, &frw);
-        #pragma omp parallel for default(shared) private(i, j, k)
-        LOOP3(i, j, k) {
-          BSSNData b_paq = {0}; // data structure associated with bssn sim
-          bssnSim.set_paq_values(i,j,k,&b_paq, &frw);
-        }
-
-        // Constraint Violation Calculations
-        bssnSim.setHamiltonianConstraintCalcs(H_calcs, &frw, false);
-        io_dump_data(H_calcs[4], &iodata, "H_violations"); // mean(H/[H])
-        io_dump_data(H_calcs[5], &iodata, "H_violations"); // stdev(H/[H])
-        io_dump_data(H_calcs[6], &iodata, "H_violations"); // max(H/[H])
-        io_dump_data(H_calcs[2], &iodata, "H_violations"); // max(H)
-
-        bssnSim.setMomentumConstraintCalcs(M_calcs, &frw);
-        io_dump_data(M_calcs[4], &iodata, "M_violations"); // mean(M/[M])
-        io_dump_data(M_calcs[5], &iodata, "M_violations"); // stdev(M/[M])
-        io_dump_data(M_calcs[6], &iodata, "M_violations"); // max(M/[M])
-        io_dump_data(M_calcs[2], &iodata, "M_violations"); // max(M)
-
-        io_dump_strip(bssnSim.fields["DIFFgamma11_a"], 1, 0, 0, &iodata);
-
-        real_t maxdiff = 0.0;
-        LOOP3(i, j, k) {
-          idx_t idx = INDEX(i,j,k);
-          if(fabs(bssnSim.fields["DIFFgamma11_a"][idx]) > maxdiff) {
-            maxdiff = fabs(bssnSim.fields["DIFFgamma11_a"][idx]);
-          }
-        }
-        io_dump_data(maxdiff, &iodata, "g11_violations"); // max(gxx - 1)
-
-        if(numNaNs(bssnSim.fields["DIFFphi_a"]) > 0)
-        {
-          LOG(iodata.log, "\nNAN detected!\n");
-          _timer["meta_output_interval"].stop();
-          break;
-        }
-      }
-
-    _timer["meta_output_interval"].stop();
-
   }
   _timer["loop"].stop();
 
   _timer["output"].start();
-  io_dump_3dslice(bssnSim.fields["dk0_slice_phi_a"], "dk0_slice_phi", &iodata);
-  LOG(iodata.log, "\nAverage conformal factor reached " << average(bssnSim.fields["DIFFphi_p"]) << "\n");
-  LOG(iodata.log, "Ending simulation.\n");
+    LOG(iodata.log, "\nAverage conformal factor reached " << average(bssnSim.fields["DIFFphi_p"]) << "\n");
+    LOG(iodata.log, "Ending simulation.\n");
   _timer["output"].stop();
 
   _timer["MAIN"].stop();

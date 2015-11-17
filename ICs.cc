@@ -192,13 +192,12 @@ std::cout << std::flush;
 
   #if USE_REFERENCE_FRW
     // Set values in reference FRW integrator
-    real_t rho_FRW_w0 = icd.rho_K_matter;
-    real_t rho_FRW_Lambda = icd.rho_K_lambda;
-    real_t K_frw = -sqrt(24.0*PI*(rho_FRW_Lambda + rho_FRW_w0));
+    real_t rho_FRW = icd.rho_K_matter;
+    real_t K_frw = -sqrt(24.0*PI*rho_FRW);
 
+    frw->set_phi(0.0);
     frw->set_K(K_frw);
-    frw->addFluid(rho_FRW_w0, 0.0 /* w=0 */);
-    frw->addFluid(rho_FRW_Lambda, -1.0 /* w=-1 */);
+    frw->addFluid(rho_FRW, 0.0 /* w=0 */);
   # else
     // add in FRW pieces to ICs
     // phi is unchanged

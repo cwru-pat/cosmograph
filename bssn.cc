@@ -663,10 +663,15 @@ real_t BSSN::ev_DIFFphi(BSSNData *paq)
 
 real_t BSSN::ev_DIFFalpha(BSSNData *paq)
 {
-  #if HARMONIC_ALPHA
-    return -1.0*pw2(paq->alpha)*paq->K;
+  #if USE_HARMONIC_ALPHA
+    return -1.0*pw2(paq->alpha)*paq->K - KO_dissipation_Q(paq->i, paq->j, paq->k, DIFFalpha_a);
   #endif
-  return 0.0 - KO_dissipation_Q(paq->i, paq->j, paq->k, DIFFalpha_a);
+
+  #if USE_CONFORMAL_SYNC_ALPHA
+    return -1.0/3.0*paq->alpha*paq->K_FRW;
+  #endif
+
+  return 0.0;
 }
 
 #if USE_Z4c_DAMPING
@@ -786,19 +791,24 @@ void BSSN::setHamiltonianConstraintCalcs(real_t H_values[7], FRW<real_t> *frw, b
 
 real_t BSSN::hamiltonianConstraintCalc(idx_t idx, FRW<real_t> *frw)
 {
-  real_t K_FRW = frw->get_K();
-  real_t phi_FRW = frw->get_phi();
-  real_t rho_FRW = frw->get_rho();
-
   #if USE_Z4c_DAMPING
     real_t theta = theta_a[idx];
   #else
     real_t theta = 0.0;
   #endif
 
-  return -exp(5.0*(DIFFphi_a[idx] + phi_FRW))/8.0*(
-    ricci_a[idx] + 2.0/3.0*pw2(K_FRW + DIFFK_a[idx] + 2.0*theta) - AijAij_a[idx] - 16.0*PI*(DIFFr_a[idx] + rho_FRW)
-  );
+  #if USE_REFERENCE_FRW
+    real_t K_FRW = frw->get_K();
+    real_t phi_FRW = frw->get_phi();
+    real_t rho_FRW = frw->get_rho();
+    return -exp(5.0*(DIFFphi_a[idx] + phi_FRW))/8.0*(
+      ricci_a[idx] + 2.0/3.0*pw2(K_FRW + DIFFK_a[idx] + 2.0*theta) - AijAij_a[idx] - 16.0*PI*(DIFFr_a[idx] + rho_FRW)
+    );
+  #else
+    return -exp(5.0*DIFFphi_a[idx])/8.0*(
+      ricci_a[idx] + 2.0/3.0*pw2(DIFFK_a[idx] + 2.0*theta) - AijAij_a[idx] - 16.0*PI*DIFFr_a[idx]
+    );
+  #endif
 }
 
 real_t BSSN::hamiltonianConstraintScale(idx_t idx, FRW<real_t> *frw)

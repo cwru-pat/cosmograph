@@ -1,7 +1,7 @@
 #ifndef COSMO_DEFINES
 #define COSMO_DEFINES
 
-/* Cosmological run parameters: 
+/* Cosmological run parameters: */
 #define N 64
 #define NX N
 #define NY N
@@ -11,10 +11,9 @@
 #define H_LEN_FRAC 0.5
 #define dx (H_LEN_FRAC/(1.0*N))
 #define dt (0.1*dx)
-#define FRW_SUBSTEPS 100
-****/
+/****/
 
-/* Stability test parameters: */
+/* Stability test parameters: 
 #define R 1
 #define N 50
 #define NX (50*R)
@@ -26,8 +25,7 @@
 #define H_LEN_FRAC 0.5
 #define dx (1.0/NX)
 #define dt (0.1*dx)
-#define FRW_SUBSTEPS 0
-/*****/
+****/
 
 #define USE_REFERENCE_FRW true
 #define NORMALIZE_GAMMAIJ_AIJ true
@@ -37,7 +35,7 @@
 #define BS_H_DAMPING_AMPLITUDE 1.0
 #define JM_K_DAMPING_AMPLITUDE 0.0
 
-#define USE_Z4c_DAMPING true
+#define USE_Z4c_DAMPING false
 #if USE_Z4c_DAMPING
   #define Z4c_K1_DAMPING_AMPLITUDE 0.05
   #define Z4c_K2_DAMPING_AMPLITUDE 0.0
@@ -46,7 +44,9 @@
   #define Z4c_K2_DAMPING_AMPLITUDE 0.0
 #endif
 
+#define USE_CONFORMAL_SYNC_ALPHA false
 #define USE_HARMONIC_ALPHA false
+
 #define USE_BSSN_SHIFT false
 
 // Stencil order
