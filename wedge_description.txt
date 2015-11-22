@@ -28,14 +28,197 @@ At 8th order:
 Integration procedure outline:
 - For i = -Length(afterimage array), i < NX + Length(afterimage array), i++ :
    - Data starts in p register, _a references _p
-   - Fill "rightmost" value in _K1 register (area loop)
+   - (1) Fill "rightmost" value in _K1 register (area loop)
      - point _a to _K1
-   - Fill "rightmost" value in _K2 register
+   - (2) Fill "rightmost" value in _K2 register
      - point _a to _K2
-   - Fill "rightmost" value in _K3 register
+   - (3) Fill "rightmost" value in _K3 register
      - point _a to _K3
-   - Fill in "rightmost" point in tail
+   - (4) Fill in "rightmost" point in tail
      - if i < Length(afterimage array)
          "leftmost" point in tail goes in afterimage
      - else
          "leftmost" point in tail goes in _p register
+
+Animation of a full integration step:
+
+[ - - - - - - - - - - - - - - - - - - - - ] i_p = 0
+[ *                           o o o o o o ] i_K1 = WEDGE_SLICE_1_LEN - 1
+[                               o o o o o ] i_K2 = WEDGE_SLICE_2_LEN - 1
+[                                 o o o   ] i_K3 = WEDGE_SLICE_3_LEN - 1
+[                           0 0 0 0 0     ] i_tail = 0
+
+[ - - - - - - - - - - - - - - - - - - - - ]
+[ * *                           o o o o o ]
+[ o                               o o o o ]
+[                                   o o o ]
+[                             0 0 0 0 0   ]
+
+[ - - - - - - - - - - - - - - - - - - - - ]
+[ * * *                           o o o o ]
+[ o *                               o o o ]
+[ o                                   o o ]
+[                               0 0 0 0 0 ]
+
+[ - - - - - - - - - - - - - - - - - - - - ]
+[ * * *                           o o o o ]
+[ o *                               o o o ]
+[ o                                   o o ]
+[                               0 0 0 0 0 ]
+
+[ - - - - - - - - - - - - - - - - - - - - ]
+[ * * * *                           o o o ]
+[ o * *                               o o ]
+[ o o                                   o ]
+[ 0                               0 0 0 0 ]
+
+[ - - - - - - - - - - - - - - - - - - - - ]
+[ * * * * *                           o o ]
+[ o * * *                               o ]
+[ o o *                                   ]
+[ 0 0                               0 0 0 ]
+
+[ - - - - - - - - - - - - - - - - - - - - ]
+[ * * * * * *                           o ]
+[ o * * * *                               ]
+[   o * *                                 ]
+[ 0 0 0                               0 0 ]
+
+[ - - - - - - - - - - - - - - - - - - - - ]
+[ * * * * * * *                           ]
+[   * * * * *                             ]
+[     * * *                               ]
+[ 0 0 0 x                               0 ]
+
+[ - - - - - - - - - - - - - - - - - - - - ]
+[   * * * * * * *                         ]
+[     * * * * *                           ]
+[       * * *                             ]
+[ 0 0 0 x x                               ]
+
+[ - - - - - - - - - - - - - - - - - - - - ]
+[     * * * * * * *                       ]
+[       * * * * *                         ]
+[         * * *                           ]
+[   0 0 x x x                             ]
+
+[ - - - - - - - - - - - - - - - - - - - - ]
+[       * * * * * * *                     ]
+[         * * * * *                       ]
+[           * * *                         ]
+[     0 x x x x                           ]
+
+[ - - - - - - - - - - - - - - - - - - - - ]
+[         * * * * * * *                   ]
+[           * * * * *                     ]
+[             * * *                       ]
+[       x x x x x                         ]
+[       x x x x                           ]
+
+[ - - - - - - - - - - - - - - - - - - - - ]
+[           * * * * * * *                 ]
+[             * * * * *                   ]
+[               * * *                     ]
+[         x x x x x                       ]
+[       x x x x                           ]
+
+[ - - - - - - - - - - - - - - - - - - - - ]
+[             * * * * * * *               ]
+[               * * * * *                 ]
+[                 * * *                   ]
+[           x x x x x                     ]
+[       x x x x                           ]
+
+[ - - - - - - - - - - - - - - - - - - - - ]
+[               * * * * * * *             ]
+[                 * * * * *               ]
+[                   * * *                 ]
+[             x x x x x                   ]
+[       x x x x                           ]
+
+[ - - - - - - - x - - - - - - - - - - - - ]
+[                 * * * * * * *           ]
+[                   * * * * *             ]
+[                     * * *               ]
+[               x x x x x                 ]
+[       x x x x                           ]
+
+[ - - - - - - - x x - - - - - - - - - - - ]
+[                   * * * * * * *         ]
+[                     * * * * *           ]
+[                       * * *             ]
+[                 x x x x x               ]
+[       x x x x                           ]
+
+[ - - - - - - - x x x - - - - - - - - - - ]
+[                     * * * * * * *       ]
+[                       * * * * *         ]
+[                         * * *           ]
+[                   x x x x x             ]
+[       x x x x                           ]
+
+[ - - - - - - - x x x x - - - - - - - - - ]
+[                       * * * * * * *     ]
+[                         * * * * *       ]
+[                           * * *         ]
+[                     x x x x x           ]
+[       x x x x                           ]
+
+[ - - - - - - - x x x x x - - - - - - - - ]
+[                         * * * * * * *   ]
+[                           * * * * *     ]
+[                             * * *       ]
+[                       x x x x x         ]
+[       x x x x                           ]
+
+[ - - - - - - - x x x x x x - - - - - - - ]
+[                           * * * * * * * ]
+[                             * * * * *   ]
+[                               * * *     ]
+[                         x x x x x       ]
+[       x x x x                           ]
+
+[ - - - - - - - x x x x x x x - - - - - - ]
+[ *                           * * * * * * ]
+[                               * * * * * ]
+[                                 * * *   ]
+[                           x x x x x     ]
+[       x x x x                           ]
+
+[ - - - - - - - x x x x x x x x - - - - - ]
+[ * *                           * * * * * ]
+[ *                               * * * * ]
+[                                   * * * ]
+[                             x x x x x   ]
+[       x x x x                           ]
+
+[ - - - - - - - x x x x x x x x x - - - - ]
+[ * * *                           * * * * ]
+[ * *                               * * * ]
+[ *                                   * * ]
+[                               x x x x x ]
+[       x x x x                           ]
+
+[ - - - - - - - x x x x x x x x x x - - - ]
+[ * * * *                           * * * ]
+[ * * *                               * * ]
+[ * *                                   * ]
+[ x                               x x x x ]
+[       x x x x                           ]
+
+[ - - - - - - - x x x x x x x x x x x - - ]
+[ * * * * *                           * * ]
+[ * * * *                               * ]
+[ * * *                                   ]
+[ x x                               x x x ]
+[       x x x x                           ]
+
+[ - - - - - - - x x x x x x x x x x x x - ]
+[ * * * * * *                           * ]
+[ * * * * *                               ]
+[   * * *                                 ]
+[ x x x                               x x ]
+[       x x x x                           ]
+
+
+[ x x x x x x x x x x x x x x x x x x x x ]

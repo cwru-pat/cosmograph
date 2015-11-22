@@ -51,7 +51,7 @@ int main(int argc, char **argv)
 
     // generic reusable fourier class for NX*NY*NZ arrays
     Fourier fourier;
-    fourier.Initialize(NX, NY, NZ, staticSim.fields["DIFFD_a"] /* just any array for planning */);
+    fourier.Initialize(NX, NY, NZ, staticSim.fields["DIFFD_a"]->_array /* just any array for planning */);
 
     if(_config["ICs"] == "apples_stability")
     {
@@ -131,8 +131,8 @@ int main(int argc, char **argv)
           real_t maxdiff = 0.0;
           LOOP3(i, j, k) {
             idx_t idx = INDEX(i,j,k);
-            if(fabs(bssnSim.fields["DIFFgamma11_a"][idx]) > maxdiff) {
-              maxdiff = fabs(bssnSim.fields["DIFFgamma11_a"][idx]);
+            if(fabs((*(bssnSim.fields["DIFFgamma11_a"]))[idx]) > maxdiff) {
+              maxdiff = fabs((*(bssnSim.fields["DIFFgamma11_a"]))[idx]);
             }
           }
           io_dump_data(maxdiff, &iodata, "g11_violations"); // max(gxx - 1)

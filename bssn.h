@@ -20,7 +20,7 @@ class BSSN
   BSSN_APPLY_TO_GEN1_EXTRAS(GEN1_ARRAY_CREATE)
 
 public:
-  std::map <std::string, real_t *> fields;
+  std::map <std::string, periodicArray<idx_t, real_t> *> fields;
 
   // Standard FRW spacetime integrator - for a
   // reference metric
@@ -48,6 +48,13 @@ public:
     void K4CalcPt(idx_t i, idx_t j, idx_t k, BSSNData *paq);
     void stepTerm();
 
+
+void WedgeK1Calc(idx_t i_p, idx_t idx_K1);
+void WedgeK2Calc(idx_t idx_p, idx_t i_K1, idx_t idx_K2);
+void WedgeK3Calc(idx_t idx_p, idx_t i_K2, idx_t idx_K3);
+void WedgeTailCalc(idx_t idx_p, idx_t idx_K1, idx_t idx_K2, idx_t i_K3, idx_t idx_tail);
+
+
   /* calculating quantities during an RK step */
     void set_paq_values(idx_t i, idx_t j, idx_t k, BSSNData *paq);
 
@@ -55,6 +62,7 @@ public:
       void set_local_vals(BSSNData *paq);
       void set_gammai_values(idx_t i, idx_t j, idx_t k, BSSNData *paq);
       void set_DIFFgamma_Aij_norm();
+      void set_DIFFgamma_Aij_norm_pt(idx_t i, idx_t j, idx_t k);
 
     /* Calculate quantities only dependent on FRW soln in paq*/
       void calculate_Acont(BSSNData *paq);

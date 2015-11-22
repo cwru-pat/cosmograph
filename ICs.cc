@@ -113,8 +113,8 @@ void set_gaussian_random_field(real_t *field, Fourier *fourier, ICsData *icd)
 
 // doesn't specify monopole / expansion contribution
 void set_conformal_ICs(
-  std::map <std::string, real_t *> & bssn_fields,
-  std::map <std::string, real_t *> & static_field,
+  std::map <std::string, periodicArray<idx_t, real_t> *> & bssn_fields,
+  std::map <std::string, periodicArray<idx_t, real_t> *> & static_field,
   Fourier *fourier, IOData *iod, FRW<real_t> *frw)
 {
 std::cout << std::flush;
@@ -127,12 +127,12 @@ std::cout << std::flush;
   // the conformal factor in front of metric is the solution to
   // d^2 exp(\phi) = -2*pi exp(5\phi) * \rho
   // generate gaussian random field xi = exp(phi) (use phi_p as a proxy):
-  set_gaussian_random_field(bssn_fields["DIFFphi_p"], fourier, &icd);
+  set_gaussian_random_field(bssn_fields["DIFFphi_p"]->_array, fourier, &icd);
 
   // rho = -lap(phi)/xi^5/2pi
   LOOP3(i,j,k) {
-    bssn_fields["DIFFr_a"][NP_INDEX(i,j,k)] = -0.5/PI/(
-      pow(1.0 + bssn_fields["DIFFphi_p"][NP_INDEX(i,j,k)], 5.0)
+    (*bssn_fields["DIFFr_a"])[NP_INDEX(i,j,k)] = -0.5/PI/(
+      pow(1.0 + (*bssn_fields["DIFFphi_p"])[NP_INDEX(i,j,k)], 5.0)
     )*(
       double_derivative(i, j, k, 1, 1, bssn_fields["DIFFphi_p"])
       + double_derivative(i, j, k, 2, 2, bssn_fields["DIFFphi_p"])
@@ -222,8 +222,8 @@ std::cout << std::flush;
 
 
 void set_stability_test_ICs(
-  std::map <std::string, real_t *> & bssn_fields,
-  std::map <std::string, real_t *> & static_field)
+  std::map <std::string, periodicArray<idx_t, real_t> *> & bssn_fields,
+  std::map <std::string, periodicArray<idx_t, real_t> *> & static_field)
 {
   idx_t i, j, k;
 
@@ -322,7 +322,7 @@ std::cout << "dist is: " << dist(gen) << "\n";
 }
 
 void set_linear_wave_ICs(
-  std::map <std::string, real_t *> & bssn_fields)
+  std::map <std::string, periodicArray<idx_t, real_t> *> & bssn_fields)
 {
   idx_t i, j, k;
 

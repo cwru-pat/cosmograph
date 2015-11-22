@@ -15,12 +15,12 @@ class Static
   GEN1_ARRAY_CREATE(DIFFD);
 
 public:
-  std::map <std::string, real_t *> fields;
+  std::map <std::string, periodicArray<idx_t, real_t> *> fields;
 
   Static();
   ~Static();
 
-  void addBSSNSrc(std::map <std::string, real_t *> & bssn_fields, FRW<real_t> *frw);
+  void addBSSNSrc(std::map <std::string, periodicArray<idx_t, real_t> *> & bssn_fields, FRW<real_t> *frw);
 
   void init();
 };

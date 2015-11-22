@@ -184,11 +184,11 @@
 
 
 // arr_f = (1.0/3.0)*(arr_f - arr_p) + (1.0/6.0)*evfn(arr_a)
-#define BSSN_FINAL_RK4_STEP() \
-  BSSN_APPLY_TO_FIELDS(BSSN_FINAL_RK4_STEP_FIELD)
-
 #define BSSN_FINAL_RK4_STEP_FIELD(field) \
   field##_f[paq->idx] = (1.0/3.0)*(field##_f[paq->idx] - field##_p[paq->idx]) + (1.0/6.0)*dt*ev_##field(paq);
+
+#define BSSN_FINAL_RK4_STEP() \
+  BSSN_APPLY_TO_FIELDS(BSSN_FINAL_RK4_STEP_FIELD)
 
 
 
@@ -202,6 +202,48 @@
     K##N##CalcPt(i, j, k, &b_paq); \
   }
 
+
+
+#define BSSN_ASSIGN_TO_A_REGISTER_FIELD(field, reg) \
+  field##_a = field##reg;
+
+#define BSSN_ASSIGN_TO_A_REGISTER(reg) \
+  BSSN_APPLY_TO_FIELDS_ARGS(BSSN_ASSIGN_TO_A_REGISTER_FIELD, reg)
+
+
+
+// arr_K1[idx] = arr_p[idx] + dt/2*evfn(arr_a); (arr_a = arr_p)
+#define BSSN_COMPUTE_WEDGE_STEP_K1_FIELD(field) \
+  field##_K1[idx_K1] = field##_p[paq.idx] + dt/2.0*ev_##field(&paq);
+
+#define BSSN_COMPUTE_WEDGE_STEP_K1() \
+  BSSN_APPLY_TO_FIELDS(BSSN_COMPUTE_WEDGE_STEP_K1_FIELD)
+
+
+// arr_K2[idx] = arr_p[idx] + dt/2*evfn(arr_a); (arr_a = arr_K1)
+#define BSSN_COMPUTE_WEDGE_STEP_K2_FIELD(field) \
+  field##_K2[idx_K2] = field##_p[idx_p] + dt/2.0*ev_##field(&paq);
+
+#define BSSN_COMPUTE_WEDGE_STEP_K2() \
+  BSSN_APPLY_TO_FIELDS(BSSN_COMPUTE_WEDGE_STEP_K2_FIELD)
+
+
+// arr_K3[idx] = arr_p[idx] + dt*evfn(arr_a); (arr_a = arr_K2)
+#define BSSN_COMPUTE_WEDGE_STEP_K3_FIELD(field) \
+  field##_K3[idx_K3] = field##_p[idx_p] + dt*ev_##field(&paq);
+
+#define BSSN_COMPUTE_WEDGE_STEP_K3() \
+  BSSN_APPLY_TO_FIELDS(BSSN_COMPUTE_WEDGE_STEP_K3_FIELD)
+
+
+// y_{n+1} = ( 2 y_n + y_{K1} + 2 y_{K2} + y_{K3} ) / 3 + h/6*f[y_{K3}]
+#define BSSN_COMPUTE_WEDGE_STEP_TAIL_FIELD(field) \
+  field##_t[idx_tail] = ( 2.0*field##_p[idx_p] + field##_K1[idx_K1] \
+                         + 2.0*field##_K2[idx_K2] + field##_K3[paq.idx] )/3.0 \
+                       + dt/6.0*ev_##field(&paq);
+
+#define BSSN_COMPUTE_WEDGE_STEP_TAIL() \
+  BSSN_APPLY_TO_FIELDS(BSSN_COMPUTE_WEDGE_STEP_TAIL_FIELD)
 
 
 /*

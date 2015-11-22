@@ -35,6 +35,12 @@ inline real_t KO_dissipation_Q(idx_t i, idx_t j, idx_t k, real_t *field)
   // ...
 }
 
+inline real_t KO_dissipation_Q(idx_t i, idx_t j, idx_t k,
+  periodicArray<idx_t, real_t> *field)
+{
+  return KO_dissipation_Q(i, j, k, field->_array);
+}
+
 inline real_t derivative_Odx2(idx_t i, idx_t j, idx_t k, int d,
     real_t *field)
 {
@@ -541,6 +547,24 @@ inline real_t double_derivative_stencil(idx_t i, idx_t j, idx_t k, int d,
   return STENCIL_ORDER_FUNCTION(double_derivative_stencil_Odx)(i, j, k, d, field);
 }
 
+inline real_t derivative(idx_t i, idx_t j, idx_t k, int d,
+    periodicArray<idx_t, real_t> *field)
+{
+  return STENCIL_ORDER_FUNCTION(derivative_Odx)(i, j, k, d, field->_array);
+}
+
+inline real_t mixed_derivative_stencil(idx_t i, idx_t j, idx_t k,
+  int d1, int d2, periodicArray<idx_t, real_t> *field)
+{
+  return STENCIL_ORDER_FUNCTION(mixed_derivative_stencil_Odx)(i, j, k, d1, d2, field->_array);
+}
+
+inline real_t double_derivative_stencil(idx_t i, idx_t j, idx_t k, int d,
+    periodicArray<idx_t, real_t> *field)
+{
+  return STENCIL_ORDER_FUNCTION(double_derivative_stencil_Odx)(i, j, k, d, field->_array);
+}
+
 /* more generic function for 2nd derivs */
 inline real_t double_derivative(idx_t i, idx_t j, idx_t k, int d1, int d2,
     real_t *field)
@@ -568,6 +592,10 @@ inline real_t average(real_t *field)
   }
   return sum/POINTS;
 }
+inline real_t average(periodicArray<idx_t, real_t> *field)
+{
+  return average(field->_array);
+}
 
 inline real_t volume_average(real_t *DIFFphi, real_t phi_FRW)
 {
@@ -580,6 +608,10 @@ inline real_t volume_average(real_t *DIFFphi, real_t phi_FRW)
     sum += exp(6.0*(DIFFphi[NP_INDEX(i,j,k)] + phi_FRW));
   }
   return sum/POINTS;
+}
+inline real_t volume_average(periodicArray<idx_t, real_t> *DIFFphi, real_t phi_FRW)
+{
+  return volume_average(DIFFphi->_array, phi_FRW);
 }
 
 inline real_t conformal_average(real_t *field, real_t *DIFFphi, real_t phi_FRW)
@@ -595,19 +627,28 @@ inline real_t conformal_average(real_t *field, real_t *DIFFphi, real_t phi_FRW)
   real_t vol = volume_average(DIFFphi, phi_FRW);
   return sum/POINTS/vol;
 }
+inline real_t conformal_average(periodicArray<idx_t, real_t> *field,
+  periodicArray<idx_t, real_t> *DIFFphi, real_t phi_FRW)
+{
+  return conformal_average(field->_array, DIFFphi->_array, phi_FRW);
+}
 
 inline real_t max(real_t *field)
 {
   // note this may have poor precision for large datasets
   idx_t i=0, j=0, k=0;
   real_t max = field[0];
-  LOOP3(i, j, k)
+  PARALLEL_LOOP3(i, j, k)
   {
     if(field[INDEX(i,j,k)] > max) {
       max = field[INDEX(i,j,k)];
     }
   }
   return max;
+}
+inline real_t max(periodicArray<idx_t, real_t> *field)
+{
+  return max(field->_array);
 }
 
 inline real_t standard_deviation(real_t *field, real_t avg)
@@ -622,11 +663,19 @@ inline real_t standard_deviation(real_t *field, real_t avg)
   }
   return sqrt(sum/(POINTS-1));
 }
+inline real_t standard_deviation(periodicArray<idx_t, real_t> *field, real_t avg)
+{
+  return standard_deviation(field->_array, avg);
+}
 
 inline real_t standard_deviation(real_t *field)
 {
   real_t avg = average(field);
   return standard_deviation(field, avg);
+}
+inline real_t standard_deviation(periodicArray<idx_t, real_t> *field)
+{
+  return standard_deviation(field->_array);
 }
 
 inline real_t conformal_standard_deviation(real_t *field, real_t *DIFFphi, real_t phi_FRW, real_t avg)
@@ -642,11 +691,21 @@ inline real_t conformal_standard_deviation(real_t *field, real_t *DIFFphi, real_
   real_t vol = volume_average(DIFFphi, phi_FRW);
   return sqrt(sum/(POINTS-1)/vol);
 }
+inline real_t conformal_standard_deviation(periodicArray<idx_t, real_t> *field,
+  periodicArray<idx_t, real_t> *DIFFphi, real_t phi_FRW, real_t avg)
+{
+  return conformal_standard_deviation(field->_array, DIFFphi->_array, phi_FRW, avg);
+}
 
 inline real_t conformal_standard_deviation(real_t *field, real_t *DIFFphi, real_t phi_FRW)
 {
   real_t avg = conformal_average(field, DIFFphi, phi_FRW);
   return conformal_standard_deviation(field, DIFFphi, phi_FRW, avg);
+}
+inline real_t conformal_standard_deviation(periodicArray<idx_t, real_t> *field,
+  periodicArray<idx_t, real_t> *DIFFphi, real_t phi_FRW)
+{
+  return conformal_standard_deviation(field->_array, DIFFphi->_array, phi_FRW);
 }
 
 inline idx_t numNaNs(real_t *field)
@@ -666,6 +725,10 @@ inline idx_t numNaNs(real_t *field)
   }
 
   return NaNs;
+}
+inline idx_t numNaNs(periodicArray<idx_t, real_t> *field)
+{
+  return numNaNs(field->_array);
 }
 
 }

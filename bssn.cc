@@ -28,134 +28,12 @@ BSSN::~BSSN()
   BSSN_APPLY_TO_GEN1_EXTRAS(GEN1_ARRAY_DELETE)
 }
 
-void BSSN::set_gammai_values(idx_t i, idx_t j, idx_t k, BSSNData *paq)
-{
-  // Compute the inverse metric algebraically at each point
-  // assumes det(gamma) = 1
-  idx_t idx = NP_INDEX(i,j,k);
-  paq->gammai11 = 1.0 + DIFFgamma22_a[idx] + DIFFgamma33_a[idx] - pw2(DIFFgamma23_a[idx]) + DIFFgamma22_a[idx]*DIFFgamma33_a[idx];
-  paq->gammai22 = 1.0 + DIFFgamma11_a[idx] + DIFFgamma33_a[idx] - pw2(DIFFgamma13_a[idx]) + DIFFgamma11_a[idx]*DIFFgamma33_a[idx];
-  paq->gammai33 = 1.0 + DIFFgamma11_a[idx] + DIFFgamma22_a[idx] - pw2(DIFFgamma12_a[idx]) + DIFFgamma11_a[idx]*DIFFgamma22_a[idx];
-  paq->gammai12 = DIFFgamma13_a[idx]*DIFFgamma23_a[idx] - DIFFgamma12_a[idx]*(1.0 + DIFFgamma33_a[idx]);
-  paq->gammai13 = DIFFgamma12_a[idx]*DIFFgamma23_a[idx] - DIFFgamma13_a[idx]*(1.0 + DIFFgamma22_a[idx]);
-  paq->gammai23 = DIFFgamma12_a[idx]*DIFFgamma13_a[idx] - DIFFgamma23_a[idx]*(1.0 + DIFFgamma11_a[idx]);
-}
 
-void BSSN::set_DIFFgamma_Aij_norm()
-{
-  idx_t i, j, k;
-
-  /* This potentially breaks conservation of trace:
-   * need to come up with something else to preserve both
-   * trace + determinant constraints.
-   */
-  #pragma omp parallel for default(shared) private(i, j, k)
-  LOOP3(i, j, k)
-  {
-    idx_t idx = NP_INDEX(i,j,k);
-
-    // 1 - det(1 + DiffGamma)
-    real_t one_minus_det_gamma = -1.0*(
-      DIFFgamma11_a[idx] + DIFFgamma22_a[idx] + DIFFgamma33_a[idx]
-      - pw2(DIFFgamma12_a[idx]) - pw2(DIFFgamma13_a[idx]) - pw2(DIFFgamma23_a[idx])
-      + DIFFgamma11_a[idx]*DIFFgamma22_a[idx] + DIFFgamma11_a[idx]*DIFFgamma33_a[idx] + DIFFgamma22_a[idx]*DIFFgamma33_a[idx]
-      - pw2(DIFFgamma23_a[idx])*DIFFgamma11_a[idx] - pw2(DIFFgamma13_a[idx])*DIFFgamma22_a[idx] - pw2(DIFFgamma12_a[idx])*DIFFgamma33_a[idx]
-      + 2.0*DIFFgamma12_a[idx]*DIFFgamma13_a[idx]*DIFFgamma23_a[idx] + DIFFgamma11_a[idx]*DIFFgamma22_a[idx]*DIFFgamma33_a[idx]
-    );
-
-    // accurately compute 1 - det(g)^(1/3), without roundoff error
-    // = -( det(g)^(1/3) - 1 )
-    // = -( exp{log[det(g)^(1/3)]} - 1 )
-    // = -( expm1{log[det(g)]/3} )
-    // = -expm1{log1p[-one_minus_det_gamma]/3.0}
-    real_t one_minus_det_gamma_thirdpow = -1.0*expm1(log1p(-1.0*one_minus_det_gamma)/3.0);
-
-    // Perform the equivalent of re-scaling the conformal metric so det(gamma) = 1
-    // gamma -> gamma / det(gamma)^(1/3)
-    // DIFFgamma -> (delta + DiffGamma) / det(gamma)^(1/3) - delta
-    //            = ( DiffGamma + delta*[1 - det(gamma)^(1/3)] ) / ( 1 - [1 - det(1 + DiffGamma)^1/3] )
-    DIFFgamma11_a[idx] = (DIFFgamma11_a[idx] + one_minus_det_gamma_thirdpow) / (1.0 - one_minus_det_gamma_thirdpow);
-    DIFFgamma22_a[idx] = (DIFFgamma22_a[idx] + one_minus_det_gamma_thirdpow) / (1.0 - one_minus_det_gamma_thirdpow);
-    DIFFgamma33_a[idx] = (DIFFgamma33_a[idx] + one_minus_det_gamma_thirdpow) / (1.0 - one_minus_det_gamma_thirdpow);
-    DIFFgamma12_a[idx] = (DIFFgamma12_a[idx]) / (1.0 - one_minus_det_gamma_thirdpow);
-    DIFFgamma13_a[idx] = (DIFFgamma13_a[idx]) / (1.0 - one_minus_det_gamma_thirdpow);
-    DIFFgamma23_a[idx] = (DIFFgamma23_a[idx]) / (1.0 - one_minus_det_gamma_thirdpow);
-
-    // re-scale A_ij / ensure it is trace-free
-    // need inverse gamma for finding Tr(A)
-    real_t gammai11 = 1.0 + DIFFgamma22_a[idx] + DIFFgamma33_a[idx] - pw2(DIFFgamma23_a[idx]) + DIFFgamma22_a[idx]*DIFFgamma33_a[idx];
-    real_t gammai22 = 1.0 + DIFFgamma11_a[idx] + DIFFgamma33_a[idx] - pw2(DIFFgamma13_a[idx]) + DIFFgamma11_a[idx]*DIFFgamma33_a[idx];
-    real_t gammai33 = 1.0 + DIFFgamma11_a[idx] + DIFFgamma22_a[idx] - pw2(DIFFgamma12_a[idx]) + DIFFgamma11_a[idx]*DIFFgamma22_a[idx];
-    real_t gammai12 = DIFFgamma13_a[idx]*DIFFgamma23_a[idx] - DIFFgamma12_a[idx]*(1.0 + DIFFgamma33_a[idx]);
-    real_t gammai13 = DIFFgamma12_a[idx]*DIFFgamma23_a[idx] - DIFFgamma13_a[idx]*(1.0 + DIFFgamma22_a[idx]);
-    real_t gammai23 = DIFFgamma12_a[idx]*DIFFgamma13_a[idx] - DIFFgamma23_a[idx]*(1.0 + DIFFgamma11_a[idx]);
-    real_t trA = gammai11*A11_a[idx] + gammai22*A22_a[idx] + gammai33*A33_a[idx]
-      + 2.0*(gammai12*A12_a[idx] + gammai13*A13_a[idx] + gammai23*A23_a[idx]);
-    // A_ij -> ( A_ij - 1/3 gamma_ij A )
-    A11_a[idx] = ( A11_a[idx] - 1.0/3.0*(1.0 + DIFFgamma11_a[idx])*trA ) / (1.0 - one_minus_det_gamma_thirdpow);
-    A22_a[idx] = ( A22_a[idx] - 1.0/3.0*(1.0 + DIFFgamma22_a[idx])*trA ) / (1.0 - one_minus_det_gamma_thirdpow);
-    A33_a[idx] = ( A33_a[idx] - 1.0/3.0*(1.0 + DIFFgamma33_a[idx])*trA ) / (1.0 - one_minus_det_gamma_thirdpow);
-    A12_a[idx] = ( A12_a[idx] - 1.0/3.0*DIFFgamma12_a[idx]*trA ) / (1.0 - one_minus_det_gamma_thirdpow);
-    A13_a[idx] = ( A13_a[idx] - 1.0/3.0*DIFFgamma13_a[idx]*trA ) / (1.0 - one_minus_det_gamma_thirdpow);
-    A23_a[idx] = ( A23_a[idx] - 1.0/3.0*DIFFgamma23_a[idx]*trA ) / (1.0 - one_minus_det_gamma_thirdpow);
-  }
-}
-
-void BSSN::set_paq_values(idx_t i, idx_t j, idx_t k, BSSNData *paq)
-{
-  paq->i = i;
-  paq->j = j;
-  paq->k = k;
-  paq->idx = NP_INDEX(i,j,k);
-
-  // need to set FRW quantities first
-  paq->phi_FRW = frw->get_phi();
-  paq->K_FRW = frw->get_K();
-  paq->rho_FRW = frw->get_rho();
-  paq->S_FRW = frw->get_S();
-
-  // draw data from cache
-  set_local_vals(paq);
-  set_gammai_values(i, j, k, paq);
-
-  // non-DIFF quantities
-  paq->phi      =   paq->DIFFphi + paq->phi_FRW;
-  paq->K        =   paq->DIFFK + paq->K_FRW;
-  paq->gamma11  =   paq->DIFFgamma11 + 1.0;
-  paq->gamma12  =   paq->DIFFgamma12;
-  paq->gamma13  =   paq->DIFFgamma13;
-  paq->gamma22  =   paq->DIFFgamma22 + 1.0;
-  paq->gamma23  =   paq->DIFFgamma23;
-  paq->gamma33  =   paq->DIFFgamma33 + 1.0;
-  paq->r        =   paq->DIFFr + paq->rho_FRW;
-  paq->S        =   paq->DIFFS + paq->S_FRW;
-  paq->alpha    =   paq->DIFFalpha + 1.0;
-
-  // pre-compute re-used quantities
-  // gammas & derivs first
-  calculate_Acont(paq);
-  calculate_dgamma(paq);
-  calculate_ddgamma(paq);
-  calculate_dalpha_dphi(paq);
-  calculate_dK(paq);
-  #if USE_Z4c_DAMPING
-    calculate_dtheta(paq);
-  #endif
-  #if USE_BSSN_SHIFT
-    calculate_dbeta(paq);
-  #endif
-
-  // Christoffels depend on metric & derivs.
-  calculate_conformal_christoffels(paq);
-  // DDw depend on christoffels, metric, and derivs
-  calculateDDphi(paq);
-  calculateDDalphaTF(paq);
-  // Ricci depends on DDphi
-  calculateRicciTF(paq);
-
-  // H depends on AijAij and ricci arrays
-  paq->H = hamiltonianConstraintCalc(paq->idx);
-}
+/*
+******************************************************************************
+Functionality for "usual" RK4 integrator using 4 registers
+******************************************************************************
+*/
 
 // Full RK step (More useful when not evolving the source simultaneously)
 void BSSN::step(BSSNData *paq)
@@ -186,8 +64,7 @@ void BSSN::stepInit()
     BSSN_COPY_ARRAYS(_a, _p);
   #endif
   idx_t i, j, k;
-  #pragma omp parallel for default(shared) private(i, j, k)
-  LOOP3(i, j, k)
+  PARALLEL_LOOP3(i, j, k)
   {
     idx_t idx = NP_INDEX(i, j, k);
     BSSN_ZERO_ARRAYS(_f, idx);
@@ -285,11 +162,289 @@ void BSSN::stepTerm()
   BSSN_SWAP_ARRAYS(_f, _p);
 }
 
+
+/*
+******************************************************************************
+Functionality for special "wedge" RK4 integrator using 1 register
+
+Integration procedure outline:
+- For i = 0, i < NX + 2*Length(afterimage array), i++ :
+   - Data starts in p register, _a references _p
+   - Fill "rightmost" value in _K1 register (area loop)
+     - point _a to _K1
+   - Fill "rightmost" value in _K2 register
+     - point _a to _K2
+   - Fill "rightmost" value in _K3 register
+     - point _a to _K3
+   - Fill in "rightmost" point in tail
+     - if i < WEDGE_SLICE_1_LEN + WEDGE_TAIL_LEN
+         "burn-in" phase, do nothing
+       Tail and wedge should be fully populated after this
+     - if i == WEDGE_SLICE_1_LEN + WEDGE_TAIL_LEN
+         populate afterimage
+     - if i > WEDGE_SLICE_1_LEN + WEDGE_TAIL_LEN
+         "leftmost" point in tail goes in _p register
+
+******************************************************************************
+*/
+
+/*
+void BSSN::WedgeStep()
+{
+  idx_t i;
+  for(i=0; i<NX + WEDGE_AFTER_LEN + WEDGE_SLICE_1_LEN; ++i)
+  {
+    // "i" is location of calculation for wedge "peak"
+    idx_t i_p = i;
+    idx_t i_K1 = (i + WEDGE_SLICE_1_LEN)%WEDGE_SLICE_1_LEN;
+    WedgeK1Calc(i_p, i_K1);
+
+    idx_t i_K2 = (i + WEDGE_SLICE_2_LEN)%WEDGE_SLICE_2_LEN;
+    WedgeK2Calc(i_p, i_K1, i_K2);
+
+    idx_t i_K3 = (i + WEDGE_SLICE_3_LEN)%WEDGE_SLICE_3_LEN;
+    WedgeK3Calc(i_p, i_K2, i_K3);
+
+    idx_t idx_tail = (i + WEDGE_TAIL_LEN)%WEDGE_TAIL_LEN;
+    WedgeTailCalc(i_p, i_K1, i_K2, i_K3, i_tail);
+
+    if(i == WEDGE_SLICE_1_LEN + WEDGE_TAIL_LEN)
+    {
+      // populate afterimage
+    }
+
+    if(i > WEDGE_SLICE_1_LEN + WEDGE_TAIL_LEN)
+    {
+      // "leftmost" point in tail goes in _p register
+    }
+
+  }
+}
+*/
+
+
+// y_{K1} = y_n + h/2*f[y_n]
+void BSSN::WedgeK1Calc(idx_t i_p, idx_t i_K1)
+{
+  idx_t j, k;
+
+  PARALLEL_AREA_LOOP(j,k)
+  {
+    BSSNData paq = {0};
+    set_paq_values(i_p, j, k, &paq);
+
+    idx_t idx_K1 = NP_INDEX(i_K1, j, k);
+
+    BSSN_COMPUTE_WEDGE_STEP_K1();
+  }
+
+  BSSN_ASSIGN_TO_A_REGISTER(_K1);
+  frw->P1_step(dt);
+}
+
+// y_{K2} = y_n + h/2*f[y_{K1}]
+void BSSN::WedgeK2Calc(idx_t i_p, idx_t i_K1, idx_t i_K2)
+{
+  idx_t j, k;
+
+  PARALLEL_AREA_LOOP(j,k)
+  {
+    BSSNData paq = {0};
+    set_paq_values(i_K1, j, k, &paq);
+
+    idx_t idx_p = NP_INDEX(i_p, j, k);
+    idx_t idx_K2 = NP_INDEX(i_K2, j, k);
+
+    BSSN_COMPUTE_WEDGE_STEP_K2();
+  }
+
+  BSSN_ASSIGN_TO_A_REGISTER(_K2);
+  frw->P2_step(dt);
+}
+
+// y_{K3} = y_n +   h*f[y_{K2}]
+void BSSN::WedgeK3Calc(idx_t i_p, idx_t i_K2, idx_t i_K3)
+{
+  idx_t j, k;
+
+  PARALLEL_AREA_LOOP(j,k)
+  {
+    BSSNData paq = {0};
+    set_paq_values(i_K2, j, k, &paq);
+
+    idx_t idx_p = NP_INDEX(i_p, j, k);
+    idx_t idx_K3 = NP_INDEX(i_K3, j, k);
+
+    BSSN_COMPUTE_WEDGE_STEP_K3();
+  }
+
+  BSSN_ASSIGN_TO_A_REGISTER(_K3);
+  frw->P3_step(dt);
+}
+
+// y_{n+1} = ( 2 y_n + y_{K1} + 2 y_{K2} + y_{K3} ) / 3 + h/6*f[y_{K3}]
+void BSSN::WedgeTailCalc(idx_t i_p, idx_t i_K1, idx_t i_K2, idx_t i_K3, idx_t i_tail)
+{
+  idx_t j, k;
+
+  PARALLEL_AREA_LOOP(j,k)
+  {
+    BSSNData paq = {0};
+    set_paq_values(i_K3, j, k, &paq);
+
+    idx_t idx_p = NP_INDEX(i_p, j, k);
+    idx_t idx_K1 = NP_INDEX(i_K1, j, k);
+    idx_t idx_K2 = NP_INDEX(i_K2, j, k);
+    idx_t idx_tail = NP_INDEX(i_tail, j, k);
+
+    BSSN_COMPUTE_WEDGE_STEP_TAIL();
+  }
+}
+
+
+/*
+******************************************************************************
+Functionality for setting/calculating data values
+******************************************************************************
+*/
+
+void BSSN::set_gammai_values(idx_t i, idx_t j, idx_t k, BSSNData *paq)
+{
+  // Compute the inverse metric algebraically at each point
+  // assumes det(gamma) = 1
+  idx_t idx = NP_INDEX(i,j,k);
+  paq->gammai11 = 1.0 + DIFFgamma22_a[idx] + DIFFgamma33_a[idx] - pw2(DIFFgamma23_a[idx]) + DIFFgamma22_a[idx]*DIFFgamma33_a[idx];
+  paq->gammai22 = 1.0 + DIFFgamma11_a[idx] + DIFFgamma33_a[idx] - pw2(DIFFgamma13_a[idx]) + DIFFgamma11_a[idx]*DIFFgamma33_a[idx];
+  paq->gammai33 = 1.0 + DIFFgamma11_a[idx] + DIFFgamma22_a[idx] - pw2(DIFFgamma12_a[idx]) + DIFFgamma11_a[idx]*DIFFgamma22_a[idx];
+  paq->gammai12 = DIFFgamma13_a[idx]*DIFFgamma23_a[idx] - DIFFgamma12_a[idx]*(1.0 + DIFFgamma33_a[idx]);
+  paq->gammai13 = DIFFgamma12_a[idx]*DIFFgamma23_a[idx] - DIFFgamma13_a[idx]*(1.0 + DIFFgamma22_a[idx]);
+  paq->gammai23 = DIFFgamma12_a[idx]*DIFFgamma13_a[idx] - DIFFgamma23_a[idx]*(1.0 + DIFFgamma11_a[idx]);
+}
+
+void BSSN::set_DIFFgamma_Aij_norm()
+{
+  idx_t i, j, k;
+
+  /* This potentially breaks conservation of trace:
+   * need to come up with something else to preserve both
+   * trace + determinant constraints.
+   */
+  PARALLEL_LOOP3(i, j, k)
+  {
+    set_DIFFgamma_Aij_norm_pt(i,j,k);
+  }
+}
+
+void BSSN::set_DIFFgamma_Aij_norm_pt(idx_t i, idx_t j, idx_t k)
+{
+  idx_t idx = NP_INDEX(i,j,k);
+
+  // 1 - det(1 + DiffGamma)
+  real_t one_minus_det_gamma = -1.0*(
+    DIFFgamma11_a[idx] + DIFFgamma22_a[idx] + DIFFgamma33_a[idx]
+    - pw2(DIFFgamma12_a[idx]) - pw2(DIFFgamma13_a[idx]) - pw2(DIFFgamma23_a[idx])
+    + DIFFgamma11_a[idx]*DIFFgamma22_a[idx] + DIFFgamma11_a[idx]*DIFFgamma33_a[idx] + DIFFgamma22_a[idx]*DIFFgamma33_a[idx]
+    - pw2(DIFFgamma23_a[idx])*DIFFgamma11_a[idx] - pw2(DIFFgamma13_a[idx])*DIFFgamma22_a[idx] - pw2(DIFFgamma12_a[idx])*DIFFgamma33_a[idx]
+    + 2.0*DIFFgamma12_a[idx]*DIFFgamma13_a[idx]*DIFFgamma23_a[idx] + DIFFgamma11_a[idx]*DIFFgamma22_a[idx]*DIFFgamma33_a[idx]
+  );
+
+  // accurately compute 1 - det(g)^(1/3), without roundoff error
+  // = -( det(g)^(1/3) - 1 )
+  // = -( exp{log[det(g)^(1/3)]} - 1 )
+  // = -( expm1{log[det(g)]/3} )
+  // = -expm1{log1p[-one_minus_det_gamma]/3.0}
+  real_t one_minus_det_gamma_thirdpow = -1.0*expm1(log1p(-1.0*one_minus_det_gamma)/3.0);
+
+  // Perform the equivalent of re-scaling the conformal metric so det(gamma) = 1
+  // gamma -> gamma / det(gamma)^(1/3)
+  // DIFFgamma -> (delta + DiffGamma) / det(gamma)^(1/3) - delta
+  //            = ( DiffGamma + delta*[1 - det(gamma)^(1/3)] ) / ( 1 - [1 - det(1 + DiffGamma)^1/3] )
+  DIFFgamma11_a[idx] = (DIFFgamma11_a[idx] + one_minus_det_gamma_thirdpow) / (1.0 - one_minus_det_gamma_thirdpow);
+  DIFFgamma22_a[idx] = (DIFFgamma22_a[idx] + one_minus_det_gamma_thirdpow) / (1.0 - one_minus_det_gamma_thirdpow);
+  DIFFgamma33_a[idx] = (DIFFgamma33_a[idx] + one_minus_det_gamma_thirdpow) / (1.0 - one_minus_det_gamma_thirdpow);
+  DIFFgamma12_a[idx] = (DIFFgamma12_a[idx]) / (1.0 - one_minus_det_gamma_thirdpow);
+  DIFFgamma13_a[idx] = (DIFFgamma13_a[idx]) / (1.0 - one_minus_det_gamma_thirdpow);
+  DIFFgamma23_a[idx] = (DIFFgamma23_a[idx]) / (1.0 - one_minus_det_gamma_thirdpow);
+
+  // re-scale A_ij / ensure it is trace-free
+  // need inverse gamma for finding Tr(A)
+  real_t gammai11 = 1.0 + DIFFgamma22_a[idx] + DIFFgamma33_a[idx] - pw2(DIFFgamma23_a[idx]) + DIFFgamma22_a[idx]*DIFFgamma33_a[idx];
+  real_t gammai22 = 1.0 + DIFFgamma11_a[idx] + DIFFgamma33_a[idx] - pw2(DIFFgamma13_a[idx]) + DIFFgamma11_a[idx]*DIFFgamma33_a[idx];
+  real_t gammai33 = 1.0 + DIFFgamma11_a[idx] + DIFFgamma22_a[idx] - pw2(DIFFgamma12_a[idx]) + DIFFgamma11_a[idx]*DIFFgamma22_a[idx];
+  real_t gammai12 = DIFFgamma13_a[idx]*DIFFgamma23_a[idx] - DIFFgamma12_a[idx]*(1.0 + DIFFgamma33_a[idx]);
+  real_t gammai13 = DIFFgamma12_a[idx]*DIFFgamma23_a[idx] - DIFFgamma13_a[idx]*(1.0 + DIFFgamma22_a[idx]);
+  real_t gammai23 = DIFFgamma12_a[idx]*DIFFgamma13_a[idx] - DIFFgamma23_a[idx]*(1.0 + DIFFgamma11_a[idx]);
+  real_t trA = gammai11*A11_a[idx] + gammai22*A22_a[idx] + gammai33*A33_a[idx]
+    + 2.0*(gammai12*A12_a[idx] + gammai13*A13_a[idx] + gammai23*A23_a[idx]);
+  // A_ij -> ( A_ij - 1/3 gamma_ij A )
+  A11_a[idx] = ( A11_a[idx] - 1.0/3.0*(1.0 + DIFFgamma11_a[idx])*trA ) / (1.0 - one_minus_det_gamma_thirdpow);
+  A22_a[idx] = ( A22_a[idx] - 1.0/3.0*(1.0 + DIFFgamma22_a[idx])*trA ) / (1.0 - one_minus_det_gamma_thirdpow);
+  A33_a[idx] = ( A33_a[idx] - 1.0/3.0*(1.0 + DIFFgamma33_a[idx])*trA ) / (1.0 - one_minus_det_gamma_thirdpow);
+  A12_a[idx] = ( A12_a[idx] - 1.0/3.0*DIFFgamma12_a[idx]*trA ) / (1.0 - one_minus_det_gamma_thirdpow);
+  A13_a[idx] = ( A13_a[idx] - 1.0/3.0*DIFFgamma13_a[idx]*trA ) / (1.0 - one_minus_det_gamma_thirdpow);
+  A23_a[idx] = ( A23_a[idx] - 1.0/3.0*DIFFgamma23_a[idx]*trA ) / (1.0 - one_minus_det_gamma_thirdpow);
+}
+
+void BSSN::set_paq_values(idx_t i, idx_t j, idx_t k, BSSNData *paq)
+{
+  paq->i = i;
+  paq->j = j;
+  paq->k = k;
+  paq->idx = NP_INDEX(i,j,k);
+
+  // need to set FRW quantities first
+  paq->phi_FRW = frw->get_phi();
+  paq->K_FRW = frw->get_K();
+  paq->rho_FRW = frw->get_rho();
+  paq->S_FRW = frw->get_S();
+
+  // draw data from cache
+  set_local_vals(paq);
+  set_gammai_values(i, j, k, paq);
+
+  // non-DIFF quantities
+  paq->phi      =   paq->DIFFphi + paq->phi_FRW;
+  paq->K        =   paq->DIFFK + paq->K_FRW;
+  paq->gamma11  =   paq->DIFFgamma11 + 1.0;
+  paq->gamma12  =   paq->DIFFgamma12;
+  paq->gamma13  =   paq->DIFFgamma13;
+  paq->gamma22  =   paq->DIFFgamma22 + 1.0;
+  paq->gamma23  =   paq->DIFFgamma23;
+  paq->gamma33  =   paq->DIFFgamma33 + 1.0;
+  paq->r        =   paq->DIFFr + paq->rho_FRW;
+  paq->S        =   paq->DIFFS + paq->S_FRW;
+  paq->alpha    =   paq->DIFFalpha + 1.0;
+
+  // pre-compute re-used quantities
+  // gammas & derivs first
+  calculate_Acont(paq);
+  calculate_dgamma(paq);
+  calculate_ddgamma(paq);
+  calculate_dalpha_dphi(paq);
+  calculate_dK(paq);
+  #if USE_Z4c_DAMPING
+    calculate_dtheta(paq);
+  #endif
+  #if USE_BSSN_SHIFT
+    calculate_dbeta(paq);
+  #endif
+
+  // Christoffels depend on metric & derivs.
+  calculate_conformal_christoffels(paq);
+  // DDw depend on christoffels, metric, and derivs
+  calculateDDphi(paq);
+  calculateDDalphaTF(paq);
+  // Ricci depends on DDphi
+  calculateRicciTF(paq);
+
+  // H depends on AijAij and ricci arrays
+  paq->H = hamiltonianConstraintCalc(paq->idx);
+}
+
 void BSSN::clearSrc()
 {
   idx_t i, j, k;
-  #pragma omp parallel for default(shared) private(i, j, k)
-  LOOP3(i, j, k)
+  PARALLEL_LOOP3(i, j, k)
   {
     idx_t idx = NP_INDEX(i,j,k);
     BSSN_ZERO_SOURCES()
@@ -301,7 +456,7 @@ void BSSN::init()
   idx_t idx;
 
   idx_t i, j, k;
-  LOOP3(i, j, k)
+  PARALLEL_LOOP3(i, j, k)
   {
     idx = NP_INDEX(i,j,k);
 
@@ -326,7 +481,6 @@ void BSSN::set_local_vals(BSSNData *paq)
   BSSN_APPLY_TO_GEN1_EXTRAS(SET_LOCAL_VALUES_P);
   BSSN_APPLY_TO_SOURCES(SET_LOCAL_VALUES_P);
 }
-
 
 
 /*
@@ -698,8 +852,7 @@ void BSSN::setHamiltonianConstraintCalcs(real_t H_values[7], bool reset_paq)
 
   if(reset_paq)
   {
-    #pragma omp parallel for default(shared) private(i, j, k)
-    LOOP3(i,j,k)
+    PARALLEL_LOOP3(i,j,k)
     {
       BSSNData b_paq = {0};
       set_paq_values(i, j, k, &b_paq); // sets AijAij and Ricci too

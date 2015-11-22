@@ -35,6 +35,7 @@ typedef long int idx_t;
 
 #include "utils/ConfigParser.h"
 #include "utils/Timer.h"
+#include "utils/periodicArray.h"
 #include "utils/Fourier.h"
 #include "utils/math.h"
 
