@@ -53,9 +53,6 @@ int main(int argc, char **argv)
     Fourier fourier;
     fourier.Initialize(NX, NY, NZ, staticSim.fields["DIFFD_a"] /* just any array for planning */);
 
-    // Standard FRW spacetime integrator
-    FRW<real_t> frw (0.0, 0.0);
-
     if(_config["ICs"] == "apples_stability")
     {
       LOG(iodata.log, "Using apples stability test initial conditions...\n");
@@ -70,7 +67,7 @@ int main(int argc, char **argv)
     {
       // "conformal" cosmological initial conditions:
       LOG(iodata.log, "Using conformal initial conditions...\n");
-      set_conformal_ICs(bssnSim.fields, staticSim.fields, &fourier, &iodata, &frw);
+      set_conformal_ICs(bssnSim.fields, staticSim.fields, &fourier, &iodata, bssnSim.frw);
     }
 
   _timer["init"].stop();
@@ -87,7 +84,7 @@ int main(int argc, char **argv)
       bssnSim.stepInit();
       // clear existing source data
       bssnSim.clearSrc();
-      staticSim.addBSSNSrc(bssnSim.fields, &frw);
+      staticSim.addBSSNSrc(bssnSim.fields, bssnSim.frw);
 
     // output simulation information
     // these generally output any data in the _a registers (which should 
@@ -99,11 +96,11 @@ int main(int argc, char **argv)
       LOOP3(i,j,k)
       {
         BSSNData b_paq = {0}; // data structure associated with bssn sim
-        bssnSim.set_paq_values(i, j, k, &b_paq, &frw);
+        bssnSim.set_paq_values(i, j, k, &b_paq);
         // Additionally set KD (killing vector "Delta" quantities)
         bssnSim.set_KillingDelta(i, j, k, &b_paq);
       }
-      io_data_dump(bssnSim.fields, staticSim.fields, &iodata, s, &fourier, &frw);
+      io_data_dump(bssnSim.fields, staticSim.fields, &iodata, s, &fourier, bssnSim.frw);
       _timer["meta_output_interval"].start();
         if(s%iodata.meta_output_interval == 0)
         {
@@ -111,13 +108,13 @@ int main(int argc, char **argv)
           real_t H_calcs[7], M_calcs[7];
 
           // Constraint Violation Calculations
-          bssnSim.setHamiltonianConstraintCalcs(H_calcs, &frw, false);
+          bssnSim.setHamiltonianConstraintCalcs(H_calcs, false);
           io_dump_data(H_calcs[4], &iodata, "H_violations"); // mean(H/[H])
           io_dump_data(H_calcs[5], &iodata, "H_violations"); // stdev(H/[H])
           io_dump_data(H_calcs[6], &iodata, "H_violations"); // max(H/[H])
           io_dump_data(H_calcs[2], &iodata, "H_violations"); // max(H)
 
-          bssnSim.setMomentumConstraintCalcs(M_calcs, &frw);
+          bssnSim.setMomentumConstraintCalcs(M_calcs);
           io_dump_data(M_calcs[4], &iodata, "M_violations"); // mean(M/[M])
           io_dump_data(M_calcs[5], &iodata, "M_violations"); // stdev(M/[M])
           io_dump_data(M_calcs[6], &iodata, "M_violations"); // max(M/[M])
@@ -154,69 +151,33 @@ int main(int argc, char **argv)
     // Run RK steps explicitly here (ties together BSSN + Hydro stuff).
     // See bssn class or hydro class for more comments.
     _timer["RK_steps"].start();
+      // FRW simulation should be in the correct state here
 
-
-    // FRW simulation should be in the correct state here
-    // First RK step, Set Hydro Vars, & calc. constraint
-    #pragma omp parallel for default(shared) private(i, j, k)
-    LOOP3(i, j, k)
-    {
-      BSSNData b_paq = {0}; // data structure associated with bssn sim
-      bssnSim.K1CalcPt(i, j, k, &b_paq, &frw);
-    }
-    frw.P1_step(dt);
-
-    // Intermediate RK step is now in _c register, move to _a for use in next step.
-    bssnSim.regSwap_c_a();
-    // reset source using new metric
-    bssnSim.clearSrc();
-    staticSim.addBSSNSrc(bssnSim.fields, &frw);
-
-    // Subsequent BSSN steps
-      // Second RK step
-      #pragma omp parallel for default(shared) private(i, j, k)
-      LOOP3(i, j, k)
-      {
-        BSSNData b_paq = {0}; // data structure associated with bssn sim
-        bssnSim.K2CalcPt(i, j, k, &b_paq, &frw);
-      }
-      frw.P2_step(dt);
-
-      // Intermediate RK step is now in _c register, move to _a for use in next step.
-      bssnSim.regSwap_c_a();
+      // First RK step, Set Hydro Vars, & calc. constraint
+      bssnSim.K1Calc();
       // reset source using new metric
       bssnSim.clearSrc();
-      staticSim.addBSSNSrc(bssnSim.fields, &frw);
+      staticSim.addBSSNSrc(bssnSim.fields, bssnSim.frw);
+
+      // Second RK step
+      bssnSim.K2Calc();
+      // reset source using new metric
+      bssnSim.clearSrc();
+      staticSim.addBSSNSrc(bssnSim.fields, bssnSim.frw);
 
       // Third RK step
-      #pragma omp parallel for default(shared) private(i, j, k)
-      LOOP3(i, j, k)
-      {
-        BSSNData b_paq = {0}; // data structure associated with bssn sim
-        bssnSim.K3CalcPt(i, j, k, &b_paq, &frw);
-      }
-      frw.P3_step(dt);
-
-      // Intermediate RK step is now in _c register, move to _a for use in next step.
-      bssnSim.regSwap_c_a();
+      bssnSim.K3Calc();
       // reset source using new metric
       bssnSim.clearSrc();
-      staticSim.addBSSNSrc(bssnSim.fields, &frw);
+      staticSim.addBSSNSrc(bssnSim.fields, bssnSim.frw);
 
       // Fourth RK step
-      #pragma omp parallel for default(shared) private(i, j, k)
-      LOOP3(i, j, k)
-      {
-        BSSNData b_paq = {0}; // data structure associated with bssn sim
-        bssnSim.K4CalcPt(i, j, k, &b_paq, &frw);
-      }
-      frw.RK_total_step(dt);
+      bssnSim.K4Calc();
 
-    // Wrap up
-      // bssn _f <-> _p
-      bssnSim.stepTerm();
-      // "current" data is in the _p array.
-
+      // Wrap up
+        // bssn _f <-> _p
+        bssnSim.stepTerm();
+        // "current" data is in the _p array.
     _timer["RK_steps"].stop();
 
   }

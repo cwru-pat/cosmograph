@@ -16,6 +16,9 @@ BSSN::BSSN()
   // any additional arrays for calcuated quantities
   BSSN_APPLY_TO_GEN1_EXTRAS(GEN1_ARRAY_ALLOC)
   BSSN_APPLY_TO_GEN1_EXTRAS(GEN1_ARRAY_ADDMAP)
+
+  // FRW reference integrator
+  frw = new FRW<real_t> (0.0, 0.0);
 }
 
 BSSN::~BSSN()
@@ -98,7 +101,7 @@ void BSSN::set_DIFFgamma_Aij_norm()
   }
 }
 
-void BSSN::set_paq_values(idx_t i, idx_t j, idx_t k, BSSNData *paq, FRW<real_t> *frw)
+void BSSN::set_paq_values(idx_t i, idx_t j, idx_t k, BSSNData *paq)
 {
   paq->i = i;
   paq->j = j;
@@ -151,34 +154,18 @@ void BSSN::set_paq_values(idx_t i, idx_t j, idx_t k, BSSNData *paq, FRW<real_t> 
   calculateRicciTF(paq);
 
   // H depends on AijAij and ricci arrays
-  paq->H = hamiltonianConstraintCalc(paq->idx, frw);
+  paq->H = hamiltonianConstraintCalc(paq->idx);
 }
 
 // Full RK step (More useful when not evolving the source simultaneously)
-void BSSN::step(BSSNData *paq, FRW<real_t> *frw)
+void BSSN::step(BSSNData *paq)
 {
-  _timer["RK Init"].start();
   stepInit();
-  _timer["RK Init"].stop();
-
-  _timer["RK K1 Calc"].start();
-  K1Calc(paq, frw);
-  _timer["RK K1 Calc"].stop();
-
-  _timer["RK K2 Calc"].start();
-  K2Calc(paq, frw);
-  _timer["RK K2 Calc"].stop();
-
-  _timer["RK K3 Calc"].start();
-  K3Calc(paq, frw);
-  _timer["RK K3 Calc"].stop();
-
-  _timer["RK K4 Calc"].start();
-  K4Calc(paq, frw);
-  _timer["RK K4 Calc"].stop();
-
+  K1Calc();
+  K2Calc();
+  K3Calc();
+  K4Calc();
   stepTerm();
-
   // done!
 }
 
@@ -209,19 +196,15 @@ void BSSN::stepInit()
 
 
 // First RK step: calculate and add k_1 coeff to _f array
-void BSSN::K1Calc(BSSNData *paq, FRW<real_t> *frw)
+void BSSN::K1Calc()
 {
-  idx_t i, j, k;
-  LOOP3(i, j, k)
-  {
-    K1CalcPt(i, j, k, paq, frw);
-  }
-  // swap _c <-> _a registers
+  BSSN_RK_PERFORM_KN_CALC(1);
   BSSN_SWAP_ARRAYS(_c, _a);
+  frw->P1_step(dt);
 }
-void BSSN::K1CalcPt(idx_t i, idx_t j, idx_t k, BSSNData *paq, FRW<real_t> *frw)
+void BSSN::K1CalcPt(idx_t i, idx_t j, idx_t k, BSSNData *paq)
 {
-  set_paq_values(i, j, k, paq, frw);
+  set_paq_values(i, j, k, paq);
 
   // evolve fields: arr_c = arr_p + dt/2*k_1
     // arr_c[idx] = arr_p[idx] + dt/2.0*evfn(arr_a);
@@ -235,19 +218,15 @@ void BSSN::K1CalcPt(idx_t i, idx_t j, idx_t k, BSSNData *paq, FRW<real_t> *frw)
 
 // Calculate k_2 coeff (using k_1 values now in _a register)
 // and add to _f array
-void BSSN::K2Calc(BSSNData *paq, FRW<real_t> *frw)
+void BSSN::K2Calc()
 {
-  idx_t i, j, k;
-  LOOP3(i, j, k)
-  {
-    K2CalcPt(i, j, k, paq, frw);
-  }
-  // swap _c <-> _a
+  BSSN_RK_PERFORM_KN_CALC(2);
   BSSN_SWAP_ARRAYS(_c, _a);
+  frw->P2_step(dt);
 }
-void BSSN::K2CalcPt(idx_t i, idx_t j, idx_t k, BSSNData *paq, FRW<real_t> *frw)
+void BSSN::K2CalcPt(idx_t i, idx_t j, idx_t k, BSSNData *paq)
 {
-  set_paq_values(i, j, k, paq, frw);
+  set_paq_values(i, j, k, paq);
 
   // evolve fields: arr_c = arr_p + dt/2*k_2
     // arr_c[idx] = arr_p[idx] + dt/2.0*evfn(arr_a);
@@ -261,19 +240,15 @@ void BSSN::K2CalcPt(idx_t i, idx_t j, idx_t k, BSSNData *paq, FRW<real_t> *frw)
 
 // Calculate k_3 coeff (using k_2 values now in _a register)
 // and add to _f array
-void BSSN::K3Calc(BSSNData *paq, FRW<real_t> *frw)
+void BSSN::K3Calc()
 {
-  idx_t i, j, k;
-  LOOP3(i, j, k)
-  {
-    K3CalcPt(i, j, k, paq, frw);
-  }
-  // swap _c <-> _a
+  BSSN_RK_PERFORM_KN_CALC(3);
   BSSN_SWAP_ARRAYS(_c, _a);
+  frw->P3_step(dt);
 }
-void BSSN::K3CalcPt(idx_t i, idx_t j, idx_t k, BSSNData *paq, FRW<real_t> *frw)
+void BSSN::K3CalcPt(idx_t i, idx_t j, idx_t k, BSSNData *paq)
 {
-  set_paq_values(i, j, k, paq, frw);
+  set_paq_values(i, j, k, paq);
 
   // evolve fields: arr_c = arr_p + dt*k_3
     // arr_c[idx] = arr_p[idx] + dt*evfn(arr_a);
@@ -287,17 +262,14 @@ void BSSN::K3CalcPt(idx_t i, idx_t j, idx_t k, BSSNData *paq, FRW<real_t> *frw)
 
 // Add in k_4 contribution to _f register,
 // and "weight" the final calculation correctly:
-void BSSN::K4Calc(BSSNData *paq, FRW<real_t> *frw)
+void BSSN::K4Calc()
 {
-  idx_t i, j, k;
-  LOOP3(i, j, k)
-  {
-    K4CalcPt(i, j, k, paq, frw);
-  }
+  BSSN_RK_PERFORM_KN_CALC(4);
+  frw->RK_total_step(dt);
 }
-void BSSN::K4CalcPt(idx_t i, idx_t j, idx_t k, BSSNData *paq, FRW<real_t> *frw)
+void BSSN::K4CalcPt(idx_t i, idx_t j, idx_t k, BSSNData *paq)
 {
-  set_paq_values(i, j, k, paq, frw);
+  set_paq_values(i, j, k, paq);
 
   // evolve fields and add to _f register:
   // arr_f = arr_p + dt/6*(k_1 + 2*k_2 + 2*k_3 + k_4)
@@ -710,7 +682,7 @@ Constraint violtion calculations
 ******************************************************************************
 */
 
-void BSSN::setHamiltonianConstraintCalcs(real_t H_values[7], FRW<real_t> *frw, bool reset_paq)
+void BSSN::setHamiltonianConstraintCalcs(real_t H_values[7], bool reset_paq)
 {
   idx_t i, j, k;
   // unscaled quantities
@@ -730,7 +702,7 @@ void BSSN::setHamiltonianConstraintCalcs(real_t H_values[7], FRW<real_t> *frw, b
     LOOP3(i,j,k)
     {
       BSSNData b_paq = {0};
-      set_paq_values(i, j, k, &b_paq, frw); // sets AijAij and Ricci too
+      set_paq_values(i, j, k, &b_paq); // sets AijAij and Ricci too
     }
   }
 
@@ -738,8 +710,8 @@ void BSSN::setHamiltonianConstraintCalcs(real_t H_values[7], FRW<real_t> *frw, b
   LOOP3(i,j,k)
   {
     idx_t idx = NP_INDEX(i,j,k);
-    real_t H = hamiltonianConstraintCalc(idx, frw);
-    real_t H_scale = hamiltonianConstraintScale(idx, frw);
+    real_t H = hamiltonianConstraintCalc(idx);
+    real_t H_scale = hamiltonianConstraintScale(idx);
     real_t H_scaled = H/H_scale;
 
     mean_H += H;
@@ -767,8 +739,8 @@ void BSSN::setHamiltonianConstraintCalcs(real_t H_values[7], FRW<real_t> *frw, b
   {
     idx_t idx = NP_INDEX(i,j,k);
 
-    real_t H = hamiltonianConstraintCalc(idx, frw);
-    real_t H_scale = hamiltonianConstraintScale(idx, frw);
+    real_t H = hamiltonianConstraintCalc(idx);
+    real_t H_scale = hamiltonianConstraintScale(idx);
     real_t H_scaled = H/H_scale;
 
     stdev_H += pw2(H - mean_H);
@@ -789,7 +761,7 @@ void BSSN::setHamiltonianConstraintCalcs(real_t H_values[7], FRW<real_t> *frw, b
   return;
 }
 
-real_t BSSN::hamiltonianConstraintCalc(idx_t idx, FRW<real_t> *frw)
+real_t BSSN::hamiltonianConstraintCalc(idx_t idx)
 {
   #if USE_Z4c_DAMPING
     real_t theta = theta_a[idx];
@@ -811,7 +783,7 @@ real_t BSSN::hamiltonianConstraintCalc(idx_t idx, FRW<real_t> *frw)
   #endif
 }
 
-real_t BSSN::hamiltonianConstraintScale(idx_t idx, FRW<real_t> *frw)
+real_t BSSN::hamiltonianConstraintScale(idx_t idx)
 {
   real_t K_FRW = frw->get_K();
   real_t phi_FRW = frw->get_phi();
@@ -830,7 +802,7 @@ real_t BSSN::hamiltonianConstraintScale(idx_t idx, FRW<real_t> *frw)
 }
 
 
-void BSSN::setMomentumConstraintCalcs(real_t M_values[7], FRW<real_t> *frw)
+void BSSN::setMomentumConstraintCalcs(real_t M_values[7])
 {
   idx_t i, j, k;
   // unscaled quantities
@@ -850,7 +822,7 @@ void BSSN::setMomentumConstraintCalcs(real_t M_values[7], FRW<real_t> *frw)
     idx_t idx = NP_INDEX(i,j,k);
 
     BSSNData b_paq = {0};
-    set_paq_values(i, j, k, &b_paq, frw); // sets AijAij and Ricci too
+    set_paq_values(i, j, k, &b_paq); // sets AijAij and Ricci too
 
     real_t M = sqrt(
       pw2(momentumConstraintCalc(&b_paq, 1))
@@ -890,7 +862,7 @@ void BSSN::setMomentumConstraintCalcs(real_t M_values[7], FRW<real_t> *frw)
     idx_t idx = NP_INDEX(i,j,k);
 
     BSSNData b_paq = {0};
-    set_paq_values(i, j, k, &b_paq, frw); // sets AijAij and Ricci too
+    set_paq_values(i, j, k, &b_paq); // sets AijAij and Ricci too
 
     real_t M = sqrt(
       pw2(momentumConstraintCalc(&b_paq, 1))
@@ -959,7 +931,7 @@ real_t BSSN::momentumConstraintScale(BSSNData *paq, idx_t d)
 }
 
 
-real_t BSSN::metricConstraintTotalMag(FRW<real_t> *frw)
+real_t BSSN::metricConstraintTotalMag()
 {
   idx_t i, j, k;
   real_t constraint_mag = 0.0;
@@ -968,7 +940,7 @@ real_t BSSN::metricConstraintTotalMag(FRW<real_t> *frw)
   LOOP3(i,j,k)
   {
     BSSNData b_paq = {0};
-    set_paq_values(i, j, k, &b_paq, frw);
+    set_paq_values(i, j, k, &b_paq);
 
     constraint_mag += fabs(
       -1.0 +

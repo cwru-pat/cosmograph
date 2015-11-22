@@ -124,7 +124,6 @@
   function(3, 3, 3);
 
 
-
 #define BSSN_SWAP_REGISTERS(field, reg_prefix_1, reg_prefix_2) \
   std::swap(field##reg_prefix_1, field##reg_prefix_2);
 
@@ -190,6 +189,18 @@
 
 #define BSSN_FINAL_RK4_STEP_FIELD(field) \
   field##_f[paq->idx] = (1.0/3.0)*(field##_f[paq->idx] - field##_p[paq->idx]) + (1.0/6.0)*dt*ev_##field(paq);
+
+
+
+// common definition for RK step
+#define BSSN_RK_PERFORM_KN_CALC(N) \
+  idx_t i, j, k; \
+  _Pragma("omp parallel for default(shared) private(i, j, k)") \
+  LOOP3(i, j, k) \
+  { \
+    BSSNData b_paq = {0}; \
+    K##N##CalcPt(i, j, k, &b_paq); \
+  }
 
 
 

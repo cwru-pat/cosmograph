@@ -86,6 +86,10 @@
     for(j=0; j<NY; ++j) \
       for(k=0; k<NZ; ++k)
 
+#define AREA_LOOP(j,k) \
+  for(j=0; j<NY; ++j) \
+    for(k=0; k<NZ; ++k)
+
 #define INTERNAL_LOOP3(i,j,k) \
   for(i=1; i<NX-1; ++i) \
     for(j=1; j<NY-1; ++j) \
@@ -168,49 +172,90 @@
     paq->name##_adj_ext[1][1] = name##_a[INDEX(paq->i  , paq->j+2, paq->k  )];   \
     paq->name##_adj_ext[2][1] = name##_a[INDEX(paq->i  , paq->j  , paq->k+2)];
 
-// RK4 method, using 4 "registers".  One for the "_p"revious step data, one
-// for the data being "_a"ctively used for calculation, one for the
-// Runge-Kutta "_c"oefficient being calculated, and lastly the "_f"inal
-// result of the calculation.
- #define RK4_ARRAY_ADDMAP(name)         \
-        fields[#name "_a"] = name##_a;  \
-        fields[#name "_c"] = name##_c;  \
-        fields[#name "_p"] = name##_p;  \
-        fields[#name "_f"] = name##_f
 
-#define RK4_ARRAY_CREATE(name) \
-        real_t * name##_a, * name##_c, * name##_p, * name##_f
+#if USE_WEDGE_INTEGRATOR
 
-#define RK4_ARRAY_ALLOC(name) \
-        name##_a   = new real_t[POINTS]; \
-        name##_c   = new real_t[POINTS]; \
-        name##_p   = new real_t[POINTS]; \
-        name##_f   = new real_t[POINTS]
+    #define AREA (NY*NZ)
+    #define STENCIL_SUPPORT_POINTS (STENCIL_ORDER + 1)
 
-#define RK4_ARRAY_DELETE(name) \
-        delete [] name##_a;    \
-        delete [] name##_c;    \
-        delete [] name##_p;    \
-        delete [] name##_f
+    #define WEDGE_SLICE_1_LEN ( STENCIL_SUPPORT_POINTS )
+    #define WEDGE_SLICE_2_LEN ( 2*STENCIL_SUPPORT_POINTS - 1 )
+    #define WEDGE_SLICE_3_LEN ( 3*STENCIL_SUPPORT_POINTS - 2 )
+    #define WEDGE_TAIL_LEN  (3*STENCIL_SUPPORT_POINTS + 1)/2;
+    #define WEDGE_AFTER_LEN 3*(STENCIL_SUPPORT_POINTS - 1)/2;
 
+    #if STENCIL_SUPPORT_POINTS > NX
+        #error "Grid in NX direction must be larger than stencil base!"
+    #endif
 
-// A GEN2 method; any method needing 2 registers.
-// Sets up a "_f" (final) and "_a" (active) register.
-#define GEN2_ARRAY_ADDMAP(name)         \
-        fields[#name "_f"] = name##_f;  \
-        fields[#name "_a"] = name##_a
+    #define W1_INDEX(i,j,k) \
+        ( POINTS*POINTS*((i+WEDGE_SLICE_1_LEN)%WEDGE_SLICE_1_LEN) + POINTS*((j+POINTS)%POINTS) + ((k+POINTS)%POINTS) )
+    #define W2_INDEX(i,j,k) \
+        ( POINTS*POINTS*((i+WEDGE_SLICE_2_LEN)%WEDGE_SLICE_2_LEN) + POINTS*((j+POINTS)%POINTS) + ((k+POINTS)%POINTS) )
+    #define W3_INDEX(i,j,k) \
+        ( POINTS*POINTS*((i+WEDGE_SLICE_3_LEN)%WEDGE_SLICE_3_LEN) + POINTS*((j+POINTS)%POINTS) + ((k+POINTS)%POINTS) )
+    #define WT_INDEX(i,j,k) \
+        ( POINTS*POINTS*((i+WEDGE_TAIL_LEN)%WEDGE_TAIL_LEN) + POINTS*((j+POINTS)%POINTS) + ((k+POINTS)%POINTS) )
+    #define WT_INDEX(i,j,k) \
+        ( POINTS*POINTS*(i) + POINTS*(j) + (k) )
 
-#define GEN2_ARRAY_CREATE(name) \
-        real_t * name##_f, * name##_a
+    // RK4 method, using a single register by means of a "wedge" integrator.
+     #define RK4_ARRAY_ADDMAP(name)          \
+            fields[#name "_p"]  = name##_p;  \
+            fields[#name "_K1"] = name##_K1; \
+            fields[#name "_K2"] = name##_K2; \
+            fields[#name "_K3"] = name##_K3; \
+            fields[#name "_t"]  = name##_t;  \
+            fields[#name "_r"]  = name##_r;  \
+            fields[#name "_a"]  = name##_a;
 
-#define GEN2_ARRAY_ALLOC(name) \
-        name##_f   = new real_t[POINTS]; \
-        name##_a   = new real_t[POINTS]
+    #define RK4_ARRAY_CREATE(name) \
+            real_t * name##_p, * name##_K1, * name##_K2, * name##_K3, * name##_t, * name##_r , * name##_a
 
-#define GEN2_ARRAY_DELETE(name) \
-        delete [] name##_f;    \
-        delete [] name##_a
+    #define RK4_ARRAY_ALLOC(name)                             \
+            name##_p    = new real_t[POINTS];                 \
+            name##_K1   = new real_t[AREA*WEDGE_SLICE_1_LEN]; \
+            name##_K2   = new real_t[AREA*WEDGE_SLICE_2_LEN]; \
+            name##_K3   = new real_t[AREA*WEDGE_SLICE_3_LEN]; \
+            name##_t    = new real_t[AREA*WEDGE_TAIL_LEN];    \
+            name##_r    = new real_t[AREA*WEDGE_AFTER_LEN];   \
+            name##_a = name##_p;
 
+    #define RK4_ARRAY_DELETE(name) \
+            delete [] name##_p;    \
+            delete [] name##_K1;   \
+            delete [] name##_K2;   \
+            delete [] name##_K3;   \
+            delete [] name##_t;    \
+            delete [] name##_r;
+
+#else
+    // RK4 method, using 4 "registers".  One for the "_p"revious step data, one
+    // for the data being "_a"ctively used for calculation, one for the
+    // Runge-Kutta "_c"oefficient being calculated, and lastly the "_f"inal
+    // result of the calculation.
+     #define RK4_ARRAY_ADDMAP(name)         \
+            fields[#name "_a"] = name##_a;  \
+            fields[#name "_c"] = name##_c;  \
+            fields[#name "_p"] = name##_p;  \
+            fields[#name "_f"] = name##_f
+
+    #define RK4_ARRAY_CREATE(name) \
+            real_t * name##_a, * name##_c, * name##_p, * name##_f
+
+    #define RK4_ARRAY_ALLOC(name) \
+            name##_a   = new real_t[POINTS]; \
+            name##_c   = new real_t[POINTS]; \
+            name##_p   = new real_t[POINTS]; \
+            name##_f   = new real_t[POINTS]
+
+    #define RK4_ARRAY_DELETE(name) \
+            delete [] name##_a;    \
+            delete [] name##_c;    \
+            delete [] name##_p;    \
+            delete [] name##_f
+
+#endif
 
 // A GEN1 method; just declares one register.
 // Sets up an "_a" (active) register.
@@ -225,26 +270,5 @@
 
 #define GEN1_ARRAY_DELETE(name) \
         delete [] name##_a
-
-
-// A FLUX method; just declares one register.
-// Sets up a "_a" (active) register.
-#define FLUX_ARRAY_ADDMAP(name)         \
-        fields[#name "_a"] = name##_a
-
-#define FLUX_ARRAY_CREATE(name) \
-        real_t * name##_a
-
-#define FLUX_ARRAY_ALLOC(name) \
-        name##_a   = new real_t[POINTS*3]
-
-#define FLUX_ARRAY_DELETE(name) \
-        delete [] name##_a
-
-#define ACC_DEF_SIM_FIELDS() \
-    real_t * const phi_a = bssnSim.fields["phi_a"];
-
-#define ACC_SIM_FIELDS bssnSim.fields["phi_a"][0:POINTS]
-
 
 #endif

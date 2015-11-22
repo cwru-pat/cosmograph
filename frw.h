@@ -14,28 +14,30 @@ class FRW
   // metric variables in FRW
   RT phi;
   RT K;
+  RT alpha;
   // densities and corresponding EOS "w"s
   std::vector< std::pair<RT,RT> > fluids;
   int num_fluids;
 
   // RK variables
-  RT phi_K1, K_K1,
-     phi_K2, K_K2,
-     phi_K3, K_K3,
-     phi_K4, K_K4;
+  RT phi_K1, K_K1, alpha_K1,
+     phi_K2, K_K2, alpha_K2,
+     phi_K3, K_K3, alpha_K3,
+     phi_K4, K_K4, alpha_K4;
   std::vector<RT> fluids_K1,
                   fluids_K2,
                   fluids_K3,
                   fluids_K4;
 
   // variables to return
-  RT phi_get, K_get, rho_get, S_get;
+  RT phi_get, K_get, alpha_get, rho_get, S_get;
 
 public:
   FRW(RT phi_in, RT K_in)
   {
     phi_get = phi = phi_in;
     K_get = K = K_in;
+    alpha_get = alpha = 1.0;
     num_fluids = 0.0;
   }
 
@@ -47,6 +49,10 @@ public:
   void set_K(RT K_in)
   {
     K_get = K = K_in;
+  }
+  void set_alpha(RT alpha_in)
+  {
+    alpha_get = alpha = alpha_in;
   }
   void addFluid(RT rho_in, RT w_in)
   {
@@ -69,6 +75,7 @@ public:
   // get variables
   RT get_phi() { return phi_get; }
   RT get_K() { return K_get; }
+  RT get_alpha() { return alpha_get; }
   RT get_rho() { return rho_get; }
   RT get_S() { return S_get; }
 

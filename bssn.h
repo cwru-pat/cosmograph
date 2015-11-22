@@ -22,6 +22,10 @@ class BSSN
 public:
   std::map <std::string, real_t *> fields;
 
+  // Standard FRW spacetime integrator - for a
+  // reference metric
+  FRW<real_t> * frw;
+
   BSSN();
   ~BSSN();
 
@@ -32,20 +36,20 @@ public:
     void regSwap_c_a();
 
     /* functions to outline / perform RK integration */
-    void step(BSSNData *paq, FRW<real_t> *frw);
+    void step(BSSNData *paq);
     void stepInit();
-    void K1Calc(BSSNData *paq, FRW<real_t> *frw);
-    void K1CalcPt(idx_t i, idx_t j, idx_t k, BSSNData *paq, FRW<real_t> *frw);
-    void K2Calc(BSSNData *paq, FRW<real_t> *frw);
-    void K2CalcPt(idx_t i, idx_t j, idx_t k, BSSNData *paq, FRW<real_t> *frw);
-    void K3Calc(BSSNData *paq, FRW<real_t> *frw);
-    void K3CalcPt(idx_t i, idx_t j, idx_t k, BSSNData *paq, FRW<real_t> *frw);
-    void K4Calc(BSSNData *paq, FRW<real_t> *frw);
-    void K4CalcPt(idx_t i, idx_t j, idx_t k, BSSNData *paq, FRW<real_t> *frw);
+    void K1Calc();
+    void K1CalcPt(idx_t i, idx_t j, idx_t k, BSSNData *paq);
+    void K2Calc();
+    void K2CalcPt(idx_t i, idx_t j, idx_t k, BSSNData *paq);
+    void K3Calc();
+    void K3CalcPt(idx_t i, idx_t j, idx_t k, BSSNData *paq);
+    void K4Calc();
+    void K4CalcPt(idx_t i, idx_t j, idx_t k, BSSNData *paq);
     void stepTerm();
 
   /* calculating quantities during an RK step */
-    void set_paq_values(idx_t i, idx_t j, idx_t k, BSSNData *paq, FRW<real_t> *frw);
+    void set_paq_values(idx_t i, idx_t j, idx_t k, BSSNData *paq);
 
     /* set current local field values */
       void set_local_vals(BSSNData *paq);
@@ -110,15 +114,15 @@ public:
     #endif
 
   /* constraint violation calculations */
-    void setHamiltonianConstraintCalcs(real_t H_values[7], FRW<real_t> *frw, bool reset_paq);
-    real_t hamiltonianConstraintCalc(idx_t idx, FRW<real_t> *frw);
-    real_t hamiltonianConstraintScale(idx_t idx, FRW<real_t> *frw);
+    void setHamiltonianConstraintCalcs(real_t H_values[7], bool reset_paq);
+    real_t hamiltonianConstraintCalc(idx_t idx);
+    real_t hamiltonianConstraintScale(idx_t idx);
 
-    void setMomentumConstraintCalcs(real_t M_values[7], FRW<real_t> *frw);
+    void setMomentumConstraintCalcs(real_t M_values[7]);
     real_t momentumConstraintCalc(BSSNData *paq, idx_t d);
     real_t momentumConstraintScale(BSSNData *paq, idx_t d);
 
-    real_t metricConstraintTotalMag(FRW<real_t> *frw);
+    real_t metricConstraintTotalMag();
 
 };
 

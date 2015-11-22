@@ -1,0 +1,41 @@
+For an equation y' = f[y]
+
+At 2nd order (3-point stencils), RK4 "wedge" method looks like:
+y_n :                              [ - - - x x x - - - - - - - - - - - - - - ]
+y_{K1} = y_n + h/2*f[y_n] :        [               * * * * * * *             ]
+y_{K2} = y_n + h/2*f[y_{K1}] :     [                 * * * * *               ]
+y_{K3} = y_n +   h*f[y_{K2}] :     [                   * * *                 ]
+y_{n+1}                        :   [             x x x x x                   ]
+ = ( 2 y_n + y_{K1} + 2 y_{K2} + y_{K3} ) / 3 + h/6*f[y_{K3}]
+y_{after}                      :   [ x x x                                   ]
+
+For intermediate calculations "*", finished calculations "x", and
+previous step data "-"
+
+For a stencil with a support of S points (for odd S),
+y_k3 needs S points of storage
+y_K2 needs S + 2*(S - 1)/2 = 2S - 1
+y_K1 needs S + 2*(S - 1)/2 + 2*(S - 1)/2 = 3S - 2
+y_{n+1} needs (3S - 2 - 1)/2 + 2 = (3S + 1)/2
+y_{after} needs (3S - 2 - 1)/2 = 3(S-1)/2
+
+Total: 9S - 4
+
+At 8th order:
+  68 area slices
+  Smallest usable grid is 25^3
+
+Integration procedure outline:
+- For i = -Length(afterimage array), i < NX + Length(afterimage array), i++ :
+   - Data starts in p register, _a references _p
+   - Fill "rightmost" value in _K1 register (area loop)
+     - point _a to _K1
+   - Fill "rightmost" value in _K2 register
+     - point _a to _K2
+   - Fill "rightmost" value in _K3 register
+     - point _a to _K3
+   - Fill in "rightmost" point in tail
+     - if i < Length(afterimage array)
+         "leftmost" point in tail goes in afterimage
+     - else
+         "leftmost" point in tail goes in _p register
