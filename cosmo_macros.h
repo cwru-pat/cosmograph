@@ -108,7 +108,7 @@
 // structure to store "faces" 2 points away (6 of them; _ext[dimension (x,y,z)][direction (-,+)])
 #define DECLARE_ADJ_ADJACENT_REAL_T(name) real_t name##_adj_ext[3][2]
 
-#define SET_LOCAL_VALUES_P(name) \
+#define SET_LOCAL_VALUES(name) \
     paq->name = name##_a[paq->idx];
 
 #if USE_WEDGE_INTEGRATOR
@@ -129,33 +129,27 @@
 
     // RK4 method, using a single register by means of a "wedge" integrator.
      #define RK4_ARRAY_ADDMAP(name)          \
-            fields[#name "_p"]  = name##_p;  \
-            fields[#name "_K1"] = name##_K1; \
-            fields[#name "_K2"] = name##_K2; \
-            fields[#name "_K3"] = name##_K3; \
-            fields[#name "_t"]  = name##_t;  \
-            fields[#name "_r"]  = name##_r;  \
-            fields[#name "_a"]  = name##_a;
+            fields[#name "_p"]  = &name##_p;  \
+            fields[#name "_K1"] = &name##_K1; \
+            fields[#name "_K2"] = &name##_K2; \
+            fields[#name "_K3"] = &name##_K3; \
+            fields[#name "_t"]  = &name##_t;  \
+            fields[#name "_r"]  = &name##_r;  \
+            fields[#name "_a"]  = &name##_a;
 
     #define RK4_ARRAY_CREATE(name) \
-            real_t * name##_p, * name##_K1, * name##_K2, * name##_K3, * name##_t, * name##_r , * name##_a
+            arr_t name##_p; arr_t name##_K1; arr_t name##_K2; arr_t name##_K3; \
+            arr_t name##_t; arr_t name##_r; arr_t &name##_a = name##_p;
 
-    #define RK4_ARRAY_ALLOC(name)                             \
-            name##_p    = new real_t[POINTS];                 \
-            name##_K1   = new real_t[AREA*WEDGE_SLICE_1_LEN]; \
-            name##_K2   = new real_t[AREA*WEDGE_SLICE_2_LEN]; \
-            name##_K3   = new real_t[AREA*WEDGE_SLICE_3_LEN]; \
-            name##_t    = new real_t[AREA*WEDGE_TAIL_LEN];    \
-            name##_r    = new real_t[AREA*WEDGE_AFTER_LEN];   \
-            name##_a = name##_p;
+    #define RK4_ARRAY_ALLOC(name)                      \
+            name##_p.init(NX, NY, NZ);                 \
+            name##_K1.init(WEDGE_SLICE_1_LEN, NY, NZ); \
+            name##_K2.init(WEDGE_SLICE_2_LEN, NY, NZ); \
+            name##_K3.init(WEDGE_SLICE_3_LEN, NY, NZ); \
+            name##_t.init(WEDGE_TAIL_LEN, NY, NZ);     \
+            name##_r.init(WEDGE_AFTER_LEN, NY, NZ);
 
-    #define RK4_ARRAY_DELETE(name) \
-            delete [] name##_p;    \
-            delete [] name##_K1;   \
-            delete [] name##_K2;   \
-            delete [] name##_K3;   \
-            delete [] name##_t;    \
-            delete [] name##_r;
+    #define RK4_ARRAY_DELETE(name)
 
 #else
     // RK4 method, using 4 "registers".  One for the "_p"revious step data, one
@@ -163,41 +157,35 @@
     // Runge-Kutta "_c"oefficient being calculated, and lastly the "_f"inal
     // result of the calculation.
      #define RK4_ARRAY_ADDMAP(name)         \
-            fields[#name "_a"] = name##_a;  \
-            fields[#name "_c"] = name##_c;  \
-            fields[#name "_p"] = name##_p;  \
-            fields[#name "_f"] = name##_f
+            fields[#name "_a"] = &name##_a;  \
+            fields[#name "_c"] = &name##_c;  \
+            fields[#name "_p"] = &name##_p;  \
+            fields[#name "_f"] = &name##_f
 
     #define RK4_ARRAY_CREATE(name) \
-            periodicArray<idx_t, real_t> * name##_a, * name##_c, * name##_p, * name##_f \
-                    , * name##_t, * name##_r, * name##_K1, * name##_K2, * name##_K3
+            arr_t name##_a; arr_t name##_c; arr_t name##_p; arr_t name##_f
 
     #define RK4_ARRAY_ALLOC(name) \
-            name##_a   = new periodicArray<idx_t, real_t> (NX, NY, NZ); \
-            name##_c   = new periodicArray<idx_t, real_t> (NX, NY, NZ); \
-            name##_p   = new periodicArray<idx_t, real_t> (NX, NY, NZ); \
-            name##_f   = new periodicArray<idx_t, real_t> (NX, NY, NZ)
+            name##_a.init(NX, NY, NZ); \
+            name##_c.init(NX, NY, NZ); \
+            name##_p.init(NX, NY, NZ); \
+            name##_f.init(NX, NY, NZ)
 
-    #define RK4_ARRAY_DELETE(name) \
-            delete name##_a;    \
-            delete name##_c;    \
-            delete name##_p;    \
-            delete name##_f
+    #define RK4_ARRAY_DELETE(name)
 
 #endif
 
 // A GEN1 method; just declares one register.
 // Sets up an "_a" (active) register.
 #define GEN1_ARRAY_ADDMAP(name)         \
-        fields[#name "_a"] = name##_a
+        fields[#name "_a"] = &name##_a
 
 #define GEN1_ARRAY_CREATE(name) \
-        periodicArray<idx_t, real_t> * name##_a
+        arr_t name##_a
 
 #define GEN1_ARRAY_ALLOC(name) \
-        name##_a   = new periodicArray<idx_t, real_t> (NX, NY, NZ);
+        name##_a.init(NX, NY, NZ)
 
-#define GEN1_ARRAY_DELETE(name) \
-        delete name##_a
+#define GEN1_ARRAY_DELETE(name)
 
 #endif

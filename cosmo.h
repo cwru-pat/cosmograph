@@ -22,20 +22,20 @@
 
 #include "cosmo_macros.h"
 
+#include "utils/periodicArray.h"
+#include "utils/ConfigParser.h"
+#include "utils/Timer.h"
+
 namespace cosmo
 {
 
-// changing this affects FFTs:
+// changing real_t affects FFTs (see http://www.fftw.org/doc/Precision.html)
 typedef double real_t;
-// see http://www.fftw.org/doc/Precision.html
-
 typedef long int idx_t;
+typedef periodicArray<idx_t, real_t> arr_t;
 
 } /* namespace cosmo */
 
-#include "utils/ConfigParser.h"
-#include "utils/Timer.h"
-#include "utils/periodicArray.h"
 #include "utils/Fourier.h"
 #include "utils/math.h"
 

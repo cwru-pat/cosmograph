@@ -125,7 +125,7 @@
 
 
 #define BSSN_SWAP_REGISTERS(field, reg_prefix_1, reg_prefix_2) \
-  std::swap(field##reg_prefix_1, field##reg_prefix_2);
+  std::swap(field##reg_prefix_1._array, field##reg_prefix_2._array);
 
 #define BSSN_SWAP_MAPS(field, reg_prefix_1, reg_prefix_2) \
   std::swap(fields[#field #reg_prefix_1], fields[#field #reg_prefix_2]);
@@ -137,7 +137,7 @@
 
 
 #define BSSN_COPY_FIELD(field, reg_prefix_from, reg_prefix_to) \
-  std::copy(field##reg_prefix_from, field##reg_prefix_from + POINTS, field##reg_prefix_to);
+  std::copy(field##reg_prefix_from._array, field##reg_prefix_from._array + POINTS, field##reg_prefix_to._array);
 
 #define BSSN_COPY_ARRAYS(reg_prefix_from, reg_prefix_to) \
   BSSN_APPLY_TO_FIELDS_ARGS(BSSN_COPY_FIELD, reg_prefix_from, reg_prefix_to)
@@ -260,7 +260,7 @@
     paq->d##J##g##K##I + paq->d##K##g##J##I - paq->d##I##g##J##K \
   )
 
-#define BSSN_CALCULATE_DGAMMA(I, J, K) paq->d##I##g##J##K = derivative(paq->i, paq->j, paq->k, I, DIFFgamma##J##K##_a);
+#define BSSN_CALCULATE_DGAMMA(I, J, K) paq->d##I##g##J##K = derivative(paq->i, paq->j, paq->k, I, &DIFFgamma##J##K##_a);
 
 #define BSSN_CALCULATE_ACONT(I, J) paq->Acont##I##J = ( \
     paq->gammai##I##1*paq->gammai##J##1*paq->A11 + paq->gammai##I##2*paq->gammai##J##1*paq->A21 + paq->gammai##I##3*paq->gammai##J##1*paq->A31 \
@@ -270,7 +270,7 @@
 
 // needs the gamma*ldlphi vars defined:
 // not actually trace free yet!
-#define BSSN_CALCULATE_DIDJALPHA(I, J) paq->D##I##D##J##aTF = double_derivative(paq->i, paq->j, paq->k, I, J, DIFFalpha_a) - ( \
+#define BSSN_CALCULATE_DIDJALPHA(I, J) paq->D##I##D##J##aTF = double_derivative(paq->i, paq->j, paq->k, I, J, &DIFFalpha_a) - ( \
     (paq->G1##I##J + 2.0*( (1==I)*paq->d##J##phi + (1==J)*paq->d##I##phi - paq->gamma##I##J*gammai1ldlphi))*paq->d1a + \
     (paq->G2##I##J + 2.0*( (2==I)*paq->d##J##phi + (2==J)*paq->d##I##phi - paq->gamma##I##J*gammai2ldlphi))*paq->d2a + \
     (paq->G3##I##J + 2.0*( (3==I)*paq->d##J##phi + (3==J)*paq->d##I##phi - paq->gamma##I##J*gammai3ldlphi))*paq->d3a \
@@ -282,8 +282,8 @@
       + 2.0*(paq->gammai12*paq->d1d2g##I##J + paq->gammai13*paq->d1d3g##I##J + paq->gammai23*paq->d2d3g##I##J) \
     ) \
     + 0.5*( \
-      paq->gamma1##I*derivative(paq->i, paq->j, paq->k, J, Gamma1_a) + paq->gamma2##I*derivative(paq->i, paq->j, paq->k, J, Gamma2_a) + paq->gamma3##I*derivative(paq->i, paq->j, paq->k, J, Gamma3_a) + \
-      paq->gamma1##J*derivative(paq->i, paq->j, paq->k, I, Gamma1_a) + paq->gamma2##J*derivative(paq->i, paq->j, paq->k, I, Gamma2_a) + paq->gamma3##J*derivative(paq->i, paq->j, paq->k, I, Gamma3_a) \
+      paq->gamma1##I*derivative(paq->i, paq->j, paq->k, J, &Gamma1_a) + paq->gamma2##I*derivative(paq->i, paq->j, paq->k, J, &Gamma2_a) + paq->gamma3##I*derivative(paq->i, paq->j, paq->k, J, &Gamma3_a) + \
+      paq->gamma1##J*derivative(paq->i, paq->j, paq->k, I, &Gamma1_a) + paq->gamma2##J*derivative(paq->i, paq->j, paq->k, I, &Gamma2_a) + paq->gamma3##J*derivative(paq->i, paq->j, paq->k, I, &Gamma3_a) \
     ) \
     + 0.5*( \
       paq->Gammad1*paq->GL##I##J##1 + paq->Gammad2*paq->GL##I##J##2 + paq->Gammad3*paq->GL##I##J##3 \
@@ -340,12 +340,12 @@
 
 
 #define BSSN_CALCULATE_DIDJGAMMA_PERMS(I, J)           \
-  paq->d##I##d##J##g11 = double_derivative(paq->i, paq->j, paq->k, I, J, DIFFgamma11_a); \
-  paq->d##I##d##J##g12 = double_derivative(paq->i, paq->j, paq->k, I, J, DIFFgamma12_a); \
-  paq->d##I##d##J##g13 = double_derivative(paq->i, paq->j, paq->k, I, J, DIFFgamma13_a); \
-  paq->d##I##d##J##g22 = double_derivative(paq->i, paq->j, paq->k, I, J, DIFFgamma22_a); \
-  paq->d##I##d##J##g23 = double_derivative(paq->i, paq->j, paq->k, I, J, DIFFgamma23_a); \
-  paq->d##I##d##J##g33 = double_derivative(paq->i, paq->j, paq->k, I, J, DIFFgamma33_a)
+  paq->d##I##d##J##g11 = double_derivative(paq->i, paq->j, paq->k, I, J, &DIFFgamma11_a); \
+  paq->d##I##d##J##g12 = double_derivative(paq->i, paq->j, paq->k, I, J, &DIFFgamma12_a); \
+  paq->d##I##d##J##g13 = double_derivative(paq->i, paq->j, paq->k, I, J, &DIFFgamma13_a); \
+  paq->d##I##d##J##g22 = double_derivative(paq->i, paq->j, paq->k, I, J, &DIFFgamma22_a); \
+  paq->d##I##d##J##g23 = double_derivative(paq->i, paq->j, paq->k, I, J, &DIFFgamma23_a); \
+  paq->d##I##d##J##g33 = double_derivative(paq->i, paq->j, paq->k, I, J, &DIFFgamma33_a)
 
 
 /*
@@ -366,9 +366,9 @@
         + paq->gammai21*paq->A2##I*paq->A1##J + paq->gammai22*paq->A2##I*paq->A2##J + paq->gammai23*paq->A2##I*paq->A3##J \
         + paq->gammai31*paq->A3##I*paq->A1##J + paq->gammai32*paq->A3##I*paq->A2##J + paq->gammai33*paq->A3##I*paq->A3##J \
       )) \
-    + paq->beta1*derivative(paq->i, paq->j, paq->k, 1, A##I##J##_a) \
-    + paq->beta2*derivative(paq->i, paq->j, paq->k, 2, A##I##J##_a) \
-    + paq->beta3*derivative(paq->i, paq->j, paq->k, 3, A##I##J##_a) \
+    + paq->beta1*derivative(paq->i, paq->j, paq->k, 1, &A##I##J##_a) \
+    + paq->beta2*derivative(paq->i, paq->j, paq->k, 2, &A##I##J##_a) \
+    + paq->beta3*derivative(paq->i, paq->j, paq->k, 3, &A##I##J##_a) \
     + paq->A##I##1*paq->d##J##beta1 + paq->A##I##2*paq->d##J##beta2 + paq->A##I##3*paq->d##J##beta3 \
     + paq->A##J##1*paq->d##I##beta1 + paq->A##J##2*paq->d##I##beta2 + paq->A##J##3*paq->d##I##beta3 \
     - (2.0/3.0)*paq->A##I##J*(paq->d1beta1 + paq->d2beta2 + paq->d3beta3) \
@@ -401,13 +401,13 @@
     - paq->Gamma1*paq->d1beta##I + paq->Gamma2*paq->d2beta##I + paq->Gamma3*paq->d3beta##I \
     + (2.0/3.0) * paq->Gamma##I * (paq->d1beta1 + paq->d2beta2 + paq->d3beta3) \
     + (1.0/3.0) * ( \
-        paq->gammai##I##1*double_derivative(paq->i, paq->j, paq->k, 1, 1, beta1_a) + paq->gammai##I##1*double_derivative(paq->i, paq->j, paq->k, 2, 1, beta2_a) + paq->gammai##I##1*double_derivative(paq->i, paq->j, paq->k, 3, 1, beta3_a) +  \
-        paq->gammai##I##2*double_derivative(paq->i, paq->j, paq->k, 1, 2, beta1_a) + paq->gammai##I##2*double_derivative(paq->i, paq->j, paq->k, 2, 2, beta2_a) + paq->gammai##I##2*double_derivative(paq->i, paq->j, paq->k, 3, 2, beta3_a) +  \
-        paq->gammai##I##3*double_derivative(paq->i, paq->j, paq->k, 1, 3, beta1_a) + paq->gammai##I##3*double_derivative(paq->i, paq->j, paq->k, 2, 3, beta2_a) + paq->gammai##I##3*double_derivative(paq->i, paq->j, paq->k, 3, 3, beta3_a) \
+        paq->gammai##I##1*double_derivative(paq->i, paq->j, paq->k, 1, 1, &beta1_a) + paq->gammai##I##1*double_derivative(paq->i, paq->j, paq->k, 2, 1, &beta2_a) + paq->gammai##I##1*double_derivative(paq->i, paq->j, paq->k, 3, 1, &beta3_a) +  \
+        paq->gammai##I##2*double_derivative(paq->i, paq->j, paq->k, 1, 2, &beta1_a) + paq->gammai##I##2*double_derivative(paq->i, paq->j, paq->k, 2, 2, &beta2_a) + paq->gammai##I##2*double_derivative(paq->i, paq->j, paq->k, 3, 2, &beta3_a) +  \
+        paq->gammai##I##3*double_derivative(paq->i, paq->j, paq->k, 1, 3, &beta1_a) + paq->gammai##I##3*double_derivative(paq->i, paq->j, paq->k, 2, 3, &beta2_a) + paq->gammai##I##3*double_derivative(paq->i, paq->j, paq->k, 3, 3, &beta3_a) \
       ) \
     + ( \
-        paq->gammai11*double_derivative(paq->i, paq->j, paq->k, 1, 1, beta##I##_a) + paq->gammai22*double_derivative(paq->i, paq->j, paq->k, 2, 2, beta##I##_a) + paq->gammai33*double_derivative(paq->i, paq->j, paq->k, 3, 3, beta##I##_a) \
-        + 2.0*(paq->gammai12*double_derivative(paq->i, paq->j, paq->k, 1, 2, beta##I##_a) + paq->gammai13*double_derivative(paq->i, paq->j, paq->k, 1, 3, beta##I##_a) + paq->gammai23*double_derivative(paq->i, paq->j, paq->k, 2, 3, beta##I##_a)) \
+        paq->gammai11*double_derivative(paq->i, paq->j, paq->k, 1, 1, &beta##I##_a) + paq->gammai22*double_derivative(paq->i, paq->j, paq->k, 2, 2, &beta##I##_a) + paq->gammai33*double_derivative(paq->i, paq->j, paq->k, 3, 3, &beta##I##_a) \
+        + 2.0*(paq->gammai12*double_derivative(paq->i, paq->j, paq->k, 1, 2, &beta##I##_a) + paq->gammai13*double_derivative(paq->i, paq->j, paq->k, 1, 3, &beta##I##_a) + paq->gammai23*double_derivative(paq->i, paq->j, paq->k, 2, 3, &beta##I##_a)) \
       ) \
   )
 #else
@@ -415,7 +415,7 @@
 #endif
 
 #define BSSN_MI(I) exp(6.0*paq->phi)*( \
-    - 2.0/3.0*derivative(paq->i, paq->j, paq->k, I, DIFFK_a) - 8*PI*paq->S##I \
+    - 2.0/3.0*derivative(paq->i, paq->j, paq->k, I, &DIFFK_a) - 8*PI*paq->S##I \
     - 2.0/3.0*2.0*paq->d##I##theta \
     + 6.0*( \
       paq->gammai11*paq->A1##I*paq->d1phi + paq->gammai21*paq->A2##I*paq->d1phi + paq->gammai31*paq->A3##I*paq->d1phi \
@@ -423,9 +423,9 @@
       + paq->gammai13*paq->A1##I*paq->d3phi + paq->gammai23*paq->A2##I*paq->d3phi + paq->gammai33*paq->A3##I*paq->d3phi \
     ) + ( \
       /* (gamma^jk D_j A_ki) */ \
-      paq->gammai11*derivative(paq->i, paq->j, paq->k, 1, A1##I##_a) + paq->gammai12*derivative(paq->i, paq->j, paq->k, 2, A1##I##_a) + paq->gammai13*derivative(paq->i, paq->j, paq->k, 3, A1##I##_a) \
-      + paq->gammai21*derivative(paq->i, paq->j, paq->k, 1, A2##I##_a) + paq->gammai22*derivative(paq->i, paq->j, paq->k, 2, A2##I##_a) + paq->gammai23*derivative(paq->i, paq->j, paq->k, 3, A2##I##_a) \
-      + paq->gammai31*derivative(paq->i, paq->j, paq->k, 1, A3##I##_a) + paq->gammai32*derivative(paq->i, paq->j, paq->k, 2, A3##I##_a) + paq->gammai33*derivative(paq->i, paq->j, paq->k, 3, A3##I##_a) \
+      paq->gammai11*derivative(paq->i, paq->j, paq->k, 1, &A1##I##_a) + paq->gammai12*derivative(paq->i, paq->j, paq->k, 2, &A1##I##_a) + paq->gammai13*derivative(paq->i, paq->j, paq->k, 3, &A1##I##_a) \
+      + paq->gammai21*derivative(paq->i, paq->j, paq->k, 1, &A2##I##_a) + paq->gammai22*derivative(paq->i, paq->j, paq->k, 2, &A2##I##_a) + paq->gammai23*derivative(paq->i, paq->j, paq->k, 3, &A2##I##_a) \
+      + paq->gammai31*derivative(paq->i, paq->j, paq->k, 1, &A3##I##_a) + paq->gammai32*derivative(paq->i, paq->j, paq->k, 2, &A3##I##_a) + paq->gammai33*derivative(paq->i, paq->j, paq->k, 3, &A3##I##_a) \
       - paq->Gamma1*paq->A1##I - paq->Gamma2*paq->A2##I - paq->Gamma3*paq->A3##I \
       - paq->GL11##I*paq->Acont11 - paq->GL21##I*paq->Acont21 - paq->GL31##I*paq->Acont31 \
       - paq->GL12##I*paq->Acont12 - paq->GL22##I*paq->Acont22 - paq->GL32##I*paq->Acont32 \
@@ -434,7 +434,7 @@
   )
 
 #define BSSN_MI_SCALE(I) exp(6.0*paq->phi)*( \
-    fabs(2.0/3.0*derivative(paq->i, paq->j, paq->k, I, DIFFK_a)) \
+    fabs(2.0/3.0*derivative(paq->i, paq->j, paq->k, I, &DIFFK_a)) \
     + fabs(8*PI*paq->S##I) \
     + 6.0*fabs( \
       paq->gammai11*paq->A1##I*paq->d1phi + paq->gammai21*paq->A2##I*paq->d1phi + paq->gammai31*paq->A3##I*paq->d1phi \
@@ -442,9 +442,9 @@
       + paq->gammai13*paq->A1##I*paq->d3phi + paq->gammai23*paq->A2##I*paq->d3phi + paq->gammai33*paq->A3##I*paq->d3phi \
     ) + fabs( \
       /* (gamma^jk D_j A_ki) */ \
-      paq->gammai11*derivative(paq->i, paq->j, paq->k, 1, A1##I##_a) + paq->gammai12*derivative(paq->i, paq->j, paq->k, 2, A1##I##_a) + paq->gammai13*derivative(paq->i, paq->j, paq->k, 3, A1##I##_a) \
-      + paq->gammai21*derivative(paq->i, paq->j, paq->k, 1, A2##I##_a) + paq->gammai22*derivative(paq->i, paq->j, paq->k, 2, A2##I##_a) + paq->gammai23*derivative(paq->i, paq->j, paq->k, 3, A2##I##_a) \
-      + paq->gammai31*derivative(paq->i, paq->j, paq->k, 1, A3##I##_a) + paq->gammai32*derivative(paq->i, paq->j, paq->k, 2, A3##I##_a) + paq->gammai33*derivative(paq->i, paq->j, paq->k, 3, A3##I##_a) \
+      paq->gammai11*derivative(paq->i, paq->j, paq->k, 1, &A1##I##_a) + paq->gammai12*derivative(paq->i, paq->j, paq->k, 2, &A1##I##_a) + paq->gammai13*derivative(paq->i, paq->j, paq->k, 3, &A1##I##_a) \
+      + paq->gammai21*derivative(paq->i, paq->j, paq->k, 1, &A2##I##_a) + paq->gammai22*derivative(paq->i, paq->j, paq->k, 2, &A2##I##_a) + paq->gammai23*derivative(paq->i, paq->j, paq->k, 3, &A2##I##_a) \
+      + paq->gammai31*derivative(paq->i, paq->j, paq->k, 1, &A3##I##_a) + paq->gammai32*derivative(paq->i, paq->j, paq->k, 2, &A3##I##_a) + paq->gammai33*derivative(paq->i, paq->j, paq->k, 3, &A3##I##_a) \
       - paq->Gamma1*paq->A1##I - paq->Gamma2*paq->A2##I - paq->Gamma3*paq->A3##I \
       - paq->GL11##I*paq->Acont11 - paq->GL21##I*paq->Acont21 - paq->GL31##I*paq->Acont31 \
       - paq->GL12##I*paq->Acont12 - paq->GL22##I*paq->Acont22 - paq->GL32##I*paq->Acont32 \

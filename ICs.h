@@ -18,16 +18,16 @@ real_t cosmo_power_spectrum(real_t k, ICsData *icd);
 void set_gaussian_random_field(real_t *field, Fourier *fourier, ICsData *icd);
 
 void set_conformal_ICs(
-  std::map <std::string, periodicArray<idx_t, real_t> *> & bssn_fields,
-  std::map <std::string, periodicArray<idx_t, real_t> *> & hydro_fields,
+  std::map <std::string, arr_t *> & bssn_fields,
+  std::map <std::string, arr_t *> & hydro_fields,
   Fourier *fourier, IOData *iod, FRW<real_t> *frw);
 
 void set_stability_test_ICs(
-  std::map <std::string, periodicArray<idx_t, real_t> *> & bssn_fields,
-  std::map <std::string, periodicArray<idx_t, real_t> *> & static_fields);
+  std::map <std::string, arr_t *> & bssn_fields,
+  std::map <std::string, arr_t *> & static_fields);
 
 void set_linear_wave_ICs(
-  std::map <std::string, periodicArray<idx_t, real_t> *> & bssn_fields);
+  std::map <std::string, arr_t *> & bssn_fields);
 
 } // namespace cosmo
 

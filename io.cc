@@ -91,8 +91,8 @@ void io_config_backup(IOData *iodata, std::string config_file)
   dest.close();
 }
 
-void io_data_dump(std::map <std::string, periodicArray<idx_t, real_t> *> & bssn_fields,
-                  std::map <std::string, periodicArray<idx_t, real_t> *> & static_field,
+void io_data_dump(std::map <std::string, arr_t *> & bssn_fields,
+                  std::map <std::string, arr_t *> & static_field,
                   IOData *iodata, idx_t step, Fourier *fourier, FRW<real_t> *frw)
 {
   if(step % iodata->slice_output_interval == 0)
@@ -172,7 +172,7 @@ void io_show_progress(idx_t s, idx_t maxs) // terminal output only
   return;
 }
 
-void io_dump_strip(periodicArray<idx_t, real_t> *field, int axis, idx_t n1, idx_t n2, IOData *iodata)
+void io_dump_strip(arr_t *field, int axis, idx_t n1, idx_t n2, IOData *iodata)
 {
   std::string filename = iodata->output_dir + "strip.dat.gz";
   char data[35];
@@ -216,7 +216,7 @@ void io_dump_strip(periodicArray<idx_t, real_t> *field, int axis, idx_t n1, idx_
 }
 
 
-void io_dump_2dslice(periodicArray<idx_t, real_t> *field, std::string filename, IOData *iodata)
+void io_dump_2dslice(arr_t *field, std::string filename, IOData *iodata)
 {
   // dump the first NY*NZ points (a 2-d slice on a boundary)
   std::string dump_filename = iodata->output_dir + filename + ".2d_grid.h5.gz";
@@ -251,7 +251,7 @@ void io_dump_2dslice(periodicArray<idx_t, real_t> *field, std::string filename, 
 /* 
  * Write full 3D slice to a file.
  */
-void io_dump_3dslice(periodicArray<idx_t, real_t> *field, std::string filename, IOData *iodata)
+void io_dump_3dslice(arr_t *field, std::string filename, IOData *iodata)
 {
   // dump all NX*NY*NZ points
   std::string dump_filename = iodata->output_dir + filename + ".3d_grid.h5.gz";
@@ -283,8 +283,8 @@ void io_dump_3dslice(periodicArray<idx_t, real_t> *field, std::string filename, 
 }
 
 
-void io_dump_statistics(std::map <std::string, periodicArray<idx_t, real_t> *> & bssn_fields,
-                        std::map <std::string, periodicArray<idx_t, real_t> *> & static_field,
+void io_dump_statistics(std::map <std::string, arr_t *> & bssn_fields,
+                        std::map <std::string, arr_t *> & static_field,
                         IOData *iodata, FRW<real_t> *frw)
 {
   std::string filename = iodata->dump_file;

@@ -13,7 +13,17 @@ class periodicArray
 
     RT* _array;
 
-    periodicArray(IT nx_in, IT ny_in, IT nz_in)
+    periodicArray()
+    {
+      // call init() to initialize data
+    }
+
+    ~periodicArray()
+    {
+      delete [] _array;
+    }
+
+    void init(IT nx_in, IT ny_in, IT nz_in)
     {
       nx = nx_in;
       ny = ny_in;
@@ -22,11 +32,6 @@ class periodicArray
       pts = nx*ny*nz;
 
       _array = new RT[pts];
-    }
-
-    ~periodicArray()
-    {
-      delete [] _array;
     }
 
     RT& operator()(IT i, IT j, IT k)
