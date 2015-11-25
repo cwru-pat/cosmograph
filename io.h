@@ -3,7 +3,7 @@
 
 #include "cosmo.h"
 #include "io_data.h"
-#include "frw.h"
+#include "utils/reference_frw.h"
 
 #define LOG(log_fout, message) \
   std::cout << message << std::flush; \

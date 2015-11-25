@@ -56,7 +56,7 @@
 #define STENCIL_EVALUATOR(function, order) STENCIL_CONCATENATOR(function, order)
 #define STENCIL_ORDER_FUNCTION(function) STENCIL_EVALUATOR(function, STENCIL_ORDER)
 
-#define USE_WEDGE_INTEGRATOR false
+#define USE_WEDGE_INTEGRATOR true
 
 // WENO "epsilon" parameter
 #define EPS 0.0001
@@ -115,13 +115,14 @@
 
     #define AREA (NY*NZ)
     #define STENCIL_SUPPORT_POINTS (STENCIL_ORDER + 1)
+    #define WEDGE_SLICE_LEN_DIFF (STENCIL_SUPPORT_POINTS - 1)
 
     #define WEDGE_SLICE_1_LEN ( 3*STENCIL_SUPPORT_POINTS - 2 )
     #define WEDGE_SLICE_2_LEN ( 2*STENCIL_SUPPORT_POINTS - 1 )
     #define WEDGE_SLICE_3_LEN ( STENCIL_SUPPORT_POINTS )
-    
-    #define WEDGE_TAIL_LEN  (3*STENCIL_SUPPORT_POINTS + 1)/2;
-    #define WEDGE_AFTER_LEN 3*(STENCIL_SUPPORT_POINTS - 1)/2;
+
+    #define WEDGE_TAIL_LEN  ((3*STENCIL_SUPPORT_POINTS + 1)/2)
+    #define WEDGE_AFTER_LEN (3*(STENCIL_SUPPORT_POINTS - 1)/2)
 
     #if STENCIL_SUPPORT_POINTS > NX
         #error "Grid in NX direction must be larger than stencil base!"
@@ -135,11 +136,13 @@
             fields[#name "_K3"] = &name##_K3; \
             fields[#name "_t"]  = &name##_t;  \
             fields[#name "_r"]  = &name##_r;  \
-            fields[#name "_a"]  = &name##_a;
+            fields[#name "_a"]  = &name##_a
 
     #define RK4_ARRAY_CREATE(name) \
-            arr_t name##_p; arr_t name##_K1; arr_t name##_K2; arr_t name##_K3; \
-            arr_t name##_t; arr_t name##_r; arr_t &name##_a = name##_p;
+            arr_t name##_p; arr_t name##_K1; \
+            arr_t name##_K2; arr_t name##_K3; \
+            arr_t name##_t; arr_t name##_r; \
+            arr_t &name##_a = name##_p
 
     #define RK4_ARRAY_ALLOC(name)                      \
             name##_p.init(NX, NY, NZ);                 \
@@ -147,7 +150,7 @@
             name##_K2.init(WEDGE_SLICE_2_LEN, NY, NZ); \
             name##_K3.init(WEDGE_SLICE_3_LEN, NY, NZ); \
             name##_t.init(WEDGE_TAIL_LEN, NY, NZ);     \
-            name##_r.init(WEDGE_AFTER_LEN, NY, NZ);
+            name##_r.init(WEDGE_AFTER_LEN, NY, NZ)
 
     #define RK4_ARRAY_DELETE(name)
 
@@ -156,7 +159,7 @@
     // for the data being "_a"ctively used for calculation, one for the
     // Runge-Kutta "_c"oefficient being calculated, and lastly the "_f"inal
     // result of the calculation.
-     #define RK4_ARRAY_ADDMAP(name)         \
+     #define RK4_ARRAY_ADDMAP(name)          \
             fields[#name "_a"] = &name##_a;  \
             fields[#name "_c"] = &name##_c;  \
             fields[#name "_p"] = &name##_p;  \

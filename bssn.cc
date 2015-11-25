@@ -34,6 +34,7 @@ BSSN::~BSSN()
 Functionality for "usual" RK4 integrator using 4 registers
 ******************************************************************************
 */
+#if !USE_WEDGE_INTEGRATOR
 
 // Full RK step (More useful when not evolving the source simultaneously)
 void BSSN::step(BSSNData *paq)
@@ -187,41 +188,62 @@ Integration procedure outline:
 
 ******************************************************************************
 */
-#if USE_WEDGE_INTEGRATOR
+#else
 
-/*
+void BSSN::stepInit()
+{
+  // anything to do here?
+}
+
 void BSSN::WedgeStep()
 {
-  idx_t i;
+  idx_t i, j, k, l;
   for(i=0; i<NX + WEDGE_AFTER_LEN + WEDGE_SLICE_1_LEN; ++i)
   {
     // "i" is location of calculation for wedge "peak"
     idx_t i_p = i;
-    idx_t i_K1 = (i + WEDGE_SLICE_1_LEN)%WEDGE_SLICE_1_LEN;
+    idx_t i_K1 = i;
+    idx_t i_K2 = i - WEDGE_SLICE_LEN_DIFF;
+    idx_t i_K3 = i - 2*WEDGE_SLICE_LEN_DIFF;
+    idx_t i_tail =  i - 3*WEDGE_SLICE_LEN_DIFF;
+
     WedgeK1Calc(i_p, i_K1);
-
-    idx_t i_K2 = (i + WEDGE_SLICE_2_LEN)%WEDGE_SLICE_2_LEN;
     WedgeK2Calc(i_p, i_K1, i_K2);
-
-    idx_t i_K3 = (i + WEDGE_SLICE_3_LEN)%WEDGE_SLICE_3_LEN;
     WedgeK3Calc(i_p, i_K2, i_K3);
-
-    idx_t idx_tail = (i + WEDGE_TAIL_LEN)%WEDGE_TAIL_LEN;
     WedgeTailCalc(i_p, i_K1, i_K2, i_K3, i_tail);
 
-    if(i == WEDGE_SLICE_1_LEN + WEDGE_TAIL_LEN)
+    if(i == WEDGE_SLICE_1_LEN + WEDGE_TAIL_LEN - 1)
     {
       // populate afterimage
+      for(l = WEDGE_SLICE_1_LEN - 1; l < i; ++l)
+      {
+        PARALLEL_AREA_LOOP(j,k)
+        {
+          BSSN_STORE_AFTER();
+        }
+      }
     }
 
     if(i > WEDGE_SLICE_1_LEN + WEDGE_TAIL_LEN)
     {
       // "leftmost" point in tail goes in _p register
+      PARALLEL_AREA_LOOP(j,k)
+      {
+        BSSN_STORE_TAILEND();
+      }
     }
 
   }
+
+  // populate afterimage
+  for(i = WEDGE_SLICE_1_LEN - 1; i < WEDGE_SLICE_1_LEN + WEDGE_TAIL_LEN - 1; ++i)
+  {
+    PARALLEL_AREA_LOOP(j,k)
+    {
+      BSSN_RE_STORE_AFTER();
+    }
+  }
 }
-*/
 
 // y_{K1} = y_n + h/2*f[y_n]
 void BSSN::WedgeK1Calc(idx_t i_p, idx_t i_K1)
@@ -232,9 +254,6 @@ void BSSN::WedgeK1Calc(idx_t i_p, idx_t i_K1)
   {
     BSSNData paq = {0};
     set_paq_values(i_p, j, k, &paq);
-
-    idx_t idx_K1 = NP_INDEX(i_K1, j, k);
-
     BSSN_COMPUTE_WEDGE_STEP_K1();
   }
 
@@ -251,10 +270,6 @@ void BSSN::WedgeK2Calc(idx_t i_p, idx_t i_K1, idx_t i_K2)
   {
     BSSNData paq = {0};
     set_paq_values(i_K1, j, k, &paq);
-
-    idx_t idx_p = NP_INDEX(i_p, j, k);
-    idx_t idx_K2 = NP_INDEX(i_K2, j, k);
-
     BSSN_COMPUTE_WEDGE_STEP_K2();
   }
 
@@ -271,10 +286,6 @@ void BSSN::WedgeK3Calc(idx_t i_p, idx_t i_K2, idx_t i_K3)
   {
     BSSNData paq = {0};
     set_paq_values(i_K2, j, k, &paq);
-
-    idx_t idx_p = NP_INDEX(i_p, j, k);
-    idx_t idx_K3 = NP_INDEX(i_K3, j, k);
-
     BSSN_COMPUTE_WEDGE_STEP_K3();
   }
 
@@ -291,12 +302,6 @@ void BSSN::WedgeTailCalc(idx_t i_p, idx_t i_K1, idx_t i_K2, idx_t i_K3, idx_t i_
   {
     BSSNData paq = {0};
     set_paq_values(i_K3, j, k, &paq);
-
-    idx_t idx_p = NP_INDEX(i_p, j, k);
-    idx_t idx_K1 = NP_INDEX(i_K1, j, k);
-    idx_t idx_K2 = NP_INDEX(i_K2, j, k);
-    idx_t idx_tail = NP_INDEX(i_tail, j, k);
-
     BSSN_COMPUTE_WEDGE_STEP_TAIL();
   }
 }
@@ -390,7 +395,10 @@ void BSSN::set_paq_values(idx_t i, idx_t j, idx_t k, BSSNData *paq)
   paq->i = i;
   paq->j = j;
   paq->k = k;
-  paq->idx = NP_INDEX(i,j,k);
+
+  // this might already be set
+  if(paq->idx == 0)
+    paq->idx = NP_INDEX(i,j,k);
 
   // need to set FRW quantities first
   paq->phi_FRW = frw->get_phi();
@@ -460,11 +468,15 @@ void BSSN::init()
   {
     idx = NP_INDEX(i,j,k);
 
-    // default flat static vacuum spacetime.
-    BSSN_ZERO_ARRAYS(_p, idx)
-    BSSN_ZERO_ARRAYS(_a, idx)
-    BSSN_ZERO_ARRAYS(_c, idx)
-    BSSN_ZERO_ARRAYS(_f, idx)
+    #if USE_WEDGE_INTEGRATOR
+      BSSN_ZERO_ARRAYS(_a, idx)
+    #else
+      // default flat static vacuum spacetime.
+      BSSN_ZERO_ARRAYS(_p, idx)
+      BSSN_ZERO_ARRAYS(_a, idx)
+      BSSN_ZERO_ARRAYS(_c, idx)
+      BSSN_ZERO_ARRAYS(_f, idx)
+    #endif
 
     BSSN_ZERO_GEN1_EXTRAS()
     BSSN_ZERO_SOURCES()
@@ -493,9 +505,10 @@ void BSSN::calculate_Acont(BSSNData *paq)
   BSSN_APPLY_TO_IJ_PERMS(BSSN_CALCULATE_ACONT)
 
   // calculate A_ij A^ij term
-  AijAij_a[paq->idx] = paq->Acont11*paq->A11 + paq->Acont22*paq->A22 + paq->Acont33*paq->A33
+  AijAij_a(paq->i, paq->j, paq->k)
+    = paq->Acont11*paq->A11 + paq->Acont22*paq->A22 + paq->Acont33*paq->A33
       + 2.0*(paq->Acont12*paq->A12 + paq->Acont13*paq->A13 + paq->Acont23*paq->A23);
-  paq->AijAij = AijAij_a[paq->idx];
+  paq->AijAij = AijAij_a(paq->i, paq->j, paq->k);
 }
 
 /* Calculate metric derivatives */
@@ -658,7 +671,7 @@ void BSSN::calculateRicciTF(BSSNData *paq)
             + 2.0*(paq->ricciTF12*paq->gammai12 + paq->ricciTF13*paq->gammai13 + paq->ricciTF23*paq->gammai23);
   paq->ricci *= exp(-4.0*paq->phi);
   /* store ricci scalar here too. */
-  ricci_a[paq->idx] = paq->ricci;
+  ricci_a(paq->i, paq->j, paq->k) = paq->ricci;
 
   /* remove trace. Note that \bar{gamma}_{ij}*\bar{gamma}^{kl}R_{kl} = (unbarred gammas). */
   paq->trace = paq->gammai11*paq->ricciTF11 + paq->gammai22*paq->ricciTF22 + paq->gammai33*paq->ricciTF33

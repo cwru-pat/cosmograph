@@ -22,9 +22,11 @@
 
 #include "cosmo_macros.h"
 
+/* independent components */
 #include "utils/periodicArray.h"
 #include "utils/ConfigParser.h"
 #include "utils/Timer.h"
+#include "utils/reference_frw.h"
 
 namespace cosmo
 {
@@ -44,6 +46,5 @@ typedef periodicArray<idx_t, real_t> arr_t;
 #include "bssn.h"
 #include "bssn_data.h"
 #include "static.h"
-#include "frw.h"
 
 #endif

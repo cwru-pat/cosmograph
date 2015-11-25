@@ -4,7 +4,7 @@
 #include "cosmo.h"
 #include "globals.h"
 
-#include "frw.h"
+#include "utils/reference_frw.h"
 #include "bssn_data.h"
 #include "bssn_macros.h"
 
@@ -36,23 +36,26 @@ public:
     void regSwap_c_a();
 
     /* functions to outline / perform RK integration */
-    void step(BSSNData *paq);
-    void stepInit();
-    void K1Calc();
-    void K1CalcPt(idx_t i, idx_t j, idx_t k, BSSNData *paq);
-    void K2Calc();
-    void K2CalcPt(idx_t i, idx_t j, idx_t k, BSSNData *paq);
-    void K3Calc();
-    void K3CalcPt(idx_t i, idx_t j, idx_t k, BSSNData *paq);
-    void K4Calc();
-    void K4CalcPt(idx_t i, idx_t j, idx_t k, BSSNData *paq);
-    void stepTerm();
-
-
-    void WedgeK1Calc(idx_t i_p, idx_t idx_K1);
-    void WedgeK2Calc(idx_t idx_p, idx_t i_K1, idx_t idx_K2);
-    void WedgeK3Calc(idx_t idx_p, idx_t i_K2, idx_t idx_K3);
-    void WedgeTailCalc(idx_t idx_p, idx_t idx_K1, idx_t idx_K2, idx_t i_K3, idx_t idx_tail);
+    #if !USE_WEDGE_INTEGRATOR
+      void step(BSSNData *paq);
+      void stepInit();
+      void K1Calc();
+      void K1CalcPt(idx_t i, idx_t j, idx_t k, BSSNData *paq);
+      void K2Calc();
+      void K2CalcPt(idx_t i, idx_t j, idx_t k, BSSNData *paq);
+      void K3Calc();
+      void K3CalcPt(idx_t i, idx_t j, idx_t k, BSSNData *paq);
+      void K4Calc();
+      void K4CalcPt(idx_t i, idx_t j, idx_t k, BSSNData *paq);
+      void stepTerm();
+    #else
+      void stepInit();
+      void WedgeStep();
+      void WedgeK1Calc(idx_t i_p, idx_t idx_K1);
+      void WedgeK2Calc(idx_t idx_p, idx_t i_K1, idx_t idx_K2);
+      void WedgeK3Calc(idx_t idx_p, idx_t i_K2, idx_t idx_K3);
+      void WedgeTailCalc(idx_t idx_p, idx_t idx_K1, idx_t idx_K2, idx_t i_K3, idx_t idx_tail);
+    #endif
 
 
   /* calculating quantities during an RK step */

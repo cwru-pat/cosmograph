@@ -43,10 +43,10 @@ Integration procedure outline:
 Animation of a full integration step:
 
 [ - - - - - - - - - - - - - - - - - - - - ] i_p = 0
-[ *                           o o o o o o ] i_K1 = WEDGE_SLICE_1_LEN - 1
-[                               o o o o o ] i_K2 = WEDGE_SLICE_2_LEN - 1
-[                                 o o o   ] i_K3 = WEDGE_SLICE_3_LEN - 1
-[                           0 0 0 0 0     ] i_tail = 0
+[ *                           o o o o o o ] i_K1 = i_p
+[                               o o o o o ] i_K2 = i_p - WEDGE_SLICE_LEN_DIFF
+[                                 o o o   ] i_K3 = i_p - 2*WEDGE_SLICE_LEN_DIFF
+[                           0 0 0 0 0     ] i_tail = i_p - 3*WEDGE_SLICE_LEN_DIFF
 
 [ - - - - - - - - - - - - - - - - - - - - ]
 [ * *                           o o o o o ]

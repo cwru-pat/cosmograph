@@ -92,8 +92,7 @@ int main(int argc, char **argv)
     _timer["output"].start();
       // set_paq_values calculates ricci_a and AijAij_a data, needed for output
       // and subsequent constraint calculations
-      #pragma omp parallel for default(shared) private(i, j, k)
-      LOOP3(i,j,k)
+      PARALLEL_LOOP3(i,j,k)
       {
         BSSNData b_paq = {0}; // data structure associated with bssn sim
         bssnSim.set_paq_values(i, j, k, &b_paq);
@@ -151,33 +150,36 @@ int main(int argc, char **argv)
     // Run RK steps explicitly here (ties together BSSN + Hydro stuff).
     // See bssn class or hydro class for more comments.
     _timer["RK_steps"].start();
-      // FRW simulation should be in the correct state here
+      #if USE_WEDGE_INTEGRATOR
+        bssnSim.WedgeStep();
+      #else
+        // FRW simulation should be in the correct state here
+        // First RK step, Set Hydro Vars, & calc. constraint
+        bssnSim.K1Calc();
+        // reset source using new metric
+        bssnSim.clearSrc();
+        staticSim.addBSSNSrc(bssnSim.fields, bssnSim.frw);
 
-      // First RK step, Set Hydro Vars, & calc. constraint
-      bssnSim.K1Calc();
-      // reset source using new metric
-      bssnSim.clearSrc();
-      staticSim.addBSSNSrc(bssnSim.fields, bssnSim.frw);
+        // Second RK step
+        bssnSim.K2Calc();
+        // reset source using new metric
+        bssnSim.clearSrc();
+        staticSim.addBSSNSrc(bssnSim.fields, bssnSim.frw);
 
-      // Second RK step
-      bssnSim.K2Calc();
-      // reset source using new metric
-      bssnSim.clearSrc();
-      staticSim.addBSSNSrc(bssnSim.fields, bssnSim.frw);
+        // Third RK step
+        bssnSim.K3Calc();
+        // reset source using new metric
+        bssnSim.clearSrc();
+        staticSim.addBSSNSrc(bssnSim.fields, bssnSim.frw);
 
-      // Third RK step
-      bssnSim.K3Calc();
-      // reset source using new metric
-      bssnSim.clearSrc();
-      staticSim.addBSSNSrc(bssnSim.fields, bssnSim.frw);
+        // Fourth RK step
+        bssnSim.K4Calc();
 
-      // Fourth RK step
-      bssnSim.K4Calc();
-
-      // Wrap up
-        // bssn _f <-> _p
-        bssnSim.stepTerm();
-        // "current" data is in the _p array.
+        // Wrap up
+          // bssn _f <-> _p
+          bssnSim.stepTerm();
+          // "current" data is in the _p array.
+      #endif
     _timer["RK_steps"].stop();
 
   }
