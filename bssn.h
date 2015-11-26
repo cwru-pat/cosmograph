@@ -16,7 +16,6 @@ class BSSN
 {
   /* arrays for storing fields */
   BSSN_APPLY_TO_FIELDS(RK4_ARRAY_CREATE)
-  BSSN_APPLY_TO_SOURCES(GEN1_ARRAY_CREATE)
   BSSN_APPLY_TO_GEN1_EXTRAS(GEN1_ARRAY_CREATE)
 
 public:
@@ -32,31 +31,14 @@ public:
   void init();
 
   /* RK integrator functions */
-    void clearSrc();
     void regSwap_c_a();
 
-    /* functions to outline / perform RK integration */
-    #if !USE_WEDGE_INTEGRATOR
-      void step(BSSNData *paq);
-      void stepInit();
-      void K1Calc();
-      void K1CalcPt(idx_t i, idx_t j, idx_t k, BSSNData *paq);
-      void K2Calc();
-      void K2CalcPt(idx_t i, idx_t j, idx_t k, BSSNData *paq);
-      void K3Calc();
-      void K3CalcPt(idx_t i, idx_t j, idx_t k, BSSNData *paq);
-      void K4Calc();
-      void K4CalcPt(idx_t i, idx_t j, idx_t k, BSSNData *paq);
-      void stepTerm();
-    #else
-      void stepInit();
-      void WedgeStep();
-      void WedgeK1Calc(idx_t i_p, idx_t idx_K1);
-      void WedgeK2Calc(idx_t idx_p, idx_t i_K1, idx_t idx_K2);
-      void WedgeK3Calc(idx_t idx_p, idx_t i_K2, idx_t idx_K3);
-      void WedgeTailCalc(idx_t idx_p, idx_t idx_K1, idx_t idx_K2, idx_t i_K3, idx_t idx_tail);
-    #endif
-
+    void stepInit();
+    void WedgeStep();
+    void WedgeK1Calc(idx_t i_p, idx_t idx_K1);
+    void WedgeK2Calc(idx_t idx_p, idx_t i_K1, idx_t idx_K2);
+    void WedgeK3Calc(idx_t idx_p, idx_t i_K2, idx_t idx_K3);
+    void WedgeTailCalc(idx_t idx_p, idx_t idx_K1, idx_t idx_K2, idx_t i_K3, idx_t idx_tail);
 
   /* calculating quantities during an RK step */
     void set_paq_values(idx_t i, idx_t j, idx_t k, BSSNData *paq);
@@ -113,6 +95,8 @@ public:
     real_t ev_Gamma3(BSSNData *paq);
 
     real_t ev_DIFFalpha(BSSNData *paq);
+
+    real_t ev_DIFFdustrho(BSSNData *paq);
 
     #if USE_Z4c_DAMPING
       real_t ev_theta(BSSNData *paq);

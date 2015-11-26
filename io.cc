@@ -92,14 +92,12 @@ void io_config_backup(IOData *iodata, std::string config_file)
 }
 
 void io_data_dump(std::map <std::string, arr_t *> & bssn_fields,
-                  std::map <std::string, arr_t *> & static_field,
                   IOData *iodata, idx_t step, Fourier *fourier, FRW<real_t> *frw)
 {
   if(step % iodata->slice_output_interval == 0)
   {
     // io_dump_2dslice(bssn_fields["DIFFK_a"], "DIFFK_slice." + std::to_string(step), iodata);
     // io_dump_2dslice(bssn_fields["DIFFphi_a"], "DIFFphi_slice." + std::to_string(step), iodata);
-    // io_dump_2dslice(static_field["DIFFD_a"], "DIFFUD_slice."  + std::to_string(step), iodata);
     // io_dump_2dslice(bssn_fields["DIFFgamma11_a"], "DIFFgamma11." + std::to_string(step), iodata);
   }
   if(step % iodata->grid_output_interval == 0)
@@ -114,7 +112,6 @@ void io_data_dump(std::map <std::string, arr_t *> & bssn_fields,
     // io_dump_3dslice(bssn_fields["DIFFK_a"],       "DIFFK."       + std::to_string(step), iodata);
     // io_dump_3dslice(bssn_fields["ricci_a"],   "ricci."   + std::to_string(step), iodata);
     // io_dump_3dslice(bssn_fields["AijAij_a"],  "AijAij."  + std::to_string(step), iodata);
-    // io_dump_3dslice(static_field["DIFFD_a"],      "DIFFUD."       + std::to_string(step), iodata);
 
     // io_dump_3dslice(bssn_fields["KDx_a"],     "KDx_a."   + std::to_string(step), iodata);
     // io_dump_3dslice(bssn_fields["KDy_a"],     "KDy_a."   + std::to_string(step), iodata);
@@ -123,12 +120,11 @@ void io_data_dump(std::map <std::string, arr_t *> & bssn_fields,
   if(step % iodata->spec_output_interval == 0)
   {
     // fourier->powerDump(bssn_fields["DIFFphi_a"], iodata);
-    // fourier->powerDump(bssn_fields["DIFFr_a"], iodata);
   }
   if(step % iodata->meta_output_interval == 0)
   {
     // some statistical values
-    io_dump_statistics(bssn_fields, static_field, iodata, frw);
+    io_dump_statistics(bssn_fields, iodata, frw);
   }
 }
 
@@ -284,7 +280,6 @@ void io_dump_3dslice(arr_t *field, std::string filename, IOData *iodata)
 
 
 void io_dump_statistics(std::map <std::string, arr_t *> & bssn_fields,
-                        std::map <std::string, arr_t *> & static_field,
                         IOData *iodata, FRW<real_t> *frw)
 {
   std::string filename = iodata->dump_file;
@@ -328,7 +323,7 @@ void io_dump_statistics(std::map <std::string, arr_t *> & bssn_fields,
   // K output
   DETAILS(DIFFK)
   // rho output
-  DETAILS(DIFFr)
+  DETAILS(DIFFdustrho)
   // ricci output
   DETAILS(ricci)
   // average volume

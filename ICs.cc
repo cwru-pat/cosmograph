@@ -114,16 +114,14 @@ void set_gaussian_random_field(real_t *field, Fourier *fourier, ICsData *icd)
 // doesn't specify monopole / expansion contribution
 void set_conformal_ICs(
   std::map <std::string, arr_t *> & bssn_fields,
-  std::map <std::string, arr_t *> & static_field,
   Fourier *fourier, IOData *iod, FRW<real_t> *frw)
 {
   idx_t i, j, k;
   real_t px, py, pz, p2;
 
-  real_t * const DIFFr_a = bssn_fields["DIFFr_a"]->_array;
   real_t * const DIFFphi_a = bssn_fields["DIFFphi_a"]->_array;
   real_t * const DIFFphi_p = bssn_fields["DIFFphi_p"]->_array;
-  real_t * const DIFFD_a = static_field["DIFFD_a"]->_array;
+  real_t * const DIFFdustrho_a = bssn_fields["DIFFdustrho_a"]->_array;
 
   ICsData icd = cosmo_get_ICsData();
   LOG(iod->log, "Generating ICs with peak at k = " << icd.peak_k << "\n");
@@ -136,7 +134,7 @@ void set_conformal_ICs(
 
   // rho = -lap(phi)/xi^5/2pi
   LOOP3(i,j,k) {
-    DIFFr_a[INDEX(i,j,k)] = -0.5/PI/(
+    DIFFdustrho_a[INDEX(i,j,k)] = -0.5/PI/(
       pow(1.0 + DIFFphi_p[INDEX(i,j,k)], 5.0)
     )*(
       double_derivative(i, j, k, 1, 1, bssn_fields["DIFFphi_p"])
@@ -160,15 +158,15 @@ void set_conformal_ICs(
   {
     idx_t idx = NP_INDEX(i,j,k);
     real_t rho_FRW = icd.rho_K_matter;
-    real_t DIFFr = DIFFr_a[idx];
-    real_t rho = rho_FRW + DIFFr;
+    real_t DIFFdustrho = DIFFdustrho_a[idx];
+    real_t rho = rho_FRW + DIFFdustrho;
     // phi_FRW = 0
     real_t DIFFphi = DIFFphi_a[idx];
     // phi = DIFFphi
     // DIFFK = 0
 
-    DIFFD_a[idx] =
-      rho_FRW*expm1(6.0*DIFFphi) + exp(6.0*DIFFphi)*DIFFr;
+    DIFFdustrho_a[idx] =
+      rho_FRW*expm1(6.0*DIFFphi) + exp(6.0*DIFFphi)*DIFFdustrho;
 
     if(rho < min)
     {
@@ -187,8 +185,8 @@ void set_conformal_ICs(
 
   LOG(iod->log, "Minimum fluid conservative conformal density: " << min << "\n");
   LOG(iod->log, "Maximum fluid conservative conformal density: " << max << "\n");
-  LOG(iod->log, "Average fluctuation conservative conformal density: " << average(static_field["DIFFD_a"]) << "\n");
-  LOG(iod->log, "Std.dev fluctuation conservative conformal density: " << standard_deviation(static_field["DIFFD_a"]) << "\n");
+  LOG(iod->log, "Average fluctuation density: " << average(bssn_fields["DIFFdustrho_a"]) << "\n");
+  LOG(iod->log, "Std.dev fluctuation density: " << standard_deviation(bssn_fields["DIFFdustrho_a"]) << "\n");
   if(min < 0.0) {
     LOG(iod->log, "Error: negative density in some regions.\n");
     throw -1;
@@ -213,12 +211,12 @@ void set_conformal_ICs(
       real_t rho_FRW = icd.rho_K_matter;
       real_t D_FRW = rho_FRW; // on initial slice
 
-      DIFFr_a[idx] += rho_FRW;
+      DIFFdustrho_a[idx] += rho_FRW;
 
       bssn_fields["DIFFK_a"]->_array[idx] = -sqrt(24.0*PI*rho_FRW);
       bssn_fields["DIFFK_p"]->_array[idx] = -sqrt(24.0*PI*rho_FRW);
 
-      DIFFD_a[idx] += D_FRW;
+      DIFFdustrho_a[idx] += D_FRW;
     }
   #endif
 
@@ -226,8 +224,7 @@ void set_conformal_ICs(
 
 
 void set_stability_test_ICs(
-  std::map <std::string, arr_t *> & bssn_fields,
-  std::map <std::string, arr_t *> & static_field)
+  std::map <std::string, arr_t *> & bssn_fields)
 {
   idx_t i, j, k;
 
@@ -318,7 +315,7 @@ void set_stability_test_ICs(
     bssn_fields["DIFFalpha_c"]->_array[idx]  = 0.0;
     bssn_fields["DIFFalpha_f"]->_array[idx]  = 0.0;
 
-    static_field["DIFFD_a"]->_array[NP_INDEX(i,j,k)] = 0.0 + 0.0*dist(gen);
+    bssn_fields["DIFFdustrho_a"]->_array[NP_INDEX(i,j,k)] = 0.0 + 0.0*dist(gen);
   }
 
 std::cout << "dist is: " << dist(gen) << "\n";

@@ -15,8 +15,6 @@ typedef struct {
 
   // local copies of current field values
   BSSN_APPLY_TO_FIELDS(DECLARE_REAL_T)
-  // Source terms
-  BSSN_APPLY_TO_SOURCES(DECLARE_REAL_T)
   // "extra" fields
   BSSN_APPLY_TO_GEN1_EXTRAS(DECLARE_REAL_T)
 

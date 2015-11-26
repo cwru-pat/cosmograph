@@ -45,6 +45,5 @@ typedef periodicArray<idx_t, real_t> arr_t;
 #include "ICs.h"
 #include "bssn.h"
 #include "bssn_data.h"
-#include "static.h"
 
 #endif

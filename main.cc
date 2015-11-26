@@ -40,23 +40,18 @@ int main(int argc, char **argv)
   _timer["init"].start();
     LOG(iodata.log, "Creating initial conditions...\n");
 
-    // Fluid fields
-    // Static matter (w=0)
-    Static staticSim;
-    staticSim.init();
-
-    // GR Fields
+    // GR + dust Fields
     BSSN bssnSim;
     bssnSim.init();
 
     // generic reusable fourier class for NX*NY*NZ arrays
     Fourier fourier;
-    fourier.Initialize(NX, NY, NZ, staticSim.fields["DIFFD_a"]->_array /* just any array for planning */);
+    fourier.Initialize(NX, NY, NZ, bssnSim.fields["Gamma1_a"]->_array /* just any array for planning */);
 
     if(_config["ICs"] == "apples_stability")
     {
       LOG(iodata.log, "Using apples stability test initial conditions...\n");
-      set_stability_test_ICs(bssnSim.fields, staticSim.fields);
+      set_stability_test_ICs(bssnSim.fields);
     }
     else if(_config["ICs"] == "apples_linwave")
     {
@@ -67,7 +62,7 @@ int main(int argc, char **argv)
     {
       // "conformal" cosmological initial conditions:
       LOG(iodata.log, "Using conformal initial conditions...\n");
-      set_conformal_ICs(bssnSim.fields, staticSim.fields, &fourier, &iodata, bssnSim.frw);
+      set_conformal_ICs(bssnSim.fields, &fourier, &iodata, bssnSim.frw);
     }
 
   _timer["init"].stop();
@@ -82,9 +77,6 @@ int main(int argc, char **argv)
     // Init arrays and calculate source term for next step
       // _p is copied to _a here (which matter sectors use)
       bssnSim.stepInit();
-      // clear existing source data
-      bssnSim.clearSrc();
-      staticSim.addBSSNSrc(bssnSim.fields, bssnSim.frw);
 
     // output simulation information
     // these generally output any data in the _a registers (which should 
@@ -99,7 +91,7 @@ int main(int argc, char **argv)
         // Additionally set KD (killing vector "Delta" quantities)
         bssnSim.set_KillingDelta(i, j, k, &b_paq);
       }
-      io_data_dump(bssnSim.fields, staticSim.fields, &iodata, s, &fourier, bssnSim.frw);
+      io_data_dump(bssnSim.fields, &iodata, s, &fourier, bssnSim.frw);
       _timer["meta_output_interval"].start();
         if(s%iodata.meta_output_interval == 0)
         {
@@ -150,36 +142,7 @@ int main(int argc, char **argv)
     // Run RK steps explicitly here (ties together BSSN + Hydro stuff).
     // See bssn class or hydro class for more comments.
     _timer["RK_steps"].start();
-      #if USE_WEDGE_INTEGRATOR
-        bssnSim.WedgeStep();
-      #else
-        // FRW simulation should be in the correct state here
-        // First RK step, Set Hydro Vars, & calc. constraint
-        bssnSim.K1Calc();
-        // reset source using new metric
-        bssnSim.clearSrc();
-        staticSim.addBSSNSrc(bssnSim.fields, bssnSim.frw);
-
-        // Second RK step
-        bssnSim.K2Calc();
-        // reset source using new metric
-        bssnSim.clearSrc();
-        staticSim.addBSSNSrc(bssnSim.fields, bssnSim.frw);
-
-        // Third RK step
-        bssnSim.K3Calc();
-        // reset source using new metric
-        bssnSim.clearSrc();
-        staticSim.addBSSNSrc(bssnSim.fields, bssnSim.frw);
-
-        // Fourth RK step
-        bssnSim.K4Calc();
-
-        // Wrap up
-          // bssn _f <-> _p
-          bssnSim.stepTerm();
-          // "current" data is in the _p array.
-      #endif
+      bssnSim.WedgeStep();
     _timer["RK_steps"].stop();
 
   }

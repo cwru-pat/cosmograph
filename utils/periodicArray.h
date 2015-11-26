@@ -62,8 +62,6 @@ class periodicArray
       return *this;
     }
 
-
-
     RT& operator[](IT idx)
     {
       return _array[idx];

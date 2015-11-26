@@ -70,24 +70,11 @@
   function(Gamma2);                    \
   function(Gamma3);                    \
   function(DIFFalpha);                 \
+  function(DIFFdustrho);               \
   Z4c_APPLY_TO_FIELDS(function)        \
   BSSN_APPLY_TO_SHIFT(function)
 
-#define BSSN_APPLY_TO_SOURCES(function) \
-  function(DIFFr);                      \
-  function(DIFFS);                      \
-  function(S1);                         \
-  function(S2);                         \
-  function(S3);                         \
-  function(STF11);                      \
-  function(STF12);                      \
-  function(STF13);                      \
-  function(STF22);                      \
-  function(STF23);                      \
-  function(STF33);
-
 #define BSSN_APPLY_TO_GEN1_EXTRAS(function) \
-  function(dk0_slice_phi);                  \
   function(KDx);                            \
   function(KDy);                            \
   function(KDz);                            \
@@ -385,7 +372,7 @@
   )
 
 #define BSSN_DT_AIJ(I, J) ( \
-    exp(-4.0*paq->phi)*( paq->alpha*(paq->ricciTF##I##J - 8.0*PI*paq->STF##I##J) - paq->D##I##D##J##aTF ) \
+    exp(-4.0*paq->phi)*( paq->alpha*(paq->ricciTF##I##J) - paq->D##I##D##J##aTF ) \
     + paq->alpha*((paq->K + 2.0*paq->theta)*paq->A##I##J - 2.0*( \
         paq->gammai11*paq->A1##I*paq->A1##J + paq->gammai12*paq->A1##I*paq->A2##J + paq->gammai13*paq->A1##I*paq->A3##J \
         + paq->gammai21*paq->A2##I*paq->A1##J + paq->gammai22*paq->A2##I*paq->A2##J + paq->gammai23*paq->A2##I*paq->A3##J \
@@ -413,7 +400,6 @@
         - 2.0*paq->alpha*Z4c_K1_DAMPING_AMPLITUDE*( \
             paq->Gamma##I - paq->Gammad##I \
           ) \
-        - 8.0*PI*(paq->gammai##I##1*paq->S1 + paq->gammai##I##2*paq->S2 + paq->gammai##I##3*paq->S3) \
         + 6.0 * (paq->Acont##I##1*paq->d1phi + paq->Acont##I##2*paq->d2phi + paq->Acont##I##3*paq->d3phi) \
       ) \
     )
@@ -440,7 +426,7 @@
 #endif
 
 #define BSSN_MI(I) exp(6.0*paq->phi)*( \
-    - 2.0/3.0*derivative(paq->i, paq->j, paq->k, I, &DIFFK_a) - 8*PI*paq->S##I \
+    - 2.0/3.0*derivative(paq->i, paq->j, paq->k, I, &DIFFK_a) \
     - 2.0/3.0*2.0*paq->d##I##theta \
     + 6.0*( \
       paq->gammai11*paq->A1##I*paq->d1phi + paq->gammai21*paq->A2##I*paq->d1phi + paq->gammai31*paq->A3##I*paq->d1phi \
@@ -460,7 +446,6 @@
 
 #define BSSN_MI_SCALE(I) exp(6.0*paq->phi)*( \
     fabs(2.0/3.0*derivative(paq->i, paq->j, paq->k, I, &DIFFK_a)) \
-    + fabs(8*PI*paq->S##I) \
     + 6.0*fabs( \
       paq->gammai11*paq->A1##I*paq->d1phi + paq->gammai21*paq->A2##I*paq->d1phi + paq->gammai31*paq->A3##I*paq->d1phi \
       + paq->gammai12*paq->A1##I*paq->d2phi + paq->gammai22*paq->A2##I*paq->d2phi + paq->gammai32*paq->A3##I*paq->d2phi \
@@ -704,14 +689,5 @@
 #define d3m21 d3m12
 #define d3m31 d3m13
 #define d3m32 d3m23
-
-// source terms
-#define S21 S12
-#define S31 S13
-#define S32 S23
-
-#define STF21 STF12
-#define STF31 STF13
-#define STF32 STF23
 
 #endif

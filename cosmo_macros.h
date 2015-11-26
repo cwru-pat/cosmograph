@@ -56,8 +56,6 @@
 #define STENCIL_EVALUATOR(function, order) STENCIL_CONCATENATOR(function, order)
 #define STENCIL_ORDER_FUNCTION(function) STENCIL_EVALUATOR(function, STENCIL_ORDER)
 
-#define USE_WEDGE_INTEGRATOR true
-
 // WENO "epsilon" parameter
 #define EPS 0.0001
 
@@ -109,74 +107,48 @@
 #define DECLARE_ADJ_ADJACENT_REAL_T(name) real_t name##_adj_ext[3][2]
 
 #define SET_LOCAL_VALUES(name) \
-    paq->name = name##_a[paq->idx];
+    paq->name = name##_a(paq->i, paq->j, paq->k);
 
-#if USE_WEDGE_INTEGRATOR
+#define AREA (NY*NZ)
+#define STENCIL_SUPPORT_POINTS (STENCIL_ORDER + 1)
+#define WEDGE_SLICE_LEN_DIFF (STENCIL_SUPPORT_POINTS - 1)
 
-    #define AREA (NY*NZ)
-    #define STENCIL_SUPPORT_POINTS (STENCIL_ORDER + 1)
-    #define WEDGE_SLICE_LEN_DIFF (STENCIL_SUPPORT_POINTS - 1)
+#define WEDGE_SLICE_1_LEN ( 3*STENCIL_SUPPORT_POINTS - 2 )
+#define WEDGE_SLICE_2_LEN ( 2*STENCIL_SUPPORT_POINTS - 1 )
+#define WEDGE_SLICE_3_LEN ( STENCIL_SUPPORT_POINTS )
 
-    #define WEDGE_SLICE_1_LEN ( 3*STENCIL_SUPPORT_POINTS - 2 )
-    #define WEDGE_SLICE_2_LEN ( 2*STENCIL_SUPPORT_POINTS - 1 )
-    #define WEDGE_SLICE_3_LEN ( STENCIL_SUPPORT_POINTS )
+#define WEDGE_TAIL_LEN  ((3*STENCIL_SUPPORT_POINTS + 1)/2)
+#define WEDGE_AFTER_LEN (3*(STENCIL_SUPPORT_POINTS - 1)/2)
 
-    #define WEDGE_TAIL_LEN  ((3*STENCIL_SUPPORT_POINTS + 1)/2)
-    #define WEDGE_AFTER_LEN (3*(STENCIL_SUPPORT_POINTS - 1)/2)
-
-    #if STENCIL_SUPPORT_POINTS > NX
-        #error "Grid in NX direction must be larger than stencil base!"
-    #endif
-
-    // RK4 method, using a single register by means of a "wedge" integrator.
-     #define RK4_ARRAY_ADDMAP(name)          \
-            fields[#name "_p"]  = &name##_p;  \
-            fields[#name "_K1"] = &name##_K1; \
-            fields[#name "_K2"] = &name##_K2; \
-            fields[#name "_K3"] = &name##_K3; \
-            fields[#name "_t"]  = &name##_t;  \
-            fields[#name "_r"]  = &name##_r;  \
-            fields[#name "_a"]  = &name##_a
-
-    #define RK4_ARRAY_CREATE(name) \
-            arr_t name##_p; arr_t name##_K1; \
-            arr_t name##_K2; arr_t name##_K3; \
-            arr_t name##_t; arr_t name##_r; \
-            arr_t &name##_a = name##_p
-
-    #define RK4_ARRAY_ALLOC(name)                      \
-            name##_p.init(NX, NY, NZ);                 \
-            name##_K1.init(WEDGE_SLICE_1_LEN, NY, NZ); \
-            name##_K2.init(WEDGE_SLICE_2_LEN, NY, NZ); \
-            name##_K3.init(WEDGE_SLICE_3_LEN, NY, NZ); \
-            name##_t.init(WEDGE_TAIL_LEN, NY, NZ);     \
-            name##_r.init(WEDGE_AFTER_LEN, NY, NZ)
-
-    #define RK4_ARRAY_DELETE(name)
-
-#else
-    // RK4 method, using 4 "registers".  One for the "_p"revious step data, one
-    // for the data being "_a"ctively used for calculation, one for the
-    // Runge-Kutta "_c"oefficient being calculated, and lastly the "_f"inal
-    // result of the calculation.
-     #define RK4_ARRAY_ADDMAP(name)          \
-            fields[#name "_a"] = &name##_a;  \
-            fields[#name "_c"] = &name##_c;  \
-            fields[#name "_p"] = &name##_p;  \
-            fields[#name "_f"] = &name##_f
-
-    #define RK4_ARRAY_CREATE(name) \
-            arr_t name##_a; arr_t name##_c; arr_t name##_p; arr_t name##_f
-
-    #define RK4_ARRAY_ALLOC(name) \
-            name##_a.init(NX, NY, NZ); \
-            name##_c.init(NX, NY, NZ); \
-            name##_p.init(NX, NY, NZ); \
-            name##_f.init(NX, NY, NZ)
-
-    #define RK4_ARRAY_DELETE(name)
-
+#if STENCIL_SUPPORT_POINTS > NX
+    #error "Grid in NX direction must be larger than stencil base!"
 #endif
+
+// RK4 method, using a single register by means of a "wedge" integrator.
+ #define RK4_ARRAY_ADDMAP(name)          \
+        fields[#name "_p"]  = &name##_p;  \
+        fields[#name "_K1"] = &name##_K1; \
+        fields[#name "_K2"] = &name##_K2; \
+        fields[#name "_K3"] = &name##_K3; \
+        fields[#name "_t"]  = &name##_t;  \
+        fields[#name "_r"]  = &name##_r;  \
+        fields[#name "_a"]  = &name##_a
+
+#define RK4_ARRAY_CREATE(name) \
+        arr_t name##_p; arr_t name##_K1; \
+        arr_t name##_K2; arr_t name##_K3; \
+        arr_t name##_t; arr_t name##_r; \
+        arr_t &name##_a = name##_p
+
+#define RK4_ARRAY_ALLOC(name)                      \
+        name##_p.init(NX, NY, NZ);                 \
+        name##_K1.init(WEDGE_SLICE_1_LEN, NY, NZ); \
+        name##_K2.init(WEDGE_SLICE_2_LEN, NY, NZ); \
+        name##_K3.init(WEDGE_SLICE_3_LEN, NY, NZ); \
+        name##_t.init(WEDGE_TAIL_LEN, NY, NZ);     \
+        name##_r.init(WEDGE_AFTER_LEN, NY, NZ)
+
+#define RK4_ARRAY_DELETE(name)
 
 // A GEN1 method; just declares one register.
 // Sets up an "_a" (active) register.

@@ -9,10 +9,6 @@ BSSN::BSSN()
   BSSN_APPLY_TO_FIELDS(RK4_ARRAY_ALLOC)
   BSSN_APPLY_TO_FIELDS(RK4_ARRAY_ADDMAP)
 
-  // BSSN source fields
-  BSSN_APPLY_TO_SOURCES(GEN1_ARRAY_ALLOC)
-  BSSN_APPLY_TO_SOURCES(GEN1_ARRAY_ADDMAP)
-
   // any additional arrays for calcuated quantities
   BSSN_APPLY_TO_GEN1_EXTRAS(GEN1_ARRAY_ALLOC)
   BSSN_APPLY_TO_GEN1_EXTRAS(GEN1_ARRAY_ADDMAP)
@@ -24,145 +20,8 @@ BSSN::BSSN()
 BSSN::~BSSN()
 {
   BSSN_APPLY_TO_FIELDS(RK4_ARRAY_DELETE)
-  BSSN_APPLY_TO_SOURCES(GEN1_ARRAY_DELETE)
   BSSN_APPLY_TO_GEN1_EXTRAS(GEN1_ARRAY_DELETE)
 }
-
-
-/*
-******************************************************************************
-Functionality for "usual" RK4 integrator using 4 registers
-******************************************************************************
-*/
-#if !USE_WEDGE_INTEGRATOR
-
-// Full RK step (More useful when not evolving the source simultaneously)
-void BSSN::step(BSSNData *paq)
-{
-  stepInit();
-  K1Calc();
-  K2Calc();
-  K3Calc();
-  K4Calc();
-  stepTerm();
-  // done!
-}
-
-void BSSN::regSwap_c_a()
-{
-  BSSN_SWAP_ARRAYS(_c, _a);
-  #if NORMALIZE_GAMMAIJ_AIJ
-    set_DIFFgamma_Aij_norm(); // norms _a register
-  #endif
-}
-
-// Init _a register with _p values, _f with 0
-void BSSN::stepInit()
-{
-  BSSN_COPY_ARRAYS(_p, _a);
-  #if NORMALIZE_GAMMAIJ_AIJ
-    set_DIFFgamma_Aij_norm(); // norms _a register
-    BSSN_COPY_ARRAYS(_a, _p);
-  #endif
-  idx_t i, j, k;
-  PARALLEL_LOOP3(i, j, k)
-  {
-    idx_t idx = NP_INDEX(i, j, k);
-    BSSN_ZERO_ARRAYS(_f, idx);
-  }
-}
-
-
-// First RK step: calculate and add k_1 coeff to _f array
-void BSSN::K1Calc()
-{
-  BSSN_RK_PERFORM_KN_CALC(1);
-  BSSN_SWAP_ARRAYS(_c, _a);
-  frw->P1_step(dt);
-}
-void BSSN::K1CalcPt(idx_t i, idx_t j, idx_t k, BSSNData *paq)
-{
-  set_paq_values(i, j, k, paq);
-
-  // evolve fields: arr_c = arr_p + dt/2*k_1
-    // arr_c[idx] = arr_p[idx] + dt/2.0*evfn(arr_a);
-    BSSN_COMPUTE_RK_STEP(0.5);
-
-  // add computation to _f array: arr_f = arr_p + dt/2*k_1
-    // arr_f += arr_c
-    BSSN_ADD_C_TO_F(1.0);
-}
-
-
-// Calculate k_2 coeff (using k_1 values now in _a register)
-// and add to _f array
-void BSSN::K2Calc()
-{
-  BSSN_RK_PERFORM_KN_CALC(2);
-  BSSN_SWAP_ARRAYS(_c, _a);
-  frw->P2_step(dt);
-}
-void BSSN::K2CalcPt(idx_t i, idx_t j, idx_t k, BSSNData *paq)
-{
-  set_paq_values(i, j, k, paq);
-
-  // evolve fields: arr_c = arr_p + dt/2*k_2
-    // arr_c[idx] = arr_p[idx] + dt/2.0*evfn(arr_a);
-    BSSN_COMPUTE_RK_STEP(0.5);
-
-  // add computation to _f array: arr_f = 3*arr_p + dt/2*(k_1 + 2*k_2)
-    // arr_f += 2.0*arr_c
-    BSSN_ADD_C_TO_F(2.0);
-}
-
-
-// Calculate k_3 coeff (using k_2 values now in _a register)
-// and add to _f array
-void BSSN::K3Calc()
-{
-  BSSN_RK_PERFORM_KN_CALC(3);
-  BSSN_SWAP_ARRAYS(_c, _a);
-  frw->P3_step(dt);
-}
-void BSSN::K3CalcPt(idx_t i, idx_t j, idx_t k, BSSNData *paq)
-{
-  set_paq_values(i, j, k, paq);
-
-  // evolve fields: arr_c = arr_p + dt*k_3
-    // arr_c[idx] = arr_p[idx] + dt*evfn(arr_a);
-    BSSN_COMPUTE_RK_STEP(1.0);
-
-  // add computation to _f array: arr_f = 4*arr_p + dt/2*(k_1 + 2*k_2 + 2*k_3)
-    // arr_f += arr_c
-    BSSN_ADD_C_TO_F(1.0);
-}
-
-
-// Add in k_4 contribution to _f register,
-// and "weight" the final calculation correctly:
-void BSSN::K4Calc()
-{
-  BSSN_RK_PERFORM_KN_CALC(4);
-  frw->RK_total_step(dt);
-}
-void BSSN::K4CalcPt(idx_t i, idx_t j, idx_t k, BSSNData *paq)
-{
-  set_paq_values(i, j, k, paq);
-
-  // evolve fields and add to _f register:
-  // arr_f = arr_p + dt/6*(k_1 + 2*k_2 + 2*k_3 + k_4)
-  //       = (1.0/3.0)*(arr_f - arr_p) + (dt/6.0)*evfn(arr_a)
-  BSSN_FINAL_RK4_STEP();
-}
-
-
-// arr_f register now holds "final" calculation; move back to _p register:
-// swap _f <-> _p
-void BSSN::stepTerm()
-{
-  BSSN_SWAP_ARRAYS(_f, _p);
-}
-
 
 /*
 ******************************************************************************
@@ -188,7 +47,6 @@ Integration procedure outline:
 
 ******************************************************************************
 */
-#else
 
 void BSSN::stepInit()
 {
@@ -249,14 +107,12 @@ void BSSN::WedgeStep()
 void BSSN::WedgeK1Calc(idx_t i_p, idx_t i_K1)
 {
   idx_t j, k;
-
   PARALLEL_AREA_LOOP(j,k)
   {
     BSSNData paq = {0};
     set_paq_values(i_p, j, k, &paq);
     BSSN_COMPUTE_WEDGE_STEP_K1();
   }
-
   BSSN_ASSIGN_TO_A_REGISTER(_K1);
   frw->P1_step(dt);
 }
@@ -306,7 +162,7 @@ void BSSN::WedgeTailCalc(idx_t i_p, idx_t i_K1, idx_t i_K2, idx_t i_K3, idx_t i_
   }
 }
 
-#endif
+
 /*
 ******************************************************************************
 Functionality for setting/calculating data values
@@ -318,12 +174,12 @@ void BSSN::set_gammai_values(idx_t i, idx_t j, idx_t k, BSSNData *paq)
   // Compute the inverse metric algebraically at each point
   // assumes det(gamma) = 1
   idx_t idx = NP_INDEX(i,j,k);
-  paq->gammai11 = 1.0 + DIFFgamma22_a[idx] + DIFFgamma33_a[idx] - pw2(DIFFgamma23_a[idx]) + DIFFgamma22_a[idx]*DIFFgamma33_a[idx];
-  paq->gammai22 = 1.0 + DIFFgamma11_a[idx] + DIFFgamma33_a[idx] - pw2(DIFFgamma13_a[idx]) + DIFFgamma11_a[idx]*DIFFgamma33_a[idx];
-  paq->gammai33 = 1.0 + DIFFgamma11_a[idx] + DIFFgamma22_a[idx] - pw2(DIFFgamma12_a[idx]) + DIFFgamma11_a[idx]*DIFFgamma22_a[idx];
-  paq->gammai12 = DIFFgamma13_a[idx]*DIFFgamma23_a[idx] - DIFFgamma12_a[idx]*(1.0 + DIFFgamma33_a[idx]);
-  paq->gammai13 = DIFFgamma12_a[idx]*DIFFgamma23_a[idx] - DIFFgamma13_a[idx]*(1.0 + DIFFgamma22_a[idx]);
-  paq->gammai23 = DIFFgamma12_a[idx]*DIFFgamma13_a[idx] - DIFFgamma23_a[idx]*(1.0 + DIFFgamma11_a[idx]);
+  paq->gammai11 = 1.0 + paq->DIFFgamma22 + paq->DIFFgamma33 - pw2(paq->DIFFgamma23) + paq->DIFFgamma22*paq->DIFFgamma33;
+  paq->gammai22 = 1.0 + paq->DIFFgamma11 + paq->DIFFgamma33 - pw2(paq->DIFFgamma13) + paq->DIFFgamma11*paq->DIFFgamma33;
+  paq->gammai33 = 1.0 + paq->DIFFgamma11 + paq->DIFFgamma22 - pw2(paq->DIFFgamma12) + paq->DIFFgamma11*paq->DIFFgamma22;
+  paq->gammai12 = paq->DIFFgamma13*paq->DIFFgamma23 - paq->DIFFgamma12*(1.0 + paq->DIFFgamma33);
+  paq->gammai13 = paq->DIFFgamma12*paq->DIFFgamma23 - paq->DIFFgamma13*(1.0 + paq->DIFFgamma22);
+  paq->gammai23 = paq->DIFFgamma12*paq->DIFFgamma13 - paq->DIFFgamma23*(1.0 + paq->DIFFgamma11);
 }
 
 void BSSN::set_DIFFgamma_Aij_norm()
@@ -419,8 +275,7 @@ void BSSN::set_paq_values(idx_t i, idx_t j, idx_t k, BSSNData *paq)
   paq->gamma22  =   paq->DIFFgamma22 + 1.0;
   paq->gamma23  =   paq->DIFFgamma23;
   paq->gamma33  =   paq->DIFFgamma33 + 1.0;
-  paq->r        =   paq->DIFFr + paq->rho_FRW;
-  paq->S        =   paq->DIFFS + paq->S_FRW;
+  paq->r        =   paq->DIFFdustrho + paq->rho_FRW;
   paq->alpha    =   paq->DIFFalpha + 1.0;
 
   // pre-compute re-used quantities
@@ -449,16 +304,6 @@ void BSSN::set_paq_values(idx_t i, idx_t j, idx_t k, BSSNData *paq)
   paq->H = hamiltonianConstraintCalc(paq->idx);
 }
 
-void BSSN::clearSrc()
-{
-  idx_t i, j, k;
-  PARALLEL_LOOP3(i, j, k)
-  {
-    idx_t idx = NP_INDEX(i,j,k);
-    BSSN_ZERO_SOURCES()
-  }
-}
-
 void BSSN::init()
 {
   idx_t idx;
@@ -467,19 +312,8 @@ void BSSN::init()
   PARALLEL_LOOP3(i, j, k)
   {
     idx = NP_INDEX(i,j,k);
-
-    #if USE_WEDGE_INTEGRATOR
-      BSSN_ZERO_ARRAYS(_a, idx)
-    #else
-      // default flat static vacuum spacetime.
-      BSSN_ZERO_ARRAYS(_p, idx)
-      BSSN_ZERO_ARRAYS(_a, idx)
-      BSSN_ZERO_ARRAYS(_c, idx)
-      BSSN_ZERO_ARRAYS(_f, idx)
-    #endif
-
+    BSSN_ZERO_ARRAYS(_a, idx)
     BSSN_ZERO_GEN1_EXTRAS()
-    BSSN_ZERO_SOURCES()
   }
 }
 
@@ -489,7 +323,6 @@ void BSSN::set_local_vals(BSSNData *paq)
   // Pull out values of quantities at a single point
   BSSN_APPLY_TO_FIELDS(SET_LOCAL_VALUES);
   BSSN_APPLY_TO_GEN1_EXTRAS(SET_LOCAL_VALUES);
-  BSSN_APPLY_TO_SOURCES(SET_LOCAL_VALUES);
 }
 
 
@@ -772,7 +605,7 @@ real_t BSSN::ev_DIFFK(BSSNData *paq)
         paq->AijAij
         + 1.0/3.0*(paq->DIFFK + 2.0*paq->theta)*(paq->DIFFK + 2.0*paq->theta + 2.0*paq->K_FRW)
     )
-    + 4.0*PI*paq->alpha*(paq->DIFFr + paq->DIFFS)
+    + 4.0*PI*paq->alpha*(paq->DIFFdustrho)
     - paq->DIFFalpha*(
         1.0/3.0*pw2(paq->K_FRW)
         + 4.0*PI*(paq->rho_FRW + paq->S_FRW)
@@ -811,12 +644,18 @@ real_t BSSN::ev_DIFFalpha(BSSNData *paq)
   return 0.0;
 }
 
+real_t BSSN::ev_DIFFdustrho(BSSNData *paq)
+{
+  /* TODO: fix */
+  return paq->K*paq->DIFFdustrho;
+}
+
 #if USE_Z4c_DAMPING
 real_t BSSN::ev_theta(BSSNData *paq)
 {
   return (
     0.5*paq->alpha*(
-      paq->ricci + 2.0/3.0*pw2(paq->K + 2.0*paq->theta) - paq->AijAij - 16.0*PI*( paq->r )
+      paq->ricci + 2.0/3.0*pw2(paq->K + 2.0*paq->theta) - paq->AijAij - 16.0*PI*( paq->DIFFdustrho + paq->rho_FRW )
     )
     - paq->alpha*Z4c_K1_DAMPING_AMPLITUDE*(2.0 + Z4c_K2_DAMPING_AMPLITUDE)*paq->theta
   ) - KO_dissipation_Q(paq->i, paq->j, paq->k, &theta_a);
@@ -938,11 +777,11 @@ real_t BSSN::hamiltonianConstraintCalc(idx_t idx)
     real_t phi_FRW = frw->get_phi();
     real_t rho_FRW = frw->get_rho();
     return -exp(5.0*(DIFFphi_a[idx] + phi_FRW))/8.0*(
-      ricci_a[idx] + 2.0/3.0*pw2(K_FRW + DIFFK_a[idx] + 2.0*theta) - AijAij_a[idx] - 16.0*PI*(DIFFr_a[idx] + rho_FRW)
+      ricci_a[idx] + 2.0/3.0*pw2(K_FRW + DIFFK_a[idx] + 2.0*theta) - AijAij_a[idx] - 16.0*PI*(DIFFdustrho_a[idx] + rho_FRW)
     );
   #else
     return -exp(5.0*DIFFphi_a[idx])/8.0*(
-      ricci_a[idx] + 2.0/3.0*pw2(DIFFK_a[idx] + 2.0*theta) - AijAij_a[idx] - 16.0*PI*DIFFr_a[idx]
+      ricci_a[idx] + 2.0/3.0*pw2(DIFFK_a[idx] + 2.0*theta) - AijAij_a[idx] - 16.0*PI*DIFFdustrho_a[idx]
     );
   #endif
 }
@@ -961,7 +800,7 @@ real_t BSSN::hamiltonianConstraintScale(idx_t idx)
 
   // sqrt sum of sq. of terms for appx. mag / scale
   return (exp(5.0*(DIFFphi_a[idx] + phi_FRW))/8.0)*
-    sqrt( pw2(ricci_a[idx]) + pw2(AijAij_a[idx]) + pw2(2.0/3.0*pw2(K_FRW + DIFFK_a[idx] + 2.0*theta)) + pw2(16.0*PI*(DIFFr_a[idx] + rho_FRW))
+    sqrt( pw2(ricci_a[idx]) + pw2(AijAij_a[idx]) + pw2(2.0/3.0*pw2(K_FRW + DIFFK_a[idx] + 2.0*theta)) + pw2(16.0*PI*(DIFFdustrho_a[idx] + rho_FRW))
   );
 }
 
