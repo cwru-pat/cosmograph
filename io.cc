@@ -67,6 +67,15 @@ void io_init(IOData *iodata, std::string output_dir)
   LOG(iodata->log, "Running with dt = " << dt << "\n");
   LOG(iodata->log, "Running with dx = " << dx << "\n");
 
+  LOG(iodata->log, "Wedge parameters:\n");
+  LOG(iodata->log, "  STENCIL_SUPPORT_POINTS = " << STENCIL_SUPPORT_POINTS << "\n");
+  LOG(iodata->log, "  WEDGE_SLICE_LEN_DIFF = " << WEDGE_SLICE_LEN_DIFF << "\n");
+  LOG(iodata->log, "  WEDGE_SLICE_1_LEN = " << WEDGE_SLICE_1_LEN << "\n");
+  LOG(iodata->log, "  WEDGE_SLICE_2_LEN = " << WEDGE_SLICE_2_LEN << "\n");
+  LOG(iodata->log, "  WEDGE_SLICE_3_LEN = " << WEDGE_SLICE_3_LEN << "\n");
+  LOG(iodata->log, "  WEDGE_TAIL_LEN = " << WEDGE_TAIL_LEN << "\n");
+  LOG(iodata->log, "  WEDGE_AFTER_LEN = " << WEDGE_AFTER_LEN << "\n");
+
   LOG(iodata->log, "Other parameters: \n");
   LOG(iodata->log, "  H_LEN_FRAC = " << H_LEN_FRAC << "\n");
   LOG(iodata->log, "  USE_REFERENCE_FRW = " << USE_REFERENCE_FRW << "\n");
@@ -96,30 +105,30 @@ void io_data_dump(std::map <std::string, arr_t *> & bssn_fields,
 {
   if(step % iodata->slice_output_interval == 0)
   {
-    // io_dump_2dslice(bssn_fields["DIFFK_a"], "DIFFK_slice." + std::to_string(step), iodata);
-    // io_dump_2dslice(bssn_fields["DIFFphi_a"], "DIFFphi_slice." + std::to_string(step), iodata);
-    // io_dump_2dslice(bssn_fields["DIFFgamma11_a"], "DIFFgamma11." + std::to_string(step), iodata);
+    // io_dump_2dslice(bssn_fields["DIFFK_p"], "DIFFK_slice." + std::to_string(step), iodata);
+    // io_dump_2dslice(bssn_fields["DIFFphi_p"], "DIFFphi_slice." + std::to_string(step), iodata);
+    // io_dump_2dslice(bssn_fields["DIFFgamma11_p"], "DIFFgamma11." + std::to_string(step), iodata);
   }
   if(step % iodata->grid_output_interval == 0)
   {
-    // io_dump_3dslice(bssn_fields["DIFFgamma11_a"], "DIFFgamma11." + std::to_string(step), iodata);
-    // io_dump_3dslice(bssn_fields["DIFFgamma12_a"], "DIFFgamma12." + std::to_string(step), iodata);
-    // io_dump_3dslice(bssn_fields["DIFFgamma13_a"], "DIFFgamma13." + std::to_string(step), iodata);
-    // io_dump_3dslice(bssn_fields["DIFFgamma22_a"], "DIFFgamma22." + std::to_string(step), iodata);
-    // io_dump_3dslice(bssn_fields["DIFFgamma23_a"], "DIFFgamma23." + std::to_string(step), iodata);
-    // io_dump_3dslice(bssn_fields["DIFFgamma33_a"], "DIFFgamma33." + std::to_string(step), iodata);
-    // io_dump_3dslice(bssn_fields["DIFFphi_a"],     "DIFFphi."     + std::to_string(step), iodata);
-    // io_dump_3dslice(bssn_fields["DIFFK_a"],       "DIFFK."       + std::to_string(step), iodata);
+    // io_dump_3dslice(bssn_fields["DIFFgamma11_p"], "DIFFgamma11." + std::to_string(step), iodata);
+    // io_dump_3dslice(bssn_fields["DIFFgamma12_p"], "DIFFgamma12." + std::to_string(step), iodata);
+    // io_dump_3dslice(bssn_fields["DIFFgamma13_p"], "DIFFgamma13." + std::to_string(step), iodata);
+    // io_dump_3dslice(bssn_fields["DIFFgamma22_p"], "DIFFgamma22." + std::to_string(step), iodata);
+    // io_dump_3dslice(bssn_fields["DIFFgamma23_p"], "DIFFgamma23." + std::to_string(step), iodata);
+    // io_dump_3dslice(bssn_fields["DIFFgamma33_p"], "DIFFgamma33." + std::to_string(step), iodata);
+    // io_dump_3dslice(bssn_fields["DIFFphi_p"],     "DIFFphi."     + std::to_string(step), iodata);
+    // io_dump_3dslice(bssn_fields["DIFFK_p"],       "DIFFK."       + std::to_string(step), iodata);
+
     // io_dump_3dslice(bssn_fields["ricci_a"],   "ricci."   + std::to_string(step), iodata);
     // io_dump_3dslice(bssn_fields["AijAij_a"],  "AijAij."  + std::to_string(step), iodata);
-
-    // io_dump_3dslice(bssn_fields["KDx_a"],     "KDx_a."   + std::to_string(step), iodata);
-    // io_dump_3dslice(bssn_fields["KDy_a"],     "KDy_a."   + std::to_string(step), iodata);
-    // io_dump_3dslice(bssn_fields["KDz_a"],     "KDz_a."   + std::to_string(step), iodata);
+    // io_dump_3dslice(bssn_fields["KDx_a"],     "KDx_p."   + std::to_string(step), iodata);
+    // io_dump_3dslice(bssn_fields["KDy_a"],     "KDy_p."   + std::to_string(step), iodata);
+    // io_dump_3dslice(bssn_fields["KDz_a"],     "KDz_p."   + std::to_string(step), iodata);
   }
   if(step % iodata->spec_output_interval == 0)
   {
-    // fourier->powerDump(bssn_fields["DIFFphi_a"], iodata);
+    // fourier->powerDump(bssn_fields["DIFFphi_p"], iodata);
   }
   if(step % iodata->meta_output_interval == 0)
   {
@@ -327,9 +336,8 @@ void io_dump_statistics(std::map <std::string, arr_t *> & bssn_fields,
   // ricci output
   DETAILS(ricci)
   // average volume
-  sprintf(data, "%.15g\t", (double) volume_average(bssn_fields["DIFFphi_a"], phi_FRW));
+  sprintf(data, "%.15g\t", (double) volume_average(bssn_fields["DIFFphi_p"], phi_FRW));
   gzwrite(datafile, data, strlen(data));
-
   gzwrite(datafile, "\n", strlen("\n"));
   gzclose(datafile);
 }

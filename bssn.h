@@ -35,10 +35,12 @@ public:
 
     void stepInit();
     void WedgeStep();
-    void WedgeK1Calc(idx_t i_p, idx_t idx_K1);
-    void WedgeK2Calc(idx_t idx_p, idx_t i_K1, idx_t idx_K2);
-    void WedgeK3Calc(idx_t idx_p, idx_t i_K2, idx_t idx_K3);
-    void WedgeTailCalc(idx_t idx_p, idx_t idx_K1, idx_t idx_K2, idx_t i_K3, idx_t idx_tail);
+    void WedgeK1Calc(idx_t i_K1);
+    void WedgeK2Calc(idx_t i_K2);
+    void WedgeK3Calc(idx_t i_K3);
+    void WedgeTailCalc(idx_t i_tail);
+
+    void DrawWedgeSlice(idx_t i_p, idx_t i_K1, idx_t i_K2, idx_t i_K3, idx_t i_tail);
 
   /* calculating quantities during an RK step */
     void set_paq_values(idx_t i, idx_t j, idx_t k, BSSNData *paq);
@@ -111,6 +113,7 @@ public:
   /* constraint violation calculations */
     void setHamiltonianConstraintCalcs(real_t H_values[7], bool reset_paq);
     real_t hamiltonianConstraintCalc(idx_t idx);
+    real_t hamiltonianConstraintCalc(BSSNData *paq);
     real_t hamiltonianConstraintScale(idx_t idx);
 
     void setMomentumConstraintCalcs(real_t M_values[7]);

@@ -31,8 +31,8 @@
 #define NORMALIZE_GAMMAIJ_AIJ true
 
 // Numerical Error Damping strength parameters
-#define KO_ETA 1.0
-#define BS_H_DAMPING_AMPLITUDE 1.0
+#define KO_ETA 0.0
+#define BS_H_DAMPING_AMPLITUDE 0.0
 #define JM_K_DAMPING_AMPLITUDE 0.0
 
 #define USE_Z4c_DAMPING false
@@ -46,7 +46,6 @@
 
 #define USE_CONFORMAL_SYNC_ALPHA false
 #define USE_HARMONIC_ALPHA false
-
 #define USE_BSSN_SHIFT false
 
 // Stencil order
@@ -117,8 +116,10 @@
 #define WEDGE_SLICE_2_LEN ( 2*STENCIL_SUPPORT_POINTS - 1 )
 #define WEDGE_SLICE_3_LEN ( STENCIL_SUPPORT_POINTS )
 
-#define WEDGE_TAIL_LEN  ((3*STENCIL_SUPPORT_POINTS + 1)/2)
-#define WEDGE_AFTER_LEN (3*(STENCIL_SUPPORT_POINTS - 1)/2)
+#define WEDGE_TAIL_LEN (4*WEDGE_SLICE_LEN_DIFF/2 + 1)
+#define WEDGE_AFTER_LEN (4*WEDGE_SLICE_LEN_DIFF/2)
+#define WEDGE_AFTER_START_IDX ( (WEDGE_SLICE_1_LEN - 1)/2 )
+#define WEDGE_AFTER_END_IDX ( WEDGE_AFTER_START_IDX + WEDGE_AFTER_LEN-1 )
 
 #if STENCIL_SUPPORT_POINTS > NX
     #error "Grid in NX direction must be larger than stencil base!"
@@ -138,15 +139,16 @@
         arr_t name##_p; arr_t name##_K1; \
         arr_t name##_K2; arr_t name##_K3; \
         arr_t name##_t; arr_t name##_r; \
-        arr_t &name##_a = name##_p
+        arr_t name##_a
 
 #define RK4_ARRAY_ALLOC(name)                      \
-        name##_p.init(NX, NY, NZ);                 \
-        name##_K1.init(WEDGE_SLICE_1_LEN, NY, NZ); \
-        name##_K2.init(WEDGE_SLICE_2_LEN, NY, NZ); \
-        name##_K3.init(WEDGE_SLICE_3_LEN, NY, NZ); \
-        name##_t.init(WEDGE_TAIL_LEN, NY, NZ);     \
-        name##_r.init(WEDGE_AFTER_LEN, NY, NZ)
+        name##_p.init(NX, NY, NZ);                 name##_p.setName(#name "_p"); \
+        name##_K1.init(WEDGE_SLICE_1_LEN, NY, NZ); name##_K1.setName(#name "_K1"); \
+        name##_K2.init(WEDGE_SLICE_2_LEN, NY, NZ); name##_K2.setName(#name "_K2"); \
+        name##_K3.init(WEDGE_SLICE_3_LEN, NY, NZ); name##_K3.setName(#name "_K3"); \
+        name##_t.init(WEDGE_TAIL_LEN, NY, NZ);     name##_t.setName(#name "_t"); \
+        name##_r.init(WEDGE_AFTER_LEN, NY, NZ);    name##_r.setName(#name "_r"); \
+        name##_a = name##_p
 
 #define RK4_ARRAY_DELETE(name)
 

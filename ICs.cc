@@ -119,9 +119,8 @@ void set_conformal_ICs(
   idx_t i, j, k;
   real_t px, py, pz, p2;
 
-  real_t * const DIFFphi_a = bssn_fields["DIFFphi_a"]->_array;
   real_t * const DIFFphi_p = bssn_fields["DIFFphi_p"]->_array;
-  real_t * const DIFFdustrho_a = bssn_fields["DIFFdustrho_a"]->_array;
+  real_t * const DIFFdustrho_p = bssn_fields["DIFFdustrho_p"]->_array;
 
   ICsData icd = cosmo_get_ICsData();
   LOG(iod->log, "Generating ICs with peak at k = " << icd.peak_k << "\n");
@@ -132,22 +131,22 @@ void set_conformal_ICs(
   // generate gaussian random field xi = exp(phi) (use phi_p as a proxy):
   set_gaussian_random_field(DIFFphi_p, fourier, &icd);
 
-  // rho = -lap(phi)/xi^5/2pi
-  LOOP3(i,j,k) {
-    DIFFdustrho_a[INDEX(i,j,k)] = -0.5/PI/(
-      pow(1.0 + DIFFphi_p[INDEX(i,j,k)], 5.0)
-    )*(
-      double_derivative(i, j, k, 1, 1, bssn_fields["DIFFphi_p"])
-      + double_derivative(i, j, k, 2, 2, bssn_fields["DIFFphi_p"])
-      + double_derivative(i, j, k, 3, 3, bssn_fields["DIFFphi_p"])
-    );
-  }
-
   // phi = ln(xi)
   LOOP3(i,j,k) {
     idx_t idx = NP_INDEX(i,j,k);
-    DIFFphi_a[idx] = log1p(DIFFphi_p[idx]);
-    DIFFphi_p[idx] = DIFFphi_a[idx];
+    DIFFphi_p[idx] = log1p(DIFFphi_p[idx]);
+  }
+
+  // rho = -lap(phi)/xi^5/2pi
+  LOOP3(i,j,k) {
+    DIFFdustrho_p[INDEX(i,j,k)] = -0.5/PI*exp(-4.0*DIFFphi_p[INDEX(i,j,k)])*(
+      double_derivative(i, j, k, 1, 1, bssn_fields["DIFFphi_p"])
+      + double_derivative(i, j, k, 2, 2, bssn_fields["DIFFphi_p"])
+      + double_derivative(i, j, k, 3, 3, bssn_fields["DIFFphi_p"])
+      + pw2(derivative(i, j, k, 1, bssn_fields["DIFFphi_p"]))
+      + pw2(derivative(i, j, k, 2, bssn_fields["DIFFphi_p"]))
+      + pw2(derivative(i, j, k, 3, bssn_fields["DIFFphi_p"]))
+    );
   }
 
   // Make sure min density value > 0
@@ -158,15 +157,12 @@ void set_conformal_ICs(
   {
     idx_t idx = NP_INDEX(i,j,k);
     real_t rho_FRW = icd.rho_K_matter;
-    real_t DIFFdustrho = DIFFdustrho_a[idx];
+    real_t DIFFdustrho = DIFFdustrho_p[idx];
     real_t rho = rho_FRW + DIFFdustrho;
     // phi_FRW = 0
-    real_t DIFFphi = DIFFphi_a[idx];
+    real_t DIFFphi = DIFFphi_p[idx];
     // phi = DIFFphi
     // DIFFK = 0
-
-    DIFFdustrho_a[idx] =
-      rho_FRW*expm1(6.0*DIFFphi) + exp(6.0*DIFFphi)*DIFFdustrho;
 
     if(rho < min)
     {
@@ -185,8 +181,8 @@ void set_conformal_ICs(
 
   LOG(iod->log, "Minimum fluid conservative conformal density: " << min << "\n");
   LOG(iod->log, "Maximum fluid conservative conformal density: " << max << "\n");
-  LOG(iod->log, "Average fluctuation density: " << average(bssn_fields["DIFFdustrho_a"]) << "\n");
-  LOG(iod->log, "Std.dev fluctuation density: " << standard_deviation(bssn_fields["DIFFdustrho_a"]) << "\n");
+  LOG(iod->log, "Average fluctuation density: " << average(bssn_fields["DIFFdustrho_p"]) << "\n");
+  LOG(iod->log, "Std.dev fluctuation density: " << standard_deviation(bssn_fields["DIFFdustrho_p"]) << "\n");
   if(min < 0.0) {
     LOG(iod->log, "Error: negative density in some regions.\n");
     throw -1;
@@ -211,12 +207,8 @@ void set_conformal_ICs(
       real_t rho_FRW = icd.rho_K_matter;
       real_t D_FRW = rho_FRW; // on initial slice
 
-      DIFFdustrho_a[idx] += rho_FRW;
-
-      bssn_fields["DIFFK_a"]->_array[idx] = -sqrt(24.0*PI*rho_FRW);
+      DIFFdustrho_p[idx] += rho_FRW;
       bssn_fields["DIFFK_p"]->_array[idx] = -sqrt(24.0*PI*rho_FRW);
-
-      DIFFdustrho_a[idx] += D_FRW;
     }
   #endif
 
@@ -330,20 +322,9 @@ void set_linear_wave_ICs(
   LOOP3(i,j,k)
   {
     bssn_fields["DIFFgamma22_p"]->_array[NP_INDEX(i,j,k)] = 1.0e-8*sin( 2.0*PI*((real_t) i)*dx );
-    bssn_fields["DIFFgamma22_a"]->_array[NP_INDEX(i,j,k)] = bssn_fields["DIFFgamma22_p"]->_array[NP_INDEX(i,j,k)];
-    bssn_fields["DIFFgamma22_f"]->_array[NP_INDEX(i,j,k)] = bssn_fields["DIFFgamma22_p"]->_array[NP_INDEX(i,j,k)];
-
     bssn_fields["DIFFgamma33_p"]->_array[NP_INDEX(i,j,k)] = -1.0e-8*sin( 2.0*PI*((real_t) i)*dx );
-    bssn_fields["DIFFgamma33_a"]->_array[NP_INDEX(i,j,k)] = bssn_fields["DIFFgamma33_p"]->_array[NP_INDEX(i,j,k)];
-    bssn_fields["DIFFgamma33_f"]->_array[NP_INDEX(i,j,k)] = bssn_fields["DIFFgamma33_p"]->_array[NP_INDEX(i,j,k)];
-
     bssn_fields["A22_p"]->_array[NP_INDEX(i,j,k)] = PI*1.0e-8*cos( 2.0*PI*((real_t) i)*dx );
-    bssn_fields["A22_a"]->_array[NP_INDEX(i,j,k)] = bssn_fields["A22_p"]->_array[NP_INDEX(i,j,k)];
-    bssn_fields["A22_f"]->_array[NP_INDEX(i,j,k)] = bssn_fields["A22_p"]->_array[NP_INDEX(i,j,k)];
-
     bssn_fields["A33_p"]->_array[NP_INDEX(i,j,k)] = -PI*1.0e-8*cos( 2.0*PI*((real_t) i)*dx );
-    bssn_fields["A33_a"]->_array[NP_INDEX(i,j,k)] = bssn_fields["A33_p"]->_array[NP_INDEX(i,j,k)];
-    bssn_fields["A33_f"]->_array[NP_INDEX(i,j,k)] = bssn_fields["A33_p"]->_array[NP_INDEX(i,j,k)];
 
     // FRW Background parameters
     // real_t rho = D_MATTER; // phi = 0

@@ -48,6 +48,7 @@
   function(Gamma2, __VA_ARGS__);                   \
   function(Gamma3, __VA_ARGS__);                   \
   function(DIFFalpha, __VA_ARGS__);                \
+  function(DIFFdustrho, __VA_ARGS__);              \
   Z4c_APPLY_TO_FIELDS_ARGS(function, __VA_ARGS__)  \
   BSSN_APPLY_TO_SHIFT_ARGS(function, __VA_ARGS__)
 
@@ -192,16 +193,15 @@
 
 
 #define BSSN_ASSIGN_TO_A_REGISTER_FIELD(field, reg) \
- /*  field##_a = std::ref(field##reg); */
+  field##_a = field##reg;
 
 #define BSSN_ASSIGN_TO_A_REGISTER(reg) \
   BSSN_APPLY_TO_FIELDS_ARGS(BSSN_ASSIGN_TO_A_REGISTER_FIELD, reg)
 
 
-
 // arr_K1[idx] = arr_p[idx] + dt/2*evfn(arr_a); (arr_a = arr_p)
 #define BSSN_COMPUTE_WEDGE_STEP_K1_FIELD(field) \
-  field##_K1(i_K1, j, k) = field##_p(i_p, j, k) + dt/2.0*ev_##field(&paq);
+  field##_K1(i_K1, j, k) = field##_p(i_K1, j, k) + dt/2.0*ev_##field(&paq);
 
 #define BSSN_COMPUTE_WEDGE_STEP_K1() \
   BSSN_APPLY_TO_FIELDS(BSSN_COMPUTE_WEDGE_STEP_K1_FIELD)
@@ -209,7 +209,7 @@
 
 // arr_K2[idx] = arr_p[idx] + dt/2*evfn(arr_a); (arr_a = arr_K1)
 #define BSSN_COMPUTE_WEDGE_STEP_K2_FIELD(field) \
-  field##_K2(i_K2, j, k) = field##_p(i_p, j, k) + dt/2.0*ev_##field(&paq);
+  field##_K2(i_K2, j, k) = field##_p(i_K2, j, k) + dt/2.0*ev_##field(&paq);
 
 #define BSSN_COMPUTE_WEDGE_STEP_K2() \
   BSSN_APPLY_TO_FIELDS(BSSN_COMPUTE_WEDGE_STEP_K2_FIELD)
@@ -217,17 +217,26 @@
 
 // arr_K3[idx] = arr_p[idx] + dt*evfn(arr_a); (arr_a = arr_K2)
 #define BSSN_COMPUTE_WEDGE_STEP_K3_FIELD(field) \
-  field##_K3(i_K3, j, k) = field##_p(i_p, j, k) + dt*ev_##field(&paq);
+  field##_K3(i_K3, j, k) = field##_p(i_K3, j, k) + dt*ev_##field(&paq);
 
 #define BSSN_COMPUTE_WEDGE_STEP_K3() \
   BSSN_APPLY_TO_FIELDS(BSSN_COMPUTE_WEDGE_STEP_K3_FIELD)
 
-
-// y_{n+1} = ( 2 y_n + y_{K1} + 2 y_{K2} + y_{K3} ) / 3 + h/6*f[y_{K3}]
+// y_K1 = y_p + dt/2*f(y_p)  |  K1 = f(y_p)   | dt*K1 = 2*(y_K1 - y_p)
+// y_K2 = y_p + dt/2*f(y_K1) |  K2 = f(y_K1)  | 2*dt*K2 = 4*(y_K2 - y_p)
+// y_K3 = y_p + dt*f(y_K2)   |  K3 = f(y_K2)  | 2*dt*K3 = 2*(y_K3 - y_p)
+//                           |  K4 = f(y_K3)
+// y_{n+1} = y_p + dt/6*( K1 + 2K2 + 2K3 + K4 )
+// y_{n+1} = y_p + 1/6*( 2*(y_K1 - y_p) + 4*(y_K2 - y_p) + 2*(y_K3 - y_p) + dt*f(y_K3) )
+// y_{n+1} = y_p + 1/6*( 2 y_K1 + 4y_K2 + 2y_K3 - 8y_p + dt*f(y_K3) )
+// y_{n+1} = ( y_K1 + 2y_K2 + y_K3 - y_p )/3 + dt/6*f(y_K3)
 #define BSSN_COMPUTE_WEDGE_STEP_TAIL_FIELD(field) \
-  field##_t(i_tail, j, k) = ( 2.0*field##_p(i_p, j, k) + field##_K1(i_K1, j, k) \
-                         + 2.0*field##_K2(i_K2, j, k) + field##_K3(i_K3, j, k) )/3.0 \
-                       + dt/6.0*ev_##field(&paq);
+  field##_t(i_tail, j, k) = ( \
+      field##_K1(i_tail, j, k) \
+      + 2.0*field##_K2(i_tail, j, k) \
+      + field##_K3(i_tail, j, k) \
+      -1.0*field##_p(i_tail, j, k) \
+    )/3.0 + dt/6.0*ev_##field(&paq);
 
 #define BSSN_COMPUTE_WEDGE_STEP_TAIL() \
   BSSN_APPLY_TO_FIELDS(BSSN_COMPUTE_WEDGE_STEP_TAIL_FIELD)
@@ -241,21 +250,35 @@
   BSSN_APPLY_TO_FIELDS(BSSN_STORE_AFTER_FIELD)
 
 
-// arr_p[idx] = arr_t[idx] (after = tail)
 #define BSSN_STORE_TAILEND_FIELD(field) \
-  field##_p(i - WEDGE_TAIL_LEN, j, k) = field##_t(i - WEDGE_TAIL_LEN, j, k);
+  field##_p(i_tail - (WEDGE_TAIL_LEN-1), j, k) = field##_t(i_tail - (WEDGE_TAIL_LEN-1), j, k);
 
 #define BSSN_STORE_TAILEND() \
   BSSN_APPLY_TO_FIELDS(BSSN_STORE_TAILEND_FIELD)
 
 
-
-// arr_p[idx] = arr_r[idx] (after = tail)
 #define BSSN_RE_STORE_AFTER_FIELD(field) \
   field##_p(i, j, k) = field##_r(i, j, k);
 
 #define BSSN_RE_STORE_AFTER() \
   BSSN_APPLY_TO_FIELDS(BSSN_RE_STORE_AFTER_FIELD)
+
+
+#define BSSN_RE_STORE_TAIL_FIELD(field) \
+  field##_p(i, j, k) = field##_t(i, j, k);
+
+#define BSSN_RE_STORE_TAIL() \
+  BSSN_APPLY_TO_FIELDS(BSSN_RE_STORE_TAIL_FIELD)
+
+
+#define BSSN_CLEAR_WEDGE_FRONT_FIELD(field) \
+  field##_K1(i_K1, j, k) = 0.0; \
+  field##_K2(i_K2, j, k) = 0.0; \
+  field##_K3(i_K3, j, k) = 0.0; \
+  field##_t(i_tail, j, k) = 0.0;
+
+#define BSSN_CLEAR_WEDGE_FRONT() \
+  BSSN_APPLY_TO_FIELDS(BSSN_CLEAR_WEDGE_FRONT_FIELD)
 
 
 /*
@@ -426,7 +449,7 @@
 #endif
 
 #define BSSN_MI(I) exp(6.0*paq->phi)*( \
-    - 2.0/3.0*derivative(paq->i, paq->j, paq->k, I, &DIFFK_a) \
+    - 2.0/3.0*paq->d##I##K \
     - 2.0/3.0*2.0*paq->d##I##theta \
     + 6.0*( \
       paq->gammai11*paq->A1##I*paq->d1phi + paq->gammai21*paq->A2##I*paq->d1phi + paq->gammai31*paq->A3##I*paq->d1phi \
@@ -445,7 +468,7 @@
   )
 
 #define BSSN_MI_SCALE(I) exp(6.0*paq->phi)*( \
-    fabs(2.0/3.0*derivative(paq->i, paq->j, paq->k, I, &DIFFK_a)) \
+    fabs(2.0/3.0*paq->d##I##K) \
     + 6.0*fabs( \
       paq->gammai11*paq->A1##I*paq->d1phi + paq->gammai21*paq->A2##I*paq->d1phi + paq->gammai31*paq->A3##I*paq->d1phi \
       + paq->gammai12*paq->A1##I*paq->d2phi + paq->gammai22*paq->A2##I*paq->d2phi + paq->gammai32*paq->A3##I*paq->d2phi \

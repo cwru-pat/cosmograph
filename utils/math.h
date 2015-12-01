@@ -139,43 +139,48 @@ inline real_t derivative_Odx6(idx_t i, idx_t j, idx_t k, int d,
 }
 
 inline real_t derivative_Odx8(idx_t i, idx_t j, idx_t k, int d,
-    arr_t *field)
+    arr_t *field_ref)
 {
-  switch (d) {
+  arr_t &field = *field_ref;
+
+switch (d) {
     case 1:
       return (
-        1.0/280.0*(*field)(i-4,j,k)
-        - 4.0/105.0*(*field)(i-3,j,k)
-        + 1.0/5.0*(*field)(i-2,j,k)
-        - 4.0/5.0*(*field)(i-1,j,k)
-        + 4.0/5.0*(*field)(i+1,j,k)
-        - 1.0/5.0*(*field)(i+2,j,k)
-        + 4.0/105.0*(*field)(i+3,j,k)
-        - 1.0/280.0*(*field)(i+4,j,k)
+        1.0/280.0*(
+          field(i-4,j,k) - field(i+4,j,k)
+        ) - 4.0/105.0*(
+          field(i-3,j,k) - field(i+3,j,k)
+        ) + 1.0/5.0*(
+          field(i-2,j,k) - field(i+2,j,k)
+        ) - 4.0/5.0*(
+          field(i-1,j,k) - field(i+1,j,k)
+        )
       )/dx;
       break;
     case 2:
       return (
-        1.0/280.0*(*field)(i,j-4,k)
-        - 4.0/105.0*(*field)(i,j-3,k)
-        + 1.0/5.0*(*field)(i,j-2,k)
-        - 4.0/5.0*(*field)(i,j-1,k)
-        + 4.0/5.0*(*field)(i,j+1,k)
-        - 1.0/5.0*(*field)(i,j+2,k)
-        + 4.0/105.0*(*field)(i,j+3,k)
-        - 1.0/280.0*(*field)(i,j+4,k)
+        1.0/280.0*(
+          field(i,j-4,k) - field(i,j+4,k)
+        ) - 4.0/105.0*(
+          field(i,j-3,k) - field(i,j+3,k)
+        ) + 1.0/5.0*(
+          field(i,j-2,k) - field(i,j+2,k)
+        ) - 4.0/5.0*(
+          field(i,j-1,k) - field(i,j+1,k)
+        )
       )/dx;
       break;
     case 3:
       return (
-        1.0/280.0*(*field)(i,j,k-4)
-        - 4.0/105.0*(*field)(i,j,k-3)
-        + 1.0/5.0*(*field)(i,j,k-2)
-        - 4.0/5.0*(*field)(i,j,k-1)
-        + 4.0/5.0*(*field)(i,j,k+1)
-        - 1.0/5.0*(*field)(i,j,k+2)
-        + 4.0/105.0*(*field)(i,j,k+3)
-        - 1.0/280.0*(*field)(i,j,k+4)
+        1.0/280.0*(
+          field(i,j,k-4) - field(i,j,k+4)
+        ) - 4.0/105.0*(
+          field(i,j,k-3) - field(i,j,k+3)
+        ) + 1.0/5.0*(
+          field(i,j,k-2) - field(i,j,k+2)
+        ) - 4.0/5.0*(
+          field(i,j,k-1) - field(i,j,k+1)
+        )
       )/dx;
       break;
   }
@@ -304,58 +309,61 @@ inline real_t mixed_derivative_stencil_Odx6(idx_t i, idx_t j, idx_t k, int d1, i
   return 0;
 }
 
-inline real_t mixed_derivative_stencil_Odx8(idx_t i, idx_t j, idx_t k, int d1, int d2, arr_t *field)
+inline real_t mixed_derivative_stencil_Odx8(idx_t i, idx_t j, idx_t k,
+  int d1, int d2, arr_t *field_ref)
 {
+  arr_t &field = *field_ref;
+
   if( (d1 == 1 && d2 == 2) || (d1 == 2 && d2 == 1) ) {
     return (
-      2.0/5.0*(
-        - (*field)(i+1,j-1,k) + (*field)(i+1,j+1,k)
-        + (*field)(i-1,j-1,k) - (*field)(i-1,j+1,k)
-      ) - 1.0/20.0*(
-        - (*field)(i+2,j-2,k) + (*field)(i+2,j+2,k)
-        + (*field)(i-2,j-2,k) - (*field)(i-2,j+2,k)
+      -1.0/2240.0*(
+        - field(i+4,j-4,k) + field(i+4,j+4,k)
+        + field(i-4,j-4,k) - field(i-4,j+4,k)
       ) + 2.0/315.0*(
-        - (*field)(i+3,j-3,k) + (*field)(i+3,j+3,k)
-        + (*field)(i-3,j-3,k) - (*field)(i-3,j+3,k)
-      ) - 1.0/2240.0*(
-        - (*field)(i+4,j-4,k) + (*field)(i+4,j+4,k)
-        + (*field)(i-4,j-4,k) - (*field)(i-4,j+4,k)
+        - field(i+3,j-3,k) + field(i+3,j+3,k)
+        + field(i-3,j-3,k) - field(i-3,j+3,k)
+      ) - 1.0/20.0*(
+        - field(i+2,j-2,k) + field(i+2,j+2,k)
+        + field(i-2,j-2,k) - field(i-2,j+2,k)
+      ) + 2.0/5.0*(
+        - field(i+1,j-1,k) + field(i+1,j+1,k)
+        + field(i-1,j-1,k) - field(i-1,j+1,k)
       )
     )/dx/dx;
   }
 
   if( (d1 == 1 && d2 == 3) || (d1 == 3 && d2 == 1) ) {
     return (
-      2.0/5.0*(
-        - (*field)(i+1,j,k-1) + (*field)(i+1,j,k+1)
-        + (*field)(i-1,j,k-1) - (*field)(i-1,j,k+1)
-      ) - 1.0/20.0*(
-        - (*field)(i+2,j,k-2) + (*field)(i+2,j,k+2)
-        + (*field)(i-2,j,k-2) - (*field)(i-2,j,k+2)
+      -1.0/2240.0*(
+        - field(i+4,j,k-4) + field(i+4,j,k+4)
+        + field(i-4,j,k-4) - field(i-4,j,k+4)
       ) + 2.0/315.0*(
-        - (*field)(i+3,j,k-3) + (*field)(i+3,j,k+3)
-        + (*field)(i-3,j,k-3) - (*field)(i-3,j,k+3)
-      ) - 1.0/2240.0*(
-        - (*field)(i+4,j,k-4) + (*field)(i+4,j,k+4)
-        + (*field)(i-4,j,k-4) - (*field)(i-4,j,k+4)
+        - field(i+3,j,k-3) + field(i+3,j,k+3)
+        + field(i-3,j,k-3) - field(i-3,j,k+3)
+      ) - 1.0/20.0*(
+        - field(i+2,j,k-2) + field(i+2,j,k+2)
+        + field(i-2,j,k-2) - field(i-2,j,k+2)
+      ) + 2.0/5.0*(
+        - field(i+1,j,k-1) + field(i+1,j,k+1)
+        + field(i-1,j,k-1) - field(i-1,j,k+1)
       )
     )/dx/dx;
   }
 
   if( (d1 == 3 && d2 == 2) || (d1 == 2 && d2 == 3) ) {
     return (
-      2.0/5.0*(
-        - (*field)(i,j+1,k-1) + (*field)(i,j+1,k+1)
-        + (*field)(i,j-1,k-1) - (*field)(i,j-1,k+1)
-      ) - 1.0/20.0*(
-        - (*field)(i,j+2,k-2) + (*field)(i,j+2,k+2)
-        + (*field)(i,j-2,k-2) - (*field)(i,j-2,k+2)
+      -1.0/2240.0*(
+        - field(i,j+4,k-4) + field(i,j+4,k+4)
+        + field(i,j-4,k-4) - field(i,j-4,k+4)
       ) + 2.0/315.0*(
-        - (*field)(i,j+3,k-3) + (*field)(i,j+3,k+3)
-        + (*field)(i,j-3,k-3) - (*field)(i,j-3,k+3)
-      ) - 1.0/2240.0*(
-        - (*field)(i,j+4,k-4) + (*field)(i,j+4,k+4)
-        + (*field)(i,j-4,k-4) - (*field)(i,j-4,k+4)
+        - field(i,j+3,k-3) + field(i,j+3,k+3)
+        + field(i,j-3,k-3) - field(i,j-3,k+3)
+      ) - 1.0/20.0*(
+        - field(i,j+2,k-2) + field(i,j+2,k+2)
+        + field(i,j-2,k-2) - field(i,j-2,k+2)
+      ) + 2.0/5.0*(
+        - field(i,j+1,k-1) + field(i,j+1,k+1)
+        + field(i,j-1,k-1) - field(i,j-1,k+1)
       )
     )/dx/dx;
   }
@@ -476,46 +484,48 @@ inline real_t double_derivative_stencil_Odx6(idx_t i, idx_t j, idx_t k, int d,
 }
 
 inline real_t double_derivative_stencil_Odx8(idx_t i, idx_t j, idx_t k, int d,
-    arr_t *field)
+    arr_t *field_ref)
 {
+  arr_t &field = *field_ref;
+
   switch (d) {
     case 1:
       return (
-          - 1.0/560.0*(*field)(i-4,j,k)
-          + 8.0/315.0*(*field)(i-3,j,k)
-          - 1.0/5.0*(*field)(i-2,j,k)
-          + 8.0/5.0*(*field)(i-1,j,k)
-          - 205.0/72.0*(*field)(i-0,j,k)
-          + 8.0/5.0*(*field)(i+1,j,k)
-          - 1.0/5.0*(*field)(i+2,j,k)
-          + 8.0/315.0*(*field)(i+3,j,k)
-          - 1.0/560.0*(*field)(i+4,j,k)
+          - 1.0/560.0*field(i-4,j,k)
+          - 1.0/560.0*field(i+4,j,k)
+          + 8.0/315.0*field(i-3,j,k)
+          + 8.0/315.0*field(i+3,j,k)
+          - 1.0/5.0*field(i-2,j,k)
+          - 1.0/5.0*field(i+2,j,k)
+          + 8.0/5.0*field(i-1,j,k)
+          + 8.0/5.0*field(i+1,j,k)
+          - 205.0/72.0*field(i-0,j,k)
         )/dx/dx;
       break;
     case 2:
       return (
-          - 1.0/560.0*(*field)(i,j-4,k)
-          + 8.0/315.0*(*field)(i,j-3,k)
-          - 1.0/5.0*(*field)(i,j-2,k)
-          + 8.0/5.0*(*field)(i,j-1,k)
-          - 205.0/72.0*(*field)(i,j-0,k)
-          + 8.0/5.0*(*field)(i,j+1,k)
-          - 1.0/5.0*(*field)(i,j+2,k)
-          + 8.0/315.0*(*field)(i,j+3,k)
-          - 1.0/560.0*(*field)(i,j+4,k)
+          - 1.0/560.0*field(i,j-4,k)
+          - 1.0/560.0*field(i,j+4,k)
+          + 8.0/315.0*field(i,j-3,k)
+          + 8.0/315.0*field(i,j+3,k)
+          - 1.0/5.0*field(i,j-2,k)
+          - 1.0/5.0*field(i,j+2,k)
+          + 8.0/5.0*field(i,j-1,k)
+          + 8.0/5.0*field(i,j+1,k)
+          - 205.0/72.0*field(i,j-0,k)
         )/dx/dx;
       break;
     case 3:
       return (
-          - 1.0/560.0*(*field)(i,j,k-4)
-          + 8.0/315.0*(*field)(i,j,k-3)
-          - 1.0/5.0*(*field)(i,j,k-2)
-          + 8.0/5.0*(*field)(i,j,k-1)
-          - 205.0/72.0*(*field)(i,j,k-0)
-          + 8.0/5.0*(*field)(i,j,k+1)
-          - 1.0/5.0*(*field)(i,j,k+2)
-          + 8.0/315.0*(*field)(i,j,k+3)
-          - 1.0/560.0*(*field)(i,j,k+4)
+          - 1.0/560.0*field(i,j,k-4)
+          - 1.0/560.0*field(i,j,k+4)
+          + 8.0/315.0*field(i,j,k-3)
+          + 8.0/315.0*field(i,j,k+3)
+          - 1.0/5.0*field(i,j,k-2)
+          - 1.0/5.0*field(i,j,k+2)
+          + 8.0/5.0*field(i,j,k-1)
+          + 8.0/5.0*field(i,j,k+1)
+          - 205.0/72.0*field(i,j,k-0)
         )/dx/dx;
       break;
   }

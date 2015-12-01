@@ -11,6 +11,8 @@ class periodicArray
     IT nx, ny, nz;
     IT pts;
 
+    std::string name;
+
     RT* _array;
 
     periodicArray()
@@ -23,6 +25,11 @@ class periodicArray
       delete [] _array;
     }
 
+    void setName(std::string name_in)
+    {
+      name = name_in;
+    }
+
     void init(IT nx_in, IT ny_in, IT nz_in)
     {
       nx = nx_in;
@@ -32,6 +39,11 @@ class periodicArray
       pts = nx*ny*nz;
 
       _array = new RT[pts];
+      IT i;
+      for(i=0; i<pts; ++i)
+      {
+        _array[i] = 0.0;
+      }
     }
 
     RT& operator()(IT i_in, IT j_in, IT k_in)
@@ -52,12 +64,14 @@ class periodicArray
       if(&other == this)
         return *this;
 
-      this.nx = other.nx;
-      this.nz = other.ny;
-      this.ny = other.nz;
-      this.pts = other.pts;
+      this->nx = other.nx;
+      this->nz = other.ny;
+      this->ny = other.nz;
+      this->pts = other.pts;
 
-      this._array = &other._array;
+      this->name = other.name;
+
+      this->_array = other._array;
 
       return *this;
     }

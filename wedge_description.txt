@@ -44,51 +44,45 @@ Animation of a full integration step:
 
 [ - - - - - - - - - - - - - - - - - - - - ] i_p = 0
 [ *                           o o o o o o ] i_K1 = i_p
-[                               o o o o o ] i_K2 = i_p - WEDGE_SLICE_LEN_DIFF
-[                                 o o o   ] i_K3 = i_p - 2*WEDGE_SLICE_LEN_DIFF
-[                           0 0 0 0 0     ] i_tail = i_p - 3*WEDGE_SLICE_LEN_DIFF
+[                               o o o o O ] i_K2 = i_p - WEDGE_SLICE_LEN_DIFF/2
+[                                 o o O   ] i_K3 = i_p - 2*WEDGE_SLICE_LEN_DIFF/2
+[                           0 0 0 0 O     ] i_tail = i_p - 3*WEDGE_SLICE_LEN_DIFF/2
 
-[ - - - - - - - - - - - - - - - - - - - - ]
-[ * *                           o o o o o ]
-[ o                               o o o o ]
-[                                   o o o ]
-[                             0 0 0 0 0   ]
-
-[ - - - - - - - - - - - - - - - - - - - - ]
-[ * * *                           o o o o ]
-[ o *                               o o o ]
-[ o                                   o o ]
-[                               0 0 0 0 0 ]
+[ - - - - - - - - - - - - - - - - - - - - ] i_p = 1
+[ * *                           o o o o o ] i_K1 = 1
+[ O                               o o o O ] i_K2 = 0
+[                                   o O O ] i_K3 = -1
+[                             0 0 0 O O   ] i_tail = -2
 
 [ - - - - - - - - - - - - - - - - - - - - ]
 [ * * *                           o o o o ]
-[ o *                               o o o ]
-[ o                                   o o ]
-[                               0 0 0 0 0 ]
+[ O *                               o o O ]
+[ O                                   O O ]
+[                               0 0 O O O ]
 
 [ - - - - - - - - - - - - - - - - - - - - ]
 [ * * * *                           o o o ]
-[ o * *                               o o ]
-[ o o                                   o ]
-[ 0                               0 0 0 0 ]
+[ O * *                               o O ]
+[ O O                                   O ]
+[ O                               0 O O O ]
 
 [ - - - - - - - - - - - - - - - - - - - - ]
 [ * * * * *                           o o ]
-[ o * * *                               o ]
-[ o o *                                   ]
-[ 0 0                               0 0 0 ]
+[ O * * *                               O ]
+[ O O *                                   ]
+[ O O                               O O O ]
 
 [ - - - - - - - - - - - - - - - - - - - - ]
 [ * * * * * *                           o ]
-[ o * * * *                               ]
-[   o * *                                 ]
-[ 0 0 0                               0 0 ]
+[ O * * * *                               ]
+[   O * *                                 ]
+[ O O O                               O O ]
 
 [ - - - - - - - - - - - - - - - - - - - - ]
 [ * * * * * * *                           ]
 [   * * * * *                             ]
 [     * * *                               ]
-[ 0 0 0 x                               0 ]
+[ O O O x                               O ]
 
 [ - - - - - - - - - - - - - - - - - - - - ]
 [   * * * * * * *                         ]

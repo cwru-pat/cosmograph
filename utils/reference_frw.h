@@ -80,12 +80,29 @@ public:
   RT get_S() { return S_get; }
 
   // RK calculations
+  void P0_step();
   void P1_step(RT h);
   void P2_step(RT h);
   void P3_step(RT h);
   void RK_total_step(RT h);
-
 };
+
+template <typename RT>
+void FRW<RT>::P0_step()
+{
+  // BSSNSim will expect these returned at this point
+  phi_get = phi;
+  K_get = K;
+  // matter fields
+  rho_get = 0.0;
+  S_get = 0.0;
+  for(int n=0; n<num_fluids; ++n)
+  {
+    RT rho = fluids[n].first;
+    rho_get += rho;
+    S_get += 3.0*rho*fluids[n].second;
+  }
+}
 
 template <typename RT>
 void FRW<RT>::P1_step(RT h)
@@ -186,7 +203,6 @@ void FRW<RT>::P3_step(RT h)
   for(int n=0; n<num_fluids; ++n)
   {
     std::pair<RT,RT> x = fluids[n];
-    // d/dt rho = -3*H*rho*(1+w)
     RT rho_interm = fluids[n].first + (h/2.0)*fluids_K2[n];
     fluids_K3[n] = K_interm*rho_interm*(1.0 + x.second);
   }

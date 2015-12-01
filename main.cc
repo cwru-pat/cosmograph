@@ -15,6 +15,7 @@ int main(int argc, char **argv)
 {
   _timer["MAIN"].start();
   idx_t i=0, j=0, k=0, s=0, steps=0;
+  std::cout.precision(15);
 
   // read in config file
   if(argc != 2)
@@ -73,17 +74,13 @@ int main(int argc, char **argv)
   _timer["loop"].start();
   for(s=0; s < steps; ++s) {
 
-    // initialize data for RK step in first loop
-    // Init arrays and calculate source term for next step
-      // _p is copied to _a here (which matter sectors use)
-      bssnSim.stepInit();
-
     // output simulation information
     // these generally output any data in the _a registers (which should 
     // be identical to _p at this point).
     _timer["output"].start();
       // set_paq_values calculates ricci_a and AijAij_a data, needed for output
       // and subsequent constraint calculations
+
       PARALLEL_LOOP3(i,j,k)
       {
         BSSNData b_paq = {0}; // data structure associated with bssn sim
@@ -111,24 +108,25 @@ int main(int argc, char **argv)
           io_dump_data(M_calcs[6], &iodata, "M_violations"); // max(M/[M])
           io_dump_data(M_calcs[2], &iodata, "M_violations"); // max(M)
 
-          if(s<15)
+          if(s<100)
           {
             LOG(iodata.log, "\nInitial max(H/[H]): " << H_calcs[6]
-                            << ", Initial max(M/[M]): " << M_calcs[6] << "\n");
+                            << ", Initial max(H): " << H_calcs[2]
+                            << ", Initial max(M): " << M_calcs[2] << "\n");
           }
 
-          io_dump_strip(bssnSim.fields["DIFFgamma11_a"], 1, 0, 0, &iodata);
+          io_dump_strip(bssnSim.fields["DIFFgamma22_p"], 1, 0, 0, &iodata);
 
           real_t maxdiff = 0.0;
           LOOP3(i, j, k) {
             idx_t idx = INDEX(i,j,k);
-            if(fabs((*(bssnSim.fields["DIFFgamma11_a"]))[idx]) > maxdiff) {
-              maxdiff = fabs((*(bssnSim.fields["DIFFgamma11_a"]))[idx]);
+            if(fabs((*(bssnSim.fields["DIFFgamma11_p"]))[idx]) > maxdiff) {
+              maxdiff = fabs((*(bssnSim.fields["DIFFgamma11_p"]))[idx]);
             }
           }
           io_dump_data(maxdiff, &iodata, "g11_violations"); // max(gxx - 1)
 
-          if(numNaNs(bssnSim.fields["DIFFphi_a"]) > 0)
+          if(numNaNs(bssnSim.fields["DIFFphi_p"]) > 0)
           {
             LOG(iodata.log, "\nNAN detected!\n");
             _timer["meta_output_interval"].stop();

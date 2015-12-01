@@ -1,5 +1,9 @@
 #include "bssn.h"
 
+#include <chrono>
+#include <thread>
+#include <iomanip>
+
 namespace cosmo
 {
 
@@ -48,32 +52,81 @@ Integration procedure outline:
 ******************************************************************************
 */
 
-void BSSN::stepInit()
+#define DISPP(v) (v==0.0?0.00:(-1.0*log10(fabs(v))))
+#define BETWEEN(l, n1, n2) ( l>n1 && l<=n2 )
+void BSSN::DrawWedgeSlice(idx_t i_p, idx_t i_K1, idx_t i_K2,
+  idx_t i_K3, idx_t i_tail)
 {
-  // anything to do here?
+  return;
+  int l;
+  l = system("clear");
+
+  std::cout.precision(3);
+  std::cout << std::fixed << "\n\n";
+  for(l=0; l<NX; l++) std::cout << DISPP(A22_p(l,0,0)) << " ";
+  std::cout << "\n";
+  for(l=0; l<NX; l++) {
+    if(BETWEEN(l, i_K1-WEDGE_SLICE_1_LEN, i_K1)) { std::cout << DISPP(A22_K1(l,0,0)) << " "; }
+    else if(BETWEEN(l+NX, i_K1-WEDGE_SLICE_1_LEN, i_K1)) { std::cout << DISPP(A22_K1(l+NX,0,0)) << " "; }
+    else if(BETWEEN(l-NX, i_K1-WEDGE_SLICE_1_LEN, i_K1)) { std::cout << DISPP(A22_K1(l-NX,0,0)) << " "; }
+    else { std::cout << "      "; }
+  }
+  std::cout << "\n";
+  for(l=0; l<NX; l++) {
+    if(BETWEEN(l, i_K2-WEDGE_SLICE_2_LEN, i_K2)) { std::cout << DISPP(A22_K2(l,0,0)) << " "; }
+    else if(BETWEEN(l+NX, i_K2-WEDGE_SLICE_2_LEN, i_K2)) { std::cout << DISPP(A22_K2(l+NX,0,0)) << " "; }
+    else if(BETWEEN(l-NX, i_K2-WEDGE_SLICE_2_LEN, i_K2)) { std::cout << DISPP(A22_K2(l-NX,0,0)) << " "; }
+    else { std::cout << "      "; }
+  }
+  std::cout << "\n";
+  for(l=0; l<NX; l++) {
+    if(BETWEEN(l, i_K3-WEDGE_SLICE_3_LEN, i_K3)) { std::cout << DISPP(A22_K3(l,0,0)) << " "; }
+    else if(BETWEEN(l+NX, i_K3-WEDGE_SLICE_3_LEN, i_K3)) { std::cout << DISPP(A22_K3(l+NX,0,0)) << " "; }
+    else if(BETWEEN(l-NX, i_K3-WEDGE_SLICE_3_LEN, i_K3)) { std::cout << DISPP(A22_K3(l-NX,0,0)) << " "; }
+    else { std::cout << "      "; }
+  }
+  std::cout << "\n";
+  for(l=0; l<NX; l++) {
+    if(BETWEEN(l, i_tail-WEDGE_TAIL_LEN, i_tail)) { std::cout << DISPP(A22_t(l,0,0)) << " "; }
+    else if(BETWEEN(l+NX, i_tail-WEDGE_TAIL_LEN, i_tail)) { std::cout << DISPP(A22_t(l+NX,0,0)) << " "; }
+    else if(BETWEEN(l-NX, i_tail-WEDGE_TAIL_LEN, i_tail)) { std::cout << DISPP(A22_t(l-NX,0,0)) << " "; }
+    else { std::cout << "      "; }
+  }
+  std::cout << "\n";
+  for(l=0; l<NX; l++) if(l>=WEDGE_AFTER_START_IDX && l<=WEDGE_AFTER_END_IDX) { std::cout << DISPP(A22_r(l,0,0)) << " "; } else { std::cout << "      "; }
+  std::cout << "\n";
+  
+  std::this_thread::sleep_for(std::chrono::milliseconds(200));
+
+  return;
 }
 
 void BSSN::WedgeStep()
 {
   idx_t i, j, k, l;
-  for(i=0; i<NX + WEDGE_AFTER_LEN + WEDGE_SLICE_1_LEN; ++i)
+  for(i=0; i<=NX + WEDGE_AFTER_END_IDX - WEDGE_SLICE_LEN_DIFF/2; ++i)
   {
     // "i" is location of calculation for wedge "peak"
     idx_t i_p = i;
     idx_t i_K1 = i;
-    idx_t i_K2 = i - WEDGE_SLICE_LEN_DIFF;
-    idx_t i_K3 = i - 2*WEDGE_SLICE_LEN_DIFF;
-    idx_t i_tail =  i - 3*WEDGE_SLICE_LEN_DIFF;
+    idx_t i_K2 = i - WEDGE_SLICE_LEN_DIFF/2;
+    idx_t i_K3 = i - 2*WEDGE_SLICE_LEN_DIFF/2;
+    idx_t i_tail = i - 3*WEDGE_SLICE_LEN_DIFF/2;
 
-    WedgeK1Calc(i_p, i_K1);
-    WedgeK2Calc(i_p, i_K1, i_K2);
-    WedgeK3Calc(i_p, i_K2, i_K3);
-    WedgeTailCalc(i_p, i_K1, i_K2, i_K3, i_tail);
+    frw->P0_step();
+    WedgeK1Calc(i_K1); // uses _p
+    frw->P1_step(dt);
+    WedgeK2Calc(i_K2); // uses "_p + K1"
+    frw->P2_step(dt);
+    WedgeK3Calc(i_K3); // uses "_p + K2"
+    frw->P3_step(dt);
+    WedgeTailCalc(i_tail); // uses "_p + K3"
 
-    if(i == WEDGE_SLICE_1_LEN + WEDGE_TAIL_LEN - 1)
+    // Store snapshot to "afterimage"
+    if(i_tail == WEDGE_AFTER_END_IDX)
     {
       // populate afterimage
-      for(l = WEDGE_SLICE_1_LEN - 1; l < i; ++l)
+      for(l = WEDGE_AFTER_START_IDX; l <= WEDGE_AFTER_END_IDX; ++l)
       {
         PARALLEL_AREA_LOOP(j,k)
         {
@@ -82,7 +135,8 @@ void BSSN::WedgeStep()
       }
     }
 
-    if(i > WEDGE_SLICE_1_LEN + WEDGE_TAIL_LEN)
+    // store points from tail back in 
+    if( i_tail >= WEDGE_AFTER_END_IDX + WEDGE_TAIL_LEN )
     {
       // "leftmost" point in tail goes in _p register
       PARALLEL_AREA_LOOP(j,k)
@@ -90,76 +144,78 @@ void BSSN::WedgeStep()
         BSSN_STORE_TAILEND();
       }
     }
-
   }
 
-  // populate afterimage
-  for(i = WEDGE_SLICE_1_LEN - 1; i < WEDGE_SLICE_1_LEN + WEDGE_TAIL_LEN - 1; ++i)
+  // restore afterimage and tail
+  for(i = WEDGE_AFTER_START_IDX; i <= WEDGE_AFTER_END_IDX; ++i)
   {
     PARALLEL_AREA_LOOP(j,k)
     {
       BSSN_RE_STORE_AFTER();
     }
   }
+  for(i = NX + WEDGE_AFTER_START_IDX - WEDGE_TAIL_LEN; i < NX + WEDGE_AFTER_START_IDX; ++i)
+  {
+    PARALLEL_AREA_LOOP(j,k)
+    {
+      BSSN_RE_STORE_TAIL();
+    }
+  }
+  // advance FRW integrator
+  frw->RK_total_step(dt);
 }
 
 // y_{K1} = y_n + h/2*f[y_n]
-void BSSN::WedgeK1Calc(idx_t i_p, idx_t i_K1)
+void BSSN::WedgeK1Calc(idx_t i_K1)
 {
   idx_t j, k;
-  PARALLEL_AREA_LOOP(j,k)
-  {
-    BSSNData paq = {0};
-    set_paq_values(i_p, j, k, &paq);
-    BSSN_COMPUTE_WEDGE_STEP_K1();
-  }
-  BSSN_ASSIGN_TO_A_REGISTER(_K1);
-  frw->P1_step(dt);
-}
-
-// y_{K2} = y_n + h/2*f[y_{K1}]
-void BSSN::WedgeK2Calc(idx_t i_p, idx_t i_K1, idx_t i_K2)
-{
-  idx_t j, k;
-
+  BSSN_ASSIGN_TO_A_REGISTER(_p);
   PARALLEL_AREA_LOOP(j,k)
   {
     BSSNData paq = {0};
     set_paq_values(i_K1, j, k, &paq);
-    BSSN_COMPUTE_WEDGE_STEP_K2();
+    BSSN_COMPUTE_WEDGE_STEP_K1();
   }
-
-  BSSN_ASSIGN_TO_A_REGISTER(_K2);
-  frw->P2_step(dt);
 }
 
-// y_{K3} = y_n +   h*f[y_{K2}]
-void BSSN::WedgeK3Calc(idx_t i_p, idx_t i_K2, idx_t i_K3)
+// y_{K2} = y_n + h/2*f[y_{K1}]
+void BSSN::WedgeK2Calc(idx_t i_K2)
 {
   idx_t j, k;
-
+  BSSN_ASSIGN_TO_A_REGISTER(_K1);
   PARALLEL_AREA_LOOP(j,k)
   {
     BSSNData paq = {0};
     set_paq_values(i_K2, j, k, &paq);
-    BSSN_COMPUTE_WEDGE_STEP_K3();
+    BSSN_COMPUTE_WEDGE_STEP_K2();
   }
-
-  BSSN_ASSIGN_TO_A_REGISTER(_K3);
-  frw->P3_step(dt);
 }
 
-// y_{n+1} = ( 2 y_n + y_{K1} + 2 y_{K2} + y_{K3} ) / 3 + h/6*f[y_{K3}]
-void BSSN::WedgeTailCalc(idx_t i_p, idx_t i_K1, idx_t i_K2, idx_t i_K3, idx_t i_tail)
+// y_{K3} = y_n +   h*f[y_{K2}]
+void BSSN::WedgeK3Calc(idx_t i_K3)
 {
   idx_t j, k;
-
+  BSSN_ASSIGN_TO_A_REGISTER(_K2);
   PARALLEL_AREA_LOOP(j,k)
   {
     BSSNData paq = {0};
     set_paq_values(i_K3, j, k, &paq);
+    BSSN_COMPUTE_WEDGE_STEP_K3();
+  }
+}
+
+// y_{n+1} = ( -y_n + y_{K1} + 2 y_{K2} + y_{K3} ) / 3 + h/6*f[y_{K3}]
+void BSSN::WedgeTailCalc(idx_t i_tail)
+{
+  idx_t j, k;
+  BSSN_ASSIGN_TO_A_REGISTER(_K3);
+  PARALLEL_AREA_LOOP(j,k)
+  {
+    BSSNData paq = {0};
+    set_paq_values(i_tail, j, k, &paq);
     BSSN_COMPUTE_WEDGE_STEP_TAIL();
   }
+  BSSN_ASSIGN_TO_A_REGISTER(_p);
 }
 
 
@@ -301,7 +357,7 @@ void BSSN::set_paq_values(idx_t i, idx_t j, idx_t k, BSSNData *paq)
   calculateRicciTF(paq);
 
   // H depends on AijAij and ricci arrays
-  paq->H = hamiltonianConstraintCalc(paq->idx);
+  paq->H = hamiltonianConstraintCalc(paq);
 }
 
 void BSSN::init()
@@ -312,7 +368,7 @@ void BSSN::init()
   PARALLEL_LOOP3(i, j, k)
   {
     idx = NP_INDEX(i,j,k);
-    BSSN_ZERO_ARRAYS(_a, idx)
+    BSSN_ZERO_ARRAYS(_p, idx)
     BSSN_ZERO_GEN1_EXTRAS()
   }
 }
@@ -646,8 +702,7 @@ real_t BSSN::ev_DIFFalpha(BSSNData *paq)
 
 real_t BSSN::ev_DIFFdustrho(BSSNData *paq)
 {
-  /* TODO: fix */
-  return paq->K*paq->DIFFdustrho;
+  return paq->K_FRW*paq->DIFFdustrho + paq->DIFFK*paq->rho_FRW + paq->DIFFK*paq->DIFFdustrho;
 }
 
 #if USE_Z4c_DAMPING
@@ -782,6 +837,28 @@ real_t BSSN::hamiltonianConstraintCalc(idx_t idx)
   #else
     return -exp(5.0*DIFFphi_a[idx])/8.0*(
       ricci_a[idx] + 2.0/3.0*pw2(DIFFK_a[idx] + 2.0*theta) - AijAij_a[idx] - 16.0*PI*DIFFdustrho_a[idx]
+    );
+  #endif
+}
+
+real_t BSSN::hamiltonianConstraintCalc(BSSNData *paq)
+{
+  #if USE_Z4c_DAMPING
+    real_t theta = paq->theta;
+  #else
+    real_t theta = 0.0;
+  #endif
+
+  #if USE_REFERENCE_FRW
+    real_t K_FRW = frw->get_K();
+    real_t phi_FRW = frw->get_phi();
+    real_t rho_FRW = frw->get_rho();
+    return -exp(5.0*(paq->DIFFphi + phi_FRW))/8.0*(
+      paq->ricci + 2.0/3.0*pw2(K_FRW + paq->DIFFK + 2.0*theta) - paq->AijAij - 16.0*PI*(paq->DIFFdustrho + rho_FRW)
+    );
+  #else
+    return -exp(5.0*paq->DIFFphi)/8.0*(
+      paq->ricci + 2.0/3.0*pw2(paq->DIFFK + 2.0*theta) - paq->AijAij - 16.0*PI*paq->DIFFdustrho
     );
   #endif
 }
