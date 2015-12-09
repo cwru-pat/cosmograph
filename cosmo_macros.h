@@ -27,12 +27,12 @@
 #define dt (0.1*dx)
 ****/
 
-#define USE_REFERENCE_FRW true
+#define USE_REFERENCE_FRW false
 #define NORMALIZE_GAMMAIJ_AIJ true
 
 // Numerical Error Damping strength parameters
 #define KO_ETA 0.0
-#define BS_H_DAMPING_AMPLITUDE 0.0
+#define BS_H_DAMPING_AMPLITUDE 1.0
 #define JM_K_DAMPING_AMPLITUDE 0.0
 
 #define USE_Z4c_DAMPING false

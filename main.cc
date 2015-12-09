@@ -108,7 +108,7 @@ int main(int argc, char **argv)
           io_dump_data(M_calcs[6], &iodata, "M_violations"); // max(M/[M])
           io_dump_data(M_calcs[2], &iodata, "M_violations"); // max(M)
 
-          if(s<100)
+          if(s<5 || s>steps-5)
           {
             LOG(iodata.log, "\nInitial max(H/[H]): " << H_calcs[6]
                             << ", Initial max(H): " << H_calcs[2]
@@ -147,8 +147,11 @@ int main(int argc, char **argv)
   _timer["loop"].stop();
 
   _timer["output"].start();
-    LOG(iodata.log, "\nAverage conformal factor reached " << average(bssnSim.fields["DIFFphi_p"]) << "\n");
     LOG(iodata.log, "Ending simulation.\n");
+    LOG(iodata.log, "\nAverage conformal factor reached " << average(bssnSim.fields["DIFFphi_p"]) << "\n");
+    LOG(iodata.log, "Maximum newtonian time reached:" << max(bssnSim.fields["eta_p"]->_array) << "\n");
+      io_dump_3dslice(bssnSim.fields["eta_rho_slice_a"], "eta_rho_slice_a", &iodata);
+      io_dump_3dslice(bssnSim.fields["eta_phi_slice_a"], "eta_phi_slice_a", &iodata);
   _timer["output"].stop();
 
   _timer["MAIN"].stop();

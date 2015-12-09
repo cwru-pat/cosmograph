@@ -122,6 +122,38 @@ void BSSN::WedgeStep()
     frw->P3_step(dt);
     WedgeTailCalc(i_tail); // uses "_p + K3"
 
+// calculate phi and rho on a constant-eta slice
+real_t eta_val = 1.0;
+PARALLEL_AREA_LOOP(j,k)
+{
+  real_t eta_ref = 2.0;
+  // eta increases monatonically
+  // check to see when simulation has crossed a reference eta
+  real_t eta2 = eta_t(i_tail,j,k); // next step is in _t array
+  real_t eta1 = eta_p(i_tail,j,k); // previous step is in _p array
+
+  if( eta_ref >= eta1 && eta_ref <= eta2 )
+  {
+    // linear interpolation to determine "time" of K_ref
+    real_t ref_time = (eta_ref - eta1) / (eta2 - eta1);
+    
+    // get phi value at this "time"
+    real_t phi2 = DIFFphi_t(i_tail,j,k);
+    real_t phi1 = DIFFphi_p(i_tail,j,k);
+    real_t phi_at_ref = (phi2 - phi1)*ref_time + phi1;
+    // store phi value on the slice
+    eta_phi_slice_a(i_tail,j,k) = phi_at_ref;
+
+    // get rho value at this "time"
+    real_t rho2 = DIFFdustrho_t(i_tail,j,k);
+    real_t rho1 = DIFFdustrho_p(i_tail,j,k);
+    real_t rho_at_ref = (rho2 - rho1)*ref_time + rho1;
+    // store rho value on the slice
+    eta_rho_slice_a(i_tail,j,k) = rho_at_ref;
+  }
+}
+
+
     // Store snapshot to "afterimage"
     if(i_tail == WEDGE_AFTER_END_IDX)
     {
@@ -702,7 +734,17 @@ real_t BSSN::ev_DIFFalpha(BSSNData *paq)
 
 real_t BSSN::ev_DIFFdustrho(BSSNData *paq)
 {
+  // only good for alpha = 1
   return paq->K_FRW*paq->DIFFdustrho + paq->DIFFK*paq->rho_FRW + paq->DIFFK*paq->DIFFdustrho;
+}
+
+real_t BSSN::ev_eta(BSSNData *paq)
+{
+  // Appx. newtonian gauge time elapsed
+  // a(eta) = a_0 * eta^(2/3)
+  // d\eta / dt = eta^(4/3) * exp( 2 phi )
+  // eta_0 = 
+  return pow(paq->eta, 4.0/3.0)*exp(2.0*(paq->phi));
 }
 
 #if USE_Z4c_DAMPING

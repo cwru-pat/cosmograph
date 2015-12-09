@@ -132,13 +132,13 @@ void set_conformal_ICs(
   set_gaussian_random_field(DIFFphi_p, fourier, &icd);
 
   // phi = ln(xi)
-  LOOP3(i,j,k) {
+  PARALLEL_LOOP3(i,j,k) {
     idx_t idx = NP_INDEX(i,j,k);
     DIFFphi_p[idx] = log1p(DIFFphi_p[idx]);
   }
 
   // rho = -lap(phi)/xi^5/2pi
-  LOOP3(i,j,k) {
+  PARALLEL_LOOP3(i,j,k) {
     DIFFdustrho_p[INDEX(i,j,k)] = -0.5/PI*exp(-4.0*DIFFphi_p[INDEX(i,j,k)])*(
       double_derivative(i, j, k, 1, 1, bssn_fields["DIFFphi_p"])
       + double_derivative(i, j, k, 2, 2, bssn_fields["DIFFphi_p"])
@@ -201,7 +201,7 @@ void set_conformal_ICs(
     // phi is unchanged
     // rho (D) and K get contribs
     // w=0 fluid only
-    LOOP3(i,j,k)
+    PARALLEL_LOOP3(i,j,k)
     {
       idx_t idx = NP_INDEX(i,j,k);
       real_t rho_FRW = icd.rho_K_matter;
@@ -211,6 +211,12 @@ void set_conformal_ICs(
       bssn_fields["DIFFK_p"]->_array[idx] = -sqrt(24.0*PI*rho_FRW);
     }
   #endif
+
+  PARALLEL_LOOP3(i,j,k)
+  {
+    idx_t idx = NP_INDEX(i,j,k);
+    bssn_fields["eta_p"]->_array[idx] = 2.0/3.0;
+  }
 
 }
 
@@ -224,7 +230,7 @@ void set_stability_test_ICs(
   std::mt19937 gen(7.0 /*rd()*/);
   std::uniform_real_distribution<real_t> dist((-1.0e-10)*50/NX*50/NX, (1.0e-10)*50/NX*50/NX);
 
-  LOOP3(i, j, k)
+  PARALLEL_LOOP3(i, j, k)
   {
     idx_t idx = NP_INDEX(i,j,k);
 
@@ -319,7 +325,7 @@ void set_linear_wave_ICs(
 {
   idx_t i, j, k;
 
-  LOOP3(i,j,k)
+  PARALLEL_LOOP3(i,j,k)
   {
     bssn_fields["DIFFgamma22_p"]->_array[NP_INDEX(i,j,k)] = 1.0e-8*sin( 2.0*PI*((real_t) i)*dx );
     bssn_fields["DIFFgamma33_p"]->_array[NP_INDEX(i,j,k)] = -1.0e-8*sin( 2.0*PI*((real_t) i)*dx );
