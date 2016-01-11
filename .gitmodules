@@ -1,0 +1,3 @@
+[submodule "cosmotrace"]
+	path = cosmotrace
+	url = https://github.com/jbcm627/cosmotrace.git

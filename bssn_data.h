@@ -28,7 +28,8 @@ typedef struct {
   // generic var for misc. expressions
   real_t trace, expression;
 
-  // trace-free ricci tensor components
+  // ricci tensor components
+  real_t ricci11, ricci12, ricci13, ricci22, ricci23, ricci33;
   real_t ricciTF11, ricciTF12, ricciTF13, ricciTF22, ricciTF23, ricciTF33;
   real_t Uricci11, Uricci12, Uricci13, Uricci22, Uricci23, Uricci33;
   real_t unitRicci; // ricci scalar
@@ -46,6 +47,7 @@ typedef struct {
     real_t D1D1phi, D1D2phi, D1D3phi, D2D2phi, D2D3phi, D3D3phi;
     // normal derivatives of
     real_t d1phi, d2phi, d3phi;
+    real_t d1d1phi, d1d2phi, d1d3phi, d2d2phi, d2d3phi, d3d3phi;
 
   // ders of K
   real_t d1K, d2K, d3K;

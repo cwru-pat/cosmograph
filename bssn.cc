@@ -364,6 +364,13 @@ void BSSN::calculate_dalpha_dphi(BSSNData *paq)
   paq->d2phi = derivative(paq->i, paq->j, paq->k, 2, DIFFphi_a);
   paq->d3phi = derivative(paq->i, paq->j, paq->k, 3, DIFFphi_a);
 
+  paq->d1d1phi = double_derivative(paq->i, paq->j, paq->k, 1, 1, DIFFphi_a);
+  paq->d2d2phi = double_derivative(paq->i, paq->j, paq->k, 2, 2, DIFFphi_a);
+  paq->d3d3phi = double_derivative(paq->i, paq->j, paq->k, 3, 3, DIFFphi_a);
+  paq->d1d2phi = double_derivative(paq->i, paq->j, paq->k, 1, 2, DIFFphi_a);
+  paq->d1d3phi = double_derivative(paq->i, paq->j, paq->k, 1, 3, DIFFphi_a);
+  paq->d2d3phi = double_derivative(paq->i, paq->j, paq->k, 2, 3, DIFFphi_a);
+
   // normal derivatives of alpha
   paq->d1a = derivative(paq->i, paq->j, paq->k, 1, DIFFalpha_a);
   paq->d2a = derivative(paq->i, paq->j, paq->k, 2, DIFFalpha_a);
@@ -432,13 +439,13 @@ void BSSN::calculateDDphi(BSSNData *paq)
   idx_t k = paq->k;
 
   // double covariant derivatives, using unitary metric
-  paq->D1D1phi = double_derivative(i, j, k, 1, 1, DIFFphi_a) - (paq->G111*paq->d1phi + paq->G211*paq->d2phi + paq->G311*paq->d3phi);
-  paq->D2D2phi = double_derivative(i, j, k, 2, 2, DIFFphi_a) - (paq->G122*paq->d1phi + paq->G222*paq->d2phi + paq->G322*paq->d3phi);
-  paq->D3D3phi = double_derivative(i, j, k, 3, 3, DIFFphi_a) - (paq->G133*paq->d1phi + paq->G233*paq->d2phi + paq->G333*paq->d3phi);
+  paq->D1D1phi = paq->d1d1phi - (paq->G111*paq->d1phi + paq->G211*paq->d2phi + paq->G311*paq->d3phi);
+  paq->D2D2phi = paq->d2d2phi - (paq->G122*paq->d1phi + paq->G222*paq->d2phi + paq->G322*paq->d3phi);
+  paq->D3D3phi = paq->d3d3phi - (paq->G133*paq->d1phi + paq->G233*paq->d2phi + paq->G333*paq->d3phi);
 
-  paq->D1D2phi = double_derivative(i, j, k, 1, 2, DIFFphi_a) - (paq->G112*paq->d1phi + paq->G212*paq->d2phi + paq->G312*paq->d3phi);
-  paq->D1D3phi = double_derivative(i, j, k, 1, 3, DIFFphi_a) - (paq->G113*paq->d1phi + paq->G213*paq->d2phi + paq->G313*paq->d3phi);
-  paq->D2D3phi = double_derivative(i, j, k, 2, 3, DIFFphi_a) - (paq->G123*paq->d1phi + paq->G223*paq->d2phi + paq->G323*paq->d3phi);  
+  paq->D1D2phi = paq->d1d2phi - (paq->G112*paq->d1phi + paq->G212*paq->d2phi + paq->G312*paq->d3phi);
+  paq->D1D3phi = paq->d1d3phi - (paq->G113*paq->d1phi + paq->G213*paq->d2phi + paq->G313*paq->d3phi);
+  paq->D2D3phi = paq->d2d3phi - (paq->G123*paq->d1phi + paq->G223*paq->d2phi + paq->G323*paq->d3phi);  
 }
 
 void BSSN::calculateDDalphaTF(BSSNData *paq)
@@ -469,18 +476,18 @@ void BSSN::calculateDDalphaTF(BSSNData *paq)
 void BSSN::calculateRicciTF(BSSNData *paq)
 {
   // unitary pieces
-  BSSN_APPLY_TO_IJ_PERMS(BSSN_CALCULATE_RICCITF_UNITARY)
+  BSSN_APPLY_TO_IJ_PERMS(BSSN_CALCULATE_RICCI_UNITARY)
 
-  paq->Uricci11 = paq->ricciTF11;
-  paq->Uricci12 = paq->ricciTF12;
-  paq->Uricci13 = paq->ricciTF13;
-  paq->Uricci22 = paq->ricciTF22;
-  paq->Uricci23 = paq->ricciTF23;
-  paq->Uricci33 = paq->ricciTF33;
+  paq->Uricci11 = paq->ricci11;
+  paq->Uricci12 = paq->ricci12;
+  paq->Uricci13 = paq->ricci13;
+  paq->Uricci22 = paq->ricci22;
+  paq->Uricci23 = paq->ricci23;
+  paq->Uricci33 = paq->ricci33;
 
-  /* calculate unitary Ricci scalar at this point; ricciTF isn't actually TF yet. */
-  paq->unitRicci = paq->ricciTF11*paq->gammai11 + paq->ricciTF22*paq->gammai22 + paq->ricciTF33*paq->gammai33
-            + 2.0*(paq->ricciTF12*paq->gammai12 + paq->ricciTF13*paq->gammai13 + paq->ricciTF23*paq->gammai23);
+  /* calculate unitary Ricci scalar at this point. */
+  paq->unitRicci = paq->ricci11*paq->gammai11 + paq->ricci22*paq->gammai22 + paq->ricci33*paq->gammai33
+            + 2.0*(paq->ricci12*paq->gammai12 + paq->ricci13*paq->gammai13 + paq->ricci23*paq->gammai23);
 
   real_t expression = (
     paq->gammai11*(paq->D1D1phi + 2.0*paq->d1phi*paq->d1phi)
@@ -494,29 +501,29 @@ void BSSN::calculateRicciTF(BSSNData *paq)
   );
 
   /* phi-piece */
-  paq->ricciTF11 += -2.0*( paq->D1D1phi - 2.0*paq->d1phi*paq->d1phi + paq->gamma11*(expression) );
-  paq->ricciTF12 += -2.0*( paq->D1D2phi - 2.0*paq->d1phi*paq->d2phi + paq->gamma12*(expression) );
-  paq->ricciTF13 += -2.0*( paq->D1D3phi - 2.0*paq->d1phi*paq->d3phi + paq->gamma13*(expression) );
-  paq->ricciTF22 += -2.0*( paq->D2D2phi - 2.0*paq->d2phi*paq->d2phi + paq->gamma22*(expression) );
-  paq->ricciTF23 += -2.0*( paq->D2D3phi - 2.0*paq->d2phi*paq->d3phi + paq->gamma23*(expression) );
-  paq->ricciTF33 += -2.0*( paq->D3D3phi - 2.0*paq->d3phi*paq->d3phi + paq->gamma33*(expression) );
+  paq->ricci11 += -2.0*( paq->D1D1phi - 2.0*paq->d1phi*paq->d1phi + paq->gamma11*(expression) );
+  paq->ricci12 += -2.0*( paq->D1D2phi - 2.0*paq->d1phi*paq->d2phi + paq->gamma12*(expression) );
+  paq->ricci13 += -2.0*( paq->D1D3phi - 2.0*paq->d1phi*paq->d3phi + paq->gamma13*(expression) );
+  paq->ricci22 += -2.0*( paq->D2D2phi - 2.0*paq->d2phi*paq->d2phi + paq->gamma22*(expression) );
+  paq->ricci23 += -2.0*( paq->D2D3phi - 2.0*paq->d2phi*paq->d3phi + paq->gamma23*(expression) );
+  paq->ricci33 += -2.0*( paq->D3D3phi - 2.0*paq->d3phi*paq->d3phi + paq->gamma33*(expression) );
 
-  /* calculate Ricci scalar at this point; ricciTF isn't TF at this point */
-  paq->ricci = paq->ricciTF11*paq->gammai11 + paq->ricciTF22*paq->gammai22 + paq->ricciTF33*paq->gammai33
-            + 2.0*(paq->ricciTF12*paq->gammai12 + paq->ricciTF13*paq->gammai13 + paq->ricciTF23*paq->gammai23);
+  /* calculate full Ricci scalar at this point */
+  paq->ricci = paq->ricci11*paq->gammai11 + paq->ricci22*paq->gammai22 + paq->ricci33*paq->gammai33
+            + 2.0*(paq->ricci12*paq->gammai12 + paq->ricci13*paq->gammai13 + paq->ricci23*paq->gammai23);
   paq->ricci *= exp(-4.0*paq->phi);
   /* store ricci scalar here too. */
   ricci_a[paq->idx] = paq->ricci;
 
   /* remove trace. Note that \bar{gamma}_{ij}*\bar{gamma}^{kl}R_{kl} = (unbarred gammas). */
-  paq->trace = paq->gammai11*paq->ricciTF11 + paq->gammai22*paq->ricciTF22 + paq->gammai33*paq->ricciTF33
-      + 2.0*(paq->gammai12*paq->ricciTF12 + paq->gammai13*paq->ricciTF13 + paq->gammai23*paq->ricciTF23);
-  paq->ricciTF11 -= (1.0/3.0)*paq->gamma11*paq->trace;
-  paq->ricciTF12 -= (1.0/3.0)*paq->gamma12*paq->trace;
-  paq->ricciTF13 -= (1.0/3.0)*paq->gamma13*paq->trace;
-  paq->ricciTF22 -= (1.0/3.0)*paq->gamma22*paq->trace;
-  paq->ricciTF23 -= (1.0/3.0)*paq->gamma23*paq->trace;
-  paq->ricciTF33 -= (1.0/3.0)*paq->gamma33*paq->trace;
+  paq->trace = paq->gammai11*paq->ricci11 + paq->gammai22*paq->ricci22 + paq->gammai33*paq->ricci33
+      + 2.0*(paq->gammai12*paq->ricci12 + paq->gammai13*paq->ricci13 + paq->gammai23*paq->ricci23);
+  paq->ricciTF11 = paq->ricci11 - (1.0/3.0)*paq->gamma11*paq->trace;
+  paq->ricciTF12 = paq->ricci12 - (1.0/3.0)*paq->gamma12*paq->trace;
+  paq->ricciTF13 = paq->ricci13 - (1.0/3.0)*paq->gamma13*paq->trace;
+  paq->ricciTF22 = paq->ricci22 - (1.0/3.0)*paq->gamma22*paq->trace;
+  paq->ricciTF23 = paq->ricci23 - (1.0/3.0)*paq->gamma23*paq->trace;
+  paq->ricciTF33 = paq->ricci33 - (1.0/3.0)*paq->gamma33*paq->trace;
 }
 
 
@@ -950,6 +957,116 @@ real_t BSSN::metricConstraintTotalMag()
   }
 
   return constraint_mag;
+}
+
+
+/*
+******************************************************************************
+Populate a RaytracePrimitives struct with values from a BSSN struct
+ (plus derivatives on the A_ij field)
+******************************************************************************
+*/
+
+void BSSN::setRaytraceCornerPrimitives(RayTrace<real_t, idx_t> *rt)
+{
+  BSSNData b_paq = {0};
+
+  struct RaytracePrimitives<real_t> corner_rp[2][2][2];
+
+  idx_t x_idx = rt->getRayIDX(1, dx, NX);
+  idx_t y_idx = rt->getRayIDX(2, dx, NY);
+  idx_t z_idx = rt->getRayIDX(3, dx, NZ);
+
+  set_paq_values(x_idx + 0, y_idx + 0, z_idx + 0, &b_paq);
+  corner_rp[0][0][0] = getRaytraceData(&b_paq);
+  set_paq_values(x_idx + 0, y_idx + 0, z_idx + 1, &b_paq);
+  corner_rp[0][0][1] = getRaytraceData(&b_paq);
+  set_paq_values(x_idx + 0, y_idx + 1, z_idx + 0, &b_paq);
+  corner_rp[0][1][0] = getRaytraceData(&b_paq);
+  set_paq_values(x_idx + 0, y_idx + 1, z_idx + 1, &b_paq);
+  corner_rp[0][1][1] = getRaytraceData(&b_paq);
+  set_paq_values(x_idx + 1, y_idx + 0, z_idx + 0, &b_paq);
+  corner_rp[1][0][0] = getRaytraceData(&b_paq);
+  set_paq_values(x_idx + 1, y_idx + 0, z_idx + 1, &b_paq);
+  corner_rp[1][0][1] = getRaytraceData(&b_paq);
+  set_paq_values(x_idx + 1, y_idx + 1, z_idx + 0, &b_paq);
+  corner_rp[1][1][0] = getRaytraceData(&b_paq);
+  set_paq_values(x_idx + 1, y_idx + 1, z_idx + 1, &b_paq);
+  corner_rp[1][1][1] = getRaytraceData(&b_paq);
+
+  rt->copyInCornerPrimitives(corner_rp);
+}
+
+RaytracePrimitives<real_t> BSSN::getRaytraceData(BSSNData *paq)
+{
+  RaytracePrimitives<real_t> rp = {0};
+
+  // normalization factor
+  real_t P = exp(4.0*paq->phi);
+
+  // metric
+  rp.g[0] = P*paq->gamma11; rp.g[1] = P*paq->gamma12; rp.g[2] = P*paq->gamma13;
+  rp.g[3] = P*paq->gamma22; rp.g[4] = P*paq->gamma23; rp.g[5] = P*paq->gamma33;
+  // inverse metric
+  rp.gi[0] = paq->gammai11/P; rp.gi[1] = paq->gammai12/P; rp.gi[2] = paq->gammai13/P;
+  rp.gi[3] = paq->gammai22/P; rp.gi[4] = paq->gammai23/P; rp.gi[5] = paq->gammai33/P;
+  // derivatives of metric
+  rp.dg[0][0] = BSSN_RP_DG(1,1,1); rp.dg[0][1] = BSSN_RP_DG(1,2,1); rp.dg[0][2] = BSSN_RP_DG(1,3,1);
+  rp.dg[0][3] = BSSN_RP_DG(2,2,1); rp.dg[0][4] = BSSN_RP_DG(2,3,1); rp.dg[0][5] = BSSN_RP_DG(3,3,1);
+  rp.dg[1][0] = BSSN_RP_DG(1,1,2); rp.dg[1][1] = BSSN_RP_DG(1,2,2); rp.dg[1][2] = BSSN_RP_DG(1,3,2);
+  rp.dg[1][3] = BSSN_RP_DG(2,2,2); rp.dg[1][4] = BSSN_RP_DG(2,3,2); rp.dg[1][5] = BSSN_RP_DG(3,3,2);
+  rp.dg[2][0] = BSSN_RP_DG(1,1,3); rp.dg[2][1] = BSSN_RP_DG(1,2,3); rp.dg[2][2] = BSSN_RP_DG(1,3,3);
+  rp.dg[2][3] = BSSN_RP_DG(2,2,3); rp.dg[2][4] = BSSN_RP_DG(2,3,3); rp.dg[2][5] = BSSN_RP_DG(3,3,3);
+  // second derivatives of metric
+  rp.ddg[0][0] = BSSN_RP_DDG(1,1,1,1); rp.ddg[0][1] = BSSN_RP_DDG(1,2,1,1); rp.ddg[0][2] = BSSN_RP_DDG(1,3,1,1);
+  rp.ddg[0][3] = BSSN_RP_DDG(2,2,1,1); rp.ddg[0][4] = BSSN_RP_DDG(2,3,1,1); rp.ddg[0][5] = BSSN_RP_DDG(3,3,1,1);
+  rp.ddg[1][0] = BSSN_RP_DDG(1,1,1,2); rp.ddg[1][1] = BSSN_RP_DDG(1,2,1,2); rp.ddg[1][2] = BSSN_RP_DDG(1,3,1,2);
+  rp.ddg[1][3] = BSSN_RP_DDG(2,2,1,2); rp.ddg[1][4] = BSSN_RP_DDG(2,3,1,2); rp.ddg[1][5] = BSSN_RP_DDG(3,3,1,2);
+  rp.ddg[2][0] = BSSN_RP_DDG(1,1,1,3); rp.ddg[2][1] = BSSN_RP_DDG(1,2,1,3); rp.ddg[2][2] = BSSN_RP_DDG(1,3,1,3);
+  rp.ddg[2][3] = BSSN_RP_DDG(2,2,1,3); rp.ddg[2][4] = BSSN_RP_DDG(2,3,1,3); rp.ddg[2][5] = BSSN_RP_DDG(3,3,1,3);
+  rp.ddg[3][0] = BSSN_RP_DDG(1,1,2,2); rp.ddg[3][1] = BSSN_RP_DDG(1,2,2,2); rp.ddg[3][2] = BSSN_RP_DDG(1,3,2,2);
+  rp.ddg[3][3] = BSSN_RP_DDG(2,2,2,2); rp.ddg[3][4] = BSSN_RP_DDG(2,3,2,2); rp.ddg[3][5] = BSSN_RP_DDG(3,3,2,2);
+  rp.ddg[4][0] = BSSN_RP_DDG(1,1,2,3); rp.ddg[4][1] = BSSN_RP_DDG(1,2,2,3); rp.ddg[4][2] = BSSN_RP_DDG(1,3,2,3);
+  rp.ddg[4][3] = BSSN_RP_DDG(2,2,2,3); rp.ddg[4][4] = BSSN_RP_DDG(2,3,2,3); rp.ddg[4][5] = BSSN_RP_DDG(3,3,2,3);
+  rp.ddg[5][0] = BSSN_RP_DDG(1,1,3,3); rp.ddg[5][1] = BSSN_RP_DDG(1,2,3,3); rp.ddg[5][2] = BSSN_RP_DDG(1,3,3,3);
+  rp.ddg[5][3] = BSSN_RP_DDG(2,2,3,3); rp.ddg[5][4] = BSSN_RP_DDG(2,3,3,3); rp.ddg[5][5] = BSSN_RP_DDG(3,3,3,3);
+
+  // extrinsic curvature:
+  rp.K[0] = BSSN_RP_K(1,1); rp.K[1] = BSSN_RP_K(1,2); rp.K[2] = BSSN_RP_K(1,3);
+  rp.K[3] = BSSN_RP_K(2,2); rp.K[4] = BSSN_RP_K(2,3); rp.K[5] = BSSN_RP_K(3,3);
+  // derivatives of extrinsic curvature
+  rp.dK[0][0] = BSSN_RP_DK(1,1,1); rp.dK[0][1] = BSSN_RP_DK(1,2,1); rp.dK[0][2] = BSSN_RP_DK(1,3,1);
+  rp.dK[0][3] = BSSN_RP_DK(2,2,1); rp.dK[0][4] = BSSN_RP_DK(2,3,1); rp.dK[0][5] = BSSN_RP_DK(3,3,1);
+  rp.dK[1][0] = BSSN_RP_DK(1,1,2); rp.dK[1][1] = BSSN_RP_DK(1,2,2); rp.dK[1][2] = BSSN_RP_DK(1,3,2);
+  rp.dK[1][3] = BSSN_RP_DK(2,2,2); rp.dK[1][4] = BSSN_RP_DK(2,3,2); rp.dK[1][5] = BSSN_RP_DK(3,3,2);
+  rp.dK[2][0] = BSSN_RP_DK(1,1,3); rp.dK[2][1] = BSSN_RP_DK(1,2,3); rp.dK[2][2] = BSSN_RP_DK(1,3,3);
+  rp.dK[2][3] = BSSN_RP_DK(2,2,3); rp.dK[2][4] = BSSN_RP_DK(2,3,3); rp.dK[2][5] = BSSN_RP_DK(3,3,3);
+
+  // 3-Christoffel symbols
+  // raised first index
+  rp.G[0][0] = BSSN_RP_GAMMA(1,1,1); rp.G[0][1] = BSSN_RP_GAMMA(1,2,1); rp.G[0][2] = BSSN_RP_GAMMA(1,3,1);
+  rp.G[0][3] = BSSN_RP_GAMMA(2,2,1); rp.G[0][4] = BSSN_RP_GAMMA(2,3,1); rp.G[0][5] = BSSN_RP_GAMMA(3,3,1);
+  rp.G[1][0] = BSSN_RP_GAMMA(1,1,2); rp.G[1][1] = BSSN_RP_GAMMA(1,2,2); rp.G[1][2] = BSSN_RP_GAMMA(1,3,2);
+  rp.G[1][3] = BSSN_RP_GAMMA(2,2,2); rp.G[1][4] = BSSN_RP_GAMMA(2,3,2); rp.G[1][5] = BSSN_RP_GAMMA(3,3,2);
+  rp.G[2][0] = BSSN_RP_GAMMA(1,1,3); rp.G[2][1] = BSSN_RP_GAMMA(1,2,3); rp.G[2][2] = BSSN_RP_GAMMA(1,3,3);
+  rp.G[2][3] = BSSN_RP_GAMMA(2,2,3); rp.G[2][4] = BSSN_RP_GAMMA(2,3,3); rp.G[2][5] = BSSN_RP_GAMMA(3,3,3);
+  // lower first index
+  rp.GL[0][0] = BSSN_RP_GAMMAL(1,1,1); rp.GL[0][1] = BSSN_RP_GAMMAL(1,2,1); rp.GL[0][2] = BSSN_RP_GAMMAL(1,3,1);
+  rp.GL[0][3] = BSSN_RP_GAMMAL(2,2,1); rp.GL[0][4] = BSSN_RP_GAMMAL(2,3,1); rp.GL[0][5] = BSSN_RP_GAMMAL(3,3,1);
+  rp.GL[1][0] = BSSN_RP_GAMMAL(1,1,2); rp.GL[1][1] = BSSN_RP_GAMMAL(1,2,2); rp.GL[1][2] = BSSN_RP_GAMMAL(1,3,2);
+  rp.GL[1][3] = BSSN_RP_GAMMAL(2,2,2); rp.GL[1][4] = BSSN_RP_GAMMAL(2,3,2); rp.GL[1][5] = BSSN_RP_GAMMAL(3,3,2);
+  rp.GL[2][0] = BSSN_RP_GAMMAL(1,1,3); rp.GL[2][1] = BSSN_RP_GAMMAL(1,2,3); rp.GL[2][2] = BSSN_RP_GAMMAL(1,3,3);
+  rp.GL[2][3] = BSSN_RP_GAMMAL(2,2,3); rp.GL[2][4] = BSSN_RP_GAMMAL(2,3,3); rp.GL[2][5] = BSSN_RP_GAMMAL(3,3,3);
+
+  // Ricci tensor
+  rp.Ricci[0] = paq->ricci11; rp.Ricci[1] = paq->ricci12;
+  rp.Ricci[2] = paq->ricci13; rp.Ricci[3] = paq->ricci22;
+  rp.Ricci[4] = paq->ricci23; rp.Ricci[5] = paq->ricci33;
+
+  rp.rho = paq->r;
+  rp.trK = paq->K;
+
+  return rp;
 }
 
 }

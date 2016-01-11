@@ -38,6 +38,8 @@ typedef long int idx_t;
 #include "utils/Fourier.h"
 #include "utils/math.h"
 
+#include "cosmotrace/raytrace.h"
+
 #include "io.h"
 #include "ICs.h"
 #include "bssn.h"

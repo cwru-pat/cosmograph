@@ -124,6 +124,10 @@ public:
 
     real_t metricConstraintTotalMag();
 
+  /* Raytracing functionality */
+    RaytracePrimitives<real_t> getRaytraceData(BSSNData *paq);
+    void setRaytraceCornerPrimitives(RayTrace<real_t, idx_t> *rt);
+
 };
 
 }

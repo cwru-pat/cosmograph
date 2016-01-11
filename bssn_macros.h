@@ -234,7 +234,7 @@
     (paq->G3##I##J + 2.0*( (3==I)*paq->d##J##phi + (3==J)*paq->d##I##phi - paq->gamma##I##J*gammai3ldlphi))*paq->d3a \
   );
 
-#define BSSN_CALCULATE_RICCITF_UNITARY(I, J) paq->ricciTF##I##J = ( \
+#define BSSN_CALCULATE_RICCI_UNITARY(I, J) paq->ricci##I##J = ( \
     - 0.5*( \
       paq->gammai11*paq->d1d1g##I##J + paq->gammai22*paq->d2d2g##I##J + paq->gammai33*paq->d3d3g##I##J \
       + 2.0*(paq->gammai12*paq->d1d2g##I##J + paq->gammai13*paq->d1d3g##I##J + paq->gammai23*paq->d2d3g##I##J) \
@@ -468,6 +468,41 @@
 #define MiIJ(i, j) exp(-4.0*paq->phi)*(paq->gamma##i##j) - 1.0/paq->alpha/paq->alpha*paq->beta##i*paq->beta##j;
 
 
+/*
+ * Conversion to ADM quantities for raytracing
+ */
+#define BSSN_RP_DG(I,J,L) \
+  P*(4.0*paq->gamma##I##J*paq->d##L##phi+ paq->d##L##g##I##J)
+
+#define BSSN_RP_DDG(I,J,L,M) \
+  P*( \
+    16.0*paq->gamma##I##J*paq->d##M##phi*paq->d##L##phi \
+    + 4.0*(paq->d##L##g##I##J*paq->d##M##phi + paq->d##M##g##I##J*paq->d##L##phi + paq->gamma##I##J*paq->d##L##d##M##phi) \
+    + paq->d##L##d##M##g##I##J \
+  )
+
+#define BSSN_RP_K(I,J) \
+  P*(paq->A##I##J + 1.0/3.0*paq->gamma##I##J*paq->K)
+
+#define BSSN_RP_DK(I,J,L) \
+  P*( \
+    4.0*(paq->A##I##J + 1.0/3.0*paq->gamma##I##J*paq->K)*paq->d##L##phi + derivative(paq->i, paq->j, paq->k, L, A##I##J##_a) \
+    + 1.0/3.0*paq->K*paq->d##L##g##I##J + 1.0/3.0*paq->gamma##I##J*paq->d##L##K \
+  )
+
+#define BSSN_RP_GAMMA(I,J,K) \
+  paq->G##I##J##K + 2.0*( \
+      (I==J ? 1.0 : 0.0)*paq->d##K##phi \
+      + (I==K ? 1.0 : 0.0)*paq->d##J##phi \
+      - paq->gamma##J##K*(paq->gammai##I##1*paq->d1phi + paq->gammai##I##2*paq->d2phi + paq->gammai##I##3*paq->d3phi) \
+    )
+
+#define BSSN_RP_GAMMAL(I,J,K) P*( \
+  paq->GL##I##J##K + 2.0*( \
+      paq->gamma##I##J*paq->d##K##phi \
+      + paq->gamma##I##K*paq->d##J##phi \
+      - paq->gamma##J##K*paq->d##I##phi \
+  ) )
 
 /*
  * Enforce standard ordering of indexes for tensor components
@@ -511,6 +546,9 @@
 #define ricciTF21 ricciTF12
 #define ricciTF31 ricciTF13
 #define ricciTF32 ricciTF23
+#define ricci21 ricci12
+#define ricci31 ricci13
+#define ricci32 ricci23
 
 // covariant double-derivatives of phi
 #define D2D1phi D1D2phi
