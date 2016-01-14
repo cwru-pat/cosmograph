@@ -180,6 +180,36 @@ int main(int argc, char **argv)
         // "current" data is in the _p array.
     _timer["RK_steps"].stop();
 
+
+// check to see when simulation has crossed a reference eta
+// note: these are backwards because _f and _p were just exchanged
+real_t * const eta_f = bssnSim.fields["eta_p"];
+real_t * const eta_p = bssnSim.fields["eta_f"];
+real_t * const phi_f = bssnSim.fields["DIFFphi_p"];
+real_t * const phi_p = bssnSim.fields["DIFFphi_f"];
+LOOP3(i,j,k)
+{
+  idx_t idx = INDEX(i,j,k);
+  real_t eta_ref = 2.0;
+  // eta increases monatonically
+  real_t eta2 = eta_f[idx]; // next step is in _f array
+  real_t eta1 = eta_p[idx]; // previous step is in _p array
+
+  if( eta_ref >= eta1 && eta_ref <= eta2 )
+  {
+    // linear interpolation to determine "time" of K_ref
+    real_t ref_time = (eta_ref - eta1) / (eta2 - eta1);
+    
+    // get phi value at this "time"
+    real_t phi2 = phi_f[idx];
+    real_t phi1 = phi_p[idx];
+    real_t phi_at_ref = (phi2 - phi1)*ref_time + phi1;
+    // store phi value on the slice
+    bssnSim.fields["eta_phi_slice_a"][idx] = phi_at_ref;
+  }
+}
+
+
   }
   _timer["loop"].stop();
 

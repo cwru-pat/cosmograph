@@ -6,7 +6,6 @@
 
 #include "ICs_data.h"
 #include "io_data.h"
-#include "frw.h"
 
 namespace cosmo
 {

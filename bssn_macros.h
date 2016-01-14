@@ -48,6 +48,7 @@
   function(Gamma2, __VA_ARGS__);                   \
   function(Gamma3, __VA_ARGS__);                   \
   function(DIFFalpha, __VA_ARGS__);                \
+  function(eta, __VA_ARGS__);                      \
   Z4c_APPLY_TO_FIELDS_ARGS(function, __VA_ARGS__)  \
   BSSN_APPLY_TO_SHIFT_ARGS(function, __VA_ARGS__)
 
@@ -70,6 +71,7 @@
   function(Gamma2);                    \
   function(Gamma3);                    \
   function(DIFFalpha);                 \
+  function(eta);                       \
   Z4c_APPLY_TO_FIELDS(function)        \
   BSSN_APPLY_TO_SHIFT(function)
 
@@ -87,7 +89,7 @@
   function(STF33);
 
 #define BSSN_APPLY_TO_GEN1_EXTRAS(function) \
-  function(dk0_slice_phi);                  \
+  function(eta_phi_slice);                  \
   function(KDx);                            \
   function(KDy);                            \
   function(KDz);                            \

@@ -653,6 +653,15 @@ real_t BSSN::ev_DIFFalpha(BSSNData *paq)
   return 0.0;
 }
 
+real_t BSSN::ev_eta(BSSNData *paq)
+{
+  // Appx. newtonian gauge time elapsed
+  // a(eta) = a_0 * eta^(2/3)
+  // d\eta / dt = eta^(4/3) * exp( 2 phi )
+  // eta_0 = 
+  return pow(paq->eta, 4.0/3.0)*exp(2.0*(paq->phi));
+}
+
 #if USE_Z4c_DAMPING
 real_t BSSN::ev_theta(BSSNData *paq)
 {

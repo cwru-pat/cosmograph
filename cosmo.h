@@ -37,6 +37,7 @@ typedef long int idx_t;
 #include "utils/Timer.h"
 #include "utils/Fourier.h"
 #include "utils/math.h"
+#include "utils/reference_frw.h"
 
 #include "cosmotrace/raytrace.h"
 
@@ -45,6 +46,5 @@ typedef long int idx_t;
 #include "bssn.h"
 #include "bssn_data.h"
 #include "static.h"
-#include "frw.h"
 
 #endif
