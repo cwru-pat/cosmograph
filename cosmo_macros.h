@@ -76,27 +76,45 @@
 // FFT indexing without periodicity
 #define FFT_NP_INDEX(i,j,k) ((NZ/2+1)*NY*(i) + (NZ/2+1)*(j) + (k))
 
+
+/* "3d" loops */
 #define LOOP3(i,j,k) \
   for(i=0; i<NX; ++i) \
     for(j=0; j<NY; ++j) \
       for(k=0; k<NZ; ++k)
 
+// #define PARALLEL_LOOP3(i,j,k) \
+//   _Pragma("omp parallel for default(shared) private(i, j, k)") \
+//   LOOP3(i,j,k)
+
 #define PARALLEL_LOOP3(i,j,k) \
-  _Pragma("omp parallel for default(shared) private(i, j, k)") \
   LOOP3(i,j,k)
 
+
+/* loop over indexes (no indexing macro needed) */
+#define LOOP_IDX(i) \
+  for(i=0; i<POINTS; i++)
+
+
+/* loop over an area */
 #define AREA_LOOP(j,k) \
   for(j=0; j<NY; ++j) \
     for(k=0; k<NZ; ++k)
 
+// #define PARALLEL_AREA_LOOP(j,k) \
+//   _Pragma("omp parallel for default(shared) private(j, k)") \
+//   AREA_LOOP(j,k)
+
 #define PARALLEL_AREA_LOOP(j,k) \
-  _Pragma("omp parallel for default(shared) private(j, k)") \
   AREA_LOOP(j,k)
 
+
+/* internal points only (no boundaries?) */
 #define INTERNAL_LOOP3(i,j,k) \
   for(i=1; i<NX-1; ++i) \
     for(j=1; j<NY-1; ++j) \
       for(k=1; k<NZ-1; ++k)
+
 
 #define DECLARE_REAL_T(name) real_t name
 
@@ -152,6 +170,24 @@
 
 #define RK4_ARRAY_DELETE(name)
 
+#define RK4_ACC_UPDATEHOST(name) \
+        name##_p.updateHost(); \
+        name##_K1.updateHost(); \
+        name##_K2.updateHost(); \
+        name##_K3.updateHost(); \
+        name##_t.updateHost(); \
+        name##_r.updateHost(); \
+        name##_a.updateHost()
+
+#define RK4_ACC_UPDATEDEV(name) \
+        name##_p.updateDev(); \
+        name##_K1.updateDev(); \
+        name##_K2.updateDev(); \
+        name##_K3.updateDev(); \
+        name##_t.updateDev(); \
+        name##_r.updateDev(); \
+        name##_a.updateDev()
+
 // A GEN1 method; just declares one register.
 // Sets up an "_a" (active) register.
 #define GEN1_ARRAY_ADDMAP(name)         \
@@ -164,5 +200,11 @@
         name##_a.init(NX, NY, NZ)
 
 #define GEN1_ARRAY_DELETE(name)
+
+#define GEN1_ACC_UPDATEHOST(name) \
+        name##_a.updateHost()
+
+#define GEN1_ACC_UPDATEDEV(name) \
+        name##_a.updateDev()
 
 #endif

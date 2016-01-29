@@ -116,6 +116,7 @@
   function(3, 3, 3);
 
 
+
 #define BSSN_SWAP_REGISTERS(field, reg_prefix_1, reg_prefix_2) \
   std::swap(field##reg_prefix_1._array, field##reg_prefix_2._array);
 

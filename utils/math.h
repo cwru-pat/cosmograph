@@ -45,19 +45,16 @@ inline real_t derivative_Odx2(idx_t i, idx_t j, idx_t k, int d,
         - 1.0/2.0*(*field)(i-1,j,k)
         + 1.0/2.0*(*field)(i+1,j,k)
       )/dx);
-      break;
     case 2:
       return ((
         - 1.0/2.0*(*field)(i,j-1,k)
         + 1.0/2.0*(*field)(i,j+1,k)
       )/dx);
-      break;
     case 3:
       return ((
         - 1.0/2.0*(*field)(i,j,k-1)
         + 1.0/2.0*(*field)(i,j,k+1)
       )/dx);
-      break;
   }
 
   /* XXX */
@@ -75,7 +72,6 @@ inline real_t derivative_Odx4(idx_t i, idx_t j, idx_t k, int d,
         + 2.0/3.0*(*field)(i+1,j,k)
         - 1.0/12.0*(*field)(i+2,j,k)
       )/dx;
-      break;
     case 2:
       return (
         + 1.0/12.0*(*field)(i,j-2,k)
@@ -83,7 +79,6 @@ inline real_t derivative_Odx4(idx_t i, idx_t j, idx_t k, int d,
         + 2.0/3.0*(*field)(i,j+1,k)
         - 1.0/12.0*(*field)(i,j+2,k)
       )/dx;
-      break;
     case 3:
       return (
         + 1.0/12.0*(*field)(i,j,k-2)
@@ -91,7 +86,6 @@ inline real_t derivative_Odx4(idx_t i, idx_t j, idx_t k, int d,
         + 2.0/3.0*(*field)(i,j,k+1)
         - 1.0/12.0*(*field)(i,j,k+2)
       )/dx;
-      break;
   }
 
   /* XXX */
@@ -111,7 +105,6 @@ inline real_t derivative_Odx6(idx_t i, idx_t j, idx_t k, int d,
         - 3.0/20.0*(*field)(i+2,j,k)
         + 1.0/60.0*(*field)(i+3,j,k)
       )/dx;
-      break;
     case 2:
       return (
         - 1.0/60.0*(*field)(i,j-3,k)
@@ -121,7 +114,6 @@ inline real_t derivative_Odx6(idx_t i, idx_t j, idx_t k, int d,
         - 3.0/20.0*(*field)(i,j+2,k)
         + 1.0/60.0*(*field)(i,j+3,k)
       )/dx;
-      break;
     case 3:
       return (
         - 1.0/60.0*(*field)(i,j,k-3)
@@ -131,7 +123,6 @@ inline real_t derivative_Odx6(idx_t i, idx_t j, idx_t k, int d,
         - 3.0/20.0*(*field)(i,j,k+2)
         + 1.0/60.0*(*field)(i,j,k+3)
       )/dx;
-      break;
   }
 
   /* XXX */
@@ -156,7 +147,6 @@ switch (d) {
           field(i-1,j,k) - field(i+1,j,k)
         )
       )/dx;
-      break;
     case 2:
       return (
         1.0/280.0*(
@@ -169,7 +159,6 @@ switch (d) {
           field(i,j-1,k) - field(i,j+1,k)
         )
       )/dx;
-      break;
     case 3:
       return (
         1.0/280.0*(
@@ -182,7 +171,6 @@ switch (d) {
           field(i,j,k-1) - field(i,j,k+1)
         )
       )/dx;
-      break;
   }
 
   /* XXX */
@@ -382,21 +370,18 @@ inline real_t double_derivative_stencil_Odx2(idx_t i, idx_t j, idx_t k, int d,
           - 2.0*(*field)(i-0,j,k)
           + (*field)(i+1,j,k)
         )/dx/dx;
-      break;
     case 2:
       return (
           (*field)(i,j-1,k)
           - 2.0*(*field)(i,j-0,k)
           + (*field)(i,j+1,k)
         )/dx/dx;
-      break;
     case 3:
       return (
           (*field)(i,j,k-1)
           - 2.0*(*field)(i,j,k-0)
           + (*field)(i,j,k+1)
         )/dx/dx;
-      break;
   }
 
   /* XXX */
@@ -415,7 +400,6 @@ inline real_t double_derivative_stencil_Odx4(idx_t i, idx_t j, idx_t k, int d,
           + 4.0/3.0*(*field)(i+1,j,k)
           - 1.0/12.0*(*field)(i+2,j,k)
         )/dx/dx;
-      break;
     case 2:
       return (
           - 1.0/12.0*(*field)(i,j-2,k)
@@ -424,7 +408,6 @@ inline real_t double_derivative_stencil_Odx4(idx_t i, idx_t j, idx_t k, int d,
           + 4.0/3.0*(*field)(i,j+1,k)
           - 1.0/12.0*(*field)(i,j+2,k)
         )/dx/dx;
-      break;
     case 3:
       return (
           - 1.0/12.0*(*field)(i,j,k-2)
@@ -433,7 +416,6 @@ inline real_t double_derivative_stencil_Odx4(idx_t i, idx_t j, idx_t k, int d,
           + 4.0/3.0*(*field)(i,j,k+1)
           - 1.0/12.0*(*field)(i,j,k+2)
         )/dx/dx;
-      break;
   }
 
   /* XXX */
@@ -454,7 +436,6 @@ inline real_t double_derivative_stencil_Odx6(idx_t i, idx_t j, idx_t k, int d,
           - 3.0/20.0*(*field)(i+2,j,k)
           + 1.0/90.0*(*field)(i+3,j,k)
         )/dx/dx;
-      break;
     case 2:
       return (
           1.0/90.0*(*field)(i,j-3,k)
@@ -465,7 +446,6 @@ inline real_t double_derivative_stencil_Odx6(idx_t i, idx_t j, idx_t k, int d,
           - 3.0/20.0*(*field)(i,j+2,k)
           + 1.0/90.0*(*field)(i,j+3,k)
         )/dx/dx;
-      break;
     case 3:
       return (
           1.0/90.0*(*field)(i,j,k-3)
@@ -476,7 +456,6 @@ inline real_t double_derivative_stencil_Odx6(idx_t i, idx_t j, idx_t k, int d,
           - 3.0/20.0*(*field)(i,j,k+2)
           + 1.0/90.0*(*field)(i,j,k+3)
         )/dx/dx;
-      break;
   }
 
   /* XXX */
@@ -501,7 +480,6 @@ inline real_t double_derivative_stencil_Odx8(idx_t i, idx_t j, idx_t k, int d,
           + 8.0/5.0*field(i+1,j,k)
           - 205.0/72.0*field(i-0,j,k)
         )/dx/dx;
-      break;
     case 2:
       return (
           - 1.0/560.0*field(i,j-4,k)
@@ -514,7 +492,6 @@ inline real_t double_derivative_stencil_Odx8(idx_t i, idx_t j, idx_t k, int d,
           + 8.0/5.0*field(i,j+1,k)
           - 205.0/72.0*field(i,j-0,k)
         )/dx/dx;
-      break;
     case 3:
       return (
           - 1.0/560.0*field(i,j,k-4)
@@ -527,7 +504,6 @@ inline real_t double_derivative_stencil_Odx8(idx_t i, idx_t j, idx_t k, int d,
           + 8.0/5.0*field(i,j,k+1)
           - 205.0/72.0*field(i,j,k-0)
         )/dx/dx;
-      break;
   }
 
   /* XXX */
