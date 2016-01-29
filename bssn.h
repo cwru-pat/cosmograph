@@ -28,6 +28,9 @@ public:
   BSSN();
   ~BSSN();
 
+  void updateDev();
+  void updateHost();
+
   void init();
 
   /* RK integrator functions */

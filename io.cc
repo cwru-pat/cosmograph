@@ -143,7 +143,6 @@ void io_show_progress(idx_t s, idx_t maxs) // terminal output only
   {
     std::cout << "Simulation has run more steps than allowed.";
     throw -1;
-    return;
   }
 
   idx_t s_digits = (int) log10 ((double) s+1.0) + 1;
@@ -228,8 +227,6 @@ void io_dump_2dslice(arr_t *field, std::string filename, IOData *iodata)
 
   hid_t       file, space, dset, dcpl;  /* Handles */
   herr_t      status;
-  htri_t      avail;
-  H5Z_filter_t  filter_type;
   hsize_t     dims[2] = {NY, NZ},
               maxdims[2] = {H5S_UNLIMITED, H5S_UNLIMITED},
               chunk[2] = {6, 6};
@@ -263,8 +260,6 @@ void io_dump_3dslice(arr_t *field, std::string filename, IOData *iodata)
 
   hid_t       file, space, dset, dcpl;  /* Handles */
   herr_t      status;
-  htri_t      avail;
-  H5Z_filter_t  filter_type;
   hsize_t     dims[3] = {NX, NY, NZ},
               maxdims[3] = {H5S_UNLIMITED, H5S_UNLIMITED, H5S_UNLIMITED},
               chunk[3] = {6, 6, 6};

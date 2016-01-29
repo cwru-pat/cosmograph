@@ -35,7 +35,7 @@ int main(int argc, char **argv)
   io_config_backup(&iodata, argv[1]);
 
   steps = stoi(_config["steps"]);
-  omp_set_num_threads(stoi(_config["omp_num_threads"]));
+  // omp_set_num_threads(stoi(_config["omp_num_threads"]));
 
   // Create simulation
   _timer["init"].start();
@@ -66,6 +66,11 @@ int main(int argc, char **argv)
       set_conformal_ICs(bssnSim.fields, &fourier, &iodata, bssnSim.frw);
     }
 
+    // send arrays to GPU
+    LOG(iodata.log, "Sending data to device...");
+    bssnSim.updateDev();
+    LOG(iodata.log, " ...sent.\n");
+
   _timer["init"].stop();
 
   // evolve simulation
@@ -78,6 +83,7 @@ int main(int argc, char **argv)
     // these generally output any data in the _a registers (which should 
     // be identical to _p at this point).
     _timer["output"].start();
+
       // set_paq_values calculates ricci_a and AijAij_a data, needed for output
       // and subsequent constraint calculations
 
@@ -92,7 +98,6 @@ int main(int argc, char **argv)
       _timer["meta_output_interval"].start();
         if(s%iodata.meta_output_interval == 0)
         {
-          idx_t isNaN = 0;
           real_t H_calcs[7], M_calcs[7];
 
           // Constraint Violation Calculations

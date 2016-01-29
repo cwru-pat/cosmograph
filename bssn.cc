@@ -27,6 +27,19 @@ BSSN::~BSSN()
   BSSN_APPLY_TO_GEN1_EXTRAS(GEN1_ARRAY_DELETE)
 }
 
+void BSSN::updateDev()
+{
+
+  BSSN_APPLY_TO_FIELDS(RK4_ACC_UPDATEDEV)
+  BSSN_APPLY_TO_GEN1_EXTRAS(GEN1_ACC_UPDATEDEV)
+}
+
+void BSSN::updateHost()
+{
+  BSSN_APPLY_TO_FIELDS(RK4_ACC_UPDATEHOST)
+  BSSN_APPLY_TO_GEN1_EXTRAS(GEN1_ACC_UPDATEHOST)
+}
+
 /*
 ******************************************************************************
 Functionality for special "wedge" RK4 integrator using 1 register
@@ -58,7 +71,7 @@ void BSSN::DrawWedgeSlice(idx_t i_p, idx_t i_K1, idx_t i_K2,
   idx_t i_K3, idx_t i_tail)
 {
   return;
-  int l;
+/*  int l;
   l = system("clear");
 
   std::cout.precision(3);
@@ -98,7 +111,7 @@ void BSSN::DrawWedgeSlice(idx_t i_p, idx_t i_K1, idx_t i_K2,
   
   std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
-  return;
+  return;*/
 }
 
 void BSSN::WedgeStep()
@@ -107,7 +120,7 @@ void BSSN::WedgeStep()
   for(i=0; i<=NX + WEDGE_AFTER_END_IDX - WEDGE_SLICE_LEN_DIFF/2; ++i)
   {
     // "i" is location of calculation for wedge "peak"
-    idx_t i_p = i;
+    // idx_t i_p = i;
     idx_t i_K1 = i;
     idx_t i_K2 = i - WEDGE_SLICE_LEN_DIFF/2;
     idx_t i_K3 = i - 2*WEDGE_SLICE_LEN_DIFF/2;
@@ -123,7 +136,6 @@ void BSSN::WedgeStep()
     WedgeTailCalc(i_tail); // uses "_p + K3"
 
 // calculate phi and rho on a constant-eta slice
-real_t eta_val = 1.0;
 PARALLEL_AREA_LOOP(j,k)
 {
   real_t eta_ref = 2.0;
@@ -261,7 +273,6 @@ void BSSN::set_gammai_values(idx_t i, idx_t j, idx_t k, BSSNData *paq)
 {
   // Compute the inverse metric algebraically at each point
   // assumes det(gamma) = 1
-  idx_t idx = NP_INDEX(i,j,k);
   paq->gammai11 = 1.0 + paq->DIFFgamma22 + paq->DIFFgamma33 - pw2(paq->DIFFgamma23) + paq->DIFFgamma22*paq->DIFFgamma33;
   paq->gammai22 = 1.0 + paq->DIFFgamma11 + paq->DIFFgamma33 - pw2(paq->DIFFgamma13) + paq->DIFFgamma11*paq->DIFFgamma33;
   paq->gammai33 = 1.0 + paq->DIFFgamma11 + paq->DIFFgamma22 - pw2(paq->DIFFgamma12) + paq->DIFFgamma11*paq->DIFFgamma22;
@@ -941,8 +952,6 @@ void BSSN::setMomentumConstraintCalcs(real_t M_values[7])
   #pragma omp parallel for default(shared) private(i, j, k) reduction(+:mean_M,mean_M_scale,mean_M_scaled)
   LOOP3(i,j,k)
   {
-    idx_t idx = NP_INDEX(i,j,k);
-
     BSSNData b_paq = {0};
     set_paq_values(i, j, k, &b_paq); // sets AijAij and Ricci too
 
@@ -981,8 +990,6 @@ void BSSN::setMomentumConstraintCalcs(real_t M_values[7])
   #pragma omp parallel for default(shared) private(i, j, k) reduction(+:stdev_M,stdev_M_scaled)
   LOOP3(i,j,k)
   {
-    idx_t idx = NP_INDEX(i,j,k);
-
     BSSNData b_paq = {0};
     set_paq_values(i, j, k, &b_paq); // sets AijAij and Ricci too
 
@@ -1031,7 +1038,6 @@ real_t BSSN::momentumConstraintCalc(BSSNData *paq, idx_t d)
 
   /* xxx */
   throw -1;
-  return 0;
 }
 
 real_t BSSN::momentumConstraintScale(BSSNData *paq, idx_t d)
@@ -1049,7 +1055,6 @@ real_t BSSN::momentumConstraintScale(BSSNData *paq, idx_t d)
 
   /* xxx */
   throw -1;
-  return 0;
 }
 
 

@@ -44,13 +44,7 @@ void set_gaussian_random_field(real_t *field, Fourier *fourier, ICsData *icd)
   real_t scale;
 
   // populate "field" with random values
-  std::random_device rd;
-  std::mt19937 gen(9.0 /*rd()*/);
-  std::normal_distribution<real_t> gaussian_distribution;
-  std::uniform_real_distribution<double> angular_distribution(0.0, 2.0*PI);
-   // calling these here before looping suppresses a warning (bug)
-  gaussian_distribution(gen);
-  angular_distribution(gen);
+  std::srand(7.0);
 
   // scale amplitudes in fourier space
   // don't expect to run at >512^3 anytime soon; loop over all momenta out to that resolution.
@@ -67,8 +61,13 @@ void set_gaussian_random_field(real_t *field, Fourier *fourier, ICsData *icd)
         pz = (real_t) k;
 
         // generate the same random modes for all resolutions (up to NMAX)
-        real_t rand_mag = gaussian_distribution(gen);
-        real_t rand_phase = angular_distribution(gen);
+        real_t rand_phase = 2.0*PI*( (double) std::rand() ) / ( (double) RAND_MAX );
+
+        // box-muller to get gaussian random var
+        // normal_distribution is hanging in pgcc?
+        real_t mag_u = ( (double) std::rand() ) / ( (double) RAND_MAX );
+        real_t mag_v = ( (double) std::rand() ) / ( (double) RAND_MAX );
+        real_t rand_mag = sqrt(-2.0*log(mag_u))*sin(2.0*PI*mag_v);
 
         // only store momentum values for relevant bins
         if( fabs(px) < (real_t) NX/2+1 + 0.01 && fabs(py) < (real_t) NY/2+1 + 0.01 && fabs(pz) < (real_t) NZ/2+1 + 0.01 )
@@ -117,10 +116,14 @@ void set_conformal_ICs(
   Fourier *fourier, IOData *iod, FRW<real_t> *frw)
 {
   idx_t i, j, k;
-  real_t px, py, pz, p2;
 
-  real_t * const DIFFphi_p = bssn_fields["DIFFphi_p"]->_array;
-  real_t * const DIFFdustrho_p = bssn_fields["DIFFdustrho_p"]->_array;
+  arr_t &DIFFphi = *bssn_fields["DIFFphi_p"];
+  DIFFphi.updateDev();
+  real_t * const DIFFphi_p = DIFFphi._array;
+
+  arr_t &DIFFdustrho = *bssn_fields["DIFFphi_p"];
+  DIFFdustrho.updateDev();
+  real_t * const DIFFdustrho_p = DIFFdustrho._array;
 
   ICsData icd = cosmo_get_ICsData();
   LOG(iod->log, "Generating ICs with peak at k = " << icd.peak_k << "\n");
@@ -130,51 +133,59 @@ void set_conformal_ICs(
   // d^2 exp(\phi) = -2*pi exp(5\phi) * \rho
   // generate gaussian random field xi = exp(phi) (use phi_p as a proxy):
   set_gaussian_random_field(DIFFphi_p, fourier, &icd);
+  DIFFphi.updateDev();
 
   // phi = ln(xi)
-  PARALLEL_LOOP3(i,j,k) {
-    idx_t idx = NP_INDEX(i,j,k);
-    DIFFphi_p[idx] = log1p(DIFFphi_p[idx]);
+  #pragma acc parallel loop present(DIFFphi_p)
+  LOOP_IDX(i) {
+    DIFFphi_p[i] = log1p(DIFFphi_p[i]);
   }
 
   // rho = -lap(phi)/xi^5/2pi
-  PARALLEL_LOOP3(i,j,k) {
-    DIFFdustrho_p[INDEX(i,j,k)] = -0.5/PI*exp(-4.0*DIFFphi_p[INDEX(i,j,k)])*(
-      double_derivative(i, j, k, 1, 1, bssn_fields["DIFFphi_p"])
-      + double_derivative(i, j, k, 2, 2, bssn_fields["DIFFphi_p"])
-      + double_derivative(i, j, k, 3, 3, bssn_fields["DIFFphi_p"])
-      + pw2(derivative(i, j, k, 1, bssn_fields["DIFFphi_p"]))
-      + pw2(derivative(i, j, k, 2, bssn_fields["DIFFphi_p"]))
-      + pw2(derivative(i, j, k, 3, bssn_fields["DIFFphi_p"]))
-    );
-  }
+  #pragma acc kernels loop independent present(DIFFdustrho_p, DIFFphi_p, DIFFphi)
+  for(i=0; i<NX; ++i)
+    #pragma acc loop independent
+    for(j=0; j<NY; ++j)
+      #pragma acc loop independent
+      for(k=0; k<NZ; ++k)
+      {
+        idx_t idx = NP_INDEX(i,j,k);
+        DIFFdustrho_p[idx] =
+          -0.5/PI*exp(-4.0*DIFFphi_p[idx]) * (
+            double_derivative(i, j, k, 1, 1, &DIFFphi)
+            + double_derivative(i, j, k, 2, 2, &DIFFphi)
+            + double_derivative(i, j, k, 3, 3, &DIFFphi)
+            + pw2(derivative(i, j, k, 1, &DIFFphi))
+            + pw2(derivative(i, j, k, 2, &DIFFphi))
+            + pw2(derivative(i, j, k, 3, &DIFFphi))
+          );
+      }
+  DIFFdustrho.updateHost();
 
   // Make sure min density value > 0
   // Set conserved density variable field
   real_t min = icd.rho_K_matter;
   real_t max = min;
-  LOOP3(i,j,k)
+  #pragma acc parallel loop present(DIFFdustrho_p) copyout(max, min)
+  LOOP_IDX(i)
   {
-    idx_t idx = NP_INDEX(i,j,k);
     real_t rho_FRW = icd.rho_K_matter;
-    real_t DIFFdustrho = DIFFdustrho_p[idx];
+    real_t DIFFdustrho = DIFFdustrho_p[i];
     real_t rho = rho_FRW + DIFFdustrho;
     // phi_FRW = 0
-    real_t DIFFphi = DIFFphi_p[idx];
+    // real_t DIFFphi = DIFFphi_p[idx];
     // phi = DIFFphi
     // DIFFK = 0
 
-    if(rho < min)
-    {
+    if(rho < min) {
       min = rho;
     }
-    if(rho > max)
-    {
+
+    if(rho > max) {
       max = rho;
     }
-    if(rho != rho)
-    {
-      LOG(iod->log, "Error: NaN energy density.\n");
+
+    if(rho != rho) {
       throw -1;
     }
   }
@@ -205,7 +216,6 @@ void set_conformal_ICs(
     {
       idx_t idx = NP_INDEX(i,j,k);
       real_t rho_FRW = icd.rho_K_matter;
-      real_t D_FRW = rho_FRW; // on initial slice
 
       DIFFdustrho_p[idx] += rho_FRW;
       bssn_fields["DIFFK_p"]->_array[idx] = -sqrt(24.0*PI*rho_FRW);
@@ -315,8 +325,6 @@ void set_stability_test_ICs(
 
     bssn_fields["DIFFdustrho_a"]->_array[NP_INDEX(i,j,k)] = 0.0 + 0.0*dist(gen);
   }
-
-std::cout << "dist is: " << dist(gen) << "\n";
 
 }
 
