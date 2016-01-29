@@ -101,7 +101,6 @@ public:
     real_t ev_Gamma3(BSSNData *paq);
 
     real_t ev_DIFFalpha(BSSNData *paq);
-    real_t ev_eta(BSSNData *paq);
 
     #if USE_Z4c_DAMPING
       real_t ev_theta(BSSNData *paq);
