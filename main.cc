@@ -186,7 +186,6 @@ int main(int argc, char **argv)
   _timer["output"].start();
     LOG(iodata.log, "\nAverage conformal factor reached " << average(bssnSim.fields["DIFFphi_p"]) << "\n");
     LOG(iodata.log, "Ending simulation.\n");
-    io_dump_3dslice(bssnSim.fields["eta_phi_slice_a"], "eta_phi_slice", &iodata);
   _timer["output"].stop();
 
   _timer["MAIN"].stop();

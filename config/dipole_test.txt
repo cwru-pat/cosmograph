@@ -1,4 +1,4 @@
-steps = 30
+steps = 3
 grid_output_interval = 6000
 slice_output_interval = 6000
 spec_output_interval = 500
