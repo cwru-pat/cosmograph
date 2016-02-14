@@ -967,6 +967,13 @@ Populate a RaytracePrimitives struct with values from a BSSN struct
 ******************************************************************************
 */
 
+void BSSN::setRaytracePrimitives(RayTrace<real_t, idx_t> *rt)
+{
+  setRaytraceCornerPrimitives(rt);
+  rt->setRayX_d(dx);
+  rt->interpolatePrimitives();
+}
+
 void BSSN::setRaytraceCornerPrimitives(RayTrace<real_t, idx_t> *rt)
 {
   BSSNData b_paq = {0};

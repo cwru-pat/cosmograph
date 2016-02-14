@@ -126,6 +126,7 @@ public:
   /* Raytracing functionality */
     RaytracePrimitives<real_t> getRaytraceData(BSSNData *paq);
     void setRaytraceCornerPrimitives(RayTrace<real_t, idx_t> *rt);
+    void setRaytracePrimitives(RayTrace<real_t, idx_t> *rt);
 
 };
 

@@ -53,6 +53,22 @@ int main(int argc, char **argv)
     Fourier fourier;
     fourier.Initialize(NX, NY, NZ, staticSim.fields["DIFFD_a"] /* just any array for planning */);
 
+    // light ray
+    RaytraceData<real_t> rd = {0};
+      // Direction of propagation
+      rd.V[0] = 0.2;
+      rd.V[1] = 0.4;
+      rd.V[2] = 0.894427191;
+      // energy in arb. untis
+      rd.E = 1.0;
+      // Initial 
+      rd.Omega = 1.0;
+      rd.b = 1.0;
+      rd.sig_Re = 0.0;
+      rd.sig_Im = 0.0;
+    RayTrace<real_t, idx_t> * ray;
+    ray = new RayTrace<real_t, idx_t> (dt, rd);
+
     if(_config["ICs"] == "apples_stability")
     {
       LOG(iodata.log, "Using apples stability test initial conditions...\n");
@@ -145,6 +161,11 @@ int main(int argc, char **argv)
           }
         }
       _timer["meta_output_interval"].stop();
+
+      io_dump_data(ray->RicciLensingScalarSum(), &iodata, "ray_functions");
+      io_dump_data(ray->WeylLensingScalarSum_Re(), &iodata, "ray_functions");
+      io_dump_data(ray->WeylLensingScalarSum_Im(), &iodata, "ray_functions");
+
       io_show_progress(s, steps);
     _timer["output"].stop();
 
@@ -179,6 +200,15 @@ int main(int argc, char **argv)
         bssnSim.stepTerm();
         // "current" data is in the _p array.
     _timer["RK_steps"].stop();
+
+
+    _timer["Raytrace_step"].start();
+      // set primitives from BSSN sim
+      bssnSim.setRaytracePrimitives(ray);
+      // evolve ray
+      ray->setDerivedQuantities();
+      ray->evolveRay();
+    _timer["Raytrace_step"].stop();      
 
   }
   _timer["loop"].stop();
