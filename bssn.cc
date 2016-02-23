@@ -1065,7 +1065,7 @@ RaytracePrimitives<real_t> BSSN::getRaytraceData(BSSNData *paq)
   rp.GL[2][0] = BSSN_RP_GAMMAL(1,1,3); rp.GL[2][1] = BSSN_RP_GAMMAL(1,2,3); rp.GL[2][2] = BSSN_RP_GAMMAL(1,3,3);
   rp.GL[2][3] = BSSN_RP_GAMMAL(2,2,3); rp.GL[2][4] = BSSN_RP_GAMMAL(2,3,3); rp.GL[2][5] = BSSN_RP_GAMMAL(3,3,3);
 
-  // Ricci tensor
+  // 3-Ricci tensor
   rp.Ricci[0] = paq->ricci11; rp.Ricci[1] = paq->ricci12;
   rp.Ricci[2] = paq->ricci13; rp.Ricci[3] = paq->ricci22;
   rp.Ricci[4] = paq->ricci23; rp.Ricci[5] = paq->ricci33;

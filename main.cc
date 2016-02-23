@@ -3,6 +3,9 @@
 #include "globals.h"
 #include <cmath>
 #include <cfloat>
+#include <random>
+
+#define N_RAYS 100
 
 using namespace std;
 using namespace cosmo;
@@ -53,21 +56,32 @@ int main(int argc, char **argv)
     Fourier fourier;
     fourier.Initialize(NX, NY, NZ, staticSim.fields["DIFFD_a"] /* just any array for planning */);
 
-    // light ray
+    // light ray data struct
     RaytraceData<real_t> rd = {0};
+    // vector of rays
+    std::vector<RayTrace<real_t, idx_t> *> rays;
+
+    std::mt19937 gen(7.0);
+    std::uniform_real_distribution<real_t> dist(0.0, 1.0);
+    dist(gen);
+    for(i=0; i<N_RAYS; i++)
+    {
+      // Randomized ray position
+      rd.x[0] = dist(gen)*N*dx;
+      rd.x[1] = dist(gen)*N*dx;
+      rd.x[2] = dist(gen)*N*dx;
       // Direction of propagation
-      rd.V[0] = 0.2;
-      rd.V[1] = 0.4;
-      rd.V[2] = 0.894427191;
+      // normalization of V is enforced by raytrace class
+      rd.V[0] = dist(gen);
+      rd.V[1] = dist(gen);
+      rd.V[2] = dist(gen);
       // energy in arb. untis
       rd.E = 1.0;
-      // Initial 
-      rd.Omega = 1.0;
-      rd.b = 1.0;
-      rd.sig_Re = 0.0;
-      rd.sig_Im = 0.0;
-    RayTrace<real_t, idx_t> * ray;
-    ray = new RayTrace<real_t, idx_t> (dt, rd);
+
+      RayTrace<real_t, idx_t> * ray;
+      ray = new RayTrace<real_t, idx_t> (dt, rd);
+      rays.push_back( ray );
+    }
 
     if(_config["ICs"] == "apples_stability")
     {
@@ -162,9 +176,27 @@ int main(int argc, char **argv)
         }
       _timer["meta_output_interval"].stop();
 
-      io_dump_data(ray->RicciLensingScalarSum(), &iodata, "ray_functions");
-      io_dump_data(ray->WeylLensingScalarSum_Re(), &iodata, "ray_functions");
-      io_dump_data(ray->WeylLensingScalarSum_Im(), &iodata, "ray_functions");
+      RaytraceData<real_t> tmp_rd = {0};
+      for(RayTrace<real_t, idx_t> * ray : rays)
+      {
+        tmp_rd = ray->getRaytraceData();
+        io_dump_data(tmp_rd.E, &iodata, "ray_functions");
+        io_dump_data(tmp_rd.x[0], &iodata, "ray_functions");
+        io_dump_data(tmp_rd.x[1], &iodata, "ray_functions");
+        io_dump_data(tmp_rd.x[2], &iodata, "ray_functions");
+        io_dump_data(tmp_rd.V[0], &iodata, "ray_functions");
+        io_dump_data(tmp_rd.V[1], &iodata, "ray_functions");
+        io_dump_data(tmp_rd.V[2], &iodata, "ray_functions");
+        io_dump_data(tmp_rd.S1[0], &iodata, "ray_functions");
+        io_dump_data(tmp_rd.S1[1], &iodata, "ray_functions");
+        io_dump_data(tmp_rd.S1[2], &iodata, "ray_functions");
+        io_dump_data(tmp_rd.S2[0], &iodata, "ray_functions");
+        io_dump_data(tmp_rd.S2[1], &iodata, "ray_functions");
+        io_dump_data(tmp_rd.S2[2], &iodata, "ray_functions");
+        io_dump_data(ray->RicciLensingScalarSum(), &iodata, "ray_functions");
+        io_dump_data(ray->WeylLensingScalarSum_Re(), &iodata, "ray_functions");
+        io_dump_data(ray->WeylLensingScalarSum_Im(), &iodata, "ray_functions");
+      }
 
       io_show_progress(s, steps);
     _timer["output"].stop();
@@ -203,11 +235,14 @@ int main(int argc, char **argv)
 
 
     _timer["Raytrace_step"].start();
-      // set primitives from BSSN sim
-      bssnSim.setRaytracePrimitives(ray);
-      // evolve ray
-      ray->setDerivedQuantities();
-      ray->evolveRay();
+      for(RayTrace<real_t, idx_t> * ray : rays)
+      {
+        // set primitives from BSSN sim
+        bssnSim.setRaytracePrimitives(ray);
+        // evolve ray
+        ray->setDerivedQuantities();
+        ray->evolveRay();
+      }
     _timer["Raytrace_step"].stop();      
 
   }
