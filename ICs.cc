@@ -28,6 +28,29 @@ ICsData cosmo_get_ICsData()
   return icd;
 }
 
+void set_ICs(
+  std::map <std::string, real_t *> & bssn_fields,
+  std::map <std::string, real_t *> & static_fields,
+  Fourier *fourier, IOData *iod, FRW<real_t> *frw)
+{
+  if(_config["ICs"] == "apples_stability")
+  {
+    LOG(iod->log, "Using apples stability test initial conditions...\n");
+    set_stability_test_ICs(bssn_fields, static_fields);
+  }
+  else if(_config["ICs"] == "apples_linwave")
+  {
+    LOG(iod->log, "Using apples wave test initial conditions...\n");
+    set_linear_wave_ICs(bssn_fields);
+  }
+  else
+  {
+    // "conformal" cosmological initial conditions:
+    LOG(iod->log, "Using conformal initial conditions...\n");
+    set_conformal_ICs(bssn_fields, static_fields, fourier, iod, frw);
+  }
+}
+
 // analytic form of a power spectrum to use
 // eg in LCDM, http://ned.ipac.caltech.edu/level5/Sept11/Norman/Norman2.html
 real_t cosmo_power_spectrum(real_t k, ICsData *icd)
@@ -126,7 +149,7 @@ std::cout << std::flush;
 
   // the conformal factor in front of metric is the solution to
   // d^2 exp(\phi) = -2*pi exp(5\phi) * \rho
-  // generate gaussian random field xi = exp(phi) (use phi_p as a proxy):
+  // generate gaussian random field 1 + xi = exp(phi) (use phi_p as a proxy):
   set_gaussian_random_field(bssn_fields["DIFFphi_p"], fourier, &icd);
 
   // rho = -lap(phi)/xi^5/2pi

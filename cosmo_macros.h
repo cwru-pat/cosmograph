@@ -13,6 +13,7 @@
 #define dt (0.1*dx)
 /****/
 
+
 /* Stability test parameters: 
 #define R 1
 #define N 50

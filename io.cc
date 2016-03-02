@@ -91,9 +91,9 @@ void io_config_backup(IOData *iodata, std::string config_file)
   dest.close();
 }
 
-void io_data_dump(std::map <std::string, real_t *> & bssn_fields,
-                  std::map <std::string, real_t *> & static_field,
-                  IOData *iodata, idx_t step, Fourier *fourier, FRW<real_t> *frw)
+void io_fields_snapshot(std::map <std::string, real_t *> & bssn_fields,
+                        std::map <std::string, real_t *> & static_field,
+                        IOData *iodata, idx_t step, Fourier *fourier, FRW<real_t> *frw)
 {
   if(step % iodata->slice_output_interval == 0)
   {
@@ -119,16 +119,6 @@ void io_data_dump(std::map <std::string, real_t *> & bssn_fields,
     // io_dump_3dslice(bssn_fields["KDx_a"],     "KDx_a."   + std::to_string(step), iodata);
     // io_dump_3dslice(bssn_fields["KDy_a"],     "KDy_a."   + std::to_string(step), iodata);
     // io_dump_3dslice(bssn_fields["KDz_a"],     "KDz_a."   + std::to_string(step), iodata);
-  }
-  if(step % iodata->spec_output_interval == 0)
-  {
-    fourier->powerDump(bssn_fields["DIFFphi_a"], iodata);
-    fourier->powerDump(bssn_fields["DIFFr_a"], iodata);
-  }
-  if(step % iodata->meta_output_interval == 0)
-  {
-    // some statistical values
-    io_dump_statistics(bssn_fields, static_field, iodata, frw);
   }
 }
 
@@ -339,7 +329,7 @@ void io_dump_statistics(std::map <std::string, real_t *> & bssn_fields,
   gzclose(datafile);
 }
 
-void io_dump_data(real_t value, IOData *iodata, std::string filename)
+void io_dump_value(real_t value, IOData *iodata, std::string filename)
 {
   // output misc. info about simulation here.
   char data[35];

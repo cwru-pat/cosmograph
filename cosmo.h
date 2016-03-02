@@ -2,13 +2,14 @@
 #define COSMO_H
 
 /* C includes */
+#include <zlib.h>
+#include <omp.h>
+
+/* standard C++ includes */
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <cmath>
-#include <zlib.h>
-
-/* C++ includes */
 #include <iostream>
 #include <iomanip>
 #include <map>
@@ -18,7 +19,6 @@
 #include <sstream>
 #include <random>
 
-#include <omp.h>
 
 #include "cosmo_macros.h"
 

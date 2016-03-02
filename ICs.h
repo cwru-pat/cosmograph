@@ -12,10 +12,13 @@ namespace cosmo
 
 ICsData cosmo_get_ICsData();
 
+void set_ICs(
+  std::map <std::string, real_t *> & bssn_fields,
+  std::map <std::string, real_t *> & static_fields,
+  Fourier *fourier, IOData *iod, FRW<real_t> *frw);
+
 real_t cosmo_power_spectrum(real_t k, ICsData *icd);
-
 void set_gaussian_random_field(real_t *field, Fourier *fourier, ICsData *icd);
-
 void set_conformal_ICs(
   std::map <std::string, real_t *> & bssn_fields,
   std::map <std::string, real_t *> & hydro_fields,
