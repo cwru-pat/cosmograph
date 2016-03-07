@@ -51,6 +51,37 @@ void set_ICs(
   }
 }
 
+/*
+ * Initialize vector of rays with random rays / velocities
+ */
+void init_ray_vector(std::vector<RayTrace<real_t, idx_t> *> * rays, idx_t n_rays)
+{
+  idx_t i = 0;
+  RaytraceData<real_t> rd = {0};
+
+  std::mt19937 gen(7.0);
+  std::uniform_real_distribution<real_t> dist(0.0, 1.0);
+  dist(gen);
+  for(i=0; i<n_rays; i++)
+  {
+    // Randomized ray position
+    rd.x[0] = dist(gen)*N*dx;
+    rd.x[1] = dist(gen)*N*dx;
+    rd.x[2] = dist(gen)*N*dx;
+    // Direction of propagation
+    // normalization of V is enforced by raytrace class
+    rd.V[0] = dist(gen);
+    rd.V[1] = dist(gen);
+    rd.V[2] = dist(gen);
+    // energy in arb. untis
+    rd.E = 1.0;
+
+    RayTrace<real_t, idx_t> * ray;
+    ray = new RayTrace<real_t, idx_t> (dt, rd);
+    rays->push_back( ray );
+  }
+}
+
 // analytic form of a power spectrum to use
 // eg in LCDM, http://ned.ipac.caltech.edu/level5/Sept11/Norman/Norman2.html
 real_t cosmo_power_spectrum(real_t k, ICsData *icd)

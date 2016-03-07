@@ -12,6 +12,9 @@ namespace cosmo
 
 ICsData cosmo_get_ICsData();
 
+void init_ray_vector(
+  std::vector<RayTrace<real_t, idx_t> *> * rays, idx_t n_rays);
+
 void set_ICs(
   std::map <std::string, real_t *> & bssn_fields,
   std::map <std::string, real_t *> & static_fields,

@@ -142,44 +142,10 @@ int main(int argc, char **argv)
   return EXIT_SUCCESS;
 }
 
-/*
- * Initialize vector of rays with random rays / velocities
- */
-void cosmo::init_ray_vector(std::vector<RayTrace<real_t, idx_t> *> * rays, idx_t n_rays)
-{
-  idx_t i = 0;
-  RaytraceData<real_t> rd = {0};
-
-  std::mt19937 gen(7.0);
-  std::uniform_real_distribution<real_t> dist(0.0, 1.0);
-  dist(gen);
-  for(i=0; i<n_rays; i++)
-  {
-    // Randomized ray position
-    rd.x[0] = dist(gen)*N*dx;
-    rd.x[1] = dist(gen)*N*dx;
-    rd.x[2] = dist(gen)*N*dx;
-    // Direction of propagation
-    // normalization of V is enforced by raytrace class
-    rd.V[0] = dist(gen);
-    rd.V[1] = dist(gen);
-    rd.V[2] = dist(gen);
-    // energy in arb. untis
-    rd.E = 1.0;
-
-    RayTrace<real_t, idx_t> * ray;
-    ray = new RayTrace<real_t, idx_t> (dt, rd);
-    rays->push_back( ray );
-  }
-}
-
-/*
- * Call output routines (write data, etc)
- */
 void cosmo::call_io_routines(BSSN * bssnSim, Static * staticSim,
-                             IOData *iodata, idx_t step, idx_t steps,
-                             Fourier *fourier, FRW<real_t> *frw,
-                             std::vector<RayTrace<real_t, idx_t> *> * rays)
+                      IOData *iodata, idx_t step, idx_t steps,
+                      Fourier *fourier, FRW<real_t> *frw,
+                      std::vector<RayTrace<real_t, idx_t> *> * rays)
 {
   idx_t i, j, k;
 
@@ -245,3 +211,4 @@ void cosmo::call_io_routines(BSSN * bssnSim, Static * staticSim,
 
   io_show_progress(step, steps);
 }
+
