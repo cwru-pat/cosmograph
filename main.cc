@@ -20,6 +20,8 @@ int main(int argc, char **argv)
     return EXIT_FAILURE;
   }
   _config.parse(argv[1]);
+  steps = stoi(_config["steps"]);
+  omp_set_num_threads(stoi(_config["omp_num_threads"]));
 
   // IO init - will use this for logging.
   IOData iodata;
@@ -27,27 +29,28 @@ int main(int argc, char **argv)
   // save a copy of config.txt
   io_config_backup(&iodata, argv[1]);
 
-  steps = stoi(_config["steps"]);
-  omp_set_num_threads(stoi(_config["omp_num_threads"]));
-
   // Create simulation
   _timer["init"].start();
     LOG(iodata.log, "Creating initial conditions...\n");
 
-    // Fluid fields
     // Static matter (w=0)
     Static staticSim;
     staticSim.init();
+
+    // Particles
+    Particles<real_t, idx_t> particles;
+    particles.init(1);
 
     // GR Fields
     BSSN bssnSim;
     bssnSim.init();
 
-    // generic reusable fourier class for NX*NY*NZ arrays
+    // Generic reusable fourier class for NX*NY*NZ arrays
     Fourier fourier;
-    fourier.Initialize(NX, NY, NZ, staticSim.fields["DIFFD_a"] /* just any array for planning */);
+    fourier.Initialize(NX, NY, NZ,
+      staticSim.fields["DIFFD_a"] /* just any array for planning */);
 
-    // vector of rays
+    // vector of rays (rayracing code)
     std::vector<RayTrace<real_t, idx_t> *> rays;
     init_ray_vector(&rays, 1000);
 
@@ -69,9 +72,9 @@ int main(int argc, char **argv)
 
     // initialize data for RK step in first loop
     // Init arrays and calculate source term for next step
-      // _p is copied to _a here (which matter sectors use)
+      // _p is copied to _a here (which matter sectors reference)
       bssnSim.stepInit();
-      // clear existing source data
+      // reset source data
       bssnSim.clearSrc();
       staticSim.addBSSNSrc(bssnSim.fields, bssnSim.frw);
 
@@ -86,7 +89,49 @@ int main(int argc, char **argv)
     // Run RK steps explicitly here (ties together BSSN + Hydro stuff).
     // See bssn class or hydro class for more comments.
     _timer["RK_steps"].start();
-      // FRW simulation should be in the correct state here
+      // FRW simulation & particles should be in a correct state here
+
+      /**
+       * Schematic writeup of Particle (p_) and bssn (b_) RK4 computations.
+       * (r_ variable is bssn src)
+       * stepInit:
+       * b_p; p_f = 0;
+       * b_a = b_p;
+       * p_p; p_a, p_c, p_f = 0
+       * p_a = p_p
+       * 
+       * RK1 step:
+       * b_c = b_p + dt/2 * f(b_a, r_a);
+       * b_f += b_c
+       * b_c <-> b_a;
+       * p_c = p_p + dt/2 * f(p_a, b_c)
+       * p_f += p_c
+       * r_a = r(p_c)
+       * p_a <-> p_c
+       * 
+       * RK2 step:
+       * b_c = b_p + dt/2 * f(b_a, r_a);
+       * b_f += 2 b_c
+       * b_c <-> b_a;
+       * p_c = p_p + dt/2 * f(p_a)
+       * p_f += 2 p_c
+       * r_a = r(p_c)
+       * p_a <-> p_c
+       * 
+       * RK3 step:
+       * p_c = p_p + dt * f(p_a)
+       * p_f += p_c
+       * p_a <-> p_c
+       * 
+       * RK4 step:
+       * p_c = p_p + dt/2 * f(p_a)
+       * p_f += p_c
+       * p_a <-> p_c
+       * 
+       * (p_f = 5p_p + 1/2 K1 + K2 + K3 + 1/2 K4)
+       * p_f = p_f / 3 - 2/3 p_p      // finalize
+       * p_f <-> p_p
+       **/
 
       // First RK step, Set Hydro Vars, & calc. constraint
       bssnSim.K1Calc();
@@ -116,6 +161,7 @@ int main(int argc, char **argv)
     _timer["RK_steps"].stop();
 
 
+    // evolve any light rays
     _timer["Raytrace_step"].start();
       for(RayTrace<real_t, idx_t> * ray : rays)
       {
@@ -142,6 +188,11 @@ int main(int argc, char **argv)
   return EXIT_SUCCESS;
 }
 
+
+/**
+ * @brief Output simulation information
+ * @details Output various quantities
+ */
 void cosmo::call_io_routines(BSSN * bssnSim, Static * staticSim,
                       IOData *iodata, idx_t step, idx_t steps,
                       Fourier *fourier, FRW<real_t> *frw,

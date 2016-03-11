@@ -18,25 +18,44 @@
 namespace cosmo
 {
 
+/**
+ * @brief Data structure for particles
+ * @details Data structure storing particle position, velocity, and mass
+ * 
+ * @tparam RT simulation real type
+ */
 template<typename RT>
 struct Particle {
-  // particle position
-  RT X[3];
-  // Particle velocity (covariant / lowered)
-  RT U[3];
-  // Particle Mass
-  RT M;
+  RT X[3];     // particle position
+  RT U[3];     // Particle velocity (covariant / lowered)
+  RT M;        // Particle Mass
 };
 
+/**
+ * @brief Data structure containing 4 needed RK4 registers
+ * @details Data structure used for an RK4 integration; contains
+ * registers p_x for a Particle<RT> : _p, _a, _c, _f
+ * 
+ * @tparam RT simulation real type
+ */
 template<typename RT>
 struct ParticleRegister {
-  // 4 "registers" for each particle
+  // 4 standard "registers" for each particle
   Particle<RT> p_p;
   Particle<RT> p_a;
   Particle<RT> p_c;
   Particle<RT> p_f;
 };
 
+/**
+ * @brief Data structure for storing metric quantities ("primitives") at an
+ * arbitrary point
+ * @details Data structure for storing metric quantities: lapse, shift, inverse
+ * 3-metric (full metric, not conformal!); and derivatives of the lapse, shift,
+ * and the 3-metric.
+ * 
+ * @tparam RT simulation real type
+ */
 template<typename RT>
 struct ParticleMetricPrimitives {
   // metric components
@@ -46,21 +65,43 @@ struct ParticleMetricPrimitives {
   RT dalpha[3];     // derivative of lapse
   RT dbeta[3][3];   // derivative of shift
   RT gi[6];         // inverse spatial metric
-  // Inverse metric derivative
-  RT dgi[3][6];
+  RT dgi[3][6];     // Inverse metric derivative
 };
 
-/** Particle matter class **/
+/**
+ * @brief Class for evolving non-interacting matter particles
+ * @details Class stores a (private) vector of particles, and contains
+ * routines for particle evolution, interpolation, and interactions with
+ * GR (BSSN) fields.
+ * 
+ * @tparam RT simulation real type
+ * @tparam IT simulation index type
+ */
 template <typename RT, typename IT>
 class Particles
 {
-  /* list of particle registers */
+  // list of particle registers
   std::vector<ParticleRegister<RT>> particles;
 
 public:
-  Particles();
-  ~Particles();
+  
+  Particles()
+  {
+    // anything to do?
+  }
 
+  ~Particles()
+  {
+    // anything to do?
+  }
+
+  /**
+   * @brief Create particles
+   * @details Add particles with randomized positions, zero velocity,
+   * and unit mass to internal particles vector.
+   * 
+   * @param n_particles number of particles to create
+   */
   void init(IT n_particles)
   {
     IT i = 0;
@@ -90,6 +131,17 @@ public:
     }
   }
 
+  /**
+   * @brief Sets a fractional distance between grid points
+   * @details Stores the fractional distance between grid points of a given
+   * point. Eg, for dx = 0.5, the value 1.23 is 46/100 the way between
+   * gridpoints at 1.0 and 1.5, so 0.46 is computed. Following this, supplying
+   * the point (1.23, 4.56, 7.89) as an argument for X would cause x_d to be
+   * set to (0.46, 0.12, 0.78)
+   * 
+   * @param X true position
+   * @param x_d fractional position (passed by reference; values are mutated)
+   */
   void setX_d(RT X[3], RT x_d[3])
   {
     for(IT i=0; i<3; i++)
@@ -105,7 +157,16 @@ public:
     }
   }
 
-  RT getINDEX(RT X[3], IT dir)
+  /**
+   * @brief Returns the index nearest to a point
+   * @details Returns the nearest index to a point in a particular dimension.
+   * Assumes periodic boundary conditions.
+   * 
+   * @param X Point (3-vector) of interest.
+   * @param dir dimension of interest (0=x, 1=y, 2=z)
+   * @return index associated with position
+   */
+  IT getINDEX(RT X[3], IT dir)
   {
     if(X[dir] < 0)
       return N - (-1.0*PARTICLES_ROUND(X[dir]/dx) % N);
@@ -113,6 +174,16 @@ public:
     return (PARTICLES_ROUND(X[dir]/dx) % N);
   }
 
+  /**
+   * @brief Linearly interpolate metric quantities from corners of a "box"
+   * @details Linearly interpolate metric quantities from corners of a "box"
+   * 
+   * @param corner_pp_in A 2x2x2 array containing metric values at corners
+   * of the "box"
+   * @param x_d fractional position between corners inside the "box" to
+   * interpolate values at (see setX_d)
+   * @return [description]
+   */
   ParticleMetricPrimitives<RT> interpolatePrimitivesFromCorners(
     ParticleMetricPrimitives<RT> corner_pp_in[2][2][2], RT x_d[3])
   {
@@ -304,7 +375,7 @@ public:
 
   /**
    * RK4 implementation:
-   * y_p; y_a, y_c, y_f = 0
+   * y_p; y_a, y_c, y_f = 0 (TODO)
    * y_a = y_p
    * 
    * y_c = y_p + dt/2 * f(y_a)    // RK1 step
@@ -363,6 +434,7 @@ public:
       p_f->U[i] += RK_sum_coeff*p_c->U[i];
     }
 
+// TODO: careful about pragma with this statement (racey):
     addParticleToBSSNSrc(& pr->p_c, bssn_fields);
     std::swap(pr->p_c, pr->p_a);
   }
@@ -370,7 +442,7 @@ public:
   void RK1Step(std::map <std::string, RT *> * bssn_fields)
   {
     typename std::vector<ParticleRegister<RT>>::iterator pr;
-// TODO... #pragma 
+// TODO... #pragma
     for(pr = particles.begin(); pr < particles.end(); ++pr)
     {
       RKStep(pr, dt/2.0, 1.0, bssn_fields);
