@@ -1,7 +1,14 @@
 #ifndef COSMO_UTILS_IO_H
 #define COSMO_UTILS_IO_H
 
-#include "cosmo.h"
+#include "cosmo_includes.h"
+#include "cosmo_types.h"
+#include "globals.h"
+
+#include "utils/Fourier.h"
+#include "utils/reference_frw.h"
+#include "utils/math.h"
+
 #include "io_data.h"
 
 #define LOG(log_fout, message) \

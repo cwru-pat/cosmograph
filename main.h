@@ -1,8 +1,17 @@
 #ifndef COSMO_MAIN_H
 #define COSMO_MAIN_H
 
-#include "cosmo.h"
+#include "cosmo_includes.h"
+#include "cosmo_types.h"
 #include "globals.h"
+
+#include "utils/Fourier.h"
+#include "utils/reference_frw.h"
+
+#include "ICs.h"
+#include "io.h"
+#include "bssn.h"
+#include "static.h"
 
 namespace cosmo
 {

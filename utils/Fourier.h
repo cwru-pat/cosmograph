@@ -1,6 +1,11 @@
 #ifndef COSMO_UTILS_FOURIER_H
 #define COSMO_UTILS_FOURIER_H
 
+// FFT indexing
+#define FFT_INDEX(i,j,k) ((NZ/2+1)*NY*((i+NX)%NX) + (NZ/2+1)*((j+NY)%NY) + ((k+NZ)%NZ))
+// FFT indexing without periodicity
+#define FFT_NP_INDEX(i,j,k) ((NZ/2+1)*NY*(i) + (NZ/2+1)*(j) + (k))
+
 #include <fftw3.h>
 #include <zlib.h>
 #include <math.h>

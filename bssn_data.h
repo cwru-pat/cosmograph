@@ -1,9 +1,7 @@
 #ifndef COSMO_BSSN_DATA
 #define COSMO_BSSN_DATA
 
-#include "cosmo.h"
-#include "globals.h"
-
+#include "cosmo_macros.h"
 #include "bssn_macros.h"
 
 namespace cosmo

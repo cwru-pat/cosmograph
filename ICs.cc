@@ -28,6 +28,16 @@ ICsData cosmo_get_ICsData()
   return icd;
 }
 
+/**
+ * @brief Determine which initial conditions to set, and set them.
+ * @details Decide which initial conditions to set based on configuration data.
+ * 
+ * @param frw 
+ * @param static_fields Field with 
+ * @param fourier Initialized fourier transform class
+ * @param iod IOData structure containing input/output parameters
+ * @param frw FRW class (can be internal to BSSN class)
+ */
 void set_ICs(
   std::map <std::string, real_t *> & bssn_fields,
   std::map <std::string, real_t *> & static_fields,
@@ -51,8 +61,13 @@ void set_ICs(
   }
 }
 
-/*
- * Initialize vector of rays with random rays / velocities
+/**
+ * @brief Initialize vector of rays
+ * @details Initialize a vector of rays with given rays, given velocity
+ *  directions (ray velocity magnitude is normalized by the raytrace class)
+ * 
+ * @param rays reference to RayTrace class rays should belong to
+ * @param n_rays number of rays
  */
 void init_ray_vector(std::vector<RayTrace<real_t, idx_t> *> * rays, idx_t n_rays)
 {
@@ -65,14 +80,45 @@ void init_ray_vector(std::vector<RayTrace<real_t, idx_t> *> * rays, idx_t n_rays
   for(i=0; i<n_rays; i++)
   {
     // Randomized ray position
-    rd.x[0] = dist(gen)*N*dx;
-    rd.x[1] = dist(gen)*N*dx;
-    rd.x[2] = dist(gen)*N*dx;
+    // rd.x[0] = dist(gen)*N*dx;
+    // rd.x[1] = dist(gen)*N*dx;
+    // rd.x[2] = dist(gen)*N*dx;
     // Direction of propagation
     // normalization of V is enforced by raytrace class
-    rd.V[0] = dist(gen);
-    rd.V[1] = dist(gen);
-    rd.V[2] = dist(gen);
+    // rd.V[0] = dist(gen);
+    // rd.V[1] = dist(gen);
+    // rd.V[2] = dist(gen);
+
+    // rays distributed (uniformly) around a sphere
+    real_t theta = 2.0*PI*dist(gen);
+    real_t U = 2.0*dist(gen) - 1.0;
+    // sphere radius R = L/2
+    real_t R = N*dx/2.0;
+    // i<500: sphere center near x = y = z = L/2
+    // inside some over/underdensity (hopefully)
+    real_t X0, Y0, Z0;
+    if(i<500)
+    {
+      X0 = 1.382813*N*dx;
+      Y0 = 1.476563*N*dx;
+      Z0 = 1.351563*N*dx;
+    }
+    else
+    {
+      X0 = 1.460938*N*dx;
+      Y0 = 1.554688*N*dx;
+      Z0 = 1.492188*N*dx;
+    }
+    // ray position on sphere
+    rd.x[0] = X0 + R*std::sqrt(1.0-U*U)*std::cos(theta);
+    rd.x[1] = Y0 + R*std::sqrt(1.0-U*U)*std::sin(theta);
+    rd.x[2] = Z0 + R*U;
+    // velocity directed inwards
+    // normalization of V is enforced by raytrace class
+    rd.V[0] = -1.0*std::sqrt(1.0-U*U)*std::cos(theta);
+    rd.V[1] = -1.0*std::sqrt(1.0-U*U)*std::sin(theta);
+    rd.V[2] = -1.0*U;
+
     // energy in arb. untis
     rd.E = 1.0;
 
@@ -82,8 +128,61 @@ void init_ray_vector(std::vector<RayTrace<real_t, idx_t> *> * rays, idx_t n_rays
   }
 }
 
-// analytic form of a power spectrum to use
-// eg in LCDM, http://ned.ipac.caltech.edu/level5/Sept11/Norman/Norman2.html
+/**
+ * @brief Initialize particles from static field data
+ * @details Initialize particles from static field data, so particle
+ *  masses are that needed to recreate the corresponding density field.
+ * 
+ * @param particles reference to Particles class containing particles
+ * @param bssn_fields map to fields from bssn class
+ * @param static_field map to fields from static class
+ */
+void init_particle_vector(Particles * particles,
+  std::map <std::string, real_t *> & bssn_fields,
+  std::map <std::string, real_t *> & static_field)
+{
+  real_t * const DIFFr = bssn_fields["DIFFr_a"];
+  real_t * const DIFFphi = bssn_fields["DIFFphi_a"];
+  ICsData icd = cosmo_get_ICsData();
+
+  idx_t i, j, k;
+  LOOP3(i,j,k) {
+    Particle<real_t> particle = {0};
+
+    // Particle position in grid
+    particle.X[0] = i*dx;
+    particle.X[1] = j*dx;
+    particle.X[2] = k*dx;
+
+    // Particle mass
+    real_t rho_FRW = icd.rho_K_matter;
+    real_t rho = rho_FRW + DIFFr[INDEX(i,j,k)];
+    particle.M = rho*dx*dx*dx*exp(6.0*DIFFphi[INDEX(i,j,k)]);
+
+    particles->addParticle(particle);
+  }
+}
+
+/**
+ * @brief A cosmologically-motivated power spectrum for the conformal factor
+ * @details Return the power spectrum amplitude for a particular wavenumber.
+ *  The power spectrum describing the density goes roughly as 
+ *    P(k) ~ k^{ 1} for small k
+ *    P(k) ~ k^{-3} for large k
+ *  (see, eg, http://ned.ipac.caltech.edu/level5/Sept11/Norman/Norman2.html)
+ *  An analytic function with this form is the function
+ *    P(k) ~ k / ( 1 + k^4 )
+ *  The conformal factor obeys k^2 \phi ~ \rho; so \phi ~ \rho / k^2.
+ *  The power spectrum < \phi \phi > then goes as 1/k^4 < \rho \rho >.
+ *  Thus, the power spectrum for the conformal factor scales as
+ *    P(k) ~ 1 / k^3 / ( 1 + k^4 )
+ *  Which after additional scalings, this function returns.
+ * 
+ * @param k wavenumber of interest
+ * @param icd initial condition data structre
+ * 
+ * @return power spectrum amplitude
+ */
 real_t cosmo_power_spectrum(real_t k, ICsData *icd)
 {
   real_t pre = icd->peak_amplitude;
@@ -271,7 +370,6 @@ std::cout << std::flush;
       static_field["DIFFD_a"][idx] += D_FRW;
     }
   #endif
-
 }
 
 

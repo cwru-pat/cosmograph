@@ -9,8 +9,8 @@
 #define POINTS ((NX)*(NY)*(NZ))
 // box size in hubble units
 #define H_LEN_FRAC 0.5
-#define dx (H_LEN_FRAC/(1.0*N))
-#define dt (0.1*dx)
+// #define dx (H_LEN_FRAC/(1.0*N))
+// #define dt (0.1*dx)
 /****/
 
 
@@ -48,7 +48,7 @@
 #define USE_CONFORMAL_SYNC_ALPHA false
 #define USE_HARMONIC_ALPHA false
 
-#define USE_BSSN_SHIFT false
+#define USE_BSSN_SHIFT true
 
 // Stencil order
 #define STENCIL_ORDER 8
@@ -77,10 +77,12 @@
 #define F_INDEX(i,j,k,d) ( ((i+NX)%(NX))*(NY)*(NZ)*3 + ((j+NY)%(NY))*(NZ)*3 + (k+NZ)%(NZ)*3 + (d+2)%3 )
 // non-periodic indexing of flux arrays; indexes cell boundaries with 'd' = 1,2,3
 #define F_NP_INDEX(i,j,k,d) ( (NZ)*(NY)*(i)*3 + (NZ)*(j)*3 + (k)*3 + (d+2)%3 )
-// FFT indexing
-#define FFT_INDEX(i,j,k) ((NZ/2+1)*NY*((i+NX)%NX) + (NZ/2+1)*((j+NY)%NY) + ((k+NZ)%NZ))
-// FFT indexing without periodicity
-#define FFT_NP_INDEX(i,j,k) ((NZ/2+1)*NY*(i) + (NZ/2+1)*(j) + (k))
+
+// map spatial (i,j) to array index
+#define aIDX(i,j) ( i <= j  ? (7-i)*i/2 - 4 + j : (7-j)*j/2 - 4 + i )
+// map spatial (i) to array index
+#define iIDX(i) ( i - 1 )
+
 
 #define LOOP3(i,j,k) \
   for(i=0; i<NX; ++i) \

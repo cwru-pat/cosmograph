@@ -1,11 +1,16 @@
 #ifndef COSMO_ICS
 #define COSMO_ICS
 
-#include "cosmo.h"
+#include "cosmo_includes.h"
+#include "cosmo_types.h"
 #include "globals.h"
 
+#include "utils/Fourier.h"
+#include "cosmotrace/raytrace.h"
+
 #include "ICs_data.h"
-#include "io_data.h"
+#include "io.h"
+#include "particles.h"
 
 namespace cosmo
 {
@@ -14,6 +19,10 @@ ICsData cosmo_get_ICsData();
 
 void init_ray_vector(
   std::vector<RayTrace<real_t, idx_t> *> * rays, idx_t n_rays);
+
+void init_particle_vector(Particles * particles,
+  std::map <std::string, real_t *> & bssn_fields,
+  std::map <std::string, real_t *> & static_field);
 
 void set_ICs(
   std::map <std::string, real_t *> & bssn_fields,

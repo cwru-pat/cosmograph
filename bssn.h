@@ -1,11 +1,14 @@
 #ifndef COSMO_BSSN
 #define COSMO_BSSN
 
-#include "cosmo.h"
+#include "cosmo_includes.h"
+#include "cosmo_types.h"
 #include "globals.h"
-
 #include "bssn_data.h"
 #include "bssn_macros.h"
+#include "utils/math.h"
+#include "utils/reference_frw.h"
+#include "cosmotrace/raytrace.h"
 
 namespace cosmo
 {

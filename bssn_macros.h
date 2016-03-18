@@ -352,9 +352,9 @@
 
 #if USE_BSSN_SHIFT
 #define BSSN_DT_GAMMAI_SHIFT(I) ( \
-    + paq->beta1*der(paq->i, paq->j, paq->k, 1, Gamma##I##_a) \
-    + paq->beta2*der(paq->i, paq->j, paq->k, 2, Gamma##I##_a) \
-    + paq->beta3*der(paq->i, paq->j, paq->k, 3, Gamma##I##_a) \
+    + paq->beta1*derivative(paq->i, paq->j, paq->k, 1, Gamma##I##_a) \
+    + paq->beta2*derivative(paq->i, paq->j, paq->k, 2, Gamma##I##_a) \
+    + paq->beta3*derivative(paq->i, paq->j, paq->k, 3, Gamma##I##_a) \
     - paq->Gamma1*paq->d1beta##I + paq->Gamma2*paq->d2beta##I + paq->Gamma3*paq->d3beta##I \
     + (2.0/3.0) * paq->Gamma##I * (paq->d1beta1 + paq->d2beta2 + paq->d3beta3) \
     + (1.0/3.0) * ( \

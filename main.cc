@@ -7,11 +7,25 @@ using namespace cosmo;
 /* global definitions */
 TimerManager _timer;
 ConfigParser _config;
+#ifndef dt
+  real_t dt;
+#endif
+#ifndef dx
+  real_t dx;
+#endif
 
 int main(int argc, char **argv)
 {
   _timer["MAIN"].start();
   idx_t i=0, j=0, k=0, s=0, steps=0;
+
+  // If not compiled in, set dt, dx (TODO: set in config file?)
+  #ifndef dt
+    dt = 0.1*dx;
+  #endif
+  #ifndef dx
+    dx = H_LEN_FRAC/(1.0*N);
+  #endif
 
   // read in config file
   if(argc != 2)
@@ -37,10 +51,6 @@ int main(int argc, char **argv)
     Static staticSim;
     staticSim.init();
 
-    // Particles
-    Particles<real_t, idx_t> particles;
-    particles.init(1);
-
     // GR Fields
     BSSN bssnSim;
     bssnSim.init();
@@ -57,7 +67,9 @@ int main(int argc, char **argv)
     // set initial conditions
     set_ICs(bssnSim.fields, staticSim.fields, &fourier, &iodata, bssnSim.frw);
 
-  _timer["init"].stop();
+    // Particles
+    Particles particles;
+    // init_particle_vector(&particles, staticSim.fields, bssnSim.fields);
 
   // evolve simulation
   LOG(iodata.log, "Running simulation...\n");
@@ -77,6 +89,7 @@ int main(int argc, char **argv)
       // reset source data
       bssnSim.clearSrc();
       staticSim.addBSSNSrc(bssnSim.fields, bssnSim.frw);
+      particles.stepInit(bssnSim.fields);
 
     // output simulation information
     // these generally output any data in the _a registers (which should 
@@ -94,17 +107,19 @@ int main(int argc, char **argv)
       /**
        * Schematic writeup of Particle (p_) and bssn (b_) RK4 computations.
        * (r_ variable is bssn src)
-       * stepInit:
+       * 
+       * step Init:
        * b_p; p_f = 0;
        * b_a = b_p;
-       * p_p; p_a, p_c, p_f = 0
-       * p_a = p_p
+       * p_p; p_a = p_c = p_p; p_f = 0
+       * r_a = r(p_a)
        * 
        * RK1 step:
        * b_c = b_p + dt/2 * f(b_a, r_a);
        * b_f += b_c
        * b_c <-> b_a;
-       * p_c = p_p + dt/2 * f(p_a, b_c)
+       * r_a = 0;
+       * p_c = p_p + dt/2 * f( p_a, b_c )
        * p_f += p_c
        * r_a = r(p_c)
        * p_a <-> p_c
@@ -112,19 +127,27 @@ int main(int argc, char **argv)
        * RK2 step:
        * b_c = b_p + dt/2 * f(b_a, r_a);
        * b_f += 2 b_c
-       * b_c <-> b_a;
-       * p_c = p_p + dt/2 * f(p_a)
+       * b_c <-> b_a
+       * r_a = 0
+       * p_c = p_p + dt/2 * f( p_a, b_c )
        * p_f += 2 p_c
        * r_a = r(p_c)
        * p_a <-> p_c
        * 
        * RK3 step:
-       * p_c = p_p + dt * f(p_a)
+       * b_c = b_p + dt * f( b_a, r_a )
+       * b_f += b_c
+       * b_c <-> b_a
+       * r_a = 0
+       * p_c = p_p + dt * f( p_a, b_c )
        * p_f += p_c
+       * r_a = r(p_c)
        * p_a <-> p_c
        * 
        * RK4 step:
-       * p_c = p_p + dt/2 * f(p_a)
+       * b_f = 1/3 * (b_f - b_p) + dt/6 * f(b_a)
+       * TODO: need to set b_c for vv
+       * p_c = p_p + dt/2 * f( p_a, b_c )
        * p_f += p_c
        * p_a <-> p_c
        * 
@@ -138,25 +161,30 @@ int main(int argc, char **argv)
       // reset source using new metric
       bssnSim.clearSrc();
       staticSim.addBSSNSrc(bssnSim.fields, bssnSim.frw);
+      particles.RK1Step(bssnSim.fields);
 
       // Second RK step
       bssnSim.K2Calc();
       // reset source using new metric
       bssnSim.clearSrc();
       staticSim.addBSSNSrc(bssnSim.fields, bssnSim.frw);
+      particles.RK2Step(bssnSim.fields);
 
       // Third RK step
       bssnSim.K3Calc();
       // reset source using new metric
       bssnSim.clearSrc();
       staticSim.addBSSNSrc(bssnSim.fields, bssnSim.frw);
+      particles.RK3Step(bssnSim.fields);
 
       // Fourth RK step
       bssnSim.K4Calc();
+      particles.RK4Step(bssnSim.fields);
 
       // Wrap up
         // bssn _f <-> _p
         bssnSim.stepTerm();
+        particles.stepTerm();
         // "current" data is in the _p array.
     _timer["RK_steps"].stop();
 
@@ -255,6 +283,9 @@ void cosmo::call_io_routines(BSSN * bssnSim, Static * staticSim,
   {
     tmp_rd = ray->getRaytraceData();
     io_dump_value(tmp_rd.E, iodata, "ray_functions");
+    io_dump_value(tmp_rd.x[0], iodata, "ray_functions");
+    io_dump_value(tmp_rd.x[1], iodata, "ray_functions");
+    io_dump_value(tmp_rd.x[2], iodata, "ray_functions");
     io_dump_value(ray->RicciLensingScalarSum(), iodata, "ray_functions");
     io_dump_value(ray->WeylLensingScalarSum_Re(), iodata, "ray_functions");
     io_dump_value(ray->WeylLensingScalarSum_Im(), iodata, "ray_functions");
@@ -262,4 +293,3 @@ void cosmo::call_io_routines(BSSN * bssnSim, Static * staticSim,
 
   io_show_progress(step, steps);
 }
-
