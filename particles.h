@@ -63,6 +63,9 @@ public:
   void stepInit(std::map <std::string, real_t *> & bssn_fields); 
   void stepTerm();
 
+  void addParticlesToBSSNSrc(
+    std::map <std::string, real_t *> & bssn_fields);
+
   void addParticleToBSSNSrc(Particle<real_t> * p_c,
     std::map <std::string, real_t *> & bssn_fields);
 };

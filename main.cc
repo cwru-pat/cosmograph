@@ -19,7 +19,9 @@ int main(int argc, char **argv)
   _timer["MAIN"].start();
   idx_t i=0, j=0, k=0, s=0, steps=0;
 
-  // If not compiled in, set dt, dx (TODO: set in config file?)
+  // If not compiled in, set dt, dx
+  // TODO: set other things (and check for performance hits)
+  //       set these in config file?
   #ifndef dt
     dt = 0.1*dx;
   #endif
@@ -69,7 +71,8 @@ int main(int argc, char **argv)
 
     // Particles
     Particles particles;
-    // init_particle_vector(&particles, staticSim.fields, bssnSim.fields);
+    init_particle_vector(&particles, bssnSim.fields, staticSim.fields);
+  _timer["init"].stop();
 
   // evolve simulation
   LOG(iodata.log, "Running simulation...\n");

@@ -2,6 +2,7 @@
 #define COSMO_DEFINES
 
 /* Cosmological run parameters: */
+// Code runs much slower with global N (slow indexing?)
 #define N 128
 #define NX N
 #define NY N

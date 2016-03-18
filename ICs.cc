@@ -157,7 +157,8 @@ void init_particle_vector(Particles * particles,
     // Particle mass
     real_t rho_FRW = icd.rho_K_matter;
     real_t rho = rho_FRW + DIFFr[INDEX(i,j,k)];
-    particle.M = rho*dx*dx*dx*exp(6.0*DIFFphi[INDEX(i,j,k)]);
+    real_t rootdetg = std::exp(6.0*DIFFphi[INDEX(i,j,k)]);
+    particle.M = rho*dx*dx*dx*rootdetg;
 
     particles->addParticle(particle);
   }

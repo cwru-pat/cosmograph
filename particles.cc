@@ -377,16 +377,12 @@ void Particles::RKStep(ParticleRegister<real_t> * pr, real_t h, real_t RK_sum_co
     p_f.U[iIDX(i)] += RK_sum_coeff*p_c.U[iIDX(i)];
   }
 
-// TODO: careful about pragma with this statement (racey):
-  addParticleToBSSNSrc(& pr->p_c, bssn_fields);
   std::swap(pr->p_c, pr->p_a);
 }
 
 void Particles::RK1Step(std::map <std::string, real_t *> & bssn_fields)
 {
-  typename std::vector<ParticleRegister<real_t>>::iterator pr;
-// TODO... #pragma
-  for(pr = particles.begin(); pr < particles.end(); ++pr)
+  PARTICLES_PARALLEL_LOOP(pr)
   {
     RKStep(& (*pr), dt/2.0, 1.0, bssn_fields);
   } 
@@ -394,9 +390,7 @@ void Particles::RK1Step(std::map <std::string, real_t *> & bssn_fields)
 
 void Particles::RK2Step(std::map <std::string, real_t *> & bssn_fields)
 {
-  typename std::vector<ParticleRegister<real_t>>::iterator pr;
-// TODO... #pragma 
-  for(pr = particles.begin(); pr < particles.end(); ++pr)
+  PARTICLES_PARALLEL_LOOP(pr)
   {
     RKStep(& (*pr), dt/2.0, 2.0, bssn_fields);
   } 
@@ -404,9 +398,7 @@ void Particles::RK2Step(std::map <std::string, real_t *> & bssn_fields)
 
 void Particles::RK3Step(std::map <std::string, real_t *> & bssn_fields)
 {
-  typename std::vector<ParticleRegister<real_t>>::iterator pr;
-// TODO... #pragma 
-  for(pr = particles.begin(); pr < particles.end(); ++pr)
+  PARTICLES_PARALLEL_LOOP(pr)
   {
     RKStep(& (*pr), dt, 1.0, bssn_fields);
   }
@@ -414,9 +406,7 @@ void Particles::RK3Step(std::map <std::string, real_t *> & bssn_fields)
 
 void Particles::RK4Step(std::map <std::string, real_t *> & bssn_fields)
 {
-  typename std::vector<ParticleRegister<real_t>>::iterator pr;
-// TODO... #pragma 
-  for(pr = particles.begin(); pr < particles.end(); ++pr)
+  PARTICLES_PARALLEL_LOOP(pr)
   {
     RKStep(& (*pr), dt/2.0, 1.0, bssn_fields);
   } 
@@ -424,22 +414,18 @@ void Particles::RK4Step(std::map <std::string, real_t *> & bssn_fields)
 
 void Particles::stepInit(std::map <std::string, real_t *> & bssn_fields)
 {
-  typename std::vector<ParticleRegister<real_t>>::iterator pr;
-  // TODO... #pragma 
-  for(pr = particles.begin(); pr < particles.end(); ++pr)
+  PARTICLES_PARALLEL_LOOP(pr)
   {
     pr->p_c = pr->p_p;
     pr->p_a = pr->p_p;
     pr->p_f = {0};
-    addParticleToBSSNSrc(& pr->p_c, bssn_fields);
   }
+  addParticlesToBSSNSrc(bssn_fields);
 }
 
 void Particles::stepTerm()
 {
-  typename std::vector<ParticleRegister<real_t>>::iterator pr;
-  // TODO... #pragma 
-  for(pr = particles.begin(); pr < particles.end(); ++pr)
+  PARTICLES_PARALLEL_LOOP(pr)
   {
     Particle<real_t> & p_p = pr->p_p;
     Particle<real_t> & p_f = pr->p_f;
@@ -449,6 +435,17 @@ void Particles::stepTerm()
       p_p.X[i] = p_f.X[i]/3.0 - 2.0/3.0*p_p.X[i];
       p_p.U[i] = p_f.U[i]/3.0 - 2.0/3.0*p_p.U[i];
     }
+  }
+}
+
+void Particles::addParticlesToBSSNSrc(
+  std::map <std::string, real_t *> & bssn_fields)
+{
+  typename std::vector<ParticleRegister<real_t>>::iterator pr;
+// TODO: parallelize? This is a racey calculation.
+  for(pr = particles.begin(); pr < particles.end(); ++pr)
+  {
+    addParticleToBSSNSrc(& pr->p_a, bssn_fields);
   }
 }
 
@@ -488,16 +485,6 @@ void Particles::addParticleToBSSNSrc(Particle<real_t> * p_c,
     );
 
   real_t MnA = p_c->M / W / dx/dx/dx / std::sqrt(pp_c.rootdetg);
-
-std::cout << "adding to source:"
-        << p_c->X[0] << ", "
-        << p_c->X[1] << ", "
-        << p_c->X[2] << ", "
-        << p_c->U[0] << ", "
-        << p_c->U[1] << ", "
-        << p_c->U[2] << ", "
-        << MnA*W*W
-        << " \n\n" << std::flush;
 
   // Eq . 5.226 in Baumgarte & Shapiro
   /* TODO: test & uncomment */

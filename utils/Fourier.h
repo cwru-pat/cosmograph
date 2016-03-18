@@ -12,6 +12,8 @@
 #include <string>
 #include <iostream>
 #include "../cosmo_macros.h"
+#include "../cosmo_types.h"
+#include "../globals.h"
 
 namespace cosmo
 {
@@ -61,10 +63,10 @@ void Fourier::powerDump(RT *in, IOT *iodata)
 
   // average power over angles
   const int numbins = (int) (sqrt(NX*NX + NY*NY + NZ*NZ)/2.0) + 1; // Actual number of bins
-  RT array_out[numbins];
-  int numpoints[numbins]; // Number of points in each momentum bin
-  RT p[numbins];
-  RT f2[numbins]; // Values for each bin: Momentum, |F-k|^2, n_k
+  RT * array_out = new RT[numbins];
+  int * numpoints = new int[numbins]; // Number of points in each momentum bin
+  RT * p = new RT[numbins];
+  RT * f2 = new RT[numbins]; // Values for each bin: Momentum, |F-k|^2, n_k
 
   double pmagnitude; // Total momentum (p) in units of lattice spacing, pmagnitude = Sqrt(px^2+py^2+pz^2).
                      // This also gives the bin index since bin spacing is set to equal lattice spacing.
@@ -141,6 +143,11 @@ void Fourier::powerDump(RT *in, IOT *iodata)
   gzwrite(datafile, "\n", std::char_traits<char>::length("\n")); 
 
   gzclose(datafile);
+  delete[] array_out;
+  delete[] numpoints;
+  delete[] p;
+  delete[] f2;
+
   return;
 }
 
