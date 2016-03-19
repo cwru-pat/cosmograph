@@ -22,11 +22,11 @@ int main(int argc, char **argv)
   // If not compiled in, set dt, dx
   // TODO: set other things (and check for performance hits)
   //       set these in config file?
-  #ifndef dt
-    dt = 0.1*dx;
-  #endif
   #ifndef dx
     dx = H_LEN_FRAC/(1.0*N);
+  #endif
+  #ifndef dt
+    dt = 0.1*dx;
   #endif
 
   // read in config file
@@ -78,6 +78,12 @@ int main(int argc, char **argv)
   LOG(iodata.log, "Running simulation...\n");
   _timer["loop"].start();
   for(s=0; s < steps; ++s) {
+
+// /* Run backwards?? */
+// if(s == 3000) {
+//   dt = -dt;
+// }
+
     // check for NAN in a field every step
     if(numNaNs(bssnSim.fields["DIFFphi_a"]) > 0)
     {
@@ -85,14 +91,73 @@ int main(int argc, char **argv)
       break;
     }
 
+    /**
+     * Schematic writeup of Particle (p_) and bssn (b_) RK4 computations.
+     * (r_ variable is bssn src)
+     * 
+     * step Init:
+     * b_p; p_f = 0;
+     * b_a = b_p;
+     * p_p; p_a = p_c = p_p; p_f = 0
+     * r_a = r(p_a)
+     * 
+     * (Output content in _a registers)
+     * 
+     * RK1 step:
+     * b_c = b_p + dt/2 * f(b_a, r_a);
+     * b_f += b_c
+     * b_c <-> b_a;
+     * r_a = 0;
+     * p_c = p_p + dt/2 * f( p_a, b_c )
+     * p_f += p_c
+     * p_a <-> p_c
+     * r_a = r(p_a)
+     * 
+     * RK2 step:
+     * b_c = b_p + dt/2 * f(b_a, r_a);
+     * b_f += 2 b_c
+     * b_c <-> b_a
+     * r_a = 0
+     * p_c = p_p + dt/2 * f( p_a, b_c )
+     * p_f += 2 p_c
+     * p_a <-> p_c
+     * r_a = r(p_a)
+     * 
+     * RK3 step:
+     * b_c = b_p + dt * f( b_a, r_a )
+     * b_f += b_c
+     * b_c <-> b_a
+     * r_a = 0
+     * p_c = p_p + dt * f( p_a, b_c )
+     * p_f += p_c
+     * p_a <-> p_c
+     * r_a = r(p_a)
+     * 
+     * RK4 step:
+     * b_f = 1/3 * (b_f - b_p) + dt/6 * f(b_a)
+     * p_c = p_p + dt/2 * f( p_a, b_c )
+     * p_f += p_c
+     * p_a <-> p_c
+     * 
+     * Finalize:
+     * b_f <-> b_p
+     * (p_f = 5p_p + 1/2 K1 + K2 + K3 + 1/2 K4)
+     * p_f = p_f / 3 - 2/3 p_p
+     * p_f <-> p_p
+     * 
+     * _p registers now contain "correct"
+     **/
+
     // initialize data for RK step in first loop
     // Init arrays and calculate source term for next step
+    _timer["RK_steps"].start();
       // _p is copied to _a here (which matter sectors reference)
       bssnSim.stepInit();
       // reset source data
       bssnSim.clearSrc();
-      staticSim.addBSSNSrc(bssnSim.fields, bssnSim.frw);
+      //staticSim.addBSSNSrc(bssnSim.fields, bssnSim.frw);
       particles.stepInit(bssnSim.fields);
+    _timer["RK_steps"].stop();
 
     // output simulation information
     // these generally output any data in the _a registers (which should 
@@ -107,77 +172,25 @@ int main(int argc, char **argv)
     _timer["RK_steps"].start();
       // FRW simulation & particles should be in a correct state here
 
-      /**
-       * Schematic writeup of Particle (p_) and bssn (b_) RK4 computations.
-       * (r_ variable is bssn src)
-       * 
-       * step Init:
-       * b_p; p_f = 0;
-       * b_a = b_p;
-       * p_p; p_a = p_c = p_p; p_f = 0
-       * r_a = r(p_a)
-       * 
-       * RK1 step:
-       * b_c = b_p + dt/2 * f(b_a, r_a);
-       * b_f += b_c
-       * b_c <-> b_a;
-       * r_a = 0;
-       * p_c = p_p + dt/2 * f( p_a, b_c )
-       * p_f += p_c
-       * r_a = r(p_c)
-       * p_a <-> p_c
-       * 
-       * RK2 step:
-       * b_c = b_p + dt/2 * f(b_a, r_a);
-       * b_f += 2 b_c
-       * b_c <-> b_a
-       * r_a = 0
-       * p_c = p_p + dt/2 * f( p_a, b_c )
-       * p_f += 2 p_c
-       * r_a = r(p_c)
-       * p_a <-> p_c
-       * 
-       * RK3 step:
-       * b_c = b_p + dt * f( b_a, r_a )
-       * b_f += b_c
-       * b_c <-> b_a
-       * r_a = 0
-       * p_c = p_p + dt * f( p_a, b_c )
-       * p_f += p_c
-       * r_a = r(p_c)
-       * p_a <-> p_c
-       * 
-       * RK4 step:
-       * b_f = 1/3 * (b_f - b_p) + dt/6 * f(b_a)
-       * TODO: need to set b_c for vv
-       * p_c = p_p + dt/2 * f( p_a, b_c )
-       * p_f += p_c
-       * p_a <-> p_c
-       * 
-       * (p_f = 5p_p + 1/2 K1 + K2 + K3 + 1/2 K4)
-       * p_f = p_f / 3 - 2/3 p_p      // finalize
-       * p_f <-> p_p
-       **/
-
       // First RK step, Set Hydro Vars, & calc. constraint
       bssnSim.K1Calc();
       // reset source using new metric
       bssnSim.clearSrc();
-      staticSim.addBSSNSrc(bssnSim.fields, bssnSim.frw);
+      //staticSim.addBSSNSrc(bssnSim.fields, bssnSim.frw);
       particles.RK1Step(bssnSim.fields);
 
       // Second RK step
       bssnSim.K2Calc();
       // reset source using new metric
       bssnSim.clearSrc();
-      staticSim.addBSSNSrc(bssnSim.fields, bssnSim.frw);
+      //staticSim.addBSSNSrc(bssnSim.fields, bssnSim.frw);
       particles.RK2Step(bssnSim.fields);
 
       // Third RK step
       bssnSim.K3Calc();
       // reset source using new metric
       bssnSim.clearSrc();
-      staticSim.addBSSNSrc(bssnSim.fields, bssnSim.frw);
+      //staticSim.addBSSNSrc(bssnSim.fields, bssnSim.frw);
       particles.RK3Step(bssnSim.fields);
 
       // Fourth RK step

@@ -181,7 +181,6 @@
   BSSN_APPLY_TO_FIELDS_ARGS(BSSN_ADD_C_TO_F_FIELD, mult)
 
 
-
 // arr_f = (1.0/3.0)*(arr_f - arr_p) + (1.0/6.0)*evfn(arr_a)
 #define BSSN_FINAL_RK4_STEP() \
   BSSN_APPLY_TO_FIELDS(BSSN_FINAL_RK4_STEP_FIELD)

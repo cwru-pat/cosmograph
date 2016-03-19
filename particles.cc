@@ -190,10 +190,16 @@ real_t Particles::linearInterpolation(
 }
 
 /**
- * Only set some metric components:
- * gamma_ij, rootdetg, and alpha
- * see also: interpolatePrimitivesFromCornersIncomplete
- * uses _c register.
+ * @brief      Interpolate some metric primitives required for geodesic integration
+ * @details    Interpolate some metric primitives (eg, only some variables in a
+ *  ParticleMetricPrimitives struct: alpha, phi, gamma_ij) required for geodesic
+ *  integration near a particular particle. See also: getInterpolatedPrimitives
+ *
+ * @param      p            Instance of particle to compute interpolated metric
+ *  quantities near (Particle type).
+ * @param      bssn_fields  Map from bssn class to fields.
+ *
+ * @return     Returns ParticleMetricPrimitives with values near the particle
  */
 ParticleMetricPrimitives<real_t> Particles::getInterpolatedPrimitivesIncomplete(Particle<real_t> * p,
   std::map <std::string, real_t *> & bssn_fields)
@@ -207,7 +213,7 @@ ParticleMetricPrimitives<real_t> Particles::getInterpolatedPrimitivesIncomplete(
   real_t * const DIFFgamma23_a = bssn_fields["DIFFgamma23_c"];
   real_t * const DIFFgamma33_a = bssn_fields["DIFFgamma33_c"];
 
-  // NGP interpolant
+  // Linear interpolant
   ParticleMetricPrimitives<real_t> corner_pp[2][2][2];
   for(idx_t i=0; i<2; i++)
     for(idx_t j=0; j<2; j++)
@@ -239,6 +245,18 @@ ParticleMetricPrimitives<real_t> Particles::getInterpolatedPrimitivesIncomplete(
   return interpolatePrimitivesFromCornersIncomplete(corner_pp, x_d);
 }
 
+/**
+ * @brief      Interpolate metric primitives required for geodesic integration
+ * @details    Interpolate metric primitives (eg, variables in a
+ *  ParticleMetricPrimitives struct) required for geodesic integration near a
+ *  particular particle.
+ *
+ * @param      p            Instance of particle to compute interpolated metric
+ *  quantities near (Particle type).
+ * @param      bssn_fields  Map from bssn class to fields.
+ *
+ * @return     Returns ParticleMetricPrimitives with values near the particle
+ */
 ParticleMetricPrimitives<real_t> Particles::getInterpolatedPrimitives(Particle<real_t> * p,
   std::map <std::string, real_t *> & bssn_fields)
 {
@@ -257,7 +275,7 @@ ParticleMetricPrimitives<real_t> Particles::getInterpolatedPrimitives(Particle<r
   real_t * const DIFFgamma23_a = bssn_fields["DIFFgamma23_a"];
   real_t * const DIFFgamma33_a = bssn_fields["DIFFgamma33_a"];
 
-  // NGP interpolant
+  // Linear interpolant
   ParticleMetricPrimitives<real_t> corner_pp[2][2][2];
   for(idx_t i=0; i<2; i++)
     for(idx_t j=0; j<2; j++)
@@ -316,35 +334,41 @@ ParticleMetricPrimitives<real_t> Particles::getInterpolatedPrimitives(Particle<r
 }
 
 /**
- * RK4 implementation:
- * y_p; y_a = y_c = yp; y_f = 0 (TODO)
- * y_a = y_p
- * 
- * y_c = y_p + dt/2 * f(y_a)    // RK1 step
- * y_f += y_c
- * y_a <-> y_c
- * 
- * y_c = y_p + dt/2 * f(y_a)    // RK2 step
- * y_f += 2 y_c
- * y_a <-> y_c
- * 
- * y_c = y_p + dt * f(y_a)      // RK3 step
- * y_f += y_c
- * y_a <-> y_c
- * 
- * y_c = y_p + dt/2 * f(y_a)    // RK4 step
- * y_f += y_c
- * y_a <-> y_c
- * 
- * (y_f = 5y_p + 1/2 K1 + K2 + K3 + 1/2 K4)
- * y_f = y_f / 3 - 2/3 y_p      // finalize
- * y_f <-> y_p
- * 
- * Using Baumgarte & Shapiro, 5.223-5.225
+ * @brief      Implementation for evaluating a single RK step
+ * @details    General implementation for computing one of the RK steps:
+ *  y_p; y_a = y_c = yp; y_f = 0 (TODO)
+ *  y_a = y_p
+ *  
+ *  y_c = y_p + dt/2 * f(y_a)    // RK1 step
+ *  y_f += y_c
+ *  y_a <-> y_c
+ *  
+ *  y_c = y_p + dt/2 * f(y_a)    // RK2 step
+ *  y_f += 2 y_c
+ *  y_a <-> y_c
+ *  
+ *  y_c = y_p + dt * f(y_a)      // RK3 step
+ *  y_f += y_c
+ *  y_a <-> y_c
+ *  
+ *  y_c = y_p + dt/2 * f(y_a)    // RK4 step
+ *  y_f += y_c
+ *  y_a <-> y_c
+ *  
+ *  (y_f = 5y_p + 1/2 K1 + K2 + K3 + 1/2 K4)
+ *  y_f = y_f / 3 - 2/3 y_p      // finalize
+ *  y_f <-> y_p
+ *  
+ *  Using Baumgarte & Shapiro, 5.223-5.225
  *
- * For a single RK step, we can just do: y_c = y_p + h * f(y_a)
- * and y_f += RK_sum_coeff * y_c
- * */
+ *  For a single RK step, we can just do: y_c = y_p + h * f(y_a)
+ *  and y_f += RK_sum_coeff * y_c
+ *
+ * @param      pr            Register of particles to integrate
+ * @param[in]  h             step size for particular RK step
+ * @param[in]  RK_sum_coeff  coefficient when adding RK step
+ * @param      bssn_fields   Map from bssn class to fields.
+ */
 void Particles::RKStep(ParticleRegister<real_t> * pr, real_t h, real_t RK_sum_coeff,
   std::map <std::string, real_t *> & bssn_fields)
 {
@@ -382,49 +406,63 @@ void Particles::RKStep(ParticleRegister<real_t> * pr, real_t h, real_t RK_sum_co
 
 void Particles::RK1Step(std::map <std::string, real_t *> & bssn_fields)
 {
+  _timer["Particles::RKCalcs"].start();
   PARTICLES_PARALLEL_LOOP(pr)
   {
     RKStep(& (*pr), dt/2.0, 1.0, bssn_fields);
-  } 
+  }
+  _timer["Particles::RKCalcs"].stop();
 }
 
 void Particles::RK2Step(std::map <std::string, real_t *> & bssn_fields)
 {
+  _timer["Particles::RKCalcs"].start();
   PARTICLES_PARALLEL_LOOP(pr)
   {
     RKStep(& (*pr), dt/2.0, 2.0, bssn_fields);
-  } 
+  }
+  _timer["Particles::RKCalcs"].stop();
+  addParticlesToBSSNSrc(bssn_fields);
 }
 
 void Particles::RK3Step(std::map <std::string, real_t *> & bssn_fields)
 {
+  _timer["Particles::RKCalcs"].start();
   PARTICLES_PARALLEL_LOOP(pr)
   {
     RKStep(& (*pr), dt, 1.0, bssn_fields);
   }
+  _timer["Particles::RKCalcs"].stop();
+  addParticlesToBSSNSrc(bssn_fields);
 }
 
 void Particles::RK4Step(std::map <std::string, real_t *> & bssn_fields)
 {
+  _timer["Particles::RKCalcs"].start();
   PARTICLES_PARALLEL_LOOP(pr)
   {
     RKStep(& (*pr), dt/2.0, 1.0, bssn_fields);
-  } 
+  }
+  _timer["Particles::RKCalcs"].stop();
+  addParticlesToBSSNSrc(bssn_fields);
 }
 
 void Particles::stepInit(std::map <std::string, real_t *> & bssn_fields)
 {
+  _timer["Particles::RKCalcs"].start();
   PARTICLES_PARALLEL_LOOP(pr)
   {
     pr->p_c = pr->p_p;
     pr->p_a = pr->p_p;
     pr->p_f = {0};
   }
+  _timer["Particles::RKCalcs"].stop();
   addParticlesToBSSNSrc(bssn_fields);
 }
 
 void Particles::stepTerm()
 {
+  _timer["Particles::RKCalcs"].start();
   PARTICLES_PARALLEL_LOOP(pr)
   {
     Particle<real_t> & p_p = pr->p_p;
@@ -436,26 +474,18 @@ void Particles::stepTerm()
       p_p.U[i] = p_f.U[i]/3.0 - 2.0/3.0*p_p.U[i];
     }
   }
-}
-
-void Particles::addParticlesToBSSNSrc(
-  std::map <std::string, real_t *> & bssn_fields)
-{
-  typename std::vector<ParticleRegister<real_t>>::iterator pr;
-// TODO: parallelize? This is a racey calculation.
-  for(pr = particles.begin(); pr < particles.end(); ++pr)
-  {
-    addParticleToBSSNSrc(& pr->p_a, bssn_fields);
-  }
+  _timer["Particles::RKCalcs"].stop();
 }
 
 /**
- * Set bssn _a register
+ * Set bssn _a source registers
  * using data from particle _c register
  */
-void Particles::addParticleToBSSNSrc(Particle<real_t> * p_c,
+void Particles::addParticlesToBSSNSrc(
   std::map <std::string, real_t *> & bssn_fields)
 {
+  _timer["Particles::addToBSSNSrc"].start();
+
   // matter / source fields
   // will always be setting _a register from _a register
   real_t * const DIFFr_a = bssn_fields["DIFFr_a"];
@@ -470,36 +500,52 @@ void Particles::addParticleToBSSNSrc(Particle<real_t> * p_c,
   real_t * const S23_a = bssn_fields["STF23_a"];
   real_t * const S33_a = bssn_fields["STF33_a"];
 
-  // NGP interpolant
-  // should do something better eventually
-  idx_t x_idx = getINDEX(p_c->X, 0);
-  idx_t y_idx = getINDEX(p_c->X, 1);
-  idx_t z_idx = getINDEX(p_c->X, 2);
-  idx_t idx = INDEX(x_idx, y_idx, z_idx);
+  PARTICLES_PARALLEL_LOOP(pr)
+  {
+    Particle<real_t> & p_a = pr->p_a;
+    // NGP interpolant
+    // Should come up with something better eventually
+    idx_t x_idx = getINDEX(p_a.X, 0);
+    idx_t y_idx = getINDEX(p_a.X, 1);
+    idx_t z_idx = getINDEX(p_a.X, 2);
+    idx_t idx = INDEX(x_idx, y_idx, z_idx);
 
-  ParticleMetricPrimitives<real_t> pp_c = getInterpolatedPrimitivesIncomplete(p_c, bssn_fields);
+    ParticleMetricPrimitives<real_t> pp_c = getInterpolatedPrimitivesIncomplete(& p_a, bssn_fields);
 
-  real_t W = std::sqrt( 1.0 + 
-      pp_c.gi[aIDX(1,1)]*p_c->U[0]*p_c->U[0] + pp_c.gi[aIDX(2,2)]*p_c->U[1]*p_c->U[1] + pp_c.gi[aIDX(3,3)]*p_c->U[2]*p_c->U[2]
-      + 2.0*( pp_c.gi[aIDX(1,2)]*p_c->U[0]*p_c->U[1] + pp_c.gi[aIDX(1,3)]*p_c->U[0]*p_c->U[2] + pp_c.gi[aIDX(2,3)]*p_c->U[1]*p_c->U[2] )
-    );
+    real_t W = std::sqrt( 1.0 + 
+        pp_c.gi[aIDX(1,1)]*p_a.U[0]*p_a.U[0] + pp_c.gi[aIDX(2,2)]*p_a.U[1]*p_a.U[1] + pp_c.gi[aIDX(3,3)]*p_a.U[2]*p_a.U[2]
+        + 2.0*( pp_c.gi[aIDX(1,2)]*p_a.U[0]*p_a.U[1] + pp_c.gi[aIDX(1,3)]*p_a.U[0]*p_a.U[2] + pp_c.gi[aIDX(2,3)]*p_a.U[1]*p_a.U[2] )
+      );
 
-  real_t MnA = p_c->M / W / dx/dx/dx / std::sqrt(pp_c.rootdetg);
+    real_t MnA = p_a.M / W / dx/dx/dx / std::sqrt(pp_c.rootdetg);
 
-  // Eq . 5.226 in Baumgarte & Shapiro
-  /* TODO: test & uncomment */
-  DIFFr_a[idx] += MnA*W*W;
-  DIFFS_a[idx] += MnA*W*W - MnA;
-  S1_a[idx] += MnA*W*p_c->U[0];
-  S2_a[idx] += MnA*W*p_c->U[1];
-  S3_a[idx] += MnA*W*p_c->U[2];
-  S11_a[idx] += MnA*p_c->U[0]*p_c->U[0];
-  S12_a[idx] += MnA*p_c->U[0]*p_c->U[1];
-  S13_a[idx] += MnA*p_c->U[0]*p_c->U[2];
-  S22_a[idx] += MnA*p_c->U[1]*p_c->U[1];
-  S23_a[idx] += MnA*p_c->U[1]*p_c->U[2];
-  S33_a[idx] += MnA*p_c->U[2]*p_c->U[2];
-  /**/
+    // Eq . 5.226 in Baumgarte & Shapiro
+    #pragma omp atomic
+    DIFFr_a[idx] += MnA*W*W;
+    #pragma omp atomic
+    DIFFS_a[idx] += MnA*W*W - MnA;
+    #pragma omp atomic
+    S1_a[idx] += MnA*W*p_a.U[0];
+    #pragma omp atomic
+    S2_a[idx] += MnA*W*p_a.U[1];
+    #pragma omp atomic
+    S3_a[idx] += MnA*W*p_a.U[2];
+    #pragma omp atomic
+    S11_a[idx] += MnA*p_a.U[0]*p_a.U[0];
+    #pragma omp atomic
+    S12_a[idx] += MnA*p_a.U[0]*p_a.U[1];
+    #pragma omp atomic
+    S13_a[idx] += MnA*p_a.U[0]*p_a.U[2];
+    #pragma omp atomic
+    S22_a[idx] += MnA*p_a.U[1]*p_a.U[1];
+    #pragma omp atomic
+    S23_a[idx] += MnA*p_a.U[1]*p_a.U[2];
+    #pragma omp atomic
+    S33_a[idx] += MnA*p_a.U[2]*p_a.U[2];
+
+  }
+
+  _timer["Particles::addToBSSNSrc"].stop();
 }
 
 } /* namespace cosmo */
