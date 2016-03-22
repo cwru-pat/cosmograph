@@ -13,12 +13,13 @@ ConfigParser::ConfigParser()
 
 ConfigParser::ConfigParser(std::string fname)
 {
-  fileName = fname;
   parse(fname);
 }
 
 void ConfigParser::parse(std::string fname)
 {
+  fileName = fname;
+  
   /* param = val */
   std::string param;
   std::string eq;
@@ -49,8 +50,8 @@ std::string ConfigParser::operator[](std::string param)
   if( config.find(param) == config.end() )
   {
     std::cout << "Error: param `" << param
-      << "` is required, but was not set!\n"
-      << "Please set this in the configuration file, " << fileName << ".\n";
+      << "` is required, but was not set!"
+      << " Please set this in the configuration file, " << fileName << ".\n";
     throw -1;
   }
 

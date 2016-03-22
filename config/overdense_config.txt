@@ -1,16 +1,24 @@
 steps = 6001
-grid_output_interval = 3000
-slice_output_interval = 100
-spec_output_interval = 500
-meta_output_interval = 1
 
 omp_num_threads = 32
 
-peak_amplitude_frac = 10.0
+simulation_type = dust
+peak_amplitude_frac = 20.0
 rho_K_lambda_frac = 0.0
 ic_spec_cut = 10
+IC_viol_amp = 0.0
 
-output_dir = output
+ray_integrate = 1
+rays_num = 1000
+IO_raytrace_interval = 1
+
+output_dir = output_overdense
 dump_file = calculated
 
-IC_viol_amp = 0.0
+IO_3D_grid_interval = 3000
+IO_2D_grid_interval = 1000
+IO_1D_grid_interval = 100
+
+IO_powerspec_interval = 500
+IO_constraint_interval = 10
+IO_bssnstats_interval = 10

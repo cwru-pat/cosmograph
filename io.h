@@ -26,15 +26,15 @@ void io_init(IOData *iodata, std::string output_dir);
 void io_config_backup(IOData *iodata, std::string config_file);
 void io_show_progress(idx_t s, idx_t maxs);
 
-void io_bssn_fields_snapshot(IOData *iodata,
-  std::map <std::string, real_t *> & bssn_fields, idx_t step, int dim);
-void io_bssn_fields_powerdump(IOData *iodata,
+void io_bssn_fields_snapshot(IOData *iodata, idx_t step,
+  std::map <std::string, real_t *> & bssn_fields);
+void io_bssn_fields_powerdump(IOData *iodata, idx_t step,
   std::map <std::string, real_t *> & bssn_fields, Fourier *fourier);
-void io_bssn_constraint_violation(IOData *iodata, BSSN * bssnSim);
-void io_bssn_dump_statistics(IOData *iodata, 
+void io_bssn_constraint_violation(IOData *iodata, idx_t step, BSSN * bssnSim);
+void io_bssn_dump_statistics(IOData *iodata, idx_t step,
   std::map <std::string, real_t *> & bssn_fields, FRW<real_t> *frw);
 
-void io_raytrace_dump(IOData *iodata,
+void io_raytrace_dump(IOData *iodata, idx_t step,
   std::vector<RayTrace<real_t, idx_t> *> * rays);
 
 void io_dump_2dslice(IOData *iodata, real_t *field, std::string filename);

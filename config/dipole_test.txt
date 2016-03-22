@@ -1,16 +1,24 @@
 steps = 3
-grid_output_interval = 6000
-slice_output_interval = 6000
-spec_output_interval = 500
-meta_output_interval = 1
 
 omp_num_threads = 32
 
-peak_amplitude_frac = 1000000.0
+simulation_type = dust
+peak_amplitude_frac = 5.0
 rho_K_lambda_frac = 0.0
 ic_spec_cut = 1
+IC_viol_amp = 0.0
 
-output_dir = dipole_test
+ray_integrate = 1
+rays_num = 1000
+IO_raytrace_interval = 1
+
+output_dir = output_dipole
 dump_file = calculated
 
-IC_viol_amp = 0.0
+IO_3D_grid_interval = 6000
+IO_2D_grid_interval = 2000
+IO_1D_grid_interval = 2000
+
+IO_powerspec_interval = 2000
+IO_constraint_interval = 10
+IO_bssnstats_interval = 10

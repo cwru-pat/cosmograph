@@ -223,7 +223,7 @@ public:
           ray->setDerivedQuantities();
           ray->evolveRay();
         }
-        io_raytrace_dump(&iodata, &rays);
+        io_raytrace_dump(&iodata, step, &rays);
       _timer["Raytrace_step"].stop();
     }
 
@@ -263,9 +263,10 @@ public:
   {
     _timer["output"].start();
       prepBSSNOutput();
-      io_bssn_fields_snapshot(&iodata, bssnSim->fields, step, 1);
-      io_bssn_dump_statistics(&iodata, bssnSim->fields, bssnSim->frw);
-      io_bssn_constraint_violation(&iodata, bssnSim);
+      io_bssn_fields_snapshot(&iodata, step, bssnSim->fields);
+      io_bssn_fields_powerdump(&iodata, step, bssnSim->fields, fourier);
+      io_bssn_dump_statistics(&iodata, step, bssnSim->fields, bssnSim->frw);
+      io_bssn_constraint_violation(&iodata, step, bssnSim);
     _timer["output"].stop();
   }
 
@@ -311,10 +312,10 @@ public:
   {
     _timer["output"].start();
       prepBSSNOutput();
-      io_bssn_fields_snapshot(&iodata, bssnSim->fields, step, 1);
-      io_bssn_fields_powerdump(&iodata, bssnSim->fields, fourier);
-      io_bssn_dump_statistics(&iodata, bssnSim->fields, bssnSim->frw);
-      io_bssn_constraint_violation(&iodata, bssnSim);
+      io_bssn_fields_snapshot(&iodata, step, bssnSim->fields);
+      io_bssn_fields_powerdump(&iodata, step, bssnSim->fields, fourier);
+      io_bssn_dump_statistics(&iodata, step, bssnSim->fields, bssnSim->frw);
+      io_bssn_constraint_violation(&iodata, step, bssnSim);
     _timer["output"].stop();
   }
 
@@ -356,9 +357,10 @@ public:
   {
     _timer["output"].start();
       prepBSSNOutput();
-      io_bssn_fields_snapshot(&iodata, bssnSim->fields, step, 1);
-      io_bssn_dump_statistics(&iodata, bssnSim->fields, bssnSim->frw);
-      io_bssn_constraint_violation(&iodata, bssnSim);
+      io_bssn_fields_snapshot(&iodata, step, bssnSim->fields);
+      io_bssn_fields_powerdump(&iodata, step, bssnSim->fields, fourier);
+      io_bssn_dump_statistics(&iodata, step, bssnSim->fields, bssnSim->frw);
+      io_bssn_constraint_violation(&iodata, step, bssnSim);
     _timer["output"].stop();
   }
 

@@ -52,12 +52,6 @@ void io_init(IOData *iodata, std::string output_dir)
     mkdir(iodata->output_dir.c_str(), 0755);
   }
 
-  iodata->slice_output_interval = stoi(_config["slice_output_interval"]);
-  iodata->grid_output_interval = stoi(_config["grid_output_interval"]);
-  iodata->meta_output_interval = stoi(_config["meta_output_interval"]);
-  iodata->spec_output_interval = stoi(_config["spec_output_interval"]);
-  iodata->dump_file = _config["dump_file"];
-
   iodata->log.open(iodata->output_dir + "log.txt");
   LOG(iodata->log, "Log file open.\n");
   LOG(iodata->log, "Running with NX = " << NX
@@ -150,31 +144,33 @@ void io_show_progress(idx_t s, idx_t maxs)
  * @param[in]  step          step number (part of file names)
  * @param[in]  dim           # dimensions to output (1, 2, or 3)
  */
-void io_bssn_fields_snapshot(IOData *iodata,
-  std::map <std::string, real_t *> & bssn_fields, idx_t step, int dim)
+void io_bssn_fields_snapshot(IOData *iodata, idx_t step,
+  std::map <std::string, real_t *> & bssn_fields)
 {
   std::string step_str = std::to_string(step);
-  if(dim == 3)
+  if( step % std::stoi(_config["IO_3D_grid_interval"]) == 0 )
   {
     io_dump_3dslice(iodata, bssn_fields["DIFFphi_a"], "3D_DIFFphi." + step_str);
     io_dump_3dslice(iodata, bssn_fields["DIFFK_a"],   "3D_DIFFK."   + step_str);
     io_dump_3dslice(iodata, bssn_fields["ricci_a"],   "3D_ricci."   + step_str);
     io_dump_3dslice(iodata, bssn_fields["DIFFr_a"],   "3D_DIFFr."   + step_str);
   }
-  else if(dim == 2)
+  
+  if( step % std::stoi(_config["IO_2D_grid_interval"]) == 0 )
   {
     io_dump_2dslice(iodata, bssn_fields["DIFFphi_a"], "2D_DIFFphi." + step_str);
     io_dump_2dslice(iodata, bssn_fields["DIFFK_a"],   "2D_DIFFK."   + step_str);
     io_dump_2dslice(iodata, bssn_fields["ricci_a"],   "2D_ricci."   + step_str);
     io_dump_2dslice(iodata, bssn_fields["DIFFr_a"],   "2D_DIFFr."   + step_str);
   }
-  else
+  
+  if( step % std::stoi(_config["IO_1D_grid_interval"]) == 0 )
   {
-    io_dump_strip(iodata, bssn_fields["DIFFgamma11_a"], "strip_DIFFgamma11", 1, 0, 0);
-    io_dump_strip(iodata, bssn_fields["DIFFphi_a"],     "strip_DIFFphi", 1, 0, 0);
-    io_dump_strip(iodata, bssn_fields["DIFFK_a"],       "strip_DIFFK",   1, 0, 0);
-    io_dump_strip(iodata, bssn_fields["ricci_a"],       "strip_ricci",   1, 0, 0);
-    io_dump_strip(iodata, bssn_fields["DIFFr_a"],       "strip_DIFFr",   1, 0, 0);
+    io_dump_strip(iodata, bssn_fields["DIFFgamma11_a"], "1D_DIFFgamma11", 1, 0, 0);
+    io_dump_strip(iodata, bssn_fields["DIFFphi_a"],     "1D_DIFFphi", 1, 0, 0);
+    io_dump_strip(iodata, bssn_fields["DIFFK_a"],       "1D_DIFFK",   1, 0, 0);
+    io_dump_strip(iodata, bssn_fields["ricci_a"],       "1D_ricci",   1, 0, 0);
+    io_dump_strip(iodata, bssn_fields["DIFFr_a"],       "1D_DIFFr",   1, 0, 0);
   }
 }
 
@@ -184,11 +180,14 @@ void io_bssn_fields_snapshot(IOData *iodata,
  * @param      bssn_fields  map to bssn fields
  * @param      fourier      initialized Fourier instance
  */
-void io_bssn_fields_powerdump(IOData *iodata,
+void io_bssn_fields_powerdump(IOData *iodata, idx_t step,
   std::map <std::string, real_t *> & bssn_fields, Fourier *fourier)
 {
-  fourier->powerDump(bssn_fields["DIFFphi_a"], iodata);
-  fourier->powerDump(bssn_fields["DIFFr_a"], iodata);
+  if( step % std::stoi(_config["IO_powerspec_interval"]) == 0 )
+  {
+    fourier->powerDump(bssn_fields["DIFFphi_a"], iodata);
+    fourier->powerDump(bssn_fields["DIFFr_a"], iodata);
+  }
 }
 
 /**
@@ -197,22 +196,25 @@ void io_bssn_fields_powerdump(IOData *iodata,
  * @param      iodata   { parameter_description }
  * @param      bssnSim  { parameter_description }
  */
-void io_bssn_constraint_violation(IOData *iodata, BSSN * bssnSim)
+void io_bssn_constraint_violation(IOData *iodata, idx_t step, BSSN * bssnSim)
 {
-  real_t H_calcs[7], M_calcs[7];
+  if( step % std::stoi(_config["IO_constraint_interval"]) == 0 )
+  {
+    real_t H_calcs[7], M_calcs[7];
 
-  // Constraint Violation Calculations
-  bssnSim->setHamiltonianConstraintCalcs(H_calcs, false);
-  io_dump_value(iodata, H_calcs[4], "H_violations", "\t"); // mean(H/[H])
-  io_dump_value(iodata, H_calcs[5], "H_violations", "\t"); // stdev(H/[H])
-  io_dump_value(iodata, H_calcs[6], "H_violations", "\t"); // max(H/[H])
-  io_dump_value(iodata, H_calcs[2], "H_violations", "\n"); // max(H)
+    // Constraint Violation Calculations
+    bssnSim->setHamiltonianConstraintCalcs(H_calcs, false);
+    io_dump_value(iodata, H_calcs[4], "H_violations", "\t"); // mean(H/[H])
+    io_dump_value(iodata, H_calcs[5], "H_violations", "\t"); // stdev(H/[H])
+    io_dump_value(iodata, H_calcs[6], "H_violations", "\t"); // max(H/[H])
+    io_dump_value(iodata, H_calcs[2], "H_violations", "\n"); // max(H)
 
-  bssnSim->setMomentumConstraintCalcs(M_calcs);
-  io_dump_value(iodata, M_calcs[4], "M_violations", "\t"); // mean(M/[M])
-  io_dump_value(iodata, M_calcs[5], "M_violations", "\t"); // stdev(M/[M])
-  io_dump_value(iodata, M_calcs[6], "M_violations", "\t"); // max(M/[M])
-  io_dump_value(iodata, M_calcs[2], "M_violations", "\n"); // max(M)
+    bssnSim->setMomentumConstraintCalcs(M_calcs);
+    io_dump_value(iodata, M_calcs[4], "M_violations", "\t"); // mean(M/[M])
+    io_dump_value(iodata, M_calcs[5], "M_violations", "\t"); // stdev(M/[M])
+    io_dump_value(iodata, M_calcs[6], "M_violations", "\t"); // max(M/[M])
+    io_dump_value(iodata, M_calcs[2], "M_violations", "\n"); // max(M)
+  }
 }
 
 /**
@@ -223,10 +225,14 @@ void io_bssn_constraint_violation(IOData *iodata, BSSN * bssnSim)
  * @param      iodata       initialized IOData struct
  * @param      frw          frw instance from bssn sim
  */
-void io_bssn_dump_statistics(IOData *iodata, 
+void io_bssn_dump_statistics(IOData *iodata, idx_t step,
   std::map <std::string, real_t *> & bssn_fields, FRW<real_t> *frw)
 {
-  std::string filename = iodata->dump_file;
+  /* no output if not @ correct interval */
+  if( step % std::stoi(_config["IO_bssnstats_interval"]) != 0 )
+    return;
+
+  std::string filename = _config["dump_file"];
   char data[35];
 
   // dump FRW quantities
@@ -283,9 +289,13 @@ void io_bssn_dump_statistics(IOData *iodata,
  * @param      iodata  Initialized IOData
  * @param      rays    Vector of rays
  */
-void io_raytrace_dump(IOData *iodata,
+void io_raytrace_dump(IOData *iodata, idx_t step,
   std::vector<RayTrace<real_t, idx_t> *> * rays)
 {
+  /* no output if not @ correct interval */
+  if( step % std::stoi(_config["IO_raytrace_interval"]) != 0 )
+    return;
+
   // rayrace information
   RaytraceData<real_t> tmp_rd = {0};
   for(RayTrace<real_t, idx_t> * ray : *rays)
