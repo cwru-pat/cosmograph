@@ -29,142 +29,6 @@ ICsData cosmo_get_ICsData()
 }
 
 /**
- * @brief Determine which initial conditions to set, and set them.
- * @details Decide which initial conditions to set based on configuration data.
- * 
- * @param frw 
- * @param static_fields Field with 
- * @param fourier Initialized fourier transform class
- * @param iod IOData structure containing input/output parameters
- * @param frw FRW class (can be internal to BSSN class)
- */
-void set_ICs(
-  std::map <std::string, real_t *> & bssn_fields,
-  std::map <std::string, real_t *> & static_fields,
-  Fourier *fourier, IOData *iod, FRW<real_t> *frw)
-{
-  if(_config["ICs"] == "apples_stability")
-  {
-    LOG(iod->log, "Using apples stability test initial conditions...\n");
-    set_stability_test_ICs(bssn_fields, static_fields);
-  }
-  else if(_config["ICs"] == "apples_linwave")
-  {
-    LOG(iod->log, "Using apples wave test initial conditions...\n");
-    set_linear_wave_ICs(bssn_fields);
-  }
-  else
-  {
-    // "conformal" cosmological initial conditions:
-    LOG(iod->log, "Using conformal initial conditions...\n");
-    set_conformal_ICs(bssn_fields, static_fields, fourier, iod, frw);
-  }
-}
-
-/**
- * @brief Initialize vector of rays
- * @details Initialize a vector of rays with given rays, given velocity
- *  directions (ray velocity magnitude is normalized by the raytrace class)
- * 
- * @param rays reference to RayTrace class rays should belong to
- * @param n_rays number of rays
- */
-void init_ray_vector(std::vector<RayTrace<real_t, idx_t> *> * rays, idx_t n_rays)
-{
-  idx_t i = 0;
-  RaytraceData<real_t> rd = {0};
-
-  std::mt19937 gen(7.0);
-  std::uniform_real_distribution<real_t> dist(0.0, 1.0);
-  dist(gen);
-  for(i=0; i<n_rays; i++)
-  {
-    // Randomized ray position
-    // rd.x[0] = dist(gen)*N*dx;
-    // rd.x[1] = dist(gen)*N*dx;
-    // rd.x[2] = dist(gen)*N*dx;
-    // Direction of propagation
-    // normalization of V is enforced by raytrace class
-    // rd.V[0] = dist(gen);
-    // rd.V[1] = dist(gen);
-    // rd.V[2] = dist(gen);
-
-    // rays distributed (uniformly) around a sphere
-    real_t theta = 2.0*PI*dist(gen);
-    real_t U = 2.0*dist(gen) - 1.0;
-    // sphere radius R = L/2
-    real_t R = N*dx/2.0;
-    // i<500: sphere center near x = y = z = L/2
-    // inside some over/underdensity (hopefully)
-    real_t X0, Y0, Z0;
-    if(i<500)
-    {
-      X0 = 1.382813*N*dx;
-      Y0 = 1.476563*N*dx;
-      Z0 = 1.351563*N*dx;
-    }
-    else
-    {
-      X0 = 1.460938*N*dx;
-      Y0 = 1.554688*N*dx;
-      Z0 = 1.492188*N*dx;
-    }
-    // ray position on sphere
-    rd.x[0] = X0 + R*std::sqrt(1.0-U*U)*std::cos(theta);
-    rd.x[1] = Y0 + R*std::sqrt(1.0-U*U)*std::sin(theta);
-    rd.x[2] = Z0 + R*U;
-    // velocity directed inwards
-    // normalization of V is enforced by raytrace class
-    rd.V[0] = -1.0*std::sqrt(1.0-U*U)*std::cos(theta);
-    rd.V[1] = -1.0*std::sqrt(1.0-U*U)*std::sin(theta);
-    rd.V[2] = -1.0*U;
-
-    // energy in arb. untis
-    rd.E = 1.0;
-
-    RayTrace<real_t, idx_t> * ray;
-    ray = new RayTrace<real_t, idx_t> (dt, rd);
-    rays->push_back( ray );
-  }
-}
-
-/**
- * @brief Initialize particles from static field data
- * @details Initialize particles from static field data, so particle
- *  masses are that needed to recreate the corresponding density field.
- * 
- * @param particles reference to Particles class containing particles
- * @param bssn_fields map to fields from bssn class
- * @param static_field map to fields from static class
- */
-void init_particle_vector(Particles * particles,
-  std::map <std::string, real_t *> & bssn_fields,
-  std::map <std::string, real_t *> & static_field)
-{
-  real_t * const DIFFr = bssn_fields["DIFFr_a"];
-  real_t * const DIFFphi = bssn_fields["DIFFphi_a"];
-  ICsData icd = cosmo_get_ICsData();
-
-  idx_t i, j, k;
-  LOOP3(i,j,k) {
-    Particle<real_t> particle = {0};
-
-    // Particle position in grid
-    particle.X[0] = i*dx;
-    particle.X[1] = j*dx;
-    particle.X[2] = k*dx;
-
-    // Particle mass
-    real_t rho_FRW = icd.rho_K_matter;
-    real_t rho = rho_FRW + DIFFr[INDEX(i,j,k)];
-    real_t rootdetg = std::exp(6.0*DIFFphi[INDEX(i,j,k)]);
-    particle.M = rho*dx*dx*dx*rootdetg;
-
-    particles->addParticle(particle);
-  }
-}
-
-/**
  * @brief A cosmologically-motivated power spectrum for the conformal factor
  * @details Return the power spectrum amplitude for a particular wavenumber.
  *  The power spectrum describing the density goes roughly as 
@@ -191,6 +55,7 @@ real_t cosmo_power_spectrum(real_t k, ICsData *icd)
 }
 
 // set a field to an arbitrary gaussian random field
+
 void set_gaussian_random_field(real_t *field, Fourier *fourier, ICsData *icd)
 {
   idx_t i, j, k;
@@ -265,15 +130,22 @@ void set_gaussian_random_field(real_t *field, Fourier *fourier, ICsData *icd)
   return;
 }
 
-// doesn't specify monopole / expansion contribution
-void set_conformal_ICs(
+/**
+ * @brief      Set conformally flat initial conditions for a w=0
+ *  fluid in synchronous gauge.
+ *
+ * @param      bssn_fields   { parameter_description }
+ * @param      static_field  { parameter_description }
+ * @param      fourier       { parameter_description }
+ * @param      iod           { parameter_description }
+ * @param      frw           { parameter_description }
+ */
+void ICs_set_dust(
   std::map <std::string, real_t *> & bssn_fields,
   std::map <std::string, real_t *> & static_field,
   Fourier *fourier, IOData *iod, FRW<real_t> *frw)
 {
-std::cout << std::flush;
   idx_t i, j, k;
-  real_t px, py, pz, p2;
   ICsData icd = cosmo_get_ICsData();
   LOG(iod->log, "Generating ICs with peak at k = " << icd.peak_k << "\n");
   LOG(iod->log, "Generating ICs with peak amp. = " << icd.peak_amplitude << "\n");
@@ -371,6 +243,198 @@ std::cout << std::flush;
       static_field["DIFFD_a"][idx] += D_FRW;
     }
   #endif
+}
+
+/**
+ * @brief Initialize particles from gaussian random field data
+ * @details Initialize particles from gaussian random field data, so particle
+ *  masses are that needed to recreate the corresponding density field.
+ * 
+ * @param particles reference to Particles class containing particles
+ * @param bssn_fields map to fields from bssn class
+ */
+
+
+/**
+ * @brief      Set conformally flat initial conditions for a w=0
+ *  fluid in synchronous gauge.
+ *
+ * @param      bssn_fields   { parameter_description }
+ * @param      static_field  { parameter_description }
+ * @param      fourier       { parameter_description }
+ * @param      iod           { parameter_description }
+ * @param      frw           { parameter_description }
+ */
+void ICs_set_particle(
+  Particles * particles,
+  std::map <std::string, real_t *> & bssn_fields,
+  Fourier *fourier, IOData *iod)
+{
+  idx_t i, j, k;
+  ICsData icd = cosmo_get_ICsData();
+  real_t rho_FRW = icd.rho_K_matter;
+  real_t * const DIFFr = bssn_fields["DIFFr_a"];
+  real_t * const DIFFphi_p = bssn_fields["DIFFphi_p"];
+  real_t * const DIFFphi_a = bssn_fields["DIFFphi_a"];
+  real_t * const DIFFphi_c = bssn_fields["DIFFphi_c"];
+  real_t * const DIFFphi_f = bssn_fields["DIFFphi_f"];
+  LOG(iod->log, "Generating ICs with peak at k = " << icd.peak_k << "\n");
+  LOG(iod->log, "Generating ICs with peak amp. = " << icd.peak_amplitude << "\n");
+
+  // the conformal factor in front of metric is the solution to
+  // d^2 exp(\phi) = -2*pi exp(5\phi) * \rho
+  // generate gaussian random field 1 + xi = exp(phi) (use phi_p as a proxy):
+  set_gaussian_random_field(DIFFphi_p, fourier, &icd);
+
+  // rho = -lap(phi)/xi^5/2pi
+  LOOP3(i,j,k) {
+    Particle<real_t> particle = {0};
+
+    // Particle position in grid
+    particle.X[0] = i*dx;
+    particle.X[1] = j*dx;
+    particle.X[2] = k*dx;
+
+    // Particle mass
+    DIFFr[NP_INDEX(i,j,k)] = rho_FRW - 0.5/PI/(
+      pow(1.0 + DIFFphi_p[NP_INDEX(i,j,k)], 5.0)
+    )*(
+      double_derivative(i, j, k, 1, 1, DIFFphi_p)
+      + double_derivative(i, j, k, 2, 2, DIFFphi_p)
+      + double_derivative(i, j, k, 3, 3, DIFFphi_p)
+    );
+    real_t rho = rho_FRW + DIFFr[INDEX(i,j,k)];
+    real_t rootdetg = std::exp(6.0*DIFFphi_p[INDEX(i,j,k)]);
+    particle.M = rho*dx*dx*dx*rootdetg;
+
+    particles->addParticle( particle );
+  }
+
+  // phi = ln(xi)
+  LOOP3(i,j,k) {
+    idx_t idx = NP_INDEX(i,j,k);
+    DIFFphi_a[idx] = log1p(DIFFphi_p[idx]);
+    DIFFphi_f[idx] = log1p(DIFFphi_p[idx]);
+    DIFFphi_p[idx] = log1p(DIFFphi_p[idx]);
+  }
+
+  // Make sure min density value > 0
+  // Set conserved density variable field
+  real_t min = icd.rho_K_matter;
+  real_t max = min;
+  LOOP3(i,j,k)
+  {
+    real_t rho = DIFFr[NP_INDEX(i,j,k)];
+
+    if(rho < min)
+    {
+      min = rho;
+    }
+    if(rho > max)
+    {
+      max = rho;
+    }
+    if(rho != rho)
+    {
+      LOG(iod->log, "Error: NaN energy density.\n");
+      throw -1;
+    }
+  }
+
+  LOG(iod->log, "Minimum fluid density: " << min << "\n");
+  LOG(iod->log, "Maximum fluid density: " << max << "\n");
+  LOG(iod->log, "Average fluctuation density: " << average(DIFFr) << "\n");
+  LOG(iod->log, "Std.dev fluctuation density: " << standard_deviation(DIFFr) << "\n");
+  if(min < 0.0) {
+    LOG(iod->log, "Error: negative density in some regions.\n");
+    throw -1;
+  }
+
+  LOOP3(i,j,k)
+  {
+    idx_t idx = NP_INDEX(i,j,k);
+    bssn_fields["DIFFK_a"][idx] = -sqrt(24.0*PI*rho_FRW);
+    bssn_fields["DIFFK_p"][idx] = -sqrt(24.0*PI*rho_FRW);
+  }
+}
+
+/**
+ * @brief      Set vacuum initial conditions
+ *
+ * @param[in]  map to BSSN fields
+ * @param      initialized IOData
+ */
+void ICs_set_vacuum(std::map <std::string, real_t *> & bssn_fields,
+  IOData *iod)
+{
+
+}
+
+/**
+ * @brief Initialize vector of rays
+ * @details Initialize a vector of rays with given rays, given velocity
+ *  directions (ray velocity magnitude is normalized by the raytrace class)
+ * 
+ * @param rays reference to RayTrace class rays should belong to
+ * @param n_rays number of rays
+ */
+void init_ray_vector(std::vector<RayTrace<real_t, idx_t> *> * rays, idx_t n_rays)
+{
+  idx_t i = 0;
+  RaytraceData<real_t> rd = {0};
+
+  std::mt19937 gen(7.0);
+  std::uniform_real_distribution<real_t> dist(0.0, 1.0);
+  dist(gen);
+  for(i=0; i<n_rays; i++)
+  {
+    // Randomized ray position
+    // rd.x[0] = dist(gen)*N*dx;
+    // rd.x[1] = dist(gen)*N*dx;
+    // rd.x[2] = dist(gen)*N*dx;
+    // Direction of propagation
+    // normalization of V is enforced by raytrace class
+    // rd.V[0] = dist(gen);
+    // rd.V[1] = dist(gen);
+    // rd.V[2] = dist(gen);
+
+    // rays distributed (uniformly) around a sphere
+    real_t theta = 2.0*PI*dist(gen);
+    real_t U = 2.0*dist(gen) - 1.0;
+    // sphere radius R = L/2
+    real_t R = N*dx/2.0;
+    // i<500: sphere center near x = y = z = L/2
+    // inside some over/underdensity (hopefully)
+    real_t X0, Y0, Z0;
+    if(i<500)
+    {
+      X0 = 1.382813*N*dx;
+      Y0 = 1.476563*N*dx;
+      Z0 = 1.351563*N*dx;
+    }
+    else
+    {
+      X0 = 1.460938*N*dx;
+      Y0 = 1.554688*N*dx;
+      Z0 = 1.492188*N*dx;
+    }
+    // ray position starts at an observer (integrating back in time...)
+    rd.x[0] = X0; // + R*std::sqrt(1.0-U*U)*std::cos(theta);
+    rd.x[1] = Y0; // + R*std::sqrt(1.0-U*U)*std::sin(theta);
+    rd.x[2] = Z0; // + R*U;
+    // velocity directed inwards
+    // normalization of V is enforced by raytrace class
+    rd.V[0] = -1.0*std::sqrt(1.0-U*U)*std::cos(theta);
+    rd.V[1] = -1.0*std::sqrt(1.0-U*U)*std::sin(theta);
+    rd.V[2] = -1.0*U;
+
+    // energy in arb. untis
+    rd.E = 1.0;
+
+    RayTrace<real_t, idx_t> * ray;
+    ray = new RayTrace<real_t, idx_t> (dt, rd);
+    rays->push_back( ray );
+  }
 }
 
 

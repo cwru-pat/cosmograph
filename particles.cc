@@ -510,14 +510,14 @@ void Particles::addParticlesToBSSNSrc(
     idx_t z_idx = getINDEX(p_a.X, 2);
     idx_t idx = INDEX(x_idx, y_idx, z_idx);
 
-    ParticleMetricPrimitives<real_t> pp_c = getInterpolatedPrimitivesIncomplete(& p_a, bssn_fields);
+    ParticleMetricPrimitives<real_t> pp_a = getInterpolatedPrimitivesIncomplete(& p_a, bssn_fields);
 
     real_t W = std::sqrt( 1.0 + 
-        pp_c.gi[aIDX(1,1)]*p_a.U[0]*p_a.U[0] + pp_c.gi[aIDX(2,2)]*p_a.U[1]*p_a.U[1] + pp_c.gi[aIDX(3,3)]*p_a.U[2]*p_a.U[2]
-        + 2.0*( pp_c.gi[aIDX(1,2)]*p_a.U[0]*p_a.U[1] + pp_c.gi[aIDX(1,3)]*p_a.U[0]*p_a.U[2] + pp_c.gi[aIDX(2,3)]*p_a.U[1]*p_a.U[2] )
+        pp_a.gi[aIDX(1,1)]*p_a.U[0]*p_a.U[0] + pp_a.gi[aIDX(2,2)]*p_a.U[1]*p_a.U[1] + pp_a.gi[aIDX(3,3)]*p_a.U[2]*p_a.U[2]
+        + 2.0*( pp_a.gi[aIDX(1,2)]*p_a.U[0]*p_a.U[1] + pp_a.gi[aIDX(1,3)]*p_a.U[0]*p_a.U[2] + pp_a.gi[aIDX(2,3)]*p_a.U[1]*p_a.U[2] )
       );
 
-    real_t MnA = p_a.M / W / dx/dx/dx / std::sqrt(pp_c.rootdetg);
+    real_t MnA = p_a.M / W / dx/dx/dx / pp_a.rootdetg;
 
     // Eq . 5.226 in Baumgarte & Shapiro
     #pragma omp atomic

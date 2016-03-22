@@ -1,4 +1,4 @@
-
+  
 #include "io.h"
 #include <hdf5.h>
 #include <sys/stat.h>
@@ -82,6 +82,12 @@ void io_init(IOData *iodata, std::string output_dir)
   LOG(iodata->log, "  USE_BSSN_SHIFT = " << USE_BSSN_SHIFT << "\n");
 }
 
+/**
+ * @brief      Create a copy of the configuration file used in the simulation
+ *
+ * @param      iodata       initialized iodata struct
+ * @param[in]  config_file  path to configuration file being read in
+ */
 void io_config_backup(IOData *iodata, std::string config_file)
 {
   std::ifstream source(config_file, std::ios::binary);
@@ -91,38 +97,13 @@ void io_config_backup(IOData *iodata, std::string config_file)
   dest.close();
 }
 
-void io_fields_snapshot(std::map <std::string, real_t *> & bssn_fields,
-                        std::map <std::string, real_t *> & static_field,
-                        IOData *iodata, idx_t step, Fourier *fourier, FRW<real_t> *frw)
-{
-  if(step % iodata->slice_output_interval == 0)
-  {
-    // io_dump_2dslice(bssn_fields["DIFFK_a"], "DIFFK_slice." + std::to_string(step), iodata);
-    // io_dump_2dslice(bssn_fields["DIFFphi_a"], "DIFFphi_slice." + std::to_string(step), iodata);
-    // io_dump_2dslice(static_field["DIFFD_a"], "DIFFUD_slice."  + std::to_string(step), iodata);
-    // io_dump_2dslice(bssn_fields["DIFFgamma11_a"], "DIFFgamma11." + std::to_string(step), iodata);
-  }
-  if(step % iodata->grid_output_interval == 0)
-  {
-    // io_dump_3dslice(bssn_fields["DIFFgamma11_a"], "DIFFgamma11." + std::to_string(step), iodata);
-    // io_dump_3dslice(bssn_fields["DIFFgamma12_a"], "DIFFgamma12." + std::to_string(step), iodata);
-    // io_dump_3dslice(bssn_fields["DIFFgamma13_a"], "DIFFgamma13." + std::to_string(step), iodata);
-    // io_dump_3dslice(bssn_fields["DIFFgamma22_a"], "DIFFgamma22." + std::to_string(step), iodata);
-    // io_dump_3dslice(bssn_fields["DIFFgamma23_a"], "DIFFgamma23." + std::to_string(step), iodata);
-    // io_dump_3dslice(bssn_fields["DIFFgamma33_a"], "DIFFgamma33." + std::to_string(step), iodata);
-    // io_dump_3dslice(bssn_fields["DIFFphi_a"],     "DIFFphi."     + std::to_string(step), iodata);
-    // io_dump_3dslice(bssn_fields["DIFFK_a"],       "DIFFK."       + std::to_string(step), iodata);
-    // io_dump_3dslice(bssn_fields["ricci_a"],   "ricci."   + std::to_string(step), iodata);
-    // io_dump_3dslice(bssn_fields["AijAij_a"],  "AijAij."  + std::to_string(step), iodata);
-    // io_dump_3dslice(static_field["DIFFD_a"],      "DIFFUD."       + std::to_string(step), iodata);
-
-    // io_dump_3dslice(bssn_fields["KDx_a"],     "KDx_a."   + std::to_string(step), iodata);
-    // io_dump_3dslice(bssn_fields["KDy_a"],     "KDy_a."   + std::to_string(step), iodata);
-    // io_dump_3dslice(bssn_fields["KDz_a"],     "KDz_a."   + std::to_string(step), iodata);
-  }
-}
-
-void io_show_progress(idx_t s, idx_t maxs) // terminal output only
+/**
+ * @brief      Print out a progress bar in the terminal (not log file)
+ *
+ * @param[in]  s     step number
+ * @param[in]  maxs  maximum number of steps
+ */
+void io_show_progress(idx_t s, idx_t maxs)
 {
   if(s > maxs)
   {
@@ -162,9 +143,254 @@ void io_show_progress(idx_t s, idx_t maxs) // terminal output only
   return;
 }
 
-void io_dump_strip(real_t *field, int axis, idx_t n1, idx_t n2, IOData *iodata)
+/**
+ * @brief      Output 3d snapshot of BSSN fields in _a register
+ *
+ * @param      bssn_fields   map to bssn fields
+ * @param[in]  step          step number (part of file names)
+ * @param[in]  dim           # dimensions to output (1, 2, or 3)
+ */
+void io_bssn_fields_snapshot(IOData *iodata,
+  std::map <std::string, real_t *> & bssn_fields, idx_t step, int dim)
 {
-  std::string filename = iodata->output_dir + "strip.dat.gz";
+  std::string step_str = std::to_string(step);
+  if(dim == 3)
+  {
+    io_dump_3dslice(iodata, bssn_fields["DIFFphi_a"], "3D_DIFFphi." + step_str);
+    io_dump_3dslice(iodata, bssn_fields["DIFFK_a"],   "3D_DIFFK."   + step_str);
+    io_dump_3dslice(iodata, bssn_fields["ricci_a"],   "3D_ricci."   + step_str);
+    io_dump_3dslice(iodata, bssn_fields["DIFFr_a"],   "3D_DIFFr."   + step_str);
+  }
+  else if(dim == 2)
+  {
+    io_dump_2dslice(iodata, bssn_fields["DIFFphi_a"], "2D_DIFFphi." + step_str);
+    io_dump_2dslice(iodata, bssn_fields["DIFFK_a"],   "2D_DIFFK."   + step_str);
+    io_dump_2dslice(iodata, bssn_fields["ricci_a"],   "2D_ricci."   + step_str);
+    io_dump_2dslice(iodata, bssn_fields["DIFFr_a"],   "2D_DIFFr."   + step_str);
+  }
+  else
+  {
+    io_dump_strip(iodata, bssn_fields["DIFFgamma11_a"], "strip_DIFFgamma11", 1, 0, 0);
+    io_dump_strip(iodata, bssn_fields["DIFFphi_a"],     "strip_DIFFphi", 1, 0, 0);
+    io_dump_strip(iodata, bssn_fields["DIFFK_a"],       "strip_DIFFK",   1, 0, 0);
+    io_dump_strip(iodata, bssn_fields["ricci_a"],       "strip_ricci",   1, 0, 0);
+    io_dump_strip(iodata, bssn_fields["DIFFr_a"],       "strip_DIFFr",   1, 0, 0);
+  }
+}
+
+/**
+ * @brief      Output power spectrum of some bssn fields
+ *
+ * @param      bssn_fields  map to bssn fields
+ * @param      fourier      initialized Fourier instance
+ */
+void io_bssn_fields_powerdump(IOData *iodata,
+  std::map <std::string, real_t *> & bssn_fields, Fourier *fourier)
+{
+  fourier->powerDump(bssn_fields["DIFFphi_a"], iodata);
+  fourier->powerDump(bssn_fields["DIFFr_a"], iodata);
+}
+
+/**
+ * @brief      Output constraint violation amplitudes
+ *
+ * @param      iodata   { parameter_description }
+ * @param      bssnSim  { parameter_description }
+ */
+void io_bssn_constraint_violation(IOData *iodata, BSSN * bssnSim)
+{
+  real_t H_calcs[7], M_calcs[7];
+
+  // Constraint Violation Calculations
+  bssnSim->setHamiltonianConstraintCalcs(H_calcs, false);
+  io_dump_value(iodata, H_calcs[4], "H_violations", "\t"); // mean(H/[H])
+  io_dump_value(iodata, H_calcs[5], "H_violations", "\t"); // stdev(H/[H])
+  io_dump_value(iodata, H_calcs[6], "H_violations", "\t"); // max(H/[H])
+  io_dump_value(iodata, H_calcs[2], "H_violations", "\n"); // max(H)
+
+  bssnSim->setMomentumConstraintCalcs(M_calcs);
+  io_dump_value(iodata, M_calcs[4], "M_violations", "\t"); // mean(M/[M])
+  io_dump_value(iodata, M_calcs[5], "M_violations", "\t"); // stdev(M/[M])
+  io_dump_value(iodata, M_calcs[6], "M_violations", "\t"); // max(M/[M])
+  io_dump_value(iodata, M_calcs[2], "M_violations", "\n"); // max(M)
+}
+
+/**
+ * @brief      Output statistical information about simulation:
+ *   averaged fields (FRW-analogues), standard deviations, FRW values, etc
+ * 
+ * @param      bssn_fields  map to bssn sim fields
+ * @param      iodata       initialized IOData struct
+ * @param      frw          frw instance from bssn sim
+ */
+void io_bssn_dump_statistics(IOData *iodata, 
+  std::map <std::string, real_t *> & bssn_fields, FRW<real_t> *frw)
+{
+  std::string filename = iodata->dump_file;
+  char data[35];
+
+  // dump FRW quantities
+  std::string dump_filename = iodata->output_dir + filename + ".frwdat.gz";
+  gzFile datafile = gzopen(dump_filename.c_str(), "ab");
+  if(datafile == Z_NULL) {
+    LOG(iodata->log, "Error opening file: " << dump_filename << "\n");
+    return;
+  }
+
+  real_t phi_FRW = frw->get_phi();
+  sprintf(data, "%.15g\t", (double) phi_FRW);
+  gzwrite(datafile, data, strlen(data));
+  real_t K_FRW = frw->get_K();
+  sprintf(data, "%.15g\t", (double) K_FRW);
+  gzwrite(datafile, data, strlen(data));
+  real_t rho_FRW = frw->get_rho();
+  sprintf(data, "%.15g\t", (double) rho_FRW);
+  gzwrite(datafile, data, strlen(data));
+  real_t S_FRW = frw->get_S();
+  sprintf(data, "%.15g\t", (double) S_FRW);
+  gzwrite(datafile, data, strlen(data));
+
+  gzwrite(datafile, "\n", strlen("\n"));
+  gzclose(datafile);
+
+  // output misc. info about simulation here.
+  dump_filename = iodata->output_dir + filename + ".dat.gz";
+  datafile = gzopen(dump_filename.c_str(), "ab");
+  if(datafile == Z_NULL) {
+    LOG(iodata->log, "Error opening file: " << dump_filename << "\n");
+    return;
+  }
+
+  // phi output
+  DETAILS(DIFFphi)
+  // K output
+  DETAILS(DIFFK)
+  // rho output
+  DETAILS(DIFFr)
+  // ricci output
+  DETAILS(ricci)
+  // average volume
+  sprintf(data, "%.15g\t", (double) volume_average(bssn_fields["DIFFphi_a"], phi_FRW));
+  gzwrite(datafile, data, strlen(data));
+
+  gzwrite(datafile, "\n", strlen("\n"));
+  gzclose(datafile);
+}
+
+/**
+ * @brief      Write ray information to file
+ *
+ * @param      iodata  Initialized IOData
+ * @param      rays    Vector of rays
+ */
+void io_raytrace_dump(IOData *iodata,
+  std::vector<RayTrace<real_t, idx_t> *> * rays)
+{
+  // rayrace information
+  RaytraceData<real_t> tmp_rd = {0};
+  for(RayTrace<real_t, idx_t> * ray : *rays)
+  {
+    tmp_rd = ray->getRaytraceData();
+    io_dump_value(iodata, tmp_rd.E, "ray_functions", "\t");
+    io_dump_value(iodata, tmp_rd.x[0], "ray_functions", "\t");
+    io_dump_value(iodata, tmp_rd.x[1], "ray_functions", "\t");
+    io_dump_value(iodata, tmp_rd.x[2], "ray_functions", "\t");
+    io_dump_value(iodata, ray->RicciLensingScalarSum(), "ray_functions", "\t");
+    io_dump_value(iodata, ray->WeylLensingScalarSum_Re(), "ray_functions", "\t");
+    io_dump_value(iodata, ray->WeylLensingScalarSum_Im(), "ray_functions", "\n");
+  }
+}
+
+/**
+ * @brief      Write full 3D slice to a file.
+ *
+ * @param      iodata    initialized IOData
+ * @param      field     Field to write
+ * @param[in]  filename  filename to write to (minus suffix)
+ */
+void io_dump_3dslice(IOData *iodata, real_t *field, std::string filename)
+{
+  // dump all NX*NY*NZ points
+  std::string dump_filename = iodata->output_dir + filename + ".3d_grid.h5.gz";
+
+  hid_t       file, space, dset, dcpl;  /* Handles */
+  herr_t      status;
+  htri_t      avail;
+  H5Z_filter_t  filter_type;
+  hsize_t     dims[3] = {(hsize_t) NX, (hsize_t) NY, (hsize_t) NZ},
+              maxdims[3] = {H5S_UNLIMITED, H5S_UNLIMITED, H5S_UNLIMITED},
+              chunk[3] = {6, 6, 6};
+
+  file = H5Fcreate (dump_filename.c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
+  space = H5Screate_simple (3, dims, maxdims);
+  dcpl = H5Pcreate (H5P_DATASET_CREATE);
+  status = H5Pset_deflate (dcpl, 9);
+  status = H5Pset_chunk (dcpl, 3, chunk);
+  dset = H5Dcreate2 (file, "DS1", H5T_IEEE_F64LE, space, H5P_DEFAULT, dcpl, H5P_DEFAULT);
+
+  status = H5Dwrite (dset, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, field);
+
+  status = H5Pclose (dcpl);
+  status = H5Dclose (dset);
+  status = H5Sclose (space);
+  status = H5Fclose (file);
+
+  status = status; // suppress "unused" warning
+  return;
+}
+
+/**
+ * @brief      Write a 2D slice of a field to a file.
+ *
+ * @param      iodata    initialized IOData
+ * @param      field     Field to write
+ * @param[in]  filename  filename to write to (minus suffix)
+ */
+void io_dump_2dslice(IOData *iodata, real_t *field, std::string filename)
+{
+  // dump the first NY*NZ points (a 2-d slice on a boundary)
+  std::string dump_filename = iodata->output_dir + filename + ".2d_grid.h5.gz";
+
+  hid_t       file, space, dset, dcpl;  /* Handles */
+  herr_t      status;
+  htri_t      avail;
+  H5Z_filter_t  filter_type;
+  hsize_t     dims[2] = {(hsize_t) NY, (hsize_t) NZ},
+              maxdims[2] = {H5S_UNLIMITED, H5S_UNLIMITED},
+              chunk[2] = {6, 6};
+
+  file = H5Fcreate (dump_filename.c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
+  space = H5Screate_simple (2, dims, maxdims);
+  dcpl = H5Pcreate (H5P_DATASET_CREATE);
+  status = H5Pset_deflate (dcpl, 9);
+  status = H5Pset_chunk (dcpl, 2, chunk);
+  dset = H5Dcreate2 (file, "Dataset1", H5T_IEEE_F64LE, space, H5P_DEFAULT, dcpl, H5P_DEFAULT);
+
+  status = H5Dwrite (dset, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, field);
+
+  status = H5Pclose (dcpl);
+  status = H5Dclose (dset);
+  status = H5Sclose (space);
+  status = H5Fclose (file);
+
+  status = status; // suppress "unused" warning
+  return;
+}
+
+/**
+ * @brief      Output a 1-d slice of a simulation
+ *
+ * @param      field     field to output
+ * @param[in]  file      filename to output strip in (minus suffix)
+ * @param[in]  axis      axis along which to output data (1, 2, or 3)
+ * @param[in]  n1        grid point number along first direction orthogonal to axis
+ * @param[in]  n2        grid point number along second direction orthogonal to axis
+ * @param      iodata    initialized IOData struct
+ */
+void io_dump_strip(IOData *iodata, real_t *field, std::string file,
+  int axis, idx_t n1, idx_t n2)
+{
+  std::string filename = iodata->output_dir + file + ".strip.dat.gz";
   char data[35];
 
   gzFile datafile = gzopen(filename.c_str(), "ab");
@@ -205,131 +431,16 @@ void io_dump_strip(real_t *field, int axis, idx_t n1, idx_t n2, IOData *iodata)
   return;
 }
 
-
-void io_dump_2dslice(real_t *field, std::string filename, IOData *iodata)
-{
-  // dump the first NY*NZ points (a 2-d slice on a boundary)
-  std::string dump_filename = iodata->output_dir + filename + ".2d_grid.h5.gz";
-
-  hid_t       file, space, dset, dcpl;  /* Handles */
-  herr_t      status;
-  htri_t      avail;
-  H5Z_filter_t  filter_type;
-  hsize_t     dims[2] = {(hsize_t) NY, (hsize_t) NZ},
-              maxdims[2] = {H5S_UNLIMITED, H5S_UNLIMITED},
-              chunk[2] = {6, 6};
-
-  file = H5Fcreate (dump_filename.c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
-  space = H5Screate_simple (2, dims, maxdims);
-  dcpl = H5Pcreate (H5P_DATASET_CREATE);
-  status = H5Pset_deflate (dcpl, 9);
-  status = H5Pset_chunk (dcpl, 2, chunk);
-  dset = H5Dcreate2 (file, "Dataset1", H5T_IEEE_F64LE, space, H5P_DEFAULT, dcpl, H5P_DEFAULT);
-
-  status = H5Dwrite (dset, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, field);
-
-  status = H5Pclose (dcpl);
-  status = H5Dclose (dset);
-  status = H5Sclose (space);
-  status = H5Fclose (file);
-
-  status = status; // suppress "unused" warning
-  return;
-}
-
-
-/* 
- * Write full 3D slice to a file.
+/**
+ * @brief      Write a single (real) value (plus delimiter) to a file
+ *
+ * @param[in]  value      numerical value to write
+ * @param      iodata     initialized IOData
+ * @param[in]  filename   filename to output to (minus suffix)
+ * @param[in]  delimiter  delimited (tab, newline, etc)
  */
-void io_dump_3dslice(real_t *field, std::string filename, IOData *iodata)
-{
-  // dump all NX*NY*NZ points
-  std::string dump_filename = iodata->output_dir + filename + ".3d_grid.h5.gz";
-
-  hid_t       file, space, dset, dcpl;  /* Handles */
-  herr_t      status;
-  htri_t      avail;
-  H5Z_filter_t  filter_type;
-  hsize_t     dims[3] = {(hsize_t) NX, (hsize_t) NY, (hsize_t) NZ},
-              maxdims[3] = {H5S_UNLIMITED, H5S_UNLIMITED, H5S_UNLIMITED},
-              chunk[3] = {6, 6, 6};
-
-  file = H5Fcreate (dump_filename.c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
-  space = H5Screate_simple (3, dims, maxdims);
-  dcpl = H5Pcreate (H5P_DATASET_CREATE);
-  status = H5Pset_deflate (dcpl, 9);
-  status = H5Pset_chunk (dcpl, 3, chunk);
-  dset = H5Dcreate2 (file, "DS1", H5T_IEEE_F64LE, space, H5P_DEFAULT, dcpl, H5P_DEFAULT);
-
-  status = H5Dwrite (dset, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, field);
-
-  status = H5Pclose (dcpl);
-  status = H5Dclose (dset);
-  status = H5Sclose (space);
-  status = H5Fclose (file);
-
-  status = status; // suppress "unused" warning
-  return;
-}
-
-
-void io_dump_statistics(std::map <std::string, real_t *> & bssn_fields,
-                        std::map <std::string, real_t *> & static_field,
-                        IOData *iodata, FRW<real_t> *frw)
-{
-  std::string filename = iodata->dump_file;
-  char data[35];
-
-  // dump FRW quantities
-  std::string dump_filename = iodata->output_dir + filename + ".frwdat.gz";
-  gzFile datafile = gzopen(dump_filename.c_str(), "ab");
-  if(datafile == Z_NULL) {
-    LOG(iodata->log, "Error opening file: " << dump_filename << "\n");
-    return;
-  }
-
-  real_t phi_FRW = frw->get_phi();
-  sprintf(data, "%.15g\t", (double) phi_FRW);
-  gzwrite(datafile, data, strlen(data));
-  real_t K_FRW = frw->get_K();
-  sprintf(data, "%.15g\t", (double) K_FRW);
-  gzwrite(datafile, data, strlen(data));
-  real_t rho_FRW = frw->get_rho();
-  sprintf(data, "%.15g\t", (double) rho_FRW);
-  gzwrite(datafile, data, strlen(data));
-  real_t S_FRW = frw->get_S();
-  sprintf(data, "%.15g\t", (double) S_FRW);
-  gzwrite(datafile, data, strlen(data));
-
-  gzwrite(datafile, "\n", strlen("\n"));
-  gzclose(datafile);
-
-
-  // output misc. info about simulation here.
-  dump_filename = iodata->output_dir + filename + ".dat.gz";
-  datafile = gzopen(dump_filename.c_str(), "ab");
-  if(datafile == Z_NULL) {
-    LOG(iodata->log, "Error opening file: " << dump_filename << "\n");
-    return;
-  }
-
-  // phi output
-  DETAILS(DIFFphi)
-  // K output
-  DETAILS(DIFFK)
-  // rho output
-  DETAILS(DIFFr)
-  // ricci output
-  DETAILS(ricci)
-  // average volume
-  sprintf(data, "%.15g\t", (double) volume_average(bssn_fields["DIFFphi_a"], phi_FRW));
-  gzwrite(datafile, data, strlen(data));
-
-  gzwrite(datafile, "\n", strlen("\n"));
-  gzclose(datafile);
-}
-
-void io_dump_value(real_t value, IOData *iodata, std::string filename)
+void io_dump_value(IOData *iodata, real_t value, std::string filename,
+  std::string delimiter)
 {
   // output misc. info about simulation here.
   char data[35];
@@ -344,9 +455,8 @@ void io_dump_value(real_t value, IOData *iodata, std::string filename)
   sprintf(data, "%.15g", (double) value);
   gzwrite(datafile, data, strlen(data));
 
-  gzwrite(datafile, "\n", strlen("\n"));
+  gzwrite(datafile, delimiter.c_str(), strlen(delimiter.c_str()));
   gzclose(datafile);
 }
-
 
 } /* namespace cosmo */

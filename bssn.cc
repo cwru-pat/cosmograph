@@ -160,7 +160,6 @@ void BSSN::set_paq_values(idx_t i, idx_t j, idx_t k, BSSNData *paq)
 // Full RK step (More useful when not evolving the source simultaneously)
 void BSSN::step(BSSNData *paq)
 {
-  stepInit();
   K1Calc();
   K2Calc();
   K3Calc();

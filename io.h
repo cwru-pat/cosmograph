@@ -9,7 +9,10 @@
 #include "utils/reference_frw.h"
 #include "utils/math.h"
 
+#include "cosmotrace/raytrace.h"
+
 #include "io_data.h"
+#include "bssn.h"
 
 #define LOG(log_fout, message) \
   std::cout << message << std::flush; \
@@ -20,25 +23,26 @@ namespace cosmo
 {
 
 void io_init(IOData *iodata, std::string output_dir);
-
 void io_config_backup(IOData *iodata, std::string config_file);
-
 void io_show_progress(idx_t s, idx_t maxs);
 
-void io_fields_snapshot(std::map <std::string, real_t *> & bssn_fields,
-                        std::map <std::string, real_t *> & hydro_fields,
-                        IOData *iodata, idx_t step, Fourier *fourier, FRW<real_t> *frw);
+void io_bssn_fields_snapshot(IOData *iodata,
+  std::map <std::string, real_t *> & bssn_fields, idx_t step, int dim);
+void io_bssn_fields_powerdump(IOData *iodata,
+  std::map <std::string, real_t *> & bssn_fields, Fourier *fourier);
+void io_bssn_constraint_violation(IOData *iodata, BSSN * bssnSim);
+void io_bssn_dump_statistics(IOData *iodata, 
+  std::map <std::string, real_t *> & bssn_fields, FRW<real_t> *frw);
 
-void io_dump_strip(real_t *field, int axis, idx_t n1, idx_t n2, IOData *iodata);
+void io_raytrace_dump(IOData *iodata,
+  std::vector<RayTrace<real_t, idx_t> *> * rays);
 
-void io_dump_statistics(std::map <std::string, real_t *> & bssn_fields,
-                        std::map <std::string, real_t *> & hydro_fields,
-                        IOData *iodata, FRW<real_t> *frw);
-
-void io_dump_value(real_t value, IOData *iodata, std::string filename);
-
-void io_dump_2dslice(real_t *field, std::string filename, IOData *iodata);
-void io_dump_3dslice(real_t *field, std::string filename, IOData *iodata);
+void io_dump_2dslice(IOData *iodata, real_t *field, std::string filename);
+void io_dump_3dslice(IOData *iodata, real_t *field, std::string filename);
+void io_dump_strip(IOData *iodata, real_t *field, std::string file,
+  int axis, idx_t n1, idx_t n2);
+void io_dump_value(IOData *iodata, real_t value, std::string filename,
+  std::string delimiter);
 
 }
 

@@ -13,11 +13,13 @@ public:
   ConfigParser();
   ConfigParser(std::string fname);
   void parse(std::string fname);
+  std::string getFileName();
 
   std::string operator[](std::string param);
 
 private:
   std::map<std::string, std::string> config;
+  std::string fileName;
 };
 
 } /* namespace */
