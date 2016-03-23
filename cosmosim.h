@@ -32,6 +32,7 @@ class CosmoSim
   Particles * particles;
 
   bool ray_integrate;
+  idx_t ray_flip_step;
   std::vector<RayTrace<real_t, idx_t> *> rays;
 
 public:
@@ -47,14 +48,14 @@ public:
     num_steps = stoi(_config["steps"]);
 
     // integrating any light rays?
-    if( std::stoi(_config["ray_integrate"]) == 1 )
+    if( stoi(_config["ray_integrate"]) == 1 )
     {
       ray_integrate = true;
+      ray_flip_step = stoi(_config["ray_flip_step"]);
     }
 
     // Store simulation type
     simulation_type = _config["simulation_type"];
-
   }
 
   ~CosmoSim()
@@ -209,22 +210,28 @@ public:
     io_show_progress(step, num_steps);
 
     // Evolve light rays when integrating backwards
-    if(step == 3000) {
-      dt = -dt;
-    }
-    if(step >= 3000) {
-      // evolve any light rays
-      _timer["Raytrace_step"].start();
-        for(RayTrace<real_t, idx_t> * ray : rays)
-        {
-          // set primitives from BSSN sim
-          bssnSim->setRaytracePrimitives(ray);
-          // evolve ray
-          ray->setDerivedQuantities();
-          ray->evolveRay();
-        }
+    if(ray_integrate)
+    {
+      if(step == ray_flip_step) {
+        dt = -dt;
+      }
+      if(step >= ray_flip_step) {
+        // evolve any light rays
+        _timer["Raytrace_step"].start();
+          for(RayTrace<real_t, idx_t> * ray : rays)
+          {
+            // set primitives from BSSN sim
+            bssnSim->setRaytracePrimitives(ray);
+            // evolve ray
+            ray->setDerivedQuantities();
+            ray->evolveRay();
+          }
+        _timer["Raytrace_step"].stop();
+
+        _timer["output"].start();
         io_raytrace_dump(&iodata, step, &rays);
-      _timer["Raytrace_step"].stop();
+        _timer["output"].stop();
+      }
     }
 
     // evolve BSSN + matter sources

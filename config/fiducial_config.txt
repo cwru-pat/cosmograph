@@ -1,4 +1,4 @@
-steps = 6001
+steps = 12001
 
 omp_num_threads = 32
 
@@ -10,6 +10,7 @@ IC_viol_amp = 0.0
 
 ray_integrate = 1
 rays_num = 1000
+ray_flip_step = 6000
 IO_raytrace_interval = 1
 
 output_dir = output

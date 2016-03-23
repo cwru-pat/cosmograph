@@ -8,9 +8,7 @@ rho_K_lambda_frac = 0.0
 ic_spec_cut = 1
 IC_viol_amp = 0.0
 
-ray_integrate = 1
-rays_num = 1000
-IO_raytrace_interval = 1
+ray_integrate = 0
 
 output_dir = output_dipole
 dump_file = calculated
