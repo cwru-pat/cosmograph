@@ -30,9 +30,17 @@ endif()
 # FFT libraries for ICs
 find_library(FFTW_LIBRARY
      NAMES fftw3 libfftw3 fftw libfftw
-     PATHS /usr/lib)
+     PATHS /usr/lib /usr/local/fftw/3.3.4/lib)
 set(FFTW_LIBRARIES "${FFTW_LIBRARY}")
 message(STATUS " FFTW_LIBRARY: ${FFTW_LIBRARY}")
+
+# HDF5 libraries
+find_library(HDF5_LIBRARY
+     NAMES hdf5 libhdf5
+     PATHS /usr/lib /home/jbm120/hdf5/build/lib)
+set(HDF5_LIBRARIES "${HDF5_LIBRARY}")
+message(STATUS " HDF5_LIBRARY: ${HDF5_LIBRARY}")
+
 
 file(GLOB COSMO_SOURCES *.cc utils/*.cc)
 
