@@ -47,3 +47,8 @@ cp ../../scripts/job_template.slurm A01.25/job.slurm
 sed -i.bak 's#peak_amplitude_frac = 5\.0#peak_amplitude_frac = 01\.25#g' A01.25/config.txt
 sed -i.bak 's#JOBNAME#A_01\.25#g' A01.25/job.slurm
 
+(cd A01.25 && sbatch job.slurm)
+(cd A02.50 && sbatch job.slurm)
+(cd A10.00 && sbatch job.slurm)
+(cd A20.00 && sbatch job.slurm)
+(cd A40.00 && sbatch job.slurm)

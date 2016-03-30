@@ -3,7 +3,7 @@
 #SBATCH --mail-type=ALL
 #SBATCH --nodes=1
 #SBATCH --cpus-per-task=16
-#SBATCH --time=70:00:00
+#SBATCH --time=100:00:00
 #SBATCH --mem=20g
 #SBATCH -o job.out
 #SBATCH -J JOBNAME
@@ -14,4 +14,4 @@ echo $PFSDIR
 
 ./cosmo config.txt
 
-cp * $SLURM_SUBMIT_DIR
+cp -r * $SLURM_SUBMIT_DIR
