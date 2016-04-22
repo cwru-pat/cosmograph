@@ -30,19 +30,21 @@ endif()
 # FFT libraries for ICs
 find_library(FFTW_LIBRARY
      NAMES fftw3 libfftw3 fftw libfftw
-     PATHS /usr/lib /usr/local/fftw/3.3.4/lib)
+     PATHS /home/jbm120/fftw/lib /usr/lib /usr/local/fftw/3.3.4/lib)
 set(FFTW_LIBRARIES "${FFTW_LIBRARY}")
 message(STATUS " FFTW_LIBRARY: ${FFTW_LIBRARY}")
+include_directories(/home/jbm120/fftw/include)
 
 # HDF5 libraries
 find_library(HDF5_LIBRARY
      NAMES hdf5 libhdf5
-     PATHS /usr/lib /home/jbm120/hdf5/build/lib)
+     PATHS /home/jbm120/hdf5/build/lib /usr/lib)
 set(HDF5_LIBRARIES "${HDF5_LIBRARY}")
 message(STATUS " HDF5_LIBRARY: ${HDF5_LIBRARY}")
+include_directories(/home/jbm120/hdf5/build/include)
 
 
 file(GLOB COSMO_SOURCES *.cc utils/*.cc)
 
 add_executable(cosmo ${COSMO_SOURCES})
-target_link_libraries(cosmo m rt z hdf5 ${FFTW_LIBRARIES})
+target_link_libraries(cosmo m rt z ${HDF5_LIBRARY} ${FFTW_LIBRARIES})

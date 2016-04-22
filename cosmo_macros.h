@@ -3,7 +3,7 @@
 
 /* Cosmological run parameters: */
 // Code runs much slower with global N (slow indexing?)
-#define N 128
+#define N 64
 #define NX N
 #define NY N
 #define NZ N
