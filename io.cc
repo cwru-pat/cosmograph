@@ -113,7 +113,7 @@ void io_show_progress(idx_t s, idx_t maxs)
   }
   idx_t maxs_digits = (int) log10 ((double) maxs) + 1;
 
-  std::cout << " Running step " << s+1;
+  std::cout << " Running step " << s;
   for(int i=s_digits; i<=maxs_digits; ++i)
   {
     std::cout << " ";
@@ -290,25 +290,33 @@ void io_bssn_dump_statistics(IOData *iodata, idx_t step,
  * @param      rays    Vector of rays
  */
 void io_raytrace_dump(IOData *iodata, idx_t step,
-  std::vector<RayTrace<real_t, idx_t> *> * rays)
+  std::vector<RayTrace<real_t, idx_t> *> const * rays)
 {
   /* no output if not @ correct interval */
   if( step % std::stoi(_config["IO_raytrace_interval"]) != 0 )
     return;
+  
+  idx_t num_values = 6;
+  idx_t num_rays = rays->size();
 
-  // rayrace information
   RaytraceData<real_t> tmp_rd = {0};
-  for(RayTrace<real_t, idx_t> * ray : *rays)
+  real_t * ray_dump_values = new real_t[num_rays * num_values];
+  
+  for(idx_t n=0; n<num_rays; n++)
   {
-    tmp_rd = ray->getRaytraceData();
-    io_dump_value(iodata, tmp_rd.E, "ray_functions", "\t");
-    io_dump_value(iodata, tmp_rd.x[0], "ray_functions", "\t");
-    io_dump_value(iodata, tmp_rd.x[1], "ray_functions", "\t");
-    io_dump_value(iodata, tmp_rd.x[2], "ray_functions", "\t");
-    io_dump_value(iodata, ray->RicciLensingScalarSum(), "ray_functions", "\t");
-    io_dump_value(iodata, ray->WeylLensingScalarSum_Re(), "ray_functions", "\t");
-    io_dump_value(iodata, ray->WeylLensingScalarSum_Im(), "ray_functions", "\n");
+    tmp_rd = (*rays)[n]->getRaytraceData();
+    ray_dump_values[n*num_values + 0] = tmp_rd.E;
+    ray_dump_values[n*num_values + 1] = tmp_rd.x[0];
+    ray_dump_values[n*num_values + 2] = tmp_rd.x[1];
+    ray_dump_values[n*num_values + 3] = tmp_rd.x[2];
+    ray_dump_values[n*num_values + 4] = tmp_rd.Omega;
+    ray_dump_values[n*num_values + 5] = tmp_rd.b;
   }
+
+  std::string dataset_name = "step_" + std::to_string(step);
+  std::string file_name = "raytracedata";
+  io_dump_2d_array(iodata, ray_dump_values, num_rays, num_values,
+    file_name, dataset_name);
 }
 
 /**
@@ -467,6 +475,46 @@ void io_dump_value(IOData *iodata, real_t value, std::string filename,
 
   gzwrite(datafile, delimiter.c_str(), strlen(delimiter.c_str()));
   gzclose(datafile);
+}
+
+
+void io_dump_2d_array(IOData *iodata, real_t * array, idx_t n_x, idx_t n_y,
+  std::string filename, std::string dataset_name)
+{
+  std::string dump_filename = iodata->output_dir + filename + ".values.h5.gz";
+
+  hid_t       file, space, dset, dcpl;  /* Handles */
+  herr_t      status;
+  htri_t      avail;
+  H5Z_filter_t  filter_type;
+  hsize_t     dims[2] = {(hsize_t) n_x, (hsize_t) n_y},
+              maxdims[2] = {H5S_UNLIMITED, H5S_UNLIMITED},
+              chunk[2] = {6, 6};
+
+  if(std::ifstream(dump_filename))
+  {
+    file = H5Fopen(dump_filename.c_str(), H5F_ACC_RDWR, H5P_DEFAULT);
+  }
+  else
+  {
+    file = H5Fcreate(dump_filename.c_str(), H5F_ACC_EXCL, H5P_DEFAULT, H5P_DEFAULT);
+  }
+
+  space = H5Screate_simple (2, dims, maxdims);
+  dcpl = H5Pcreate (H5P_DATASET_CREATE);
+  status = H5Pset_deflate (dcpl, 9);
+  status = H5Pset_chunk (dcpl, 2, chunk);
+  dset = H5Dcreate2 (file, dataset_name.c_str(), H5T_IEEE_F64LE, space, H5P_DEFAULT, dcpl, H5P_DEFAULT);
+
+  status = H5Dwrite (dset, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, array);
+
+  status = H5Pclose (dcpl);
+  status = H5Dclose (dset);
+  status = H5Sclose (space);
+  status = H5Fclose (file);
+
+  status = status; // suppress "unused" warning
+  return;
 }
 
 } /* namespace cosmo */

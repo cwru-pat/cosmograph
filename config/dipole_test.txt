@@ -1,4 +1,4 @@
-steps = 3
+steps = 10
 
 omp_num_threads = 32
 
@@ -8,7 +8,10 @@ rho_K_lambda_frac = 0.0
 ic_spec_cut = 1
 IC_viol_amp = 0.0
 
-ray_integrate = 0
+ray_integrate = 1
+rays_num = 100
+ray_flip_step = 5
+IO_raytrace_interval = 1
 
 output_dir = output_dipole
 dump_file = calculated

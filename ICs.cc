@@ -388,16 +388,6 @@ void init_ray_vector(std::vector<RayTrace<real_t, idx_t> *> * rays, idx_t n_rays
   dist(gen);
   for(i=0; i<n_rays; i++)
   {
-    // Randomized ray position
-    // rd.x[0] = dist(gen)*N*dx;
-    // rd.x[1] = dist(gen)*N*dx;
-    // rd.x[2] = dist(gen)*N*dx;
-    // Direction of propagation
-    // normalization of V is enforced by raytrace class
-    // rd.V[0] = dist(gen);
-    // rd.V[1] = dist(gen);
-    // rd.V[2] = dist(gen);
-
     // rays distributed (uniformly) around a sphere
     real_t theta = 2.0*PI*dist(gen);
     real_t U = 2.0*dist(gen) - 1.0;
@@ -406,22 +396,22 @@ void init_ray_vector(std::vector<RayTrace<real_t, idx_t> *> * rays, idx_t n_rays
     // i<500: sphere center near x = y = z = L/2
     // inside some over/underdensity (hopefully)
     real_t X0, Y0, Z0;
-    if(i<500)
+    if(i<n_rays/2)
     {
-      X0 = 1.382813*N*dx;
-      Y0 = 1.476563*N*dx;
-      Z0 = 1.351563*N*dx;
+      X0 = 0.382813*N*dx;
+      Y0 = 0.476563*N*dx;
+      Z0 = 0.351563*N*dx;
     }
     else
     {
-      X0 = 1.460938*N*dx;
-      Y0 = 1.554688*N*dx;
-      Z0 = 1.492188*N*dx;
+      X0 = 0.460938*N*dx;
+      Y0 = 0.554688*N*dx;
+      Z0 = 0.492188*N*dx;
     }
     // ray position starts at an observer (integrating back in time...)
-    rd.x[0] = X0; // + R*std::sqrt(1.0-U*U)*std::cos(theta);
-    rd.x[1] = Y0; // + R*std::sqrt(1.0-U*U)*std::sin(theta);
-    rd.x[2] = Z0; // + R*U;
+    rd.x[0] = X0;
+    rd.x[1] = Y0;
+    rd.x[2] = Z0;
     // velocity directed inwards
     // normalization of V is enforced by raytrace class
     rd.V[0] = -1.0*std::sqrt(1.0-U*U)*std::cos(theta);

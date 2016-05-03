@@ -44,7 +44,7 @@ public:
     io_config_backup(&iodata, _config.getFileName());
 
     // fix number of simulation steps
-    step = 0;
+    step = 1;
     num_steps = stoi(_config["steps"]);
 
     // integrating any light rays?
@@ -52,6 +52,10 @@ public:
     {
       ray_integrate = true;
       ray_flip_step = stoi(_config["ray_flip_step"]);
+    }
+    else
+    {
+      ray_integrate = false;
     }
 
     // Store simulation type
@@ -132,8 +136,8 @@ public:
     }
     _timer["loop"].stop();
 
-    LOG(iodata.log, "Ending simulation.\n");
-    LOG(iodata.log, "\nAverage conformal factor reached "
+    LOG(iodata.log, "\nEnding simulation.\n");
+    LOG(iodata.log, "Average conformal factor reached "
       << average(bssnSim->fields["DIFFphi_p"]) << "\n");
   }
 
@@ -213,24 +217,12 @@ public:
     if(ray_integrate)
     {
       if(step == ray_flip_step) {
+        LOG(iodata.log, "\nFlipping sign of dt @ step = " << step << "\n");
         dt = -dt;
       }
       if(step >= ray_flip_step) {
-        // evolve any light rays
-        _timer["Raytrace_step"].start();
-          for(RayTrace<real_t, idx_t> * ray : rays)
-          {
-            // set primitives from BSSN sim
-            bssnSim->setRaytracePrimitives(ray);
-            // evolve ray
-            ray->setDerivedQuantities();
-            ray->evolveRay();
-          }
-        _timer["Raytrace_step"].stop();
-
-        _timer["output"].start();
-        io_raytrace_dump(&iodata, step, &rays);
-        _timer["output"].stop();
+        outputRayTraceStep();
+        runRayTraceStep();
       }
     }
 
@@ -381,6 +373,31 @@ public:
       bssnSim->K4Calc();
       bssnSim->stepTerm();
     _timer["RK_steps"].stop();
+  }
+
+  void runRayTraceStep()
+  {
+    // evolve any light rays
+    _timer["Raytrace_step"].start();
+    auto ray = rays.begin();
+
+    #pragma omp parallel for default(shared) private(ray)
+    for(ray = rays.begin(); ray < rays.end(); ++ray)
+    {
+      // set primitives from BSSN sim
+      bssnSim->setRaytracePrimitives(*ray);
+      // evolve ray
+      (*ray)->setDerivedQuantities();
+      (*ray)->evolveRay();
+    }    
+    _timer["Raytrace_step"].stop();
+  }
+
+  void outputRayTraceStep()
+  {
+    _timer["output"].start();
+    io_raytrace_dump(&iodata, step, &rays);
+    _timer["output"].stop();
   }
 
   void prepBSSNOutput()

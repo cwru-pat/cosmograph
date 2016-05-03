@@ -1,16 +1,17 @@
 #!/bin/bash
-#SBATCH --mail-user=jbm120@case.edu
 #SBATCH --mail-type=ALL
 #SBATCH --nodes=1
 #SBATCH --cpus-per-task=16
-#SBATCH --time=100:00:00
+#SBATCH --time=300:00:00
 #SBATCH --mem=20g
+#SBATCH -A gds6
 #SBATCH -o job.out
 #SBATCH -J JOBNAME
 
 cp -r * $PFSDIR
 cd $PFSDIR
-echo $PFSDIR
+rm job.out
+echo "Working in: " . $PFSDIR
 
 ./cosmo config.txt
 

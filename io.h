@@ -35,7 +35,7 @@ void io_bssn_dump_statistics(IOData *iodata, idx_t step,
   std::map <std::string, real_t *> & bssn_fields, FRW<real_t> *frw);
 
 void io_raytrace_dump(IOData *iodata, idx_t step,
-  std::vector<RayTrace<real_t, idx_t> *> * rays);
+  std::vector<RayTrace<real_t, idx_t> *> const * rays);
 
 void io_dump_2dslice(IOData *iodata, real_t *field, std::string filename);
 void io_dump_3dslice(IOData *iodata, real_t *field, std::string filename);
@@ -43,6 +43,8 @@ void io_dump_strip(IOData *iodata, real_t *field, std::string file,
   int axis, idx_t n1, idx_t n2);
 void io_dump_value(IOData *iodata, real_t value, std::string filename,
   std::string delimiter);
+void io_dump_2d_array(IOData *iodata, real_t * array, idx_t n_x, idx_t n_y,
+  std::string filename, std::string dataset_name);
 
 }
 
