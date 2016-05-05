@@ -423,8 +423,9 @@ void init_ray_vector(std::vector<RayTrace<real_t, idx_t> *> * rays, idx_t n_rays
     rd.V[1] = -1.0*std::sqrt(1.0-U*U)*std::sin(theta);
     rd.V[2] = -1.0*U;
 
-    // energy in arb. untis
+    // energy, angle in arb. units
     rd.E = 1.0;
+    rd.Phi = 1.0;
 
     RayTrace<real_t, idx_t> * ray;
     ray = new RayTrace<real_t, idx_t> (dt, rd);

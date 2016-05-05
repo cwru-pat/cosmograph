@@ -11,7 +11,7 @@ IC_viol_amp = 0.0
 ray_integrate = 1
 rays_num = 3000
 ray_flip_step = 12000
-IO_raytrace_interval = 1
+IO_raytrace_interval = 20
 
 output_dir = output
 dump_file = calculated
