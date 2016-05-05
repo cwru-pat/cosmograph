@@ -309,8 +309,8 @@ void io_raytrace_dump(IOData *iodata, idx_t step,
     ray_dump_values[n*num_values + 1] = tmp_rd.x[0];
     ray_dump_values[n*num_values + 2] = tmp_rd.x[1];
     ray_dump_values[n*num_values + 3] = tmp_rd.x[2];
-    ray_dump_values[n*num_values + 4] = tmp_rd.Omega;
-    ray_dump_values[n*num_values + 5] = tmp_rd.b;
+    ray_dump_values[n*num_values + 4] = tmp_rd.Phi;
+    ray_dump_values[n*num_values + 5] = tmp_rd.ell;
   }
 
   std::string dataset_name = "step_" + std::to_string(step);
