@@ -9,7 +9,7 @@ ic_spec_cut = 10
 IC_viol_amp = 0.0
 
 ray_integrate = 1
-rays_num = 1000
+rays_num = 3000
 ray_flip_step = 6000
 IO_raytrace_interval = 1
 

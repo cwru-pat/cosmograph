@@ -393,20 +393,25 @@ void init_ray_vector(std::vector<RayTrace<real_t, idx_t> *> * rays, idx_t n_rays
     real_t U = 2.0*dist(gen) - 1.0;
     // sphere radius R = L/2
     real_t R = N*dx/2.0;
-    // i<500: sphere center near x = y = z = L/2
     // inside some over/underdensity (hopefully)
     real_t X0, Y0, Z0;
-    if(i<n_rays/2)
+    if(i<n_rays/3)
     {
       X0 = 0.382813*N*dx;
       Y0 = 0.476563*N*dx;
       Z0 = 0.351563*N*dx;
     }
-    else
+    else if(i<2*n_rays/3)
     {
       X0 = 0.460938*N*dx;
       Y0 = 0.554688*N*dx;
       Z0 = 0.492188*N*dx;
+    }
+    else
+    {
+      X0 = 0.0429688*N*dx;
+      Y0 = 0.0360625*N*dx;
+      Z0 = 0.0390625*N*dx;
     }
     // ray position starts at an observer (integrating back in time...)
     rd.x[0] = X0;

@@ -44,7 +44,7 @@ public:
     io_config_backup(&iodata, _config.getFileName());
 
     // fix number of simulation steps
-    step = 1;
+    step = 0;
     num_steps = stoi(_config["steps"]);
 
     // integrating any light rays?
