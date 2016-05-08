@@ -2,7 +2,6 @@
 #define COSMO_H
 
 /* C includes */
-#include <zlib.h>
 #include <omp.h>
 
 /* standard C++ includes */

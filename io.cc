@@ -1,6 +1,7 @@
   
 #include "io.h"
 #include <hdf5.h>
+#include <zlib.h>
 #include <sys/stat.h>
 #include <sstream>
 
