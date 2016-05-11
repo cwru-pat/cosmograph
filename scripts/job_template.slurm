@@ -5,6 +5,7 @@
 #SBATCH --time=300:00:00
 #SBATCH --mem=20g
 #SBATCH -A gds6
+#SBATCH --mail-type=STAGE_OUT
 #SBATCH -o job.out
 #SBATCH -J JOBNAME
 

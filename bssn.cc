@@ -982,21 +982,21 @@ void BSSN::setRaytraceCornerPrimitives(RayTrace<real_t, idx_t> *rt)
   idx_t y_idx = rt->getRayIDX(2, dx, NY);
   idx_t z_idx = rt->getRayIDX(3, dx, NZ);
 
-  set_paq_values(x_idx + 0, y_idx + 0, z_idx + 0, &b_paq);
+  set_paq_values(x_idx, y_idx, z_idx, &b_paq);
   corner_rp[0][0][0] = getRaytraceData(&b_paq);
-  set_paq_values(x_idx + 0, y_idx + 0, z_idx + 1, &b_paq);
+  set_paq_values(x_idx, y_idx, (z_idx + 1) % NZ, &b_paq);
   corner_rp[0][0][1] = getRaytraceData(&b_paq);
-  set_paq_values(x_idx + 0, y_idx + 1, z_idx + 0, &b_paq);
+  set_paq_values(x_idx, (y_idx + 1) % NY, z_idx, &b_paq);
   corner_rp[0][1][0] = getRaytraceData(&b_paq);
-  set_paq_values(x_idx + 0, y_idx + 1, z_idx + 1, &b_paq);
+  set_paq_values(x_idx, (y_idx + 1) % NY, (z_idx + 1) % NZ, &b_paq);
   corner_rp[0][1][1] = getRaytraceData(&b_paq);
-  set_paq_values(x_idx + 1, y_idx + 0, z_idx + 0, &b_paq);
+  set_paq_values((x_idx + 1) % NX, y_idx, z_idx, &b_paq);
   corner_rp[1][0][0] = getRaytraceData(&b_paq);
-  set_paq_values(x_idx + 1, y_idx + 0, z_idx + 1, &b_paq);
+  set_paq_values((x_idx + 1) % NX, y_idx, (z_idx + 1) % NZ, &b_paq);
   corner_rp[1][0][1] = getRaytraceData(&b_paq);
-  set_paq_values(x_idx + 1, y_idx + 1, z_idx + 0, &b_paq);
+  set_paq_values((x_idx + 1) % NX, (y_idx + 1) % NY, z_idx, &b_paq);
   corner_rp[1][1][0] = getRaytraceData(&b_paq);
-  set_paq_values(x_idx + 1, y_idx + 1, z_idx + 1, &b_paq);
+  set_paq_values((x_idx + 1) % NX, (y_idx + 1) % NY, (z_idx + 1) % NZ, &b_paq);
   corner_rp[1][1][1] = getRaytraceData(&b_paq);
 
   rt->copyInCornerPrimitives(corner_rp);
