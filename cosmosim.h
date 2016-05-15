@@ -31,6 +31,8 @@ class CosmoSim
   Static * staticSim;
   Particles * particles;
 
+  int verbosity;
+
   bool ray_integrate;
   idx_t ray_flip_step;
   std::vector<RayTrace<real_t, idx_t> *> rays;
@@ -83,7 +85,7 @@ public:
     // FFT helper
     fourier = new Fourier();
     fourier->Initialize(NX, NY, NZ,
-      bssnSim->fields["DIFFphi_a"] /* arbitrary array for planning */);
+      bssnSim->fields["DIFFphi_a"]->_array /* arbitrary array for planning */);
 
     // set ICs according to simulation_type
     if( simulation_type == "dust" )
@@ -138,7 +140,7 @@ public:
 
     LOG(iodata.log, "\nEnding simulation.\n");
     LOG(iodata.log, "Average conformal factor reached "
-      << average(bssnSim->fields["DIFFphi_p"]) << "\n");
+      << average(*bssnSim->fields["DIFFphi_p"]) << "\n");
   }
 
   /**
@@ -240,6 +242,10 @@ public:
       outputParticleStep();
       runParticleStep();
     }
+    else if( simulation_type == "scalar" )
+    {
+
+    }
     else if( simulation_type == "vacuum" )
     {
       initVacuumStep();
@@ -276,16 +282,19 @@ public:
       bssnSim->K1Calc();
       bssnSim->clearSrc();
       particles->RK1Step(bssnSim->fields);
+      bssnSim->regSwap_c_a();
 
       // Second RK step
       bssnSim->K2Calc();
       bssnSim->clearSrc();
       particles->RK2Step(bssnSim->fields);
+      bssnSim->regSwap_c_a();
 
       // Third RK step
       bssnSim->K3Calc();
       bssnSim->clearSrc();
       particles->RK3Step(bssnSim->fields);
+      bssnSim->regSwap_c_a();
 
       // Fourth RK step
       bssnSim->K4Calc();
@@ -300,15 +309,18 @@ public:
 
   void initDustStep()
   {
+    COSMOSIM_COUT << "Initializing dust step... " << std::flush;
     _timer["RK_steps"].start();
       bssnSim->stepInit();
       bssnSim->clearSrc();
       staticSim->addBSSNSrc(bssnSim->fields, bssnSim->frw);
     _timer["RK_steps"].stop();
+    COSMOSIM_COUT << "done.\n";
   }
 
   void outputDustStep()
   {
+    COSMOSIM_COUT << "Output dust step... " << std::flush;
     _timer["output"].start();
       prepBSSNOutput();
       io_bssn_fields_snapshot(&iodata, step, bssnSim->fields);
@@ -316,33 +328,43 @@ public:
       io_bssn_dump_statistics(&iodata, step, bssnSim->fields, bssnSim->frw);
       io_bssn_constraint_violation(&iodata, step, bssnSim);
     _timer["output"].stop();
+    COSMOSIM_COUT << "done.\n";
   }
 
   void runDustStep()
   {
+    COSMOSIM_COUT << "Running dust step... " << std::flush;
     _timer["RK_steps"].start();
       // First RK step
+      COSMOSIM_COUT << "RK1; " << std::flush;
       bssnSim->K1Calc();
       bssnSim->clearSrc();
       staticSim->addBSSNSrc(bssnSim->fields, bssnSim->frw);
+      bssnSim->regSwap_c_a();
 
       // Second RK step
+      COSMOSIM_COUT << "RK2; " << std::flush;
       bssnSim->K2Calc();
       bssnSim->clearSrc();
       staticSim->addBSSNSrc(bssnSim->fields, bssnSim->frw);
+      bssnSim->regSwap_c_a();
 
       // Third RK step
+      COSMOSIM_COUT << "RK3; " << std::flush;
       bssnSim->K3Calc();
       bssnSim->clearSrc();
       staticSim->addBSSNSrc(bssnSim->fields, bssnSim->frw);
+      bssnSim->regSwap_c_a();
 
       // Fourth RK step
+      COSMOSIM_COUT << "RK4; " << std::flush;
       bssnSim->K4Calc();
 
       // Wrap up
       bssnSim->stepTerm();
       // "current" data should be in the _p array.
     _timer["RK_steps"].stop();
+    COSMOSIM_COUT << "done.\n";
   }
 
   void initVacuumStep()
@@ -367,11 +389,7 @@ public:
   {
     _timer["RK_steps"].start();
       // Full RK step minus init()
-      bssnSim->K1Calc();
-      bssnSim->K2Calc();
-      bssnSim->K3Calc();
-      bssnSim->K4Calc();
-      bssnSim->stepTerm();
+      bssnSim->step();
     _timer["RK_steps"].stop();
   }
 
@@ -420,7 +438,12 @@ public:
   idx_t simNumNaNs()
   {
     // check for NAN in a field
-    return numNaNs(bssnSim->fields["DIFFphi_a"]);
+    return numNaNs(*bssnSim->fields["DIFFphi_a"]);
+  }
+
+  void setVerbosity(int verbosity_in)
+  {
+    verbosity = verbosity_in;
   }
 
 };

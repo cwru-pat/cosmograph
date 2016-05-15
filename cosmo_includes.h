@@ -1,5 +1,5 @@
-#ifndef COSMO_H
-#define COSMO_H
+#ifndef COSMO_INCLUDES
+#define COSMO_INCLUDES
 
 /* C includes */
 #include <omp.h>

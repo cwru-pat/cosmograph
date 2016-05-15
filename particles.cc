@@ -202,16 +202,16 @@ real_t Particles::linearInterpolation(
  * @return     Returns ParticleMetricPrimitives with values near the particle
  */
 ParticleMetricPrimitives<real_t> Particles::getInterpolatedPrimitivesIncomplete(Particle<real_t> * p,
-  std::map <std::string, real_t *> & bssn_fields)
+  map_t & bssn_fields)
 {
-  real_t * const DIFFalpha_a = bssn_fields["DIFFalpha_c"];
-  real_t * const DIFFphi_a = bssn_fields["DIFFphi_c"];
-  real_t * const DIFFgamma11_a = bssn_fields["DIFFgamma11_c"];
-  real_t * const DIFFgamma12_a = bssn_fields["DIFFgamma12_c"];
-  real_t * const DIFFgamma13_a = bssn_fields["DIFFgamma13_c"];
-  real_t * const DIFFgamma22_a = bssn_fields["DIFFgamma22_c"];
-  real_t * const DIFFgamma23_a = bssn_fields["DIFFgamma23_c"];
-  real_t * const DIFFgamma33_a = bssn_fields["DIFFgamma33_c"];
+  arr_t & DIFFalpha_a = *bssn_fields["DIFFalpha_a"];
+  arr_t & DIFFphi_a = *bssn_fields["DIFFphi_a"];
+  arr_t & DIFFgamma11_a = *bssn_fields["DIFFgamma11_a"];
+  arr_t & DIFFgamma12_a = *bssn_fields["DIFFgamma12_a"];
+  arr_t & DIFFgamma13_a = *bssn_fields["DIFFgamma13_a"];
+  arr_t & DIFFgamma22_a = *bssn_fields["DIFFgamma22_a"];
+  arr_t & DIFFgamma23_a = *bssn_fields["DIFFgamma23_a"];
+  arr_t & DIFFgamma33_a = *bssn_fields["DIFFgamma33_a"];
 
   // Linear interpolant
   ParticleMetricPrimitives<real_t> corner_pp[2][2][2];
@@ -258,22 +258,22 @@ ParticleMetricPrimitives<real_t> Particles::getInterpolatedPrimitivesIncomplete(
  * @return     Returns ParticleMetricPrimitives with values near the particle
  */
 ParticleMetricPrimitives<real_t> Particles::getInterpolatedPrimitives(Particle<real_t> * p,
-  std::map <std::string, real_t *> & bssn_fields)
+  map_t & bssn_fields)
 {
-  real_t * const DIFFalpha_a = bssn_fields["DIFFalpha_a"];
+  arr_t & DIFFalpha_a = *bssn_fields["DIFFalpha_a"];
   
-  real_t * const beta1_a = bssn_fields["beta1_a"];
-  real_t * const beta2_a = bssn_fields["beta2_a"];
-  real_t * const beta3_a = bssn_fields["beta3_a"];
+  arr_t & beta1_a = *bssn_fields["beta1_a"];
+  arr_t & beta2_a = *bssn_fields["beta2_a"];
+  arr_t & beta3_a = *bssn_fields["beta3_a"];
 
-  real_t * const DIFFphi_a = bssn_fields["DIFFphi_a"];
+  arr_t & DIFFphi_a = *bssn_fields["DIFFphi_a"];
 
-  real_t * const DIFFgamma11_a = bssn_fields["DIFFgamma11_a"];
-  real_t * const DIFFgamma12_a = bssn_fields["DIFFgamma12_a"];
-  real_t * const DIFFgamma13_a = bssn_fields["DIFFgamma13_a"];
-  real_t * const DIFFgamma22_a = bssn_fields["DIFFgamma22_a"];
-  real_t * const DIFFgamma23_a = bssn_fields["DIFFgamma23_a"];
-  real_t * const DIFFgamma33_a = bssn_fields["DIFFgamma33_a"];
+  arr_t & DIFFgamma11_a = *bssn_fields["DIFFgamma11_a"];
+  arr_t & DIFFgamma12_a = *bssn_fields["DIFFgamma12_a"];
+  arr_t & DIFFgamma13_a = *bssn_fields["DIFFgamma13_a"];
+  arr_t & DIFFgamma22_a = *bssn_fields["DIFFgamma22_a"];
+  arr_t & DIFFgamma23_a = *bssn_fields["DIFFgamma23_a"];
+  arr_t & DIFFgamma33_a = *bssn_fields["DIFFgamma33_a"];
 
   // Linear interpolant
   ParticleMetricPrimitives<real_t> corner_pp[2][2][2];
@@ -370,7 +370,7 @@ ParticleMetricPrimitives<real_t> Particles::getInterpolatedPrimitives(Particle<r
  * @param      bssn_fields   Map from bssn class to fields.
  */
 void Particles::RKStep(ParticleRegister<real_t> * pr, real_t h, real_t RK_sum_coeff,
-  std::map <std::string, real_t *> & bssn_fields)
+  map_t & bssn_fields)
 {
   Particle<real_t> & p_p = pr->p_p;
   Particle<real_t> & p_a = pr->p_a;
@@ -404,7 +404,7 @@ void Particles::RKStep(ParticleRegister<real_t> * pr, real_t h, real_t RK_sum_co
   std::swap(pr->p_c, pr->p_a);
 }
 
-void Particles::RK1Step(std::map <std::string, real_t *> & bssn_fields)
+void Particles::RK1Step(map_t & bssn_fields)
 {
   _timer["Particles::RKCalcs"].start();
   PARTICLES_PARALLEL_LOOP(pr)
@@ -414,7 +414,7 @@ void Particles::RK1Step(std::map <std::string, real_t *> & bssn_fields)
   _timer["Particles::RKCalcs"].stop();
 }
 
-void Particles::RK2Step(std::map <std::string, real_t *> & bssn_fields)
+void Particles::RK2Step(map_t & bssn_fields)
 {
   _timer["Particles::RKCalcs"].start();
   PARTICLES_PARALLEL_LOOP(pr)
@@ -425,7 +425,7 @@ void Particles::RK2Step(std::map <std::string, real_t *> & bssn_fields)
   addParticlesToBSSNSrc(bssn_fields);
 }
 
-void Particles::RK3Step(std::map <std::string, real_t *> & bssn_fields)
+void Particles::RK3Step(map_t & bssn_fields)
 {
   _timer["Particles::RKCalcs"].start();
   PARTICLES_PARALLEL_LOOP(pr)
@@ -436,7 +436,7 @@ void Particles::RK3Step(std::map <std::string, real_t *> & bssn_fields)
   addParticlesToBSSNSrc(bssn_fields);
 }
 
-void Particles::RK4Step(std::map <std::string, real_t *> & bssn_fields)
+void Particles::RK4Step(map_t & bssn_fields)
 {
   _timer["Particles::RKCalcs"].start();
   PARTICLES_PARALLEL_LOOP(pr)
@@ -447,7 +447,7 @@ void Particles::RK4Step(std::map <std::string, real_t *> & bssn_fields)
   addParticlesToBSSNSrc(bssn_fields);
 }
 
-void Particles::stepInit(std::map <std::string, real_t *> & bssn_fields)
+void Particles::stepInit(map_t & bssn_fields)
 {
   _timer["Particles::RKCalcs"].start();
   PARTICLES_PARALLEL_LOOP(pr)
@@ -482,23 +482,23 @@ void Particles::stepTerm()
  * using data from particle _c register
  */
 void Particles::addParticlesToBSSNSrc(
-  std::map <std::string, real_t *> & bssn_fields)
+  map_t & bssn_fields)
 {
   _timer["Particles::addToBSSNSrc"].start();
 
   // matter / source fields
   // will always be setting _a register from _a register
-  real_t * const DIFFr_a = bssn_fields["DIFFr_a"];
-  real_t * const DIFFS_a = bssn_fields["DIFFS_a"];
-  real_t * const S1_a = bssn_fields["S1_a"];
-  real_t * const S2_a = bssn_fields["S2_a"];
-  real_t * const S3_a = bssn_fields["S3_a"];
-  real_t * const S11_a = bssn_fields["STF11_a"];
-  real_t * const S12_a = bssn_fields["STF12_a"];
-  real_t * const S13_a = bssn_fields["STF13_a"];
-  real_t * const S22_a = bssn_fields["STF22_a"];
-  real_t * const S23_a = bssn_fields["STF23_a"];
-  real_t * const S33_a = bssn_fields["STF33_a"];
+  arr_t & DIFFr_a = *bssn_fields["DIFFr_a"];
+  arr_t & DIFFS_a = *bssn_fields["DIFFS_a"];
+  arr_t & S1_a = *bssn_fields["S1_a"];
+  arr_t & S2_a = *bssn_fields["S2_a"];
+  arr_t & S3_a = *bssn_fields["S3_a"];
+  arr_t & S11_a = *bssn_fields["STF11_a"];
+  arr_t & S12_a = *bssn_fields["STF12_a"];
+  arr_t & S13_a = *bssn_fields["STF13_a"];
+  arr_t & S22_a = *bssn_fields["STF22_a"];
+  arr_t & S23_a = *bssn_fields["STF23_a"];
+  arr_t & S33_a = *bssn_fields["STF33_a"];
 
   PARTICLES_PARALLEL_LOOP(pr)
   {

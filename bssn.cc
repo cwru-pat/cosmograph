@@ -157,13 +157,16 @@ void BSSN::set_paq_values(idx_t i, idx_t j, idx_t k, BSSNData *paq)
   paq->H = hamiltonianConstraintCalc(paq->idx);
 }
 
-// Full RK step (More useful when not evolving the source simultaneously)
-void BSSN::step(BSSNData *paq)
+// Full RK4 step (More useful when not evolving the source simultaneously)
+void BSSN::step()
 {
-  K1Calc();
-  K2Calc();
-  K3Calc();
-  K4Calc();
+  K1Calc(); // _a -> _c; update _f
+  regSwap_c_a();
+  K2Calc(); // _a -> _c; update _f
+  regSwap_c_a();
+  K3Calc(); // _a -> _c; update _f
+  regSwap_c_a();
+  K4Calc(); // _a -> _c; update _f
   stepTerm();
   // done!
 }
@@ -198,7 +201,6 @@ void BSSN::stepInit()
 void BSSN::K1Calc()
 {
   BSSN_RK_PERFORM_KN_CALC(1);
-  BSSN_SWAP_ARRAYS(_c, _a);
   frw->P1_step(dt);
 }
 void BSSN::K1CalcPt(idx_t i, idx_t j, idx_t k, BSSNData *paq)
@@ -220,7 +222,6 @@ void BSSN::K1CalcPt(idx_t i, idx_t j, idx_t k, BSSNData *paq)
 void BSSN::K2Calc()
 {
   BSSN_RK_PERFORM_KN_CALC(2);
-  BSSN_SWAP_ARRAYS(_c, _a);
   frw->P2_step(dt);
 }
 void BSSN::K2CalcPt(idx_t i, idx_t j, idx_t k, BSSNData *paq)
@@ -242,7 +243,6 @@ void BSSN::K2CalcPt(idx_t i, idx_t j, idx_t k, BSSNData *paq)
 void BSSN::K3Calc()
 {
   BSSN_RK_PERFORM_KN_CALC(3);
-  BSSN_SWAP_ARRAYS(_c, _a);
   frw->P3_step(dt);
 }
 void BSSN::K3CalcPt(idx_t i, idx_t j, idx_t k, BSSNData *paq)

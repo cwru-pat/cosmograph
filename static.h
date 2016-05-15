@@ -19,12 +19,12 @@ class Static
   GEN1_ARRAY_CREATE(DIFFD);
 
 public:
-  std::map <std::string, real_t *> fields;
+  map_t fields;
 
   Static();
   ~Static();
 
-  void addBSSNSrc(std::map <std::string, real_t *> & bssn_fields, FRW<real_t> *frw);
+  void addBSSNSrc(map_t & bssn_fields, FRW<real_t> *frw);
 
   void init();
 };
