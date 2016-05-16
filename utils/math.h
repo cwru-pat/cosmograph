@@ -306,7 +306,8 @@ inline real_t mixed_derivative_stencil_Odx6(idx_t i, idx_t j, idx_t k, int d1, i
   return 0;
 }
 
-inline real_t mixed_derivative_stencil_Odx8(idx_t i, idx_t j, idx_t k, int d1, int d2, arr_t & field)
+inline real_t mixed_derivative_stencil_Odx8(idx_t i, idx_t j, idx_t k, int d1,
+ int d2, arr_t & field)
 {
   if( (d1 == 1 && d2 == 2) || (d1 == 2 && d2 == 1) ) {
     return (

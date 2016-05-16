@@ -156,8 +156,8 @@ void ICs_set_dust(
   arr_t & DIFFD_a = *static_field["DIFFD_a"];
 
   ICsData icd = cosmo_get_ICsData();
-  LOG(iod->log, "Generating ICs with peak at k = " << icd.peak_k << "\n");
-  LOG(iod->log, "Generating ICs with peak amp. = " << icd.peak_amplitude << "\n");
+  iod->log( "Generating ICs with peak at k = " + stringify(icd.peak_k) );
+  iod->log( "Generating ICs with peak amp. = " + stringify(icd.peak_amplitude) );
 
   // the conformal factor in front of metric is the solution to
   // d^2 exp(\phi) = -2*pi exp(5\phi) * \rho
@@ -211,17 +211,18 @@ void ICs_set_dust(
     }
     if(rho != rho)
     {
-      LOG(iod->log, "Error: NaN energy density.\n");
+      iod->log("Error: NaN energy density.");
       throw -1;
     }
   }
 
-  LOG(iod->log, "Minimum fluid conservative conformal density: " << min << "\n");
-  LOG(iod->log, "Maximum fluid conservative conformal density: " << max << "\n");
-  LOG(iod->log, "Average fluctuation conservative conformal density: " << average(DIFFD_a) << "\n");
-  LOG(iod->log, "Std.dev fluctuation conservative conformal density: " << standard_deviation(DIFFD_a) << "\n");
-  if(min < 0.0) {
-    LOG(iod->log, "Error: negative density in some regions.\n");
+  iod->log( "Minimum fluid density: " + stringify(min) );
+  iod->log( "Maximum fluid density: " + stringify(max) );
+  iod->log( "Average fluctuation density: " + stringify(average(DIFFD_a)) );
+  iod->log( "Std.dev fluctuation density: " + stringify(standard_deviation(DIFFD_a)) );
+  if(min < 0.0)
+  {
+    iod->log("Error: negative density in some regions.");
     throw -1;
   }
 
@@ -279,8 +280,8 @@ void ICs_set_particle(
   arr_t & DIFFphi_a = *bssn_fields["DIFFphi_a"];
   arr_t & DIFFphi_c = *bssn_fields["DIFFphi_c"];
   arr_t & DIFFphi_f = *bssn_fields["DIFFphi_f"];
-  LOG(iod->log, "Generating ICs with peak at k = " << icd.peak_k << "\n");
-  LOG(iod->log, "Generating ICs with peak amp. = " << icd.peak_amplitude << "\n");
+  iod->log( "Generating ICs with peak at k = " + stringify(icd.peak_k) );
+  iod->log( "Generating ICs with peak amp. = " + stringify(icd.peak_amplitude) );
 
   // the conformal factor in front of metric is the solution to
   // d^2 exp(\phi) = -2*pi exp(5\phi) * \rho
@@ -337,17 +338,18 @@ void ICs_set_particle(
     }
     if(rho != rho)
     {
-      LOG(iod->log, "Error: NaN energy density.\n");
+      iod->log("Error: NaN energy density.");
       throw -1;
     }
   }
 
-  LOG(iod->log, "Minimum fluid density: " << min << "\n");
-  LOG(iod->log, "Maximum fluid density: " << max << "\n");
-  LOG(iod->log, "Average fluctuation density: " << average(DIFFr) << "\n");
-  LOG(iod->log, "Std.dev fluctuation density: " << standard_deviation(DIFFr) << "\n");
-  if(min < 0.0) {
-    LOG(iod->log, "Error: negative density in some regions.\n");
+  iod->log( "Minimum fluid density: " + stringify(min) );
+  iod->log( "Maximum fluid density: " + stringify(max) );
+  iod->log( "Average fluctuation density: " + stringify(average(DIFFr)) );
+  iod->log( "Std.dev fluctuation density: " + stringify(standard_deviation(DIFFr)) );
+  if(min < 0.0)
+  {
+    iod->log( "Error: negative density in some regions.");
     throw -1;
   }
 
@@ -365,8 +367,7 @@ void ICs_set_particle(
  * @param[in]  map to BSSN fields
  * @param      initialized IOData
  */
-void ICs_set_vacuum(map_t & bssn_fields,
-  IOData *iod)
+void ICs_set_vacuum(map_t & bssn_fields, IOData *iod)
 {
 
 }
@@ -433,7 +434,6 @@ void init_ray_vector(std::vector<RayTrace<real_t, idx_t> *> * rays, idx_t n_rays
     rays->push_back( ray );
   }
 }
-
 
 void set_stability_test_ICs(
   map_t & bssn_fields,
@@ -530,13 +530,9 @@ void set_stability_test_ICs(
 
     static_field["DIFFD_a"][NP_INDEX(i,j,k)] = 0.0 + 0.0*dist(gen);
   }
-
-std::cout << "dist is: " << dist(gen) << "\n";
-
 }
 
-void set_linear_wave_ICs(
-  map_t & bssn_fields)
+void set_linear_wave_ICs(map_t & bssn_fields)
 {
   idx_t i, j, k;
 
@@ -566,9 +562,7 @@ void set_linear_wave_ICs(
     // bssn_fields["K_p"][NP_INDEX(i,j,k)] = -sqrt(24.0*PI*rho);
     // bssn_fields["K_a"][NP_INDEX(i,j,k)] = -sqrt(24.0*PI*rho);
     // bssn_fields["K_f"][NP_INDEX(i,j,k)] = -sqrt(24.0*PI*rho);
-
   }
-
 }
 
 } // namespace cosmo

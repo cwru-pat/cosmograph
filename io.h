@@ -11,18 +11,13 @@
 
 #include "cosmotrace/raytrace.h"
 
-#include "io_data.h"
+#include "utils/IOData.h"
 #include "bssn.h"
-
-#define LOG(log_fout, message) \
-  std::cout << message << std::flush; \
-  log_fout << message; \
-  log_fout.flush();
 
 namespace cosmo
 {
 
-void io_init(IOData *iodata, std::string output_dir);
+void log_defines(IOData *iodata);
 void io_config_backup(IOData *iodata, std::string config_file);
 void io_show_progress(idx_t s, idx_t maxs);
 

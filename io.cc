@@ -16,80 +16,34 @@
 
 #define STRINGIFY_STRINGIFIER(function) #function
 #define STRINGIFY_EVALUATOR(function) STRINGIFY_STRINGIFIER(function)
-#define STRINGIFY(function) STRINGIFY_EVALUATOR(function)
+#define STRINGIFY(function) (STRINGIFY_EVALUATOR(function))
 
 
 namespace cosmo
 {
 
-void io_init(IOData *iodata, std::string output_dir)
+void log_defines(IOData *iodata)
 {
-  iodata->output_dir = output_dir;
+  iodata->log( "Running with NX = " + stringify(NX)
+                        + ", NY = " + stringify(NY)
+                        + ", NZ = " + stringify(NZ) );
+  iodata->log( "Running with dt = " + stringify(dt) );
+  iodata->log( "Running with dx = " + stringify(dx) );
 
-  /* ensure output_dir ends with '/', unless empty string is specified. */
-  size_t len_dir_name = iodata->output_dir.length();
-  if((iodata->output_dir)[len_dir_name - 1] != '/' && len_dir_name != 0)
-  {
-    iodata->output_dir += '/';
-  }
-
-  /* Create data_dir if needed */
-  if(len_dir_name != 0)
-    mkdir(iodata->output_dir.c_str(), 0755);
-
-  /* check for conflicting data in directory */
-  if(std::ifstream(iodata->output_dir + "log.txt"))
-  {
-    LOG(iodata->log, "Data files in output directory seem to already exist!");
-    int s=1;
-    while(std::ifstream(
-        (iodata->output_dir).substr(0,iodata->output_dir.length()-1) + "." + std::to_string(s) + "/log.txt"
-      ))
-      s += 1;
-
-    iodata->output_dir = (iodata->output_dir).substr(0,iodata->output_dir.length()-1) + "." + std::to_string(s);
-    LOG(iodata->log, " Using '" << iodata->output_dir << "' instead.\n");
-    iodata->output_dir += '/';
-    mkdir(iodata->output_dir.c_str(), 0755);
-  }
-
-  iodata->log.open(iodata->output_dir + "log.txt");
-  LOG(iodata->log, "Log file open.\n");
-  LOG(iodata->log, "Running with NX = " << NX
-                           << ", NY = " << NY
-                           << ", NZ = " << NZ
-                           << "\n");
-  LOG(iodata->log, "Running with dt = " << dt << "\n");
-  LOG(iodata->log, "Running with dx = " << dx << "\n");
-
-  LOG(iodata->log, "Other parameters: \n");
-  LOG(iodata->log, "  H_LEN_FRAC = " << H_LEN_FRAC << "\n");
-  LOG(iodata->log, "  USE_REFERENCE_FRW = " << USE_REFERENCE_FRW << "\n");
-  LOG(iodata->log, "  NORMALIZE_GAMMAIJ_AIJ = " << NORMALIZE_GAMMAIJ_AIJ << "\n");
-  LOG(iodata->log, "  KO_ETA = " << KO_ETA << "\n");
-  LOG(iodata->log, "  BS_H_DAMPING_AMPLITUDE = " << BS_H_DAMPING_AMPLITUDE << "\n");
-  LOG(iodata->log, "  JM_K_DAMPING_AMPLITUDE = " << JM_K_DAMPING_AMPLITUDE << "\n");
-  LOG(iodata->log, "  USE_Z4c_DAMPING = " << USE_Z4c_DAMPING << "\n");
-  LOG(iodata->log, "  Z4c_K1_DAMPING_AMPLITUDE = " << Z4c_K1_DAMPING_AMPLITUDE << "\n");
-  LOG(iodata->log, "  Z4c_K2_DAMPING_AMPLITUDE = " << Z4c_K2_DAMPING_AMPLITUDE << "\n");
-  LOG(iodata->log, "  STENCIL_ORDER = " << STRINGIFY(STENCIL_ORDER_FUNCTION(Odx)) << "\n");
-  LOG(iodata->log, "  USE_HARMONIC_ALPHA = " << USE_HARMONIC_ALPHA << "\n");
-  LOG(iodata->log, "  USE_BSSN_SHIFT = " << USE_BSSN_SHIFT << "\n");
-}
-
-/**
- * @brief      Create a copy of the configuration file used in the simulation
- *
- * @param      iodata       initialized iodata struct
- * @param[in]  config_file  path to configuration file being read in
- */
-void io_config_backup(IOData *iodata, std::string config_file)
-{
-  std::ifstream source(config_file, std::ios::binary);
-  std::ofstream dest(iodata->output_dir + "config.txt", std::ios::binary);
-  dest << source.rdbuf();
-  source.close();
-  dest.close();
+  iodata->log( "Other parameters:");
+  iodata->log( "  H_LEN_FRAC = " + stringify(H_LEN_FRAC) );
+  iodata->log( "  USE_REFERENCE_FRW = " + stringify(USE_REFERENCE_FRW) );
+  iodata->log( "  NORMALIZE_GAMMAIJ_AIJ = " + stringify(NORMALIZE_GAMMAIJ_AIJ) );
+  iodata->log( "  KO_ETA = " + stringify(KO_ETA) );
+  iodata->log( "  BS_H_DAMPING_AMPLITUDE = " + stringify(BS_H_DAMPING_AMPLITUDE) );
+  iodata->log( "  JM_K_DAMPING_AMPLITUDE = " + stringify(JM_K_DAMPING_AMPLITUDE) );
+  iodata->log( "  USE_Z4c_DAMPING = " + stringify(USE_Z4c_DAMPING) );
+  iodata->log( "  Z4c_K1_DAMPING_AMPLITUDE = " + stringify(Z4c_K1_DAMPING_AMPLITUDE) );
+  iodata->log( "  Z4c_K2_DAMPING_AMPLITUDE = " + stringify(Z4c_K2_DAMPING_AMPLITUDE) );
+  std::string stencil_order = STRINGIFY(STENCIL_ORDER_FUNCTION(Odx));
+  iodata->log( "  STENCIL_ORDER = " + stencil_order);
+  iodata->log( "  USE_HARMONIC_ALPHA = " + stringify(USE_HARMONIC_ALPHA) );
+  iodata->log( "  USE_BSSN_SHIFT = " + stringify(USE_BSSN_SHIFT) );
 }
 
 /**
@@ -237,10 +191,10 @@ void io_bssn_dump_statistics(IOData *iodata, idx_t step,
   char data[35];
 
   // dump FRW quantities
-  std::string dump_filename = iodata->output_dir + filename + ".frwdat.gz";
+  std::string dump_filename = iodata->dir() + filename + ".frwdat.gz";
   gzFile datafile = gzopen(dump_filename.c_str(), "ab");
   if(datafile == Z_NULL) {
-    LOG(iodata->log, "Error opening file: " << dump_filename << "\n");
+    iodata->log("Error opening file: " + dump_filename);
     return;
   }
 
@@ -261,10 +215,10 @@ void io_bssn_dump_statistics(IOData *iodata, idx_t step,
   gzclose(datafile);
 
   // output misc. info about simulation here.
-  dump_filename = iodata->output_dir + filename + ".dat.gz";
+  dump_filename = iodata->dir() + filename + ".dat.gz";
   datafile = gzopen(dump_filename.c_str(), "ab");
   if(datafile == Z_NULL) {
-    LOG(iodata->log, "Error opening file: " << dump_filename << "\n");
+    iodata->log("Error opening file: " + dump_filename);
     return;
   }
 
@@ -330,7 +284,7 @@ void io_raytrace_dump(IOData *iodata, idx_t step,
 void io_dump_3dslice(IOData *iodata, arr_t & field, std::string filename)
 {
   // dump all NX*NY*NZ points
-  std::string dump_filename = iodata->output_dir + filename + ".3d_grid.h5.gz";
+  std::string dump_filename = iodata->dir() + filename + ".3d_grid.h5.gz";
 
   hid_t       file, space, dset, dcpl;  /* Handles */
   herr_t      status;
@@ -368,7 +322,7 @@ void io_dump_3dslice(IOData *iodata, arr_t & field, std::string filename)
 void io_dump_2dslice(IOData *iodata, arr_t & field, std::string filename)
 {
   // dump the first NY*NZ points (a 2-d slice on a boundary)
-  std::string dump_filename = iodata->output_dir + filename + ".2d_grid.h5.gz";
+  std::string dump_filename = iodata->dir() + filename + ".2d_grid.h5.gz";
 
   hid_t       file, space, dset, dcpl;  /* Handles */
   herr_t      status;
@@ -409,12 +363,12 @@ void io_dump_2dslice(IOData *iodata, arr_t & field, std::string filename)
 void io_dump_strip(IOData *iodata, arr_t & field, std::string file,
   int axis, idx_t n1, idx_t n2)
 {
-  std::string filename = iodata->output_dir + file + ".strip.dat.gz";
+  std::string filename = iodata->dir() + file + ".strip.dat.gz";
   char data[35];
 
   gzFile datafile = gzopen(filename.c_str(), "ab");
   if(datafile == Z_NULL) {
-    LOG(iodata->log, "Error opening file: " << filename.c_str() << "\n");
+    iodata->log("Error opening file: " + filename);
     return;
   }
 
@@ -463,11 +417,11 @@ void io_dump_value(IOData *iodata, real_t value, std::string filename,
 {
   // output misc. info about simulation here.
   char data[35];
-  std::string dump_filename = iodata->output_dir + filename + ".dat.gz";
+  std::string dump_filename = iodata->dir() + filename + ".dat.gz";
 
   gzFile datafile = gzopen(dump_filename.c_str(), "ab");
   if(datafile == Z_NULL) {
-    LOG(iodata->log, "Error opening file: " << dump_filename << "\n");
+    iodata->log("Error opening file: " + dump_filename);
     return;
   }
 
@@ -482,7 +436,7 @@ void io_dump_value(IOData *iodata, real_t value, std::string filename,
 void io_dump_2d_array(IOData *iodata, real_t * array, idx_t n_x, idx_t n_y,
   std::string filename, std::string dataset_name)
 {
-  std::string dump_filename = iodata->output_dir + filename + ".values.h5.gz";
+  std::string dump_filename = iodata->dir() + filename + ".values.h5.gz";
 
   hid_t       file, space, dset, dcpl;  /* Handles */
   herr_t      status;

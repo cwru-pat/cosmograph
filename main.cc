@@ -47,8 +47,7 @@ int main(int argc, char **argv)
   cosmoSim = new CosmoSim();
   cosmoSim->init();
   cosmoSim->run();
-
-  cosmoSim.~cosmoSim();
+  cosmoSim->~CosmoSim();
 
   return EXIT_SUCCESS;
 }

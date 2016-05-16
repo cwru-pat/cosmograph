@@ -3,7 +3,7 @@
 
 /* Cosmological run parameters: */
 // Code runs much slower with global N (slow indexing?)
-#define N 128
+#define N 16
 #define NX N
 #define NY N
 #define NZ N
@@ -29,7 +29,7 @@
 #define dt (0.1*dx)
 ****/
 
-#define USE_REFERENCE_FRW false
+#define USE_REFERENCE_FRW true
 #define NORMALIZE_GAMMAIJ_AIJ true
 
 // Numerical Error Damping strength parameters

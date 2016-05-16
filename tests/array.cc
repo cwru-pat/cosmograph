@@ -3,9 +3,11 @@
 #include <chrono>
 #include <iostream>
 #include "../utils/Array.h"
+#include "../utils/math.h"
+#include "../globals.h"
 
-typedef float real_t;
-typedef cosmo::CosmoArray<int, real_t> arr_t;
+using namespace cosmo;
+real_t dx;
 
 #define N_SMALL 10
 #define N_LARGE 500
@@ -53,6 +55,8 @@ void performSomeComputationAlt(arr_t & arr)
 
 int main()
 {
+  dx = 1.0;
+
   arr_t myArr1, myArr2;
   myArr1.init(1, 1, N_SMALL);
   myArr2.init(1, 1, N_SMALL);
@@ -151,6 +155,15 @@ int main()
   std::cout << "Alternative Class function took "
             << std::chrono::duration_cast<std::chrono::microseconds>(end - start).count()
             << "us.\n";
+
+
+  arr_t cosmoArr (NX, NY, NZ); // Cosmo sized arrays
+  real_t * cosmo_arr = new real_t[NX*NY*NZ];
+  for(int i=0; i<POINTS; ++i)
+  {
+    cosmoArr[i] = ((double) i) / 100 / POINTS;
+    cosmo_arr[i] = ((double) i) / 100 / POINTS;
+  }
 
   exit(EXIT_SUCCESS);
 }

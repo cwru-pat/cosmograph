@@ -86,7 +86,7 @@ class CosmoArray
 
       this->name = other.name;
 
-      for(IT i=0; i<pts; i++)
+      for(IT i=0; i<pts; ++i)
       {
         this->_array[i] = other._array[i];
       }

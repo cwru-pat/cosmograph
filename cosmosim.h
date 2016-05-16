@@ -24,7 +24,7 @@ class CosmoSim
   idx_t dt_flip_step;
 
   std::string simulation_type;
-  IOData iodata;
+  IOData * iodata;
   Fourier * fourier;
   
   BSSN * bssnSim;
@@ -40,10 +40,11 @@ class CosmoSim
 public:
   CosmoSim()
   {
-    // Initialize iodata struct first
-    io_init(&iodata, _config["output_dir"]);
-    // save a copy of config.txt
-    io_config_backup(&iodata, _config.getFileName());
+    // Initialize iodata first
+    iodata = new IOData(_config["output_dir"]);
+    // save a copy of config.txt; print defines
+    log_defines(iodata);
+    iodata->backupFile(_config.getFileName());
 
     // fix number of simulation steps
     step = 0;
@@ -66,7 +67,7 @@ public:
 
   ~CosmoSim()
   {
-    LOG(iodata.log, std::endl << _timer << std::endl);
+    iodata->log(_timer.getStateString());
   }
 
   /**
@@ -90,27 +91,27 @@ public:
     // set ICs according to simulation_type
     if( simulation_type == "dust" )
     {
-      LOG(iodata.log, "Running 'dust' type simulation.\n");
+      iodata->log("Running 'dust' type simulation.");
       staticSim = new Static();
       staticSim->init();
-      LOG(iodata.log, "Creating initial conditions.\n");
-      ICs_set_dust(bssnSim->fields, staticSim->fields, fourier, &iodata, bssnSim->frw);
+      iodata->log("Creating initial conditions.");
+      ICs_set_dust(bssnSim->fields, staticSim->fields, fourier, iodata, bssnSim->frw);
     }
     else if( simulation_type == "particles" )
     {
-      LOG(iodata.log, "Running 'particles' type simulation.\n");
+      iodata->log("Running 'particles' type simulation.");
       particles = new Particles();
-      ICs_set_particle(particles, bssnSim->fields, fourier, &iodata);
+      ICs_set_particle(particles, bssnSim->fields, fourier, iodata);
     }
     else if( simulation_type == "vacuum" )
     {
-      LOG(iodata.log, "Running 'vacuum' type simulation.\n");
+      iodata->log("Running 'vacuum' type simulation.");
 // TODO: Set vacuum ICs (eg, AwA test)
-      ICs_set_vacuum(bssnSim->fields, &iodata);
+      ICs_set_vacuum(bssnSim->fields, iodata);
     }
     else
     {
-      LOG(iodata.log, "Invalid simulation type specified.\n");
+      iodata->log("Invalid simulation type specified.");
       throw 2;
     }
 
@@ -128,7 +129,7 @@ public:
    */
   void run()
   {
-    LOG(iodata.log, "Running simulation...\n");
+    iodata->log("Running simulation...");
 
     _timer["loop"].start();
     while(step <= num_steps)
@@ -138,9 +139,9 @@ public:
     }
     _timer["loop"].stop();
 
-    LOG(iodata.log, "\nEnding simulation.\n");
-    LOG(iodata.log, "Average conformal factor reached "
-      << average(*bssnSim->fields["DIFFphi_p"]) << "\n");
+    iodata->log("\nEnding simulation.");
+    iodata->log("Average conformal factor reached "
+      + std::to_string(average(*bssnSim->fields["DIFFphi_p"])) );
   }
 
   /**
@@ -208,7 +209,7 @@ public:
     // check for NAN every step
     if(simNumNaNs() > 0)
     {
-      LOG(iodata.log, "\nNAN detected!\n");
+      iodata->log("\nNAN detected!");
       throw 10;
     }
 
@@ -219,7 +220,7 @@ public:
     if(ray_integrate)
     {
       if(step == ray_flip_step) {
-        LOG(iodata.log, "\nFlipping sign of dt @ step = " << step << "\n");
+        iodata->log("\nFlipping sign of dt @ step = " + std::to_string(step) );
         dt = -dt;
       }
       if(step >= ray_flip_step) {
@@ -268,10 +269,10 @@ public:
   {
     _timer["output"].start();
       prepBSSNOutput();
-      io_bssn_fields_snapshot(&iodata, step, bssnSim->fields);
-      io_bssn_fields_powerdump(&iodata, step, bssnSim->fields, fourier);
-      io_bssn_dump_statistics(&iodata, step, bssnSim->fields, bssnSim->frw);
-      io_bssn_constraint_violation(&iodata, step, bssnSim);
+      io_bssn_fields_snapshot(iodata, step, bssnSim->fields);
+      io_bssn_fields_powerdump(iodata, step, bssnSim->fields, fourier);
+      io_bssn_dump_statistics(iodata, step, bssnSim->fields, bssnSim->frw);
+      io_bssn_constraint_violation(iodata, step, bssnSim);
     _timer["output"].stop();
   }
 
@@ -282,19 +283,16 @@ public:
       bssnSim->K1Calc();
       bssnSim->clearSrc();
       particles->RK1Step(bssnSim->fields);
-      bssnSim->regSwap_c_a();
 
       // Second RK step
       bssnSim->K2Calc();
       bssnSim->clearSrc();
       particles->RK2Step(bssnSim->fields);
-      bssnSim->regSwap_c_a();
 
       // Third RK step
       bssnSim->K3Calc();
       bssnSim->clearSrc();
       particles->RK3Step(bssnSim->fields);
-      bssnSim->regSwap_c_a();
 
       // Fourth RK step
       bssnSim->K4Calc();
@@ -309,62 +307,49 @@ public:
 
   void initDustStep()
   {
-    COSMOSIM_COUT << "Initializing dust step... " << std::flush;
     _timer["RK_steps"].start();
       bssnSim->stepInit();
       bssnSim->clearSrc();
       staticSim->addBSSNSrc(bssnSim->fields, bssnSim->frw);
     _timer["RK_steps"].stop();
-    COSMOSIM_COUT << "done.\n";
   }
 
   void outputDustStep()
   {
-    COSMOSIM_COUT << "Output dust step... " << std::flush;
     _timer["output"].start();
       prepBSSNOutput();
-      io_bssn_fields_snapshot(&iodata, step, bssnSim->fields);
-      io_bssn_fields_powerdump(&iodata, step, bssnSim->fields, fourier);
-      io_bssn_dump_statistics(&iodata, step, bssnSim->fields, bssnSim->frw);
-      io_bssn_constraint_violation(&iodata, step, bssnSim);
+      io_bssn_fields_snapshot(iodata, step, bssnSim->fields);
+      io_bssn_fields_powerdump(iodata, step, bssnSim->fields, fourier);
+      io_bssn_dump_statistics(iodata, step, bssnSim->fields, bssnSim->frw);
+      io_bssn_constraint_violation(iodata, step, bssnSim);
     _timer["output"].stop();
-    COSMOSIM_COUT << "done.\n";
   }
 
   void runDustStep()
   {
-    COSMOSIM_COUT << "Running dust step... " << std::flush;
     _timer["RK_steps"].start();
       // First RK step
-      COSMOSIM_COUT << "RK1; " << std::flush;
       bssnSim->K1Calc();
       bssnSim->clearSrc();
       staticSim->addBSSNSrc(bssnSim->fields, bssnSim->frw);
-      bssnSim->regSwap_c_a();
 
       // Second RK step
-      COSMOSIM_COUT << "RK2; " << std::flush;
       bssnSim->K2Calc();
       bssnSim->clearSrc();
       staticSim->addBSSNSrc(bssnSim->fields, bssnSim->frw);
-      bssnSim->regSwap_c_a();
 
       // Third RK step
-      COSMOSIM_COUT << "RK3; " << std::flush;
       bssnSim->K3Calc();
       bssnSim->clearSrc();
       staticSim->addBSSNSrc(bssnSim->fields, bssnSim->frw);
-      bssnSim->regSwap_c_a();
 
       // Fourth RK step
-      COSMOSIM_COUT << "RK4; " << std::flush;
       bssnSim->K4Calc();
 
       // Wrap up
       bssnSim->stepTerm();
       // "current" data should be in the _p array.
     _timer["RK_steps"].stop();
-    COSMOSIM_COUT << "done.\n";
   }
 
   void initVacuumStep()
@@ -378,10 +363,10 @@ public:
   {
     _timer["output"].start();
       prepBSSNOutput();
-      io_bssn_fields_snapshot(&iodata, step, bssnSim->fields);
-      io_bssn_fields_powerdump(&iodata, step, bssnSim->fields, fourier);
-      io_bssn_dump_statistics(&iodata, step, bssnSim->fields, bssnSim->frw);
-      io_bssn_constraint_violation(&iodata, step, bssnSim);
+      io_bssn_fields_snapshot(iodata, step, bssnSim->fields);
+      io_bssn_fields_powerdump(iodata, step, bssnSim->fields, fourier);
+      io_bssn_dump_statistics(iodata, step, bssnSim->fields, bssnSim->frw);
+      io_bssn_constraint_violation(iodata, step, bssnSim);
     _timer["output"].stop();
   }
 
@@ -414,7 +399,7 @@ public:
   void outputRayTraceStep()
   {
     _timer["output"].start();
-    io_raytrace_dump(&iodata, step, &rays);
+    io_raytrace_dump(iodata, step, &rays);
     _timer["output"].stop();
   }
 

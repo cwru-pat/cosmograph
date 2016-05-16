@@ -35,6 +35,8 @@ class TimerManager
 public:
   TimerManager() {};
 
+  std::string getStateString();
+
   inline Timer& operator[](std::string key) { return m_timers[key]; }
 
   friend std::ostream& operator<<(std::ostream &ostr, TimerManager T);
