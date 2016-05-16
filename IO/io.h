@@ -1,18 +1,18 @@
 #ifndef COSMO_UTILS_IO_H
 #define COSMO_UTILS_IO_H
 
-#include "cosmo_includes.h"
-#include "cosmo_types.h"
-#include "globals.h"
+#include "../cosmo_includes.h"
+#include "../cosmo_types.h"
+#include "../globals.h"
 
-#include "utils/Fourier.h"
-#include "utils/reference_frw.h"
-#include "utils/math.h"
+#include "../utils/Fourier.h"
+#include "../utils/reference_frw.h"
+#include "../utils/math.h"
 
-#include "cosmotrace/raytrace.h"
+#include "../cosmotrace/raytrace.h"
 
-#include "utils/IOData.h"
-#include "bssn.h"
+#include "../IO/IOData.h"
+#include "../bssn/bssn.h"
 
 namespace cosmo
 {

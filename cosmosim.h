@@ -9,9 +9,10 @@
 #include "utils/reference_frw.h"
 
 #include "ICs.h"
-#include "io.h"
-#include "bssn.h"
+#include "IO/io.h"
+#include "bssn/bssn.h"
 #include "static.h"
+#include "particles/particles.h"
 
 namespace cosmo
 {

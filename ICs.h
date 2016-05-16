@@ -9,8 +9,8 @@
 #include "cosmotrace/raytrace.h"
 
 #include "ICs_data.h"
-#include "io.h"
-#include "particles.h"
+#include "IO/io.h"
+#include "particles/particles.h"
 
 namespace cosmo
 {

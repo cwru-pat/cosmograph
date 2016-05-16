@@ -6,6 +6,7 @@
 #include "cosmo_types.h"
 #include "globals.h"
 
+#include "utils/Array.h"
 #include "utils/reference_frw.h"
 
 namespace cosmo

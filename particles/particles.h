@@ -1,11 +1,11 @@
 #ifndef COSMO_PARTICLES
 #define COSMO_PARTICLES
 
-#include "cosmo_includes.h"
-#include "cosmo_types.h"
-#include "globals.h"
+#include "../cosmo_includes.h"
+#include "../cosmo_types.h"
+#include "../globals.h"
 
-#include "utils/math.h"
+#include "../utils/math.h"
 
 #include "particles_data.h"
 #include "particles_macros.h"
