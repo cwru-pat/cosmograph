@@ -430,7 +430,7 @@ void init_ray_vector(std::vector<RayTrace<real_t, idx_t> *> * rays, idx_t n_rays
     rd.Phi = 1.0;
 
     RayTrace<real_t, idx_t> * ray;
-    ray = new RayTrace<real_t, idx_t> (dt, dx, rd);
+    ray = new RayTrace<real_t, idx_t> (-std::fabs(dt), dx, rd);
     rays->push_back( ray );
   }
 }
