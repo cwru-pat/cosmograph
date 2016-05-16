@@ -141,7 +141,7 @@ public:
 
     iodata->log("\nEnding simulation.");
     iodata->log("Average conformal factor reached "
-      + std::to_string(average(*bssnSim->fields["DIFFphi_p"])) );
+      + stringify(average(*bssnSim->fields["DIFFphi_p"])) );
   }
 
   /**
@@ -156,6 +156,7 @@ public:
    *  b_p; p_f = 0;
    *  b_a = b_p;
    *  p_p; p_a = p_c = p_p; p_f = 0
+   *  
    *  r_a = r(p_a)
    *  
    *  (Output content in _a registers)
@@ -163,38 +164,37 @@ public:
    *  RK1 step:
    *  b_c = b_p + dt/2 * f(b_a, r_a);
    *  b_f += b_c
-   *  b_c <-> b_a;
-   *  r_a = 0;
-   *  p_c = p_p + dt/2 * f( p_a, b_c )
+   *  p_c = p_p + dt/2 * f( p_a, b_a )
    *  p_f += p_c
+   *  b_a <-> b_c;
    *  p_a <-> p_c
-   *  r_a = r(p_a)
    *  
    *  RK2 step:
+   *  r_a = 0
+   *  r_a += r(p_a)
    *  b_c = b_p + dt/2 * f(b_a, r_a);
    *  b_f += 2 b_c
-   *  b_c <-> b_a
-   *  r_a = 0
-   *  p_c = p_p + dt/2 * f( p_a, b_c )
+   *  p_c = p_p + dt/2 * f( p_a, b_a )
    *  p_f += 2 p_c
+   *  b_a <-> b_c
    *  p_a <-> p_c
-   *  r_a = r(p_a)
    *  
    *  RK3 step:
+   *  r_a = 0
+   *  r_a += r(p_a)
    *  b_c = b_p + dt * f( b_a, r_a )
    *  b_f += b_c
-   *  b_c <-> b_a
-   *  r_a = 0
    *  p_c = p_p + dt * f( p_a, b_c )
    *  p_f += p_c
+   *  b_a <-> b_c
    *  p_a <-> p_c
-   *  r_a = r(p_a)
    *  
    *  RK4 step:
+   *  r_a = 0
+   *  r_a += r(p_a)
    *  b_f = 1/3 * (b_f - b_p) + dt/6 * f(b_a)
    *  p_c = p_p + dt/2 * f( p_a, b_c )
    *  p_f += p_c
-   *  p_a <-> p_c
    *  
    *  Finalize:
    *  b_f <-> b_p
@@ -260,8 +260,9 @@ public:
   {
     _timer["RK_steps"].start();
       bssnSim->stepInit();
-      bssnSim->clearSrc();
       particles->stepInit(bssnSim->fields);
+      bssnSim->clearSrc();
+      particles->addParticlesToBSSNSrc(bssnSim->fields);
     _timer["RK_steps"].stop();
   }
 
@@ -281,20 +282,29 @@ public:
     _timer["RK_steps"].start();
       // First RK step
       bssnSim->K1Calc();
-      bssnSim->clearSrc();
       particles->RK1Step(bssnSim->fields);
+      bssnSim->regSwap_c_a();
+      particles->regSwap_c_a();
 
       // Second RK step
-      bssnSim->K2Calc();
       bssnSim->clearSrc();
+      particles->addParticlesToBSSNSrc(bssnSim->fields);
+      bssnSim->K2Calc();
       particles->RK2Step(bssnSim->fields);
+      bssnSim->regSwap_c_a();
+      particles->regSwap_c_a();
 
       // Third RK step
-      bssnSim->K3Calc();
       bssnSim->clearSrc();
+      particles->addParticlesToBSSNSrc(bssnSim->fields);
+      bssnSim->K3Calc();
       particles->RK3Step(bssnSim->fields);
+      bssnSim->regSwap_c_a();
+      particles->regSwap_c_a();
 
       // Fourth RK step
+      bssnSim->clearSrc();
+      particles->addParticlesToBSSNSrc(bssnSim->fields);
       bssnSim->K4Calc();
       particles->RK4Step(bssnSim->fields);
 
@@ -329,21 +339,25 @@ public:
   {
     _timer["RK_steps"].start();
       // First RK step
+      // source already set in initDustStep() (used for output)
       bssnSim->K1Calc();
-      bssnSim->clearSrc();
-      staticSim->addBSSNSrc(bssnSim->fields, bssnSim->frw);
+      bssnSim->regSwap_c_a();
 
       // Second RK step
-      bssnSim->K2Calc();
       bssnSim->clearSrc();
       staticSim->addBSSNSrc(bssnSim->fields, bssnSim->frw);
+      bssnSim->K2Calc();
+      bssnSim->regSwap_c_a();
 
       // Third RK step
-      bssnSim->K3Calc();
       bssnSim->clearSrc();
       staticSim->addBSSNSrc(bssnSim->fields, bssnSim->frw);
+      bssnSim->K3Calc();
+      bssnSim->regSwap_c_a();
 
       // Fourth RK step
+      bssnSim->clearSrc();
+      staticSim->addBSSNSrc(bssnSim->fields, bssnSim->frw);
       bssnSim->K4Calc();
 
       // Wrap up

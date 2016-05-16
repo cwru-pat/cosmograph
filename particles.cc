@@ -400,8 +400,6 @@ void Particles::RKStep(ParticleRegister<real_t> * pr, real_t h, real_t RK_sum_co
     );
     p_f.U[iIDX(i)] += RK_sum_coeff*p_c.U[iIDX(i)];
   }
-
-  std::swap(pr->p_c, pr->p_a);
 }
 
 void Particles::RK1Step(map_t & bssn_fields)
@@ -422,7 +420,6 @@ void Particles::RK2Step(map_t & bssn_fields)
     RKStep(& (*pr), dt/2.0, 2.0, bssn_fields);
   }
   _timer["Particles::RKCalcs"].stop();
-  addParticlesToBSSNSrc(bssn_fields);
 }
 
 void Particles::RK3Step(map_t & bssn_fields)
@@ -433,7 +430,6 @@ void Particles::RK3Step(map_t & bssn_fields)
     RKStep(& (*pr), dt, 1.0, bssn_fields);
   }
   _timer["Particles::RKCalcs"].stop();
-  addParticlesToBSSNSrc(bssn_fields);
 }
 
 void Particles::RK4Step(map_t & bssn_fields)
@@ -444,7 +440,6 @@ void Particles::RK4Step(map_t & bssn_fields)
     RKStep(& (*pr), dt/2.0, 1.0, bssn_fields);
   }
   _timer["Particles::RKCalcs"].stop();
-  addParticlesToBSSNSrc(bssn_fields);
 }
 
 void Particles::stepInit(map_t & bssn_fields)
@@ -457,7 +452,16 @@ void Particles::stepInit(map_t & bssn_fields)
     pr->p_f = {0};
   }
   _timer["Particles::RKCalcs"].stop();
-  addParticlesToBSSNSrc(bssn_fields);
+}
+
+void Particles::regSwap_c_a()
+{
+  _timer["Particles::RKCalcs"].start();
+  PARTICLES_PARALLEL_LOOP(pr)
+  {
+    std::swap(pr->p_c, pr->p_a);
+  }
+  _timer["Particles::RKCalcs"].stop();
 }
 
 void Particles::stepTerm()

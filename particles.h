@@ -60,7 +60,8 @@ public:
   void RK3Step(map_t & bssn_fields);
   void RK4Step(map_t & bssn_fields);
 
-  void stepInit(map_t & bssn_fields); 
+  void stepInit(map_t & bssn_fields);
+  void regSwap_c_a();
   void stepTerm();
 
   void addParticlesToBSSNSrc(
