@@ -170,7 +170,7 @@ public:
   {
     return (
       bd->beta1*sd->d1Pi + bd->beta2*sd->d2Pi + bd->beta3*sd->d3Pi
-      -exp(4.0*bd->phi)*(
+      -exp(-4.0*bd->phi)*(
         bd->gammai11*(bd->alpha*sd->d1psi1 + sd->psi1*bd->d1a) + bd->gammai12*(bd->alpha*sd->d1psi2 + sd->psi1*bd->d2a) + bd->gammai13*(bd->alpha*sd->d1psi3 + sd->psi1*bd->d3a)
         + bd->gammai21*(bd->alpha*sd->d2psi1 + sd->psi2*bd->d1a) + bd->gammai22*(bd->alpha*sd->d2psi2 + sd->psi2*bd->d2a) + bd->gammai23*(bd->alpha*sd->d2psi3 + sd->psi2*bd->d3a)
         + bd->gammai31*(bd->alpha*sd->d3psi1 + sd->psi3*bd->d1a) + bd->gammai32*(bd->alpha*sd->d3psi2 + sd->psi3*bd->d2a) + bd->gammai33*(bd->alpha*sd->d3psi3 + sd->psi3*bd->d3a)
@@ -182,7 +182,7 @@ public:
           bd->Gamma3 - 2.0*(bd->gammai31*bd->d1phi + bd->gammai32*bd->d2phi + bd->gammai33*bd->d3phi)
         )*sd->psi3
         + bd->K*sd->Pi
-        // TODO: + V'(sd->phi)
+        + dV(sd->phi)
       )
     );
   }
@@ -243,37 +243,52 @@ public:
       bssnSim->set_paq_values(i, j, k, &bd);
       ScalarData sd = getScalarData(&bd);
 
-      // additional quantities
       // n^mu d_mu phi
       real_t nmudmuphi = (
         dt_phi(&bd, &sd)
         - bd.beta1*sd.d1phi - bd.beta2*sd.d2phi - bd.beta3*sd.d3phi
       )/bd.alpha;
+      
       // gammai^ij d_j phi d_i phi
       real_t diphidiphi = (
         bd.gammai11*sd.d1phi*sd.d1phi + bd.gammai22*sd.d2phi*sd.d2phi + bd.gammai33*sd.d3phi*sd.d3phi
         + 2.0*(bd.gammai12*sd.d1phi*sd.d2phi + bd.gammai13*sd.d1phi*sd.d3phi + bd.gammai23*sd.d2phi*sd.d3phi)
       );
-      // g^munu d_mu phi d_nu phi
-      real_t dmuphidmuphi = (
-        0.0 // TODO
-      );
 
       DIFFr_a[idx] = 0.5*nmudmuphi*nmudmuphi
-        + 0.5*diphidiphi*diphidiphi; // TODO: + V(phi)
+        + 0.5*exp(-4.0*bd.phi)*diphidiphi + V(sd.phi);
 
-      S1_a[idx] = -sd.d1phi*nmudmuphi;
-      S2_a[idx] = -sd.d2phi*nmudmuphi;
-      S3_a[idx] = -sd.d3phi*nmudmuphi;
+      DIFFS_a = 3.0/2.0*nmudmuphi*nmudmuphi
+        - 0.5*exp(-4.0*bd.phi)*diphidiphi - 3.0*V(sd.phi);
 
-      S11_a[idx] = sd.d1phi*sd.d1phi - bd.gamma11*(-0.5*dmuphidmuphi); // TODO: V(phi)
-      S12_a[idx] = sd.d1phi*sd.d2phi - bd.gamma12*(-0.5*dmuphidmuphi); // TODO: V(phi)
-      S13_a[idx] = sd.d1phi*sd.d3phi - bd.gamma13*(-0.5*dmuphidmuphi); // TODO: V(phi)
-      S22_a[idx] = sd.d2phi*sd.d2phi - bd.gamma22*(-0.5*dmuphidmuphi); // TODO: V(phi)
-      S23_a[idx] = sd.d2phi*sd.d3phi - bd.gamma23*(-0.5*dmuphidmuphi); // TODO: V(phi)
-      S33_a[idx] = sd.d3phi*sd.d3phi - bd.gamma33*(-0.5*dmuphidmuphi); // TODO: V(phi)
+      S1_a[idx] = -exp(-4.0*bd.phi)*nmudmuphi*(bd->gamma11*sd->d1phi
+        + bd->gamma12*sd->d2phi+ bd->gamma13*sd->d3phi);
+      S2_a[idx] = -exp(-4.0*bd.phi)*nmudmuphi*(bd->gamma21*sd->d1phi
+        + bd->gamma22*sd->d2phi+ bd->gamma33*sd->d3phi);
+      S3_a[idx] = -exp(-4.0*bd.phi)*nmudmuphi*(bd->gamma31*sd->d1phi
+        + bd->gamma32*sd->d2phi+ bd->gamma33*sd->d3phi);
+
+      real_t Sij_factor = 1.0/2.0*nmudmuphi*nmudmuphi
+        - 0.5*exp(-4.0*bd.phi)*diphidiphi - 1.0*V(sd.phi)
+
+      S11_a[idx] = sd.d1phi*sd.d1phi + exp(4.0*bd->phi)*bd.gamma11*(Sij_factor);
+      S12_a[idx] = sd.d1phi*sd.d2phi + exp(4.0*bd->phi)*bd.gamma12*(Sij_factor);
+      S13_a[idx] = sd.d1phi*sd.d3phi + exp(4.0*bd->phi)*bd.gamma13*(Sij_factor);
+      S22_a[idx] = sd.d2phi*sd.d2phi + exp(4.0*bd->phi)*bd.gamma22*(Sij_factor);
+      S23_a[idx] = sd.d2phi*sd.d3phi + exp(4.0*bd->phi)*bd.gamma23*(Sij_factor);
+      S33_a[idx] = sd.d3phi*sd.d3phi + exp(4.0*bd->phi)*bd.gamma33*(Sij_factor);
     }
 
+  }
+
+  void dV(real_t phi_in)
+  {
+    return 0;
+  }
+
+  void V(real_t phi_in)
+  {
+    return 0;
   }
 
 };
