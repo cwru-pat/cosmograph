@@ -125,7 +125,7 @@ void Fourier::powerDump(RT *in, IOT *iodata)
   }
 
   // write data
-  std::string filename = iodata->output_dir + "spec.dat.gz";
+  std::string filename = iodata->dir() + "spec.dat.gz";
   char data[20];
 
   gzFile datafile = gzopen(filename.c_str(), "ab");

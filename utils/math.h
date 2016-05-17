@@ -9,7 +9,7 @@
 namespace cosmo
 {
 
-inline real_t KO_dissipation_Q(idx_t i, idx_t j, idx_t k, real_t *field)
+inline real_t KO_dissipation_Q(idx_t i, idx_t j, idx_t k, arr_t & field)
 {
   // Works only for 2nd-order accurate (Odx2) derivatives
   // accuracy a = 2r - 2
@@ -39,7 +39,7 @@ inline real_t KO_dissipation_Q(idx_t i, idx_t j, idx_t k, real_t *field)
 }
 
 inline real_t derivative_Odx2(idx_t i, idx_t j, idx_t k, int d,
-    real_t *field)
+    arr_t & field)
 {
   switch (d) {
     case 1:
@@ -67,7 +67,7 @@ inline real_t derivative_Odx2(idx_t i, idx_t j, idx_t k, int d,
 }
 
 inline real_t derivative_Odx4(idx_t i, idx_t j, idx_t k, int d,
-    real_t *field)
+    arr_t & field)
 {
   switch (d) {
     case 1:
@@ -101,7 +101,7 @@ inline real_t derivative_Odx4(idx_t i, idx_t j, idx_t k, int d,
 }
 
 inline real_t derivative_Odx6(idx_t i, idx_t j, idx_t k, int d,
-    real_t *field)
+    arr_t & field)
 {
   switch (d) {
     case 1:
@@ -141,7 +141,7 @@ inline real_t derivative_Odx6(idx_t i, idx_t j, idx_t k, int d,
 }
 
 inline real_t derivative_Odx8(idx_t i, idx_t j, idx_t k, int d,
-    real_t *field)
+    arr_t & field)
 {
   switch (d) {
     case 1:
@@ -186,7 +186,7 @@ inline real_t derivative_Odx8(idx_t i, idx_t j, idx_t k, int d,
   return 0;
 }
 
-inline real_t mixed_derivative_stencil_Odx2(idx_t i, idx_t j, idx_t k, int d1, int d2, real_t *field)
+inline real_t mixed_derivative_stencil_Odx2(idx_t i, idx_t j, idx_t k, int d1, int d2, arr_t & field)
 {
   if( (d1 == 1 && d2 == 2) || (d1 == 2 && d2 == 1) ) {
     return (
@@ -213,7 +213,7 @@ inline real_t mixed_derivative_stencil_Odx2(idx_t i, idx_t j, idx_t k, int d1, i
   return 0;
 }
 
-inline real_t mixed_derivative_stencil_Odx4(idx_t i, idx_t j, idx_t k, int d1, int d2, real_t *field)
+inline real_t mixed_derivative_stencil_Odx4(idx_t i, idx_t j, idx_t k, int d1, int d2, arr_t & field)
 {
   if( (d1 == 1 && d2 == 2) || (d1 == 2 && d2 == 1) ) {
     return (
@@ -255,7 +255,7 @@ inline real_t mixed_derivative_stencil_Odx4(idx_t i, idx_t j, idx_t k, int d1, i
   return 0;
 }
 
-inline real_t mixed_derivative_stencil_Odx6(idx_t i, idx_t j, idx_t k, int d1, int d2, real_t *field)
+inline real_t mixed_derivative_stencil_Odx6(idx_t i, idx_t j, idx_t k, int d1, int d2, arr_t & field)
 {
   if( (d1 == 1 && d2 == 2) || (d1 == 2 && d2 == 1) ) {
     return (
@@ -306,7 +306,8 @@ inline real_t mixed_derivative_stencil_Odx6(idx_t i, idx_t j, idx_t k, int d1, i
   return 0;
 }
 
-inline real_t mixed_derivative_stencil_Odx8(idx_t i, idx_t j, idx_t k, int d1, int d2, real_t *field)
+inline real_t mixed_derivative_stencil_Odx8(idx_t i, idx_t j, idx_t k, int d1,
+ int d2, arr_t & field)
 {
   if( (d1 == 1 && d2 == 2) || (d1 == 2 && d2 == 1) ) {
     return (
@@ -367,7 +368,7 @@ inline real_t mixed_derivative_stencil_Odx8(idx_t i, idx_t j, idx_t k, int d1, i
 }
 
 inline real_t double_derivative_stencil_Odx2(idx_t i, idx_t j, idx_t k, int d,
-    real_t *field)
+    arr_t & field)
 {
   switch (d) {
     case 1:
@@ -398,7 +399,7 @@ inline real_t double_derivative_stencil_Odx2(idx_t i, idx_t j, idx_t k, int d,
 }
 
 inline real_t double_derivative_stencil_Odx4(idx_t i, idx_t j, idx_t k, int d,
-    real_t *field)
+    arr_t & field)
 {
   switch (d) {
     case 1:
@@ -435,7 +436,7 @@ inline real_t double_derivative_stencil_Odx4(idx_t i, idx_t j, idx_t k, int d,
 }
 
 inline real_t double_derivative_stencil_Odx6(idx_t i, idx_t j, idx_t k, int d,
-    real_t *field)
+    arr_t & field)
 {
   switch (d) {
     case 1:
@@ -478,7 +479,7 @@ inline real_t double_derivative_stencil_Odx6(idx_t i, idx_t j, idx_t k, int d,
 }
 
 inline real_t double_derivative_stencil_Odx8(idx_t i, idx_t j, idx_t k, int d,
-    real_t *field)
+    arr_t & field)
 {
   switch (d) {
     case 1:
@@ -528,25 +529,25 @@ inline real_t double_derivative_stencil_Odx8(idx_t i, idx_t j, idx_t k, int d,
 
 /* stencil functions to use: */
 inline real_t derivative(idx_t i, idx_t j, idx_t k, int d,
-    real_t *field)
+    arr_t & field)
 {
   return STENCIL_ORDER_FUNCTION(derivative_Odx)(i, j, k, d, field);
 }
 
-inline real_t mixed_derivative_stencil(idx_t i, idx_t j, idx_t k, int d1, int d2, real_t *field)
+inline real_t mixed_derivative_stencil(idx_t i, idx_t j, idx_t k, int d1, int d2, arr_t & field)
 {
   return STENCIL_ORDER_FUNCTION(mixed_derivative_stencil_Odx)(i, j, k, d1, d2, field);
 }
 
 inline real_t double_derivative_stencil(idx_t i, idx_t j, idx_t k, int d,
-    real_t *field)
+    arr_t & field)
 {
   return STENCIL_ORDER_FUNCTION(double_derivative_stencil_Odx)(i, j, k, d, field);
 }
 
 /* more generic function for 2nd derivs */
 inline real_t double_derivative(idx_t i, idx_t j, idx_t k, int d1, int d2,
-    real_t *field)
+    arr_t & field)
 {
   if(d1 == d2) {
     return double_derivative_stencil(i, j, k, d1, field);
@@ -558,7 +559,7 @@ inline real_t double_derivative(idx_t i, idx_t j, idx_t k, int d1, int d2,
   return 0;
 }
 
-inline real_t average(real_t *field)
+inline real_t average(arr_t & field)
 {
   // note this may have poor precision for large datasets
   real_t sum = 0.0; 
@@ -572,7 +573,7 @@ inline real_t average(real_t *field)
   return sum/POINTS;
 }
 
-inline real_t volume_average(real_t *DIFFphi, real_t phi_FRW)
+inline real_t volume_average(arr_t & DIFFphi, real_t phi_FRW)
 {
   real_t sum = 0.0; 
   idx_t i=0, j=0, k=0;
@@ -585,7 +586,7 @@ inline real_t volume_average(real_t *DIFFphi, real_t phi_FRW)
   return sum/POINTS;
 }
 
-inline real_t conformal_average(real_t *field, real_t *DIFFphi, real_t phi_FRW)
+inline real_t conformal_average(arr_t & field, arr_t & DIFFphi, real_t phi_FRW)
 {
   real_t sum = 0.0; 
   idx_t i=0, j=0, k=0;
@@ -599,7 +600,7 @@ inline real_t conformal_average(real_t *field, real_t *DIFFphi, real_t phi_FRW)
   return sum/POINTS/vol;
 }
 
-inline real_t max(real_t *field)
+inline real_t max(arr_t & field)
 {
   // note this may have poor precision for large datasets
   idx_t i=0, j=0, k=0;
@@ -613,7 +614,7 @@ inline real_t max(real_t *field)
   return max;
 }
 
-inline real_t standard_deviation(real_t *field, real_t avg)
+inline real_t standard_deviation(arr_t & field, real_t avg)
 {
   // note this may have poor precision for large datasets
   idx_t i=0, j=0, k=0;
@@ -626,13 +627,13 @@ inline real_t standard_deviation(real_t *field, real_t avg)
   return sqrt(sum/(POINTS-1));
 }
 
-inline real_t standard_deviation(real_t *field)
+inline real_t standard_deviation(arr_t & field)
 {
   real_t avg = average(field);
   return standard_deviation(field, avg);
 }
 
-inline real_t conformal_standard_deviation(real_t *field, real_t *DIFFphi, real_t phi_FRW, real_t avg)
+inline real_t conformal_standard_deviation(arr_t & field, arr_t & DIFFphi, real_t phi_FRW, real_t avg)
 {
   real_t sum = 0.0; 
   idx_t i=0, j=0, k=0;
@@ -646,13 +647,13 @@ inline real_t conformal_standard_deviation(real_t *field, real_t *DIFFphi, real_
   return sqrt(sum/(POINTS-1)/vol);
 }
 
-inline real_t conformal_standard_deviation(real_t *field, real_t *DIFFphi, real_t phi_FRW)
+inline real_t conformal_standard_deviation(arr_t & field, arr_t & DIFFphi, real_t phi_FRW)
 {
   real_t avg = conformal_average(field, DIFFphi, phi_FRW);
   return conformal_standard_deviation(field, DIFFphi, phi_FRW, avg);
 }
 
-inline idx_t numNaNs(real_t *field)
+inline idx_t numNaNs(arr_t & field)
 {
   idx_t i=0, j=0, k=0;
   idx_t NaNs = 0;

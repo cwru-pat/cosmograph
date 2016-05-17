@@ -124,19 +124,15 @@
 
 
 #define BSSN_SWAP_REGISTERS(field, reg_prefix_1, reg_prefix_2) \
-  std::swap(field##reg_prefix_1, field##reg_prefix_2);
-
-#define BSSN_SWAP_MAPS(field, reg_prefix_1, reg_prefix_2) \
-  std::swap(fields[#field #reg_prefix_1], fields[#field #reg_prefix_2]);
+  cosmoArraySwap(field##reg_prefix_1, field##reg_prefix_2);
 
 #define BSSN_SWAP_ARRAYS(reg_prefix_1, reg_prefix_2) \
-  BSSN_APPLY_TO_FIELDS_ARGS(BSSN_SWAP_REGISTERS, reg_prefix_1, reg_prefix_2) \
-  BSSN_APPLY_TO_FIELDS_ARGS(BSSN_SWAP_MAPS, reg_prefix_1, reg_prefix_2)
+  BSSN_APPLY_TO_FIELDS_ARGS(BSSN_SWAP_REGISTERS, reg_prefix_1, reg_prefix_2)
 
 
 
 #define BSSN_COPY_FIELD(field, reg_prefix_from, reg_prefix_to) \
-  std::copy(field##reg_prefix_from, field##reg_prefix_from + POINTS, field##reg_prefix_to);
+  field##reg_prefix_to = field##reg_prefix_from;
 
 #define BSSN_COPY_ARRAYS(reg_prefix_from, reg_prefix_to) \
   BSSN_APPLY_TO_FIELDS_ARGS(BSSN_COPY_FIELD, reg_prefix_from, reg_prefix_to)

@@ -9,9 +9,11 @@
 #include "utils/reference_frw.h"
 
 #include "ICs.h"
-#include "io.h"
-#include "bssn.h"
+#include "IO/io.h"
+#include "bssn/bssn.h"
 #include "static.h"
+#include "particles/particles.h"
+#include "scalar/scalar.h"
 
 namespace cosmo
 {
@@ -24,12 +26,15 @@ class CosmoSim
   idx_t dt_flip_step;
 
   std::string simulation_type;
-  IOData iodata;
+  IOData * iodata;
   Fourier * fourier;
   
   BSSN * bssnSim;
   Static * staticSim;
   Particles * particles;
+  Scalar * scalarSim;
+
+  int verbosity;
 
   bool ray_integrate;
   idx_t ray_flip_step;
@@ -38,10 +43,11 @@ class CosmoSim
 public:
   CosmoSim()
   {
-    // Initialize iodata struct first
-    io_init(&iodata, _config["output_dir"]);
-    // save a copy of config.txt
-    io_config_backup(&iodata, _config.getFileName());
+    // Initialize iodata first
+    iodata = new IOData(_config["output_dir"]);
+    // save a copy of config.txt; print defines
+    log_defines(iodata);
+    iodata->backupFile(_config.getFileName());
 
     // fix number of simulation steps
     step = 0;
@@ -64,7 +70,7 @@ public:
 
   ~CosmoSim()
   {
-    LOG(iodata.log, std::endl << _timer << std::endl);
+    iodata->log(_timer.getStateString());
   }
 
   /**
@@ -76,39 +82,44 @@ public:
 
     // Initialize simulation
 
-    // GR fields
+    // Always use GR fields
     bssnSim = new BSSN();
     bssnSim->init();
 
     // FFT helper
     fourier = new Fourier();
     fourier->Initialize(NX, NY, NZ,
-      bssnSim->fields["DIFFphi_a"] /* arbitrary array for planning */);
+      bssnSim->fields["DIFFphi_a"]->_array /* arbitrary array for planning */);
 
     // set ICs according to simulation_type
     if( simulation_type == "dust" )
     {
-      LOG(iodata.log, "Running 'dust' type simulation.\n");
+      iodata->log("Running 'dust' type simulation.");
       staticSim = new Static();
       staticSim->init();
-      LOG(iodata.log, "Creating initial conditions.\n");
-      ICs_set_dust(bssnSim->fields, staticSim->fields, fourier, &iodata, bssnSim->frw);
+      iodata->log("Creating initial conditions.");
+      ICs_set_dust(bssnSim->fields, staticSim->fields, fourier, iodata, bssnSim->frw);
     }
     else if( simulation_type == "particles" )
     {
-      LOG(iodata.log, "Running 'particles' type simulation.\n");
+      iodata->log("Running 'particles' type simulation.");
       particles = new Particles();
-      ICs_set_particle(particles, bssnSim->fields, fourier, &iodata);
+      ICs_set_particle(particles, bssnSim->fields, fourier, iodata);
+    }
+    else if( simulation_type == "scalar" )
+    {
+      iodata->log("Running 'scalar' type simulation.");
+      scalarSim = new Scalar();
     }
     else if( simulation_type == "vacuum" )
     {
-      LOG(iodata.log, "Running 'vacuum' type simulation.\n");
-// TODO: Set vacuum ICs (eg, AwA test)
-      ICs_set_vacuum(bssnSim->fields, &iodata);
+      iodata->log("Running 'vacuum' type simulation.");
+      // TODO: Set vacuum ICs (eg, AwA test)
+      ICs_set_vacuum(bssnSim->fields, iodata);
     }
     else
     {
-      LOG(iodata.log, "Invalid simulation type specified.\n");
+      iodata->log("Invalid simulation type specified.");
       throw 2;
     }
 
@@ -126,7 +137,7 @@ public:
    */
   void run()
   {
-    LOG(iodata.log, "Running simulation...\n");
+    iodata->log("Running simulation...");
 
     _timer["loop"].start();
     while(step <= num_steps)
@@ -136,77 +147,17 @@ public:
     }
     _timer["loop"].stop();
 
-    LOG(iodata.log, "\nEnding simulation.\n");
-    LOG(iodata.log, "Average conformal factor reached "
-      << average(bssnSim->fields["DIFFphi_p"]) << "\n");
+    iodata->log("\nEnding simulation.");
+    iodata->log("Average conformal factor reached "
+      + stringify(average(*bssnSim->fields["DIFFphi_p"])) );
   }
 
-  /**
-   * @brief Run a step of a simulation.
-   * @details Run an RK4 step of a simulation, perform any I/O or reductions
-   *  required.
-   *  
-   *  Schematic writeup of Particle (p_) and bssn (b_) RK4 computations:
-   *  (r_ variable is bssn src)
-   *  
-   *  step Init:
-   *  b_p; p_f = 0;
-   *  b_a = b_p;
-   *  p_p; p_a = p_c = p_p; p_f = 0
-   *  r_a = r(p_a)
-   *  
-   *  (Output content in _a registers)
-   *  
-   *  RK1 step:
-   *  b_c = b_p + dt/2 * f(b_a, r_a);
-   *  b_f += b_c
-   *  b_c <-> b_a;
-   *  r_a = 0;
-   *  p_c = p_p + dt/2 * f( p_a, b_c )
-   *  p_f += p_c
-   *  p_a <-> p_c
-   *  r_a = r(p_a)
-   *  
-   *  RK2 step:
-   *  b_c = b_p + dt/2 * f(b_a, r_a);
-   *  b_f += 2 b_c
-   *  b_c <-> b_a
-   *  r_a = 0
-   *  p_c = p_p + dt/2 * f( p_a, b_c )
-   *  p_f += 2 p_c
-   *  p_a <-> p_c
-   *  r_a = r(p_a)
-   *  
-   *  RK3 step:
-   *  b_c = b_p + dt * f( b_a, r_a )
-   *  b_f += b_c
-   *  b_c <-> b_a
-   *  r_a = 0
-   *  p_c = p_p + dt * f( p_a, b_c )
-   *  p_f += p_c
-   *  p_a <-> p_c
-   *  r_a = r(p_a)
-   *  
-   *  RK4 step:
-   *  b_f = 1/3 * (b_f - b_p) + dt/6 * f(b_a)
-   *  p_c = p_p + dt/2 * f( p_a, b_c )
-   *  p_f += p_c
-   *  p_a <-> p_c
-   *  
-   *  Finalize:
-   *  b_f <-> b_p
-   *  (p_f = 5p_p + 1/2 K1 + K2 + K3 + 1/2 K4)
-   *  p_f = p_f / 3 - 2/3 p_p
-   *  p_f <-> p_p
-   *  
-   *  _p registers now contain "correct"
-   */
   void runStep()
   {
     // check for NAN every step
     if(simNumNaNs() > 0)
     {
-      LOG(iodata.log, "\nNAN detected!\n");
+      iodata->log("\nNAN detected!");
       throw 10;
     }
 
@@ -217,7 +168,7 @@ public:
     if(ray_integrate)
     {
       if(step == ray_flip_step) {
-        LOG(iodata.log, "\nFlipping sign of dt @ step = " << step << "\n");
+        iodata->log("\nFlipping sign of dt @ step = " + std::to_string(step) );
         dt = -dt;
       }
       if(step >= ray_flip_step) {
@@ -240,6 +191,12 @@ public:
       outputParticleStep();
       runParticleStep();
     }
+    else if( simulation_type == "scalar" )
+    {
+      initScalarStep();
+      outputScalarStep();
+      runScalarStep();
+    }
     else if( simulation_type == "vacuum" )
     {
       initVacuumStep();
@@ -247,55 +204,6 @@ public:
       runVacuumStep();
     }
 
-  }
-
-  void initParticleStep()
-  {
-    _timer["RK_steps"].start();
-      bssnSim->stepInit();
-      bssnSim->clearSrc();
-      particles->stepInit(bssnSim->fields);
-    _timer["RK_steps"].stop();
-  }
-
-  void outputParticleStep()
-  {
-    _timer["output"].start();
-      prepBSSNOutput();
-      io_bssn_fields_snapshot(&iodata, step, bssnSim->fields);
-      io_bssn_fields_powerdump(&iodata, step, bssnSim->fields, fourier);
-      io_bssn_dump_statistics(&iodata, step, bssnSim->fields, bssnSim->frw);
-      io_bssn_constraint_violation(&iodata, step, bssnSim);
-    _timer["output"].stop();
-  }
-
-  void runParticleStep()
-  {
-    _timer["RK_steps"].start();
-      // First RK step
-      bssnSim->K1Calc();
-      bssnSim->clearSrc();
-      particles->RK1Step(bssnSim->fields);
-
-      // Second RK step
-      bssnSim->K2Calc();
-      bssnSim->clearSrc();
-      particles->RK2Step(bssnSim->fields);
-
-      // Third RK step
-      bssnSim->K3Calc();
-      bssnSim->clearSrc();
-      particles->RK3Step(bssnSim->fields);
-
-      // Fourth RK step
-      bssnSim->K4Calc();
-      particles->RK4Step(bssnSim->fields);
-
-      // Wrap up
-      bssnSim->stepTerm();
-      particles->stepTerm();
-      // "current" data should be in the _p array.
-    _timer["RK_steps"].stop();
   }
 
   void initDustStep()
@@ -311,10 +219,10 @@ public:
   {
     _timer["output"].start();
       prepBSSNOutput();
-      io_bssn_fields_snapshot(&iodata, step, bssnSim->fields);
-      io_bssn_fields_powerdump(&iodata, step, bssnSim->fields, fourier);
-      io_bssn_dump_statistics(&iodata, step, bssnSim->fields, bssnSim->frw);
-      io_bssn_constraint_violation(&iodata, step, bssnSim);
+      io_bssn_fields_snapshot(iodata, step, bssnSim->fields);
+      io_bssn_fields_powerdump(iodata, step, bssnSim->fields, fourier);
+      io_bssn_dump_statistics(iodata, step, bssnSim->fields, bssnSim->frw);
+      io_bssn_constraint_violation(iodata, step, bssnSim);
     _timer["output"].stop();
   }
 
@@ -322,21 +230,25 @@ public:
   {
     _timer["RK_steps"].start();
       // First RK step
+      // source already set in initDustStep() (used for output)
       bssnSim->K1Calc();
-      bssnSim->clearSrc();
-      staticSim->addBSSNSrc(bssnSim->fields, bssnSim->frw);
+      bssnSim->regSwap_c_a();
 
       // Second RK step
-      bssnSim->K2Calc();
       bssnSim->clearSrc();
       staticSim->addBSSNSrc(bssnSim->fields, bssnSim->frw);
+      bssnSim->K2Calc();
+      bssnSim->regSwap_c_a();
 
       // Third RK step
-      bssnSim->K3Calc();
       bssnSim->clearSrc();
       staticSim->addBSSNSrc(bssnSim->fields, bssnSim->frw);
+      bssnSim->K3Calc();
+      bssnSim->regSwap_c_a();
 
       // Fourth RK step
+      bssnSim->clearSrc();
+      staticSim->addBSSNSrc(bssnSim->fields, bssnSim->frw);
       bssnSim->K4Calc();
 
       // Wrap up
@@ -344,6 +256,147 @@ public:
       // "current" data should be in the _p array.
     _timer["RK_steps"].stop();
   }
+
+  void initParticleStep()
+  {
+    _timer["RK_steps"].start();
+      bssnSim->stepInit();
+      particles->stepInit(bssnSim->fields);
+      bssnSim->clearSrc();
+      particles->addParticlesToBSSNSrc(bssnSim->fields);
+    _timer["RK_steps"].stop();
+  }
+
+  void outputParticleStep()
+  {
+    _timer["output"].start();
+      prepBSSNOutput();
+      io_bssn_fields_snapshot(iodata, step, bssnSim->fields);
+      io_bssn_fields_powerdump(iodata, step, bssnSim->fields, fourier);
+      io_bssn_dump_statistics(iodata, step, bssnSim->fields, bssnSim->frw);
+      io_bssn_constraint_violation(iodata, step, bssnSim);
+    _timer["output"].stop();
+  }
+
+  void runParticleStep()
+  {
+    _timer["RK_steps"].start();
+      // First RK step
+      bssnSim->K1Calc();
+      particles->RK1Step(bssnSim->fields);
+      bssnSim->regSwap_c_a();
+      particles->regSwap_c_a();
+
+      // Second RK step
+      bssnSim->clearSrc();
+      particles->addParticlesToBSSNSrc(bssnSim->fields);
+      bssnSim->K2Calc();
+      particles->RK2Step(bssnSim->fields);
+      bssnSim->regSwap_c_a();
+      particles->regSwap_c_a();
+
+      // Third RK step
+      bssnSim->clearSrc();
+      particles->addParticlesToBSSNSrc(bssnSim->fields);
+      bssnSim->K3Calc();
+      particles->RK3Step(bssnSim->fields);
+      bssnSim->regSwap_c_a();
+      particles->regSwap_c_a();
+
+      // Fourth RK step
+      bssnSim->clearSrc();
+      particles->addParticlesToBSSNSrc(bssnSim->fields);
+      bssnSim->K4Calc();
+      particles->RK4Step(bssnSim->fields);
+
+      // Wrap up
+      bssnSim->stepTerm();
+      particles->stepTerm();
+      // "current" data should be in the _p array.
+    _timer["RK_steps"].stop();
+  }
+
+  void initScalarStep()
+  {
+    _timer["RK_steps"].start();
+      bssnSim->stepInit();
+      scalarSim->stepInit();
+      bssnSim->clearSrc();
+      scalarSim->addBSSNSource(bssnSim);
+    _timer["RK_steps"].stop();
+  }
+
+  void outputScalarStep()
+  {
+    _timer["output"].start();
+      prepBSSNOutput();
+      io_bssn_fields_snapshot(iodata, step, bssnSim->fields);
+      io_bssn_fields_powerdump(iodata, step, bssnSim->fields, fourier);
+      io_bssn_dump_statistics(iodata, step, bssnSim->fields, bssnSim->frw);
+      io_bssn_constraint_violation(iodata, step, bssnSim);
+    _timer["output"].stop();
+  }
+
+  void runScalarStep()
+  {
+    idx_t i=0, j=0, k=0;
+    BSSNData b_data;
+    _timer["RK_steps"].start();
+
+      // First RK step
+      #pragma omp parallel for default(shared) private(i, j, k, b_data)
+      LOOP3(i,j,k)
+      {
+        bssnSim->K1CalcPt(i, j, k, &b_data);
+        scalarSim->RKEvolvePt(&b_data);
+      }
+      bssnSim->frw->P1_step(dt);
+      bssnSim->regSwap_c_a();
+      scalarSim->RK1Finalize();
+
+      // Second RK step
+      bssnSim->clearSrc();
+      scalarSim->addBSSNSource(bssnSim);
+      #pragma omp parallel for default(shared) private(i, j, k, b_data)
+      LOOP3(i,j,k)
+      {
+        bssnSim->K2CalcPt(i, j, k, &b_data);
+        scalarSim->RKEvolvePt(&b_data);
+      }
+      bssnSim->frw->P2_step(dt);
+      bssnSim->regSwap_c_a();
+      scalarSim->RK2Finalize();
+
+      // Third RK step
+      bssnSim->clearSrc();
+      scalarSim->addBSSNSource(bssnSim);
+      #pragma omp parallel for default(shared) private(i, j, k, b_data)
+      LOOP3(i,j,k)
+      {
+        bssnSim->K3CalcPt(i, j, k, &b_data);
+        scalarSim->RKEvolvePt(&b_data);
+      }
+      bssnSim->frw->P3_step(dt);
+      bssnSim->regSwap_c_a();
+      scalarSim->RK3Finalize();
+
+      // Fourth RK step
+      bssnSim->clearSrc();
+      scalarSim->addBSSNSource(bssnSim);
+      #pragma omp parallel for default(shared) private(i, j, k, b_data)
+      LOOP3(i,j,k)
+      {
+        bssnSim->K4CalcPt(i, j, k, &b_data);
+        scalarSim->RKEvolvePt(&b_data);
+      }
+      bssnSim->frw->RK_total_step(dt);
+      bssnSim->stepTerm();
+      scalarSim->RK4Finalize();
+
+      // "current" data should be in the _p array.
+    _timer["RK_steps"].stop();
+  }
+
 
   void initVacuumStep()
   {
@@ -356,10 +409,10 @@ public:
   {
     _timer["output"].start();
       prepBSSNOutput();
-      io_bssn_fields_snapshot(&iodata, step, bssnSim->fields);
-      io_bssn_fields_powerdump(&iodata, step, bssnSim->fields, fourier);
-      io_bssn_dump_statistics(&iodata, step, bssnSim->fields, bssnSim->frw);
-      io_bssn_constraint_violation(&iodata, step, bssnSim);
+      io_bssn_fields_snapshot(iodata, step, bssnSim->fields);
+      io_bssn_fields_powerdump(iodata, step, bssnSim->fields, fourier);
+      io_bssn_dump_statistics(iodata, step, bssnSim->fields, bssnSim->frw);
+      io_bssn_constraint_violation(iodata, step, bssnSim);
     _timer["output"].stop();
   }
 
@@ -367,11 +420,7 @@ public:
   {
     _timer["RK_steps"].start();
       // Full RK step minus init()
-      bssnSim->K1Calc();
-      bssnSim->K2Calc();
-      bssnSim->K3Calc();
-      bssnSim->K4Calc();
-      bssnSim->stepTerm();
+      bssnSim->step();
     _timer["RK_steps"].stop();
   }
 
@@ -396,7 +445,7 @@ public:
   void outputRayTraceStep()
   {
     _timer["output"].start();
-    io_raytrace_dump(&iodata, step, &rays);
+    io_raytrace_dump(iodata, step, &rays);
     _timer["output"].stop();
   }
 
@@ -420,7 +469,12 @@ public:
   idx_t simNumNaNs()
   {
     // check for NAN in a field
-    return numNaNs(bssnSim->fields["DIFFphi_a"]);
+    return numNaNs(*bssnSim->fields["DIFFphi_a"]);
+  }
+
+  void setVerbosity(int verbosity_in)
+  {
+    verbosity = verbosity_in;
   }
 
 };

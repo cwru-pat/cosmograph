@@ -9,8 +9,8 @@
 #include "cosmotrace/raytrace.h"
 
 #include "ICs_data.h"
-#include "io.h"
-#include "particles.h"
+#include "IO/io.h"
+#include "particles/particles.h"
 
 namespace cosmo
 {
@@ -20,25 +20,19 @@ ICsData cosmo_get_ICsData();
 real_t cosmo_power_spectrum(real_t k, ICsData *icd);
 void set_gaussian_random_field(real_t *field, Fourier *fourier, ICsData *icd);
 
-void ICs_set_dust(
-  std::map <std::string, real_t *> & bssn_fields,
-  std::map <std::string, real_t *> & static_field,
+void ICs_set_dust(map_t & bssn_fields, map_t & static_field,
   Fourier *fourier, IOData *iod, FRW<real_t> *frw);
 
-void ICs_set_particle(Particles * particles,
-  std::map <std::string, real_t *> & bssn_fields,
+void ICs_set_particle(Particles * particles, map_t & bssn_fields,
   Fourier *fourier, IOData *iod);
 
-void ICs_set_vacuum(std::map <std::string, real_t *> & bssn_fields,
-  IOData *iod);
+void ICs_set_vacuum(map_t & bssn_fields, IOData *iod);
 
 void init_ray_vector(std::vector<RayTrace<real_t, idx_t> *> * rays,
   idx_t n_rays);
 
-void set_stability_test_ICs(
-  std::map <std::string, real_t *> & bssn_fields,
-  std::map <std::string, real_t *> & static_field);
-void set_linear_wave_ICs(std::map <std::string, real_t *> & bssn_fields);
+void set_stability_test_ICs( map_t & bssn_fields, map_t & static_field);
+void set_linear_wave_ICs(map_t & bssn_fields);
 
 } // namespace cosmo
 

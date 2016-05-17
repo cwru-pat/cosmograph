@@ -1,9 +1,9 @@
-#ifndef COSMO_DEFINES
-#define COSMO_DEFINES
+#ifndef COSMO_MACROS
+#define COSMO_MACROS
 
 /* Cosmological run parameters: */
 // Code runs much slower with global N (slow indexing?)
-#define N 128
+#define N 16
 #define NX N
 #define NY N
 #define NZ N
@@ -29,7 +29,7 @@
 #define dt (0.1*dx)
 ****/
 
-#define USE_REFERENCE_FRW true
+#define USE_REFERENCE_FRW false
 #define NORMALIZE_GAMMAIJ_AIJ true
 
 // Numerical Error Damping strength parameters
@@ -181,39 +181,39 @@
 // for the data being "_a"ctively used for calculation, one for the
 // Runge-Kutta "_c"oefficient being calculated, and lastly the "_f"inal
 // result of the calculation.
-#define RK4_ARRAY_ADDMAP(name)         \
-        fields[#name "_a"] = name##_a; \
-        fields[#name "_c"] = name##_c; \
-        fields[#name "_p"] = name##_p; \
-        fields[#name "_f"] = name##_f
+#define RK4_ARRAY_ADDMAP(name)          \
+        fields[#name "_a"] = &name##_a; \
+        fields[#name "_c"] = &name##_c; \
+        fields[#name "_p"] = &name##_p; \
+        fields[#name "_f"] = &name##_f
 
 #define RK4_ARRAY_CREATE(name) \
-        real_t * name##_a, * name##_c, * name##_p, * name##_f
+        arr_t name##_a, name##_c, name##_p, name##_f
 
 #define RK4_ARRAY_ALLOC(name) \
-        name##_a   = new real_t[POINTS]; \
-        name##_c   = new real_t[POINTS]; \
-        name##_p   = new real_t[POINTS]; \
-        name##_f   = new real_t[POINTS]
+        name##_a.init(NX, NY, NZ); \
+        name##_c.init(NX, NY, NZ); \
+        name##_p.init(NX, NY, NZ); \
+        name##_f.init(NX, NY, NZ)
 
 #define RK4_ARRAY_DELETE(name) \
-        delete [] name##_a;    \
-        delete [] name##_c;    \
-        delete [] name##_p;    \
-        delete [] name##_f
+        name##_a.~CosmoArray();    \
+        name##_c.~CosmoArray();    \
+        name##_p.~CosmoArray();    \
+        name##_f.~CosmoArray()
 
 // A GEN1 method; just declares one register.
 // Sets up an "_a" (active) register.
 #define GEN1_ARRAY_ADDMAP(name)         \
-        fields[#name "_a"] = name##_a
+        fields[#name "_a"] = &name##_a
 
 #define GEN1_ARRAY_CREATE(name) \
-        real_t * name##_a
+        arr_t name##_a
 
 #define GEN1_ARRAY_ALLOC(name) \
-        name##_a   = new real_t[POINTS]
+        name##_a.init(NX, NY, NZ)
 
 #define GEN1_ARRAY_DELETE(name) \
-        delete [] name##_a
+        name##_a.~CosmoArray()
 
 #endif

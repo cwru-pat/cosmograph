@@ -141,37 +141,46 @@ void set_gaussian_random_field(real_t *field, Fourier *fourier, ICsData *icd)
  * @param      frw           { parameter_description }
  */
 void ICs_set_dust(
-  std::map <std::string, real_t *> & bssn_fields,
-  std::map <std::string, real_t *> & static_field,
+  map_t & bssn_fields,
+  map_t & static_field,
   Fourier *fourier, IOData *iod, FRW<real_t> *frw)
 {
   idx_t i, j, k;
+
+  arr_t & DIFFr_a = *bssn_fields["DIFFr_a"];
+  arr_t & DIFFphi_p = *bssn_fields["DIFFphi_p"];
+  arr_t & DIFFphi_a = *bssn_fields["DIFFphi_a"];
+  arr_t & DIFFphi_c = *bssn_fields["DIFFphi_c"];
+  arr_t & DIFFphi_f = *bssn_fields["DIFFphi_f"];
+
+  arr_t & DIFFD_a = *static_field["DIFFD_a"];
+
   ICsData icd = cosmo_get_ICsData();
-  LOG(iod->log, "Generating ICs with peak at k = " << icd.peak_k << "\n");
-  LOG(iod->log, "Generating ICs with peak amp. = " << icd.peak_amplitude << "\n");
+  iod->log( "Generating ICs with peak at k = " + stringify(icd.peak_k) );
+  iod->log( "Generating ICs with peak amp. = " + stringify(icd.peak_amplitude) );
 
   // the conformal factor in front of metric is the solution to
   // d^2 exp(\phi) = -2*pi exp(5\phi) * \rho
   // generate gaussian random field 1 + xi = exp(phi) (use phi_p as a proxy):
-  set_gaussian_random_field(bssn_fields["DIFFphi_p"], fourier, &icd);
+  set_gaussian_random_field(DIFFphi_p._array, fourier, &icd);
 
   // rho = -lap(phi)/xi^5/2pi
   LOOP3(i,j,k) {
-    bssn_fields["DIFFr_a"][NP_INDEX(i,j,k)] = -0.5/PI/(
-      pow(1.0 + bssn_fields["DIFFphi_p"][NP_INDEX(i,j,k)], 5.0)
+    DIFFr_a[NP_INDEX(i,j,k)] = -0.5/PI/(
+      pow(1.0 + DIFFphi_p[NP_INDEX(i,j,k)], 5.0)
     )*(
-      double_derivative(i, j, k, 1, 1, bssn_fields["DIFFphi_p"])
-      + double_derivative(i, j, k, 2, 2, bssn_fields["DIFFphi_p"])
-      + double_derivative(i, j, k, 3, 3, bssn_fields["DIFFphi_p"])
+      double_derivative(i, j, k, 1, 1, DIFFphi_p)
+      + double_derivative(i, j, k, 2, 2, DIFFphi_p)
+      + double_derivative(i, j, k, 3, 3, DIFFphi_p)
     );
   }
 
   // phi = ln(xi)
   LOOP3(i,j,k) {
     idx_t idx = NP_INDEX(i,j,k);
-    bssn_fields["DIFFphi_a"][idx] = log1p(bssn_fields["DIFFphi_p"][idx]);
-    bssn_fields["DIFFphi_f"][idx] = log1p(bssn_fields["DIFFphi_p"][idx]);
-    bssn_fields["DIFFphi_p"][idx] = log1p(bssn_fields["DIFFphi_p"][idx]);
+    DIFFphi_a[idx] = log1p(DIFFphi_p[idx]);
+    DIFFphi_f[idx] = log1p(DIFFphi_p[idx]);
+    DIFFphi_p[idx] = log1p(DIFFphi_p[idx]);
   }
 
   // Make sure min density value > 0
@@ -182,14 +191,14 @@ void ICs_set_dust(
   {
     idx_t idx = NP_INDEX(i,j,k);
     real_t rho_FRW = icd.rho_K_matter;
-    real_t DIFFr = bssn_fields["DIFFr_a"][idx];
+    real_t DIFFr = DIFFr_a[idx];
     real_t rho = rho_FRW + DIFFr;
     // phi_FRW = 0
-    real_t DIFFphi = bssn_fields["DIFFphi_a"][idx];
+    real_t DIFFphi = DIFFphi_a[idx];
     // phi = DIFFphi
     // DIFFK = 0
 
-    static_field["DIFFD_a"][idx] =
+    DIFFD_a[idx] =
       rho_FRW*expm1(6.0*DIFFphi) + exp(6.0*DIFFphi)*DIFFr;
 
     if(rho < min)
@@ -202,17 +211,18 @@ void ICs_set_dust(
     }
     if(rho != rho)
     {
-      LOG(iod->log, "Error: NaN energy density.\n");
+      iod->log("Error: NaN energy density.");
       throw -1;
     }
   }
 
-  LOG(iod->log, "Minimum fluid conservative conformal density: " << min << "\n");
-  LOG(iod->log, "Maximum fluid conservative conformal density: " << max << "\n");
-  LOG(iod->log, "Average fluctuation conservative conformal density: " << average(static_field["DIFFD_a"]) << "\n");
-  LOG(iod->log, "Std.dev fluctuation conservative conformal density: " << standard_deviation(static_field["DIFFD_a"]) << "\n");
-  if(min < 0.0) {
-    LOG(iod->log, "Error: negative density in some regions.\n");
+  iod->log( "Minimum fluid density: " + stringify(min) );
+  iod->log( "Maximum fluid density: " + stringify(max) );
+  iod->log( "Average fluctuation density: " + stringify(average(DIFFD_a)) );
+  iod->log( "Std.dev fluctuation density: " + stringify(standard_deviation(DIFFD_a)) );
+  if(min < 0.0)
+  {
+    iod->log("Error: negative density in some regions.");
     throw -1;
   }
 
@@ -225,6 +235,8 @@ void ICs_set_dust(
     frw->set_K(K_frw);
     frw->addFluid(rho_FRW, 0.0 /* w=0 */);
   # else
+    arr_t & DIFFK_p = *bssn_fields["DIFFK_p"];
+    arr_t & DIFFK_a = *bssn_fields["DIFFK_a"];
     // add in FRW pieces to ICs
     // phi is unchanged
     // rho (D) and K get contribs
@@ -235,12 +247,12 @@ void ICs_set_dust(
       real_t rho_FRW = icd.rho_K_matter;
       real_t D_FRW = rho_FRW; // on initial slice
 
-      bssn_fields["DIFFr_a"][idx] += rho_FRW;
+      DIFFr_a[idx] += rho_FRW;
 
-      bssn_fields["DIFFK_a"][idx] = -sqrt(24.0*PI*rho_FRW);
-      bssn_fields["DIFFK_p"][idx] = -sqrt(24.0*PI*rho_FRW);
+      DIFFK_a[idx] = -sqrt(24.0*PI*rho_FRW);
+      DIFFK_p[idx] = -sqrt(24.0*PI*rho_FRW);
 
-      static_field["DIFFD_a"][idx] += D_FRW;
+      DIFFD_a[idx] += D_FRW;
     }
   #endif
 }
@@ -252,39 +264,29 @@ void ICs_set_dust(
  * 
  * @param particles reference to Particles class containing particles
  * @param bssn_fields map to fields from bssn class
- */
-
-
-/**
- * @brief      Set conformally flat initial conditions for a w=0
- *  fluid in synchronous gauge.
- *
- * @param      bssn_fields   { parameter_description }
- * @param      static_field  { parameter_description }
  * @param      fourier       { parameter_description }
  * @param      iod           { parameter_description }
- * @param      frw           { parameter_description }
  */
 void ICs_set_particle(
   Particles * particles,
-  std::map <std::string, real_t *> & bssn_fields,
+  map_t & bssn_fields,
   Fourier *fourier, IOData *iod)
 {
   idx_t i, j, k;
   ICsData icd = cosmo_get_ICsData();
   real_t rho_FRW = icd.rho_K_matter;
-  real_t * const DIFFr = bssn_fields["DIFFr_a"];
-  real_t * const DIFFphi_p = bssn_fields["DIFFphi_p"];
-  real_t * const DIFFphi_a = bssn_fields["DIFFphi_a"];
-  real_t * const DIFFphi_c = bssn_fields["DIFFphi_c"];
-  real_t * const DIFFphi_f = bssn_fields["DIFFphi_f"];
-  LOG(iod->log, "Generating ICs with peak at k = " << icd.peak_k << "\n");
-  LOG(iod->log, "Generating ICs with peak amp. = " << icd.peak_amplitude << "\n");
+  arr_t & DIFFr = *bssn_fields["DIFFr_a"];
+  arr_t & DIFFphi_p = *bssn_fields["DIFFphi_p"];
+  arr_t & DIFFphi_a = *bssn_fields["DIFFphi_a"];
+  arr_t & DIFFphi_c = *bssn_fields["DIFFphi_c"];
+  arr_t & DIFFphi_f = *bssn_fields["DIFFphi_f"];
+  iod->log( "Generating ICs with peak at k = " + stringify(icd.peak_k) );
+  iod->log( "Generating ICs with peak amp. = " + stringify(icd.peak_amplitude) );
 
   // the conformal factor in front of metric is the solution to
   // d^2 exp(\phi) = -2*pi exp(5\phi) * \rho
   // generate gaussian random field 1 + xi = exp(phi) (use phi_p as a proxy):
-  set_gaussian_random_field(DIFFphi_p, fourier, &icd);
+  set_gaussian_random_field(DIFFphi_p._array, fourier, &icd);
 
   // rho = -lap(phi)/xi^5/2pi
   LOOP3(i,j,k) {
@@ -336,17 +338,18 @@ void ICs_set_particle(
     }
     if(rho != rho)
     {
-      LOG(iod->log, "Error: NaN energy density.\n");
+      iod->log("Error: NaN energy density.");
       throw -1;
     }
   }
 
-  LOG(iod->log, "Minimum fluid density: " << min << "\n");
-  LOG(iod->log, "Maximum fluid density: " << max << "\n");
-  LOG(iod->log, "Average fluctuation density: " << average(DIFFr) << "\n");
-  LOG(iod->log, "Std.dev fluctuation density: " << standard_deviation(DIFFr) << "\n");
-  if(min < 0.0) {
-    LOG(iod->log, "Error: negative density in some regions.\n");
+  iod->log( "Minimum fluid density: " + stringify(min) );
+  iod->log( "Maximum fluid density: " + stringify(max) );
+  iod->log( "Average fluctuation density: " + stringify(average(DIFFr)) );
+  iod->log( "Std.dev fluctuation density: " + stringify(standard_deviation(DIFFr)) );
+  if(min < 0.0)
+  {
+    iod->log( "Error: negative density in some regions.");
     throw -1;
   }
 
@@ -364,8 +367,7 @@ void ICs_set_particle(
  * @param[in]  map to BSSN fields
  * @param      initialized IOData
  */
-void ICs_set_vacuum(std::map <std::string, real_t *> & bssn_fields,
-  IOData *iod)
+void ICs_set_vacuum(map_t & bssn_fields, IOData *iod)
 {
 
 }
@@ -428,15 +430,14 @@ void init_ray_vector(std::vector<RayTrace<real_t, idx_t> *> * rays, idx_t n_rays
     rd.Phi = 1.0;
 
     RayTrace<real_t, idx_t> * ray;
-    ray = new RayTrace<real_t, idx_t> (dt, dx, rd);
+    ray = new RayTrace<real_t, idx_t> (-std::fabs(dt), dx, rd);
     rays->push_back( ray );
   }
 }
 
-
 void set_stability_test_ICs(
-  std::map <std::string, real_t *> & bssn_fields,
-  std::map <std::string, real_t *> & static_field)
+  map_t & bssn_fields,
+  map_t & static_field)
 {
   idx_t i, j, k;
 
@@ -529,13 +530,9 @@ void set_stability_test_ICs(
 
     static_field["DIFFD_a"][NP_INDEX(i,j,k)] = 0.0 + 0.0*dist(gen);
   }
-
-std::cout << "dist is: " << dist(gen) << "\n";
-
 }
 
-void set_linear_wave_ICs(
-  std::map <std::string, real_t *> & bssn_fields)
+void set_linear_wave_ICs(map_t & bssn_fields)
 {
   idx_t i, j, k;
 
@@ -565,9 +562,7 @@ void set_linear_wave_ICs(
     // bssn_fields["K_p"][NP_INDEX(i,j,k)] = -sqrt(24.0*PI*rho);
     // bssn_fields["K_a"][NP_INDEX(i,j,k)] = -sqrt(24.0*PI*rho);
     // bssn_fields["K_f"][NP_INDEX(i,j,k)] = -sqrt(24.0*PI*rho);
-
   }
-
 }
 
 } // namespace cosmo

@@ -1,11 +1,11 @@
 #ifndef COSMO_PARTICLES
 #define COSMO_PARTICLES
 
-#include "cosmo_includes.h"
-#include "cosmo_types.h"
-#include "globals.h"
+#include "../cosmo_includes.h"
+#include "../cosmo_types.h"
+#include "../globals.h"
 
-#include "utils/math.h"
+#include "../utils/math.h"
 
 #include "particles_data.h"
 #include "particles_macros.h"
@@ -47,27 +47,28 @@ public:
     );
 
   ParticleMetricPrimitives<real_t> getInterpolatedPrimitivesIncomplete(Particle<real_t> * p,
-    std::map <std::string, real_t *> & bssn_fields);
+    map_t & bssn_fields);
 
   ParticleMetricPrimitives<real_t> getInterpolatedPrimitives(Particle<real_t> * p,
-    std::map <std::string, real_t *> & bssn_fields);
+    map_t & bssn_fields);
 
   void RKStep(ParticleRegister<real_t> * pr, real_t h, real_t RK_sum_coeff,
-    std::map <std::string, real_t *> & bssn_fields);
+    map_t & bssn_fields);
 
-  void RK1Step(std::map <std::string, real_t *> & bssn_fields);
-  void RK2Step(std::map <std::string, real_t *> & bssn_fields);
-  void RK3Step(std::map <std::string, real_t *> & bssn_fields);
-  void RK4Step(std::map <std::string, real_t *> & bssn_fields);
+  void RK1Step(map_t & bssn_fields);
+  void RK2Step(map_t & bssn_fields);
+  void RK3Step(map_t & bssn_fields);
+  void RK4Step(map_t & bssn_fields);
 
-  void stepInit(std::map <std::string, real_t *> & bssn_fields); 
+  void stepInit(map_t & bssn_fields);
+  void regSwap_c_a();
   void stepTerm();
 
   void addParticlesToBSSNSrc(
-    std::map <std::string, real_t *> & bssn_fields);
+    map_t & bssn_fields);
 
   void addParticleToBSSNSrc(Particle<real_t> * p_c,
-    std::map <std::string, real_t *> & bssn_fields);
+    map_t & bssn_fields);
 };
 
 }

@@ -1,14 +1,17 @@
 #ifndef COSMO_BSSN
 #define COSMO_BSSN
 
-#include "cosmo_includes.h"
-#include "cosmo_types.h"
-#include "globals.h"
+#include "../cosmo_includes.h"
+#include "../cosmo_types.h"
+#include "../globals.h"
+
 #include "bssn_data.h"
 #include "bssn_macros.h"
-#include "utils/math.h"
-#include "utils/reference_frw.h"
-#include "cosmotrace/raytrace.h"
+
+#include "../utils/math.h"
+#include "../utils/Array.h"
+#include "../utils/reference_frw.h"
+#include "../cosmotrace/raytrace.h"
 
 namespace cosmo
 {
@@ -22,7 +25,7 @@ class BSSN
   BSSN_APPLY_TO_GEN1_EXTRAS(GEN1_ARRAY_CREATE)
 
 public:
-  std::map <std::string, real_t *> fields;
+  map_t fields;
 
   // Standard FRW spacetime integrator - for a
   // reference metric
@@ -38,8 +41,8 @@ public:
     void regSwap_c_a();
 
     /* functions to outline / perform RK integration */
-    void step(BSSNData *paq);
     void stepInit();
+    void step(); // full step (all of RK stuff below)
     void K1Calc();
     void K1CalcPt(idx_t i, idx_t j, idx_t k, BSSNData *paq);
     void K2Calc();

@@ -14,12 +14,12 @@ Static::~Static()
   GEN1_ARRAY_DELETE(DIFFD);
 }
 
-void Static::addBSSNSrc(std::map <std::string, real_t *> & bssn_fields, FRW<real_t> *frw)
+void Static::addBSSNSrc(map_t & bssn_fields, FRW<real_t> *frw)
 {
   idx_t i=0, j=0, k=0;
-  real_t * const DIFFalpha_a = bssn_fields["DIFFalpha_a"];
-  real_t * const DIFFr_a = bssn_fields["DIFFr_a"];
-  real_t * const DIFFphi_a = bssn_fields["DIFFphi_a"];
+  arr_t & DIFFalpha_a = *bssn_fields["DIFFalpha_a"];
+  arr_t & DIFFr_a = *bssn_fields["DIFFr_a"];
+  arr_t & DIFFphi_a = *bssn_fields["DIFFphi_a"];
 
   real_t phi_FRW = frw->get_phi();
   real_t rho_FRW = frw->get_rho();

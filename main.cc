@@ -19,8 +19,6 @@ ConfigParser _config;
 
 int main(int argc, char **argv)
 {
-  _timer["MAIN"].start();
-
   // If not compiled in, set dt, dx
   // TODO: set other things (and check for performance hits)
   //       set these in config file?
@@ -49,8 +47,7 @@ int main(int argc, char **argv)
   cosmoSim = new CosmoSim();
   cosmoSim->init();
   cosmoSim->run();
-
-  _timer["MAIN"].stop();
+  cosmoSim->~CosmoSim();
 
   return EXIT_SUCCESS;
 }

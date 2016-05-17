@@ -6,6 +6,7 @@
 #include "cosmo_types.h"
 #include "globals.h"
 
+#include "utils/Array.h"
 #include "utils/reference_frw.h"
 
 namespace cosmo
@@ -19,12 +20,12 @@ class Static
   GEN1_ARRAY_CREATE(DIFFD);
 
 public:
-  std::map <std::string, real_t *> fields;
+  map_t fields;
 
   Static();
   ~Static();
 
-  void addBSSNSrc(std::map <std::string, real_t *> & bssn_fields, FRW<real_t> *frw);
+  void addBSSNSrc(map_t & bssn_fields, FRW<real_t> *frw);
 
   void init();
 };
