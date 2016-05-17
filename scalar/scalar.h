@@ -261,32 +261,32 @@ public:
       DIFFS_a = 3.0/2.0*nmudmuphi*nmudmuphi
         - 0.5*exp(-4.0*bd.phi)*diphidiphi - 3.0*V(sd.phi);
 
-      S1_a[idx] = -exp(-4.0*bd.phi)*nmudmuphi*(bd->gamma11*sd->d1phi
-        + bd->gamma12*sd->d2phi+ bd->gamma13*sd->d3phi);
-      S2_a[idx] = -exp(-4.0*bd.phi)*nmudmuphi*(bd->gamma21*sd->d1phi
-        + bd->gamma22*sd->d2phi+ bd->gamma33*sd->d3phi);
-      S3_a[idx] = -exp(-4.0*bd.phi)*nmudmuphi*(bd->gamma31*sd->d1phi
-        + bd->gamma32*sd->d2phi+ bd->gamma33*sd->d3phi);
+      S1_a[idx] = -exp(-4.0*bd.phi)*nmudmuphi*(bd.gamma11*sd.d1phi
+        + bd.gamma12*sd.d2phi+ bd.gamma13*sd.d3phi);
+      S2_a[idx] = -exp(-4.0*bd.phi)*nmudmuphi*(bd.gamma21*sd.d1phi
+        + bd.gamma22*sd.d2phi+ bd.gamma33*sd.d3phi);
+      S3_a[idx] = -exp(-4.0*bd.phi)*nmudmuphi*(bd.gamma31*sd.d1phi
+        + bd.gamma32*sd.d2phi+ bd.gamma33*sd.d3phi);
 
       real_t Sij_factor = 1.0/2.0*nmudmuphi*nmudmuphi
-        - 0.5*exp(-4.0*bd.phi)*diphidiphi - 1.0*V(sd.phi)
+        - 0.5*exp(-4.0*bd.phi)*diphidiphi - 1.0*V(sd.phi);
 
-      S11_a[idx] = sd.d1phi*sd.d1phi + exp(4.0*bd->phi)*bd.gamma11*(Sij_factor);
-      S12_a[idx] = sd.d1phi*sd.d2phi + exp(4.0*bd->phi)*bd.gamma12*(Sij_factor);
-      S13_a[idx] = sd.d1phi*sd.d3phi + exp(4.0*bd->phi)*bd.gamma13*(Sij_factor);
-      S22_a[idx] = sd.d2phi*sd.d2phi + exp(4.0*bd->phi)*bd.gamma22*(Sij_factor);
-      S23_a[idx] = sd.d2phi*sd.d3phi + exp(4.0*bd->phi)*bd.gamma23*(Sij_factor);
-      S33_a[idx] = sd.d3phi*sd.d3phi + exp(4.0*bd->phi)*bd.gamma33*(Sij_factor);
+      S11_a[idx] = sd.d1phi*sd.d1phi + exp(4.0*bd.phi)*bd.gamma11*(Sij_factor);
+      S12_a[idx] = sd.d1phi*sd.d2phi + exp(4.0*bd.phi)*bd.gamma12*(Sij_factor);
+      S13_a[idx] = sd.d1phi*sd.d3phi + exp(4.0*bd.phi)*bd.gamma13*(Sij_factor);
+      S22_a[idx] = sd.d2phi*sd.d2phi + exp(4.0*bd.phi)*bd.gamma22*(Sij_factor);
+      S23_a[idx] = sd.d2phi*sd.d3phi + exp(4.0*bd.phi)*bd.gamma23*(Sij_factor);
+      S33_a[idx] = sd.d3phi*sd.d3phi + exp(4.0*bd.phi)*bd.gamma33*(Sij_factor);
     }
 
   }
 
-  void dV(real_t phi_in)
+  real_t dV(real_t phi_in)
   {
     return 0;
   }
 
-  void V(real_t phi_in)
+  real_t V(real_t phi_in)
   {
     return 0;
   }
