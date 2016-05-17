@@ -322,7 +322,7 @@ public:
       bssnSim->stepInit();
       scalarSim->stepInit();
       bssnSim->clearSrc();
-      scalarSim->addBSSNSource();
+      scalarSim->addBSSNSource(bssnSim);
     _timer["RK_steps"].stop();
   }
 
@@ -356,7 +356,7 @@ public:
 
       // Second RK step
       bssnSim->clearSrc();
-      scalarSim->addBSSNSource();
+      scalarSim->addBSSNSource(bssnSim);
       #pragma omp parallel for default(shared) private(i, j, k, b_data)
       LOOP3(i,j,k)
       {
@@ -369,7 +369,7 @@ public:
 
       // Third RK step
       bssnSim->clearSrc();
-      scalarSim->addBSSNSource();
+      scalarSim->addBSSNSource(bssnSim);
       #pragma omp parallel for default(shared) private(i, j, k, b_data)
       LOOP3(i,j,k)
       {
@@ -382,7 +382,7 @@ public:
 
       // Fourth RK step
       bssnSim->clearSrc();
-      scalarSim->addBSSNSource();
+      scalarSim->addBSSNSource(bssnSim);
       #pragma omp parallel for default(shared) private(i, j, k, b_data)
       LOOP3(i,j,k)
       {
