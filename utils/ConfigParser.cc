@@ -27,8 +27,10 @@ void ConfigParser::parse(std::string fname)
 
   std::ifstream fin(fname.c_str());
   if(!fin) {
-    std::cerr << "error opening " << fname << ", using default values ";
+    std::cerr << "error opening " << fname
+      << "! Make sure you have specified a valid config file.";
     std::cerr << std::endl;
+    throw -1;
     return;
   }
 

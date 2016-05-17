@@ -48,7 +48,7 @@ message(STATUS " HDF5_LIBRARY: ${HDF5_LIBRARY}")
 include_directories(/home/jbm120/hdf5/build/include)
 
 
-file(GLOB COSMO_SOURCES *.cc bssn/*.cc particles/*.cc IO/*.cc utils/*.cc)
+file(GLOB COSMO_SOURCES *.cc bssn/*.cc particles/*.cc scalar/*.cc IO/*.cc utils/*.cc)
 
 add_executable(cosmo ${COSMO_SOURCES})
 target_link_libraries(cosmo m rt z ${HDF5_LIBRARY} ${FFTW_LIBRARIES})

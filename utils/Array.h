@@ -49,8 +49,8 @@ class CosmoArray
       pts = nx*ny*nz;
 
       _array = new RT[pts];
-      IT i;
-      for(i=0; i<pts; ++i)
+      #pragma omp parallel for
+      for(IT i=0; i<pts; ++i)
       {
         _array[i] = 0.0;
       }
@@ -86,6 +86,7 @@ class CosmoArray
 
       this->name = other.name;
 
+      #pragma omp parallel for
       for(IT i=0; i<pts; ++i)
       {
         this->_array[i] = other._array[i];

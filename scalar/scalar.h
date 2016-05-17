@@ -5,8 +5,6 @@
 #include "../cosmo_types.h"
 #include "../globals.h"
 
-#include "scalar_macros.h"
-
 #include "../bssn/bssn.h"
 #include "../utils/math.h"
 #include "../utils/Array.h"
@@ -27,19 +25,18 @@ typedef struct {
 
 } ScalarData;
 
-
 /** Scalar class **/
 class Scalar
 {
-  RK4Register phi;
-  RK4Register Pi;
-  RK4Register psi1;
-  RK4Register psi2;
-  RK4Register psi3;
-
 public:
+  RK4Register<idx_t, real_t> phi;
+  RK4Register<idx_t, real_t> Pi;
+  RK4Register<idx_t, real_t> psi1;
+  RK4Register<idx_t, real_t> psi2;
+  RK4Register<idx_t, real_t> psi3;
 
-  Scalar()
+  Scalar() :
+    phi(), Pi(), psi1(), psi2(), psi3()
   {
     if(!USE_BSSN_SHIFT)
     {
@@ -52,16 +49,16 @@ public:
       throw -1;
     }
 
-    Pi.init(Nphi NY, NZ);
-    Pi.init(NX, NY, NZ);
-    psi1.init(NX, NY, NZ);
-    psi2.init(NX, NY, NZ);
-    psi3.init(NX, NY, NZ);
+    phi.init(NX, NY, NZ, dt);
+    Pi.init(NX, NY, NZ, dt);
+    psi1.init(NX, NY, NZ, dt);
+    psi2.init(NX, NY, NZ, dt);
+    psi3.init(NX, NY, NZ, dt);
   }
 
   ~Scalar()
   {
-    Pphi~RK4Register();
+    phi.~RK4Register();
     Pi.~RK4Register();
     psi1.~RK4Register();
     psi2.~RK4Register();
@@ -150,7 +147,6 @@ public:
   void RKEvolvePt(BSSNData *paq)
   {
     ScalarData sd = getScalarData(paq->i, paq->j, paq->k);
-    idx_t idx = NP_INDEX(i,j,k);
 
     phi._array_c = ev_phi(paq, &sd);
     Pi._array_c = ev_Pi(paq, &sd);
@@ -184,11 +180,13 @@ public:
     return 0;
   }
 
-  addBSSNSource()
+  void addBSSNSource()
   {
-
+    // todo
   }
 
-}
+};
+
+} // namespace cosmo
 
 #endif

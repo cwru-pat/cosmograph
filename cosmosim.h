@@ -13,6 +13,7 @@
 #include "bssn/bssn.h"
 #include "static.h"
 #include "particles/particles.h"
+#include "scalar/scalar.h"
 
 namespace cosmo
 {
@@ -109,7 +110,6 @@ public:
     {
       iodata->log("Running 'scalar' type simulation.");
       scalarSim = new Scalar();
-      scalarSim->init();
     }
     else if( simulation_type == "vacuum" )
     {
@@ -320,6 +320,7 @@ public:
   {
     _timer["RK_steps"].start();
       bssnSim->stepInit();
+      scalarSim->stepInit();
       bssnSim->clearSrc();
       scalarSim->addBSSNSource();
     _timer["RK_steps"].stop();
@@ -343,11 +344,11 @@ public:
     _timer["RK_steps"].start();
 
       // First RK step
-      #pragma omp parallel for default(shared) private(i, j, k) reduction(+:sum)
+      #pragma omp parallel for default(shared) private(i, j, k, b_data)
       LOOP3(i,j,k)
       {
         bssnSim->K1CalcPt(i, j, k, &b_data);
-        scalarSim->RKEvolvePt(b_data);
+        scalarSim->RKEvolvePt(&b_data);
       }
       bssnSim->frw->P1_step(dt);
       bssnSim->regSwap_c_a();
@@ -356,10 +357,11 @@ public:
       // Second RK step
       bssnSim->clearSrc();
       scalarSim->addBSSNSource();
+      #pragma omp parallel for default(shared) private(i, j, k, b_data)
       LOOP3(i,j,k)
       {
         bssnSim->K2CalcPt(i, j, k, &b_data);
-        scalarSim->RKEvolvePt(b_data);
+        scalarSim->RKEvolvePt(&b_data);
       }
       bssnSim->frw->P2_step(dt);
       bssnSim->regSwap_c_a();
@@ -368,23 +370,24 @@ public:
       // Third RK step
       bssnSim->clearSrc();
       scalarSim->addBSSNSource();
+      #pragma omp parallel for default(shared) private(i, j, k, b_data)
       LOOP3(i,j,k)
       {
         bssnSim->K3CalcPt(i, j, k, &b_data);
-        scalarSim->RKEvolvePt(b_data);
+        scalarSim->RKEvolvePt(&b_data);
       }
       bssnSim->frw->P3_step(dt);
       bssnSim->regSwap_c_a();
       scalarSim->RK3Finalize();
 
-
       // Fourth RK step
       bssnSim->clearSrc();
       scalarSim->addBSSNSource();
+      #pragma omp parallel for default(shared) private(i, j, k, b_data)
       LOOP3(i,j,k)
       {
         bssnSim->K4CalcPt(i, j, k, &b_data);
-        scalarSim->RKEvolvePt(b_data);
+        scalarSim->RKEvolvePt(&b_data);
       }
       bssnSim->frw->RK_total_step(dt);
       bssnSim->stepTerm();

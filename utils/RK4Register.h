@@ -17,12 +17,13 @@ class RK4Register
     RT sim_dt;
 
   public:
-    CosmoArray _array_p;
-    CosmoArray _array_a;
-    CosmoArray _array_c;
-    CosmoArray _array_f;
+    CosmoArray<IT, RT> _array_p;
+    CosmoArray<IT, RT> _array_a;
+    CosmoArray<IT, RT> _array_c;
+    CosmoArray<IT, RT> _array_f;
 
-    RK4Register()
+    RK4Register() :
+      _array_p(), _array_a(), _array_c(), _array_f()
     {
       // call init()
     }
@@ -83,7 +84,9 @@ class RK4Register
 
     void stepInit()
     {
-      for(IT i=0; i<points; ++i)
+      IT i;
+      #pragma omp parallel for default(shared) private(i)
+      for(i=0; i<points; ++i)
       {
         _array_a[i] = _array_p[i];
         _array_f[i] = 0;
@@ -92,6 +95,7 @@ class RK4Register
 
     void RK1Finalize()
     {
+      #pragma omp parallel for
       for(IT i=0; i<points; ++i)
       {
         _array_c[i] = _array_p[i] + sim_dt*_array_c[i]/2.0;
@@ -103,6 +107,7 @@ class RK4Register
 
     void RK2Finalize()
     {
+      #pragma omp parallel for
       for(IT i=0; i<points; ++i)
       {
         _array_c[i] = _array_p[i] + sim_dt*_array_c[i]/2.0;
@@ -114,6 +119,7 @@ class RK4Register
 
     void RK3Finalize()
     {
+      #pragma omp parallel for
       for(IT i=0; i<points; ++i)
       {
         _array_c[i] = _array_p[i] + sim_dt*_array_c[i];
@@ -125,6 +131,7 @@ class RK4Register
 
     void RK4Finalize()
     {
+      #pragma omp parallel for
       for(IT i=0; i<points; ++i)
       {
         _array_f[i] = sim_dt*_array_c[i]/6.0
@@ -137,6 +144,6 @@ class RK4Register
 
 };
 
-}
+} // end namespace
 
 #endif
