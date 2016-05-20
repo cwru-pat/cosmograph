@@ -165,6 +165,7 @@ void ICs_set_dust(
   set_gaussian_random_field(DIFFphi_p._array, fourier, &icd);
 
   // rho = -lap(phi)/xi^5/2pi
+  #pragma omp parallel for default(shared) private(i,j,k)
   LOOP3(i,j,k) {
     DIFFr_a[NP_INDEX(i,j,k)] = -0.5/PI/(
       pow(1.0 + DIFFphi_p[NP_INDEX(i,j,k)], 5.0)
@@ -176,6 +177,7 @@ void ICs_set_dust(
   }
 
   // phi = ln(xi)
+  #pragma omp parallel for default(shared) private(i,j,k)
   LOOP3(i,j,k) {
     idx_t idx = NP_INDEX(i,j,k);
     DIFFphi_a[idx] = log1p(DIFFphi_p[idx]);
@@ -241,6 +243,7 @@ void ICs_set_dust(
     // phi is unchanged
     // rho (D) and K get contribs
     // w=0 fluid only
+    #pragma omp parallel for default(shared) private(i,j,k)
     LOOP3(i,j,k)
     {
       idx_t idx = NP_INDEX(i,j,k);
@@ -313,6 +316,7 @@ void ICs_set_particle(
   }
 
   // phi = ln(xi)
+  #pragma omp parallel for default(shared) private(i,j,k)
   LOOP3(i,j,k) {
     idx_t idx = NP_INDEX(i,j,k);
     DIFFphi_a[idx] = log1p(DIFFphi_p[idx]);
@@ -353,6 +357,7 @@ void ICs_set_particle(
     throw -1;
   }
 
+  #pragma omp parallel for default(shared) private(i,j,k)
   LOOP3(i,j,k)
   {
     idx_t idx = NP_INDEX(i,j,k);
@@ -369,7 +374,7 @@ void ICs_set_particle(
  */
 void ICs_set_vacuum(map_t & bssn_fields, IOData *iod)
 {
-
+  // meh
 }
 
 /**
@@ -435,9 +440,50 @@ void init_ray_vector(std::vector<RayTrace<real_t, idx_t> *> * rays, idx_t n_rays
   }
 }
 
-void set_stability_test_ICs(
-  map_t & bssn_fields,
-  map_t & static_field)
+/**
+ * @brief small-amplitude wave on a flat metric
+ *  use a stationary gaussian wave packet for now
+ * 
+ * @param scalar Scalar class instance
+ */
+void ICs_set_scalar_wave(Scalar * scalar)
+{
+  // BSSN is already initialized to flat, just initialize scalar fields
+  arr_t & phi = scalar->phi._array_p; // gaussian 
+  arr_t & Pi = scalar->Pi._array_p; // Pi = 0
+  arr_t & psi1 = scalar->psi1._array_p; // derivative of phi in x-dir
+  arr_t & psi2 = scalar->psi3._array_p; // derivative of phi in y-dir
+  arr_t & psi3 = scalar->psi2._array_p; // derivative of phi in z-dir
+
+  // iterators
+  idx_t i, j, k;
+  // gaussian parameters
+  real_t amplitude = 1.0e-10;
+  real_t sigx = (real_t) NX / 10.0;
+  real_t sigy = (real_t) NY / 10.0;
+  real_t sigz = (real_t) NZ / 10.0;
+
+  #pragma omp parallel for default(shared) private(i,j,k)
+  LOOP3(i,j,k)
+  {
+    phi[INDEX(i,j,k)] = amplitude*exp(
+        -pw2(i - ((real_t) NX-1)/2.0)/pw2(sigx)
+        // plane-wave only, so commented:
+        // -pw2(j - ((real_t) NY-1)/2.0)/pw2(sigy)
+        // -pw2(k - ((real_t) NZ-1)/2.0)/pw2(sigz)
+      );
+  }
+
+  #pragma omp parallel for default(shared) private(i,j,k)
+  LOOP3(i,j,k)
+  {
+    psi1[INDEX(i,j,k)] = derivative(i, j, k, 1, phi);
+    psi2[INDEX(i,j,k)] = derivative(i, j, k, 2, phi);
+    psi3[INDEX(i,j,k)] = derivative(i, j, k, 3, phi);
+  }
+}
+
+void set_stability_test_ICs(map_t & bssn_fields, map_t & static_field)
 {
   idx_t i, j, k;
 

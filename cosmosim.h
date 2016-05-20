@@ -110,6 +110,8 @@ public:
     {
       iodata->log("Running 'scalar' type simulation.");
       scalarSim = new Scalar();
+      iodata->log("Creating initial conditions.");
+      ICs_set_scalar_wave(scalarSim);
     }
     else if( simulation_type == "vacuum" )
     {
@@ -334,6 +336,7 @@ public:
       io_bssn_fields_powerdump(iodata, step, bssnSim->fields, fourier);
       io_bssn_dump_statistics(iodata, step, bssnSim->fields, bssnSim->frw);
       io_bssn_constraint_violation(iodata, step, bssnSim);
+      io_scalar_snapshot(iodata, step, scalarSim);
     _timer["output"].stop();
   }
 

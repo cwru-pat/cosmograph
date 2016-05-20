@@ -559,6 +559,15 @@ inline real_t double_derivative(idx_t i, idx_t j, idx_t k, int d1, int d2,
   return 0;
 }
 
+inline real_t laplacian(idx_t i, idx_t j, idx_t k, arr_t & field)
+{
+  return (
+    double_derivative(i, j, k, 1, 1, field)
+    + double_derivative(i, j, k, 2, 2, field)
+    + double_derivative(i, j, k, 3, 3, field)
+  );
+}
+
 inline real_t average(arr_t & field)
 {
   // note this may have poor precision for large datasets

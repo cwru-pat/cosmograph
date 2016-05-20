@@ -13,6 +13,7 @@
 
 #include "../IO/IOData.h"
 #include "../bssn/bssn.h"
+#include "../scalar/scalar.h"
 
 namespace cosmo
 {
@@ -31,6 +32,8 @@ void io_bssn_dump_statistics(IOData *iodata, idx_t step,
 
 void io_raytrace_dump(IOData *iodata, idx_t step,
   std::vector<RayTrace<real_t, idx_t> *> const * rays);
+
+void io_scalar_snapshot(IOData *iodata, idx_t step, Scalar * scalar);
 
 void io_dump_2dslice(IOData *iodata, arr_t & field, std::string filename);
 void io_dump_3dslice(IOData *iodata, arr_t & field, std::string filename);

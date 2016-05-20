@@ -51,6 +51,8 @@ public:
       throw -1;
     }
 
+    std::cout << "Creating scalar class with dt=" << dt << "\n";
+
     phi.init(NX, NY, NZ, dt);
     Pi.init(NX, NY, NZ, dt);
     psi1.init(NX, NY, NZ, dt);
@@ -150,12 +152,13 @@ public:
   void RKEvolvePt(BSSNData *bd)
   {
     ScalarData sd = getScalarData(bd);
+    idx_t idx = bd->idx;
 
-    phi._array_c = dt_phi(bd, &sd);
-    Pi._array_c = dt_Pi(bd, &sd);
-    psi1._array_c = dt_psi1(bd, &sd);
-    psi2._array_c = dt_psi2(bd, &sd);
-    psi3._array_c = dt_psi3(bd, &sd);
+    phi._array_c[idx] = dt_phi(bd, &sd);
+    Pi._array_c[idx] = dt_Pi(bd, &sd);
+    psi1._array_c[idx] = dt_psi1(bd, &sd);
+    psi2._array_c[idx] = dt_psi2(bd, &sd);
+    psi3._array_c[idx] = dt_psi3(bd, &sd);
   }
 
   real_t dt_phi(BSSNData *bd, ScalarData *sd)
@@ -168,6 +171,8 @@ public:
 
   real_t dt_Pi(BSSNData *bd, ScalarData *sd)
   {
+    // return -laplacian(bd->i, bd->j, bd->k, phi._array_a);
+    
     return (
       bd->beta1*sd->d1Pi + bd->beta2*sd->d2Pi + bd->beta3*sd->d3Pi
       -exp(-4.0*bd->phi)*(
@@ -264,7 +269,7 @@ public:
       S1_a[idx] = -exp(-4.0*bd.phi)*nmudmuphi*(bd.gamma11*sd.d1phi
         + bd.gamma12*sd.d2phi+ bd.gamma13*sd.d3phi);
       S2_a[idx] = -exp(-4.0*bd.phi)*nmudmuphi*(bd.gamma21*sd.d1phi
-        + bd.gamma22*sd.d2phi+ bd.gamma33*sd.d3phi);
+        + bd.gamma22*sd.d2phi+ bd.gamma23*sd.d3phi);
       S3_a[idx] = -exp(-4.0*bd.phi)*nmudmuphi*(bd.gamma31*sd.d1phi
         + bd.gamma32*sd.d2phi+ bd.gamma33*sd.d3phi);
 
@@ -278,7 +283,6 @@ public:
       S23_a[idx] = sd.d2phi*sd.d3phi + exp(4.0*bd.phi)*bd.gamma23*(Sij_factor);
       S33_a[idx] = sd.d3phi*sd.d3phi + exp(4.0*bd.phi)*bd.gamma33*(Sij_factor);
     }
-
   }
 
   real_t dV(real_t phi_in)
@@ -288,6 +292,22 @@ public:
 
   real_t V(real_t phi_in)
   {
+    return 0;
+  }
+
+  real_t scalarConstraint(idx_t i, idx_t j, idx_t k, idx_t dir)
+  {
+    switch(dir)
+    {
+      case 1:
+        return derivative(i, j, k, dir, phi._array_a) - psi1._array_a[INDEX(i,j,k)];
+      case 2:
+        return derivative(i, j, k, dir, phi._array_a) - psi2._array_a[INDEX(i,j,k)];
+      case 3:
+        return derivative(i, j, k, dir, phi._array_a) - psi3._array_a[INDEX(i,j,k)];
+    }
+
+    throw -1;
     return 0;
   }
 

@@ -275,6 +275,35 @@ void io_raytrace_dump(IOData *iodata, idx_t step,
 }
 
 /**
+ * @brief      Output 3d snapshot of BSSN fields in _a register
+ *
+ * @param      bssn_fields   map to bssn fields
+ * @param[in]  step          step number (part of file names)
+ * @param[in]  dim           # dimensions to output (1, 2, or 3)
+ */
+void io_scalar_snapshot(IOData *iodata, idx_t step, Scalar * scalar)
+{
+  std::string step_str = std::to_string(step);
+  if( step % std::stoi(_config["IO_3D_grid_interval"]) == 0 )
+  {
+    io_dump_3dslice(iodata, scalar->phi._array_a, "3D_scalar_phi." + step_str);
+    io_dump_3dslice(iodata, scalar->Pi._array_a, "3D_scalar_Pi." + step_str);
+  }
+  
+  if( step % std::stoi(_config["IO_2D_grid_interval"]) == 0 )
+  {
+    io_dump_2dslice(iodata, scalar->phi._array_a, "2D_scalar_phi." + step_str);
+    io_dump_2dslice(iodata, scalar->Pi._array_a, "2D_scalar_Pi." + step_str);
+  }
+  
+  if( step % std::stoi(_config["IO_1D_grid_interval"]) == 0 )
+  {
+    io_dump_strip(iodata, scalar->phi._array_a, "1D_scalar_phi", 1, NY/2, NZ/2);
+    io_dump_strip(iodata, scalar->Pi._array_a, "1D_scalar_Pi", 1, NY/2, NZ/2);
+  }
+}
+
+/**
  * @brief      Write full 3D slice to a file.
  *
  * @param      iodata    initialized IOData

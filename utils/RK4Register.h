@@ -64,20 +64,12 @@ class RK4Register
 
     void swap_a_c()
     {
-      std::swap(_array_a.nx, _array_c.nx);
-      std::swap(_array_a.ny, _array_c.ny);
-      std::swap(_array_a.nz, _array_c.nz);
-      std::swap(_array_a.pts, _array_c.pts);
       std::swap(_array_a.name, _array_c.name);
       std::swap(_array_a._array, _array_c._array);
     }
 
     void swap_p_f()
     {
-      std::swap(_array_p.nx, _array_f.nx);
-      std::swap(_array_p.ny, _array_f.ny);
-      std::swap(_array_p.nz, _array_f.nz);
-      std::swap(_array_p.pts, _array_f.pts);
       std::swap(_array_p.name, _array_f.name);
       std::swap(_array_p._array, _array_f._array);
     }
@@ -98,8 +90,8 @@ class RK4Register
       #pragma omp parallel for
       for(IT i=0; i<points; ++i)
       {
+        _array_f[i] += sim_dt*_array_c[i]/6.0;
         _array_c[i] = _array_p[i] + sim_dt*_array_c[i]/2.0;
-        _array_f[i] += _array_c[i];
       }
 
       swap_a_c();
@@ -110,8 +102,8 @@ class RK4Register
       #pragma omp parallel for
       for(IT i=0; i<points; ++i)
       {
+        _array_f[i] += sim_dt*_array_c[i]/3.0;
         _array_c[i] = _array_p[i] + sim_dt*_array_c[i]/2.0;
-        _array_f[i] += 2.0*_array_c[i];
       }
       
       swap_a_c();
@@ -122,8 +114,8 @@ class RK4Register
       #pragma omp parallel for
       for(IT i=0; i<points; ++i)
       {
+        _array_f[i] += sim_dt*_array_c[i]/3.0;
         _array_c[i] = _array_p[i] + sim_dt*_array_c[i];
-        _array_f[i] += _array_c[i];
       }
       
       swap_a_c();
@@ -134,8 +126,7 @@ class RK4Register
       #pragma omp parallel for
       for(IT i=0; i<points; ++i)
       {
-        _array_f[i] = sim_dt*_array_c[i]/6.0
-          + (_array_f[i] - _array_p[i])/3.0;
+        _array_f[i] += sim_dt*_array_c[i]/6.0 + _array_p[i];
         _array_p[i] = _array_f[i];
       }
 

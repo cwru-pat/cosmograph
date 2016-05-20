@@ -1,4 +1,4 @@
-steps = 100
+steps = 1000
 
 omp_num_threads = 16
 
@@ -9,9 +9,9 @@ ray_integrate = 0
 output_dir = output_scalar
 dump_file = calculated
 
-IO_3D_grid_interval = 10
+IO_3D_grid_interval = 1000
 IO_2D_grid_interval = 200
-IO_1D_grid_interval = 200
+IO_1D_grid_interval = 2
 
 IO_powerspec_interval = 100
 IO_constraint_interval = 10
