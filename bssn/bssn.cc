@@ -604,6 +604,17 @@ real_t BSSN::ev_Gamma3(BSSNData *paq) { return BSSN_DT_GAMMAI(3) - KO_dissipatio
 
 real_t BSSN::ev_DIFFK(BSSNData *paq)
 {
+
+  real_t val = (
+    + 1.0/3.0*(paq->DIFFK)*(paq->DIFFK)
+    + 4.0*PI*(paq->DIFFr + paq->DIFFS)
+  );
+
+if(paq->idx == 0)  
+{
+  std::cout << "\n val is " << val << "\n";
+}
+
   return (
     - paq->DDaTR
     + paq->alpha*(

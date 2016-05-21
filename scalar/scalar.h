@@ -263,7 +263,7 @@ public:
       DIFFr_a[idx] = 0.5*nmudmuphi*nmudmuphi
         + 0.5*exp(-4.0*bd.phi)*diphidiphi + V(sd.phi);
 
-      DIFFS_a = 3.0/2.0*nmudmuphi*nmudmuphi
+      DIFFS_a[idx] = 3.0/2.0*nmudmuphi*nmudmuphi
         - 0.5*exp(-4.0*bd.phi)*diphidiphi - 3.0*V(sd.phi);
 
       S1_a[idx] = -exp(-4.0*bd.phi)*nmudmuphi*(bd.gamma11*sd.d1phi
@@ -292,7 +292,7 @@ public:
 
   real_t V(real_t phi_in)
   {
-    return 0;
+    return 0.2;
   }
 
   real_t scalarConstraint(idx_t i, idx_t j, idx_t k, idx_t dir)

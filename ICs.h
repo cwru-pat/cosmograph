@@ -32,7 +32,7 @@ void ICs_set_vacuum(map_t & bssn_fields, IOData *iod);
 void init_ray_vector(std::vector<RayTrace<real_t, idx_t> *> * rays,
   idx_t n_rays);
 
-void ICs_set_scalar_wave(Scalar * scalar);
+void ICs_set_scalar_wave(map_t & bssn_fields, Scalar * scalarSim);
 void ICs_set_scalar_inflation(map_t & bssn_fields, map_t & scalar_fields);
 
 void set_stability_test_ICs( map_t & bssn_fields, map_t & static_field);

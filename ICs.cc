@@ -446,14 +446,17 @@ void init_ray_vector(std::vector<RayTrace<real_t, idx_t> *> * rays, idx_t n_rays
  * 
  * @param scalar Scalar class instance
  */
-void ICs_set_scalar_wave(Scalar * scalar)
+void ICs_set_scalar_wave(map_t & bssn_fields, Scalar * scalarSim)
 {
   // BSSN is already initialized to flat, just initialize scalar fields
-  arr_t & phi = scalar->phi._array_p; // gaussian 
-  arr_t & Pi = scalar->Pi._array_p; // Pi = 0
-  arr_t & psi1 = scalar->psi1._array_p; // derivative of phi in x-dir
-  arr_t & psi2 = scalar->psi3._array_p; // derivative of phi in y-dir
-  arr_t & psi3 = scalar->psi2._array_p; // derivative of phi in z-dir
+  arr_t & phi = scalarSim->phi._array_p; // gaussian 
+  arr_t & Pi = scalarSim->Pi._array_p; // Pi = 0
+  arr_t & psi1 = scalarSim->psi1._array_p; // derivative of phi in x-dir
+  arr_t & psi2 = scalarSim->psi3._array_p; // derivative of phi in y-dir
+  arr_t & psi3 = scalarSim->psi2._array_p; // derivative of phi in z-dir
+
+  arr_t & K_p = *bssn_fields["DIFFK_p"]; // extrinsic curvature
+  arr_t & K_a = *bssn_fields["DIFFK_a"]; // extrinsic curvature
 
   // iterators
   idx_t i, j, k;
@@ -481,8 +484,22 @@ void ICs_set_scalar_wave(Scalar * scalar)
     psi2[INDEX(i,j,k)] = derivative(i, j, k, 2, phi);
     psi3[INDEX(i,j,k)] = derivative(i, j, k, 3, phi);
   }
+
+  #pragma omp parallel for default(shared) private(i,j,k)
+  LOOP3(i,j,k)
+  {
+    K_a[INDEX(i,j,k)] = K_p[INDEX(i,j,k)] = -std::sqrt(24*PI*scalarSim->V(phi[INDEX(i,j,k)]));
+  }
+
+  return;
 }
 
+/**
+ * @brief      AwA stability test
+ *
+ * @param      bssn_fields   The bssn fields
+ * @param      static_field  The static field
+ */
 void set_stability_test_ICs(map_t & bssn_fields, map_t & static_field)
 {
   idx_t i, j, k;
