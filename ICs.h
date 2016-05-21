@@ -12,6 +12,7 @@
 #include "IO/io.h"
 #include "particles/particles.h"
 #include "scalar/scalar.h"
+#include "elliptic_solver/multigrid.h"
 
 namespace cosmo
 {
@@ -33,7 +34,7 @@ void init_ray_vector(std::vector<RayTrace<real_t, idx_t> *> * rays,
   idx_t n_rays);
 
 void ICs_set_scalar_wave(map_t & bssn_fields, Scalar * scalarSim);
-void ICs_set_scalar_inflation(map_t & bssn_fields, map_t & scalar_fields);
+void ICs_set_scalar_multigrid(map_t & bssn_fields, Scalar * scalarSim);
 
 void set_stability_test_ICs( map_t & bssn_fields, map_t & static_field);
 void set_linear_wave_ICs(map_t & bssn_fields);

@@ -494,6 +494,16 @@ void ICs_set_scalar_wave(map_t & bssn_fields, Scalar * scalarSim)
   return;
 }
 
+void ICs_set_scalar_multigrid(map_t & bssn_fields, Scalar * scalarSim)
+{
+  FASMultigrid<real_t, idx_t> multigrid (N, N*dx, 5);
+  multigrid.setTrialSolution(0);
+  multigrid.VCycles(3);
+
+  // TODO: integrate multigrid class.
+  ICs_set_scalar_wave(bssn_fields, scalarSim);
+}
+
 /**
  * @brief      AwA stability test
  *
