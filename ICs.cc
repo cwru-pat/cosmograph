@@ -134,15 +134,13 @@ void set_gaussian_random_field(real_t *field, Fourier *fourier, ICsData *icd)
  * @brief      Set conformally flat initial conditions for a w=0
  *  fluid in synchronous gauge.
  *
- * @param      bssn_fields   { parameter_description }
- * @param      static_field  { parameter_description }
- * @param      fourier       { parameter_description }
- * @param      iod           { parameter_description }
- * @param      frw           { parameter_description }
+ * @param      bssn_fields
+ * @param      static_field
+ * @param      fourier
+ * @param      iod
+ * @param      frw
  */
-void ICs_set_dust(
-  map_t & bssn_fields,
-  map_t & static_field,
+void ICs_set_dust(map_t & bssn_fields, map_t & static_field,
   Fourier *fourier, IOData *iod, FRW<real_t> *frw)
 {
   idx_t i, j, k;
@@ -160,11 +158,11 @@ void ICs_set_dust(
   iod->log( "Generating ICs with peak amp. = " + stringify(icd.peak_amplitude) );
 
   // the conformal factor in front of metric is the solution to
-  // d^2 exp(\phi) = -2*pi exp(5\phi) * \rho
-  // generate gaussian random field 1 + xi = exp(phi) (use phi_p as a proxy):
+  // d^2 exp(\phi) = -2*pi exp(5\phi) * \delta_rho
+  // generate gaussian random field 1 + xi = exp(phi) (store xi in phi_p temporarily):
   set_gaussian_random_field(DIFFphi_p._array, fourier, &icd);
 
-  // rho = -lap(phi)/xi^5/2pi
+  // delta_rho = -lap(phi)/(1+xi)^5/2pi
   #pragma omp parallel for default(shared) private(i,j,k)
   LOOP3(i,j,k) {
     DIFFr_a[NP_INDEX(i,j,k)] = -0.5/PI/(
@@ -494,14 +492,146 @@ void ICs_set_scalar_wave(map_t & bssn_fields, Scalar * scalarSim)
   return;
 }
 
+/**
+ * @brief Use the multigrid solver to solve for metric factors given
+ * a particular scalar field implementation.
+ * 
+ * @param bssn_fields map to bssn_fields
+ * @param scalarSim instance of Scalar
+ */
 void ICs_set_scalar_multigrid(map_t & bssn_fields, Scalar * scalarSim)
 {
-  FASMultigrid<real_t, idx_t> multigrid (N, N*dx, 5);
-  multigrid.setTrialSolution(0);
-  multigrid.VCycles(3);
+  idx_t i, j, k;
 
-  // TODO: integrate multigrid class.
-  ICs_set_scalar_wave(bssn_fields, scalarSim);
+  // Choose a configuration for the scalar fields first:
+  arr_t & phi = scalarSim->phi._array_p; // field
+  arr_t & psi1 = scalarSim->psi1._array_p; // derivative of phi in x-dir
+  arr_t & psi2 = scalarSim->psi3._array_p; // derivative of phi in y-dir
+  arr_t & psi3 = scalarSim->psi2._array_p; // derivative of phi in z-dir
+
+  arr_t & Pi = scalarSim->Pi._array_p; // time-derivative of field phi
+
+  std::random_device rd;
+  std::mt19937 gen(7.0 /*rd()*/);
+  std::uniform_real_distribution<real_t> dist(0, 2.0*PI);
+
+  // cutoff @ "ic_spec_cut"; maybe initialize this field
+  // according to some power spectrum?
+  real_t n_max = std::stoi(_config["n_max"]);
+  real_t phi_0 = std::stod(_config["phi_0"]);
+  real_t delta = std::stod(_config["delta_phi"]);
+
+  // background value
+  LOOP3(i,j,k)
+    phi[INDEX(i,j,k)] = phi_0;
+
+  // sum over different modes
+  for(int n = -n_max; n <= n_max; ++n)
+  {
+    if(n != 0)
+    {
+      // random phases
+      real_t x_phase = dist(gen),
+             y_phase = dist(gen),
+             z_phase = dist(gen);
+
+      #pragma omp parallel for default(shared) private(i,j,k)
+      LOOP3(i,j,k)
+      {
+        // some simusoid modes
+        phi[INDEX(i,j,k)] += delta*(
+                cos(2.0*PI*((real_t) n/NX)*i + x_phase )
+                 + cos(2.0*PI*((real_t) n/NY)*j + y_phase )
+                 + cos(2.0*PI*((real_t) n/NZ)*k + z_phase )
+            );
+      }
+    }
+  }
+
+  // initialize psi according to values in phi
+  #pragma omp parallel for default(shared) private(i,j,k)
+  LOOP3(i,j,k)
+  {
+    psi1[INDEX(i,j,k)] = derivative(i, j, k, 1, phi);
+    psi2[INDEX(i,j,k)] = derivative(i, j, k, 2, phi);
+    psi3[INDEX(i,j,k)] = derivative(i, j, k, 3, phi);
+  }
+
+  // PI is zero for now
+
+
+  // compute background/average K
+  real_t K_src = 0;
+  LOOP3(i, j, k)
+  {
+    K_src += 3.0*scalarSim->V(phi[INDEX(i,j,k)])
+      +3.0/2.0*(
+        pw2(psi1[INDEX(i,j,k)]) + pw2(psi2[INDEX(i,j,k)]) + pw2(psi3[INDEX(i,j,k)])
+      );
+  }
+  K_src = -std::sqrt(K_src/NX/NY/NZ);
+
+  arr_t & K_p = *bssn_fields["DIFFK_p"]; // extrinsic curvature
+  arr_t & K_a = *bssn_fields["DIFFK_a"]; // extrinsic curvature
+
+  #pragma omp parallel for default(shared) private(i,j,k)
+  LOOP3(i,j,k)
+  {
+    K_a[INDEX(i,j,k)] = K_p[INDEX(i,j,k)] = K_src;
+  }
+
+
+  // solve for BSSN fields using multigrid class:
+  FASMultigrid multigrid (N, N*dx, 5);
+
+  idx_t u_exp[2] = { 1, 5 };
+  multigrid.build_rho(2, u_exp);
+  LOOP3(i, j, k)
+  {
+    real_t value = PI*(
+        pw2(psi1[INDEX(i,j,k)]) + pw2(psi2[INDEX(i,j,k)]) + pw2(psi3[INDEX(i,j,k)])
+      );
+    multigrid.setPolySrcAtPt(i, j, k, 0, value);
+
+    value = PI*scalarSim->V(phi[INDEX(i,j,k)]) - K_a[INDEX(i,j,k)]*K_a[INDEX(i,j,k)]/12.0;
+    multigrid.setPolySrcAtPt(i, j, k, 1, value);
+  }
+  multigrid.initializeRhoHeirarchy();
+
+  if(std::stoi(_config["debug_multigrid"]))
+  {
+    multigrid.printSourceStrip(0, 5);
+    multigrid.printSourceStrip(1, 5);
+  }
+
+  // set initial guess and solve using 3 V-cycles
+  multigrid.setTrialSolution(0);
+  multigrid.VCycles(std::stoi(_config["num_v_cycles"]));
+
+  if(std::stoi(_config["debug_multigrid"]))
+  {
+    multigrid.printSolutionStrip(1);
+    multigrid.printSolutionStrip(5);
+  }
+
+  // set bssn phi using multigrid solution
+  arr_t & phi_p = *bssn_fields["DIFFphi_p"];
+  arr_t & phi_a = *bssn_fields["DIFFphi_a"];
+
+  real_t * u = multigrid.getSolution();
+  
+  #pragma omp parallel for
+  LOOP3(i, j, k)
+  {
+    phi_p[INDEX(i,j,k)] = std::log(std::abs(u[INDEX(i,j,k)]));
+    phi_a[INDEX(i,j,k)] = std::log(std::abs(u[INDEX(i,j,k)]));
+  }
+
+  // multigrid.~FASMultigrid();
+
+  std::cout << "Finished setting ICs!\n" << std::flush;
+
+  return;
 }
 
 /**

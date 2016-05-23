@@ -4,6 +4,12 @@ omp_num_threads = 16
 
 simulation_type = scalar
 
+num_v_cycles = 5
+phi_0 = 0.0
+delta_phi = 0.01
+n_max = 1
+debug_multigrid = 0
+
 ray_integrate = 0
 
 output_dir = output_scalar
@@ -16,3 +22,8 @@ IO_1D_grid_interval = 2
 IO_powerspec_interval = 100
 IO_constraint_interval = 10
 IO_bssnstats_interval = 10
+
+rho_K_lambda_frac = 0 
+peak_amplitude_frac = 0 
+ic_spec_cut = 1
+IC_viol_amp = 0

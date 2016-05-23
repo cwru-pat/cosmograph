@@ -111,7 +111,8 @@ public:
       iodata->log("Running 'scalar' type simulation.");
       scalarSim = new Scalar();
       iodata->log("Creating initial conditions.");
-      ICs_set_scalar_wave(bssnSim->fields, scalarSim);
+      ICs_set_scalar_multigrid(bssnSim->fields, scalarSim);
+      iodata->log("Finished setting ICs.");
     }
     else if( simulation_type == "vacuum" )
     {

@@ -292,7 +292,8 @@ public:
 
   real_t V(real_t phi_in)
   {
-    return 0.2;
+    // TODO: discuss how to set this better
+    return 0.00001;
   }
 
   real_t scalarConstraint(idx_t i, idx_t j, idx_t k, idx_t dir)
