@@ -582,7 +582,7 @@ void ICs_set_scalar_multigrid(map_t & bssn_fields, Scalar * scalarSim)
 
 
   // solve for BSSN fields using multigrid class:
-  FASMultigrid multigrid (N, N*dx, 5);
+  FASMultigrid multigrid (N, N*dx, 4);
 
   idx_t u_exp[2] = { 1, 5 };
   multigrid.build_rho(2, u_exp);

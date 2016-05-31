@@ -229,12 +229,12 @@ public:
     arr_t & S1_a = *bssnSim->fields["S1_a"];
     arr_t & S2_a = *bssnSim->fields["S2_a"];
     arr_t & S3_a = *bssnSim->fields["S3_a"];
-    arr_t & S11_a = *bssnSim->fields["STF11_a"];
-    arr_t & S12_a = *bssnSim->fields["STF12_a"];
-    arr_t & S13_a = *bssnSim->fields["STF13_a"];
-    arr_t & S22_a = *bssnSim->fields["STF22_a"];
-    arr_t & S23_a = *bssnSim->fields["STF23_a"];
-    arr_t & S33_a = *bssnSim->fields["STF33_a"];
+    arr_t & STF11_a = *bssnSim->fields["STF11_a"];
+    arr_t & STF12_a = *bssnSim->fields["STF12_a"];
+    arr_t & STF13_a = *bssnSim->fields["STF13_a"];
+    arr_t & STF22_a = *bssnSim->fields["STF22_a"];
+    arr_t & STF23_a = *bssnSim->fields["STF23_a"];
+    arr_t & STF33_a = *bssnSim->fields["STF33_a"];
 
     idx_t i, j, k;
 
@@ -266,22 +266,16 @@ public:
       DIFFS_a[idx] = 3.0/2.0*nmudmuphi*nmudmuphi
         - 0.5*exp(-4.0*bd.phi)*diphidiphi - 3.0*V(sd.phi);
 
-      S1_a[idx] = -exp(-4.0*bd.phi)*nmudmuphi*(bd.gamma11*sd.d1phi
-        + bd.gamma12*sd.d2phi+ bd.gamma13*sd.d3phi);
-      S2_a[idx] = -exp(-4.0*bd.phi)*nmudmuphi*(bd.gamma21*sd.d1phi
-        + bd.gamma22*sd.d2phi+ bd.gamma23*sd.d3phi);
-      S3_a[idx] = -exp(-4.0*bd.phi)*nmudmuphi*(bd.gamma31*sd.d1phi
-        + bd.gamma32*sd.d2phi+ bd.gamma33*sd.d3phi);
+      S1_a[idx] = -nmudmuphi*sd.d1phi;
+      S2_a[idx] = -nmudmuphi*sd.d2phi;
+      S3_a[idx] = -nmudmuphi*sd.d3phi;
 
-      real_t Sij_factor = 1.0/2.0*nmudmuphi*nmudmuphi
-        - 0.5*exp(-4.0*bd.phi)*diphidiphi - 1.0*V(sd.phi);
-
-      S11_a[idx] = sd.d1phi*sd.d1phi + exp(4.0*bd.phi)*bd.gamma11*(Sij_factor);
-      S12_a[idx] = sd.d1phi*sd.d2phi + exp(4.0*bd.phi)*bd.gamma12*(Sij_factor);
-      S13_a[idx] = sd.d1phi*sd.d3phi + exp(4.0*bd.phi)*bd.gamma13*(Sij_factor);
-      S22_a[idx] = sd.d2phi*sd.d2phi + exp(4.0*bd.phi)*bd.gamma22*(Sij_factor);
-      S23_a[idx] = sd.d2phi*sd.d3phi + exp(4.0*bd.phi)*bd.gamma23*(Sij_factor);
-      S33_a[idx] = sd.d3phi*sd.d3phi + exp(4.0*bd.phi)*bd.gamma33*(Sij_factor);
+      STF11_a[idx] = sd.d1phi*sd.d1phi - bd.gamma11/3.0*diphidiphi;
+      STF12_a[idx] = sd.d1phi*sd.d2phi - bd.gamma12/3.0*diphidiphi;
+      STF13_a[idx] = sd.d1phi*sd.d3phi - bd.gamma13/3.0*diphidiphi;
+      STF22_a[idx] = sd.d2phi*sd.d2phi - bd.gamma22/3.0*diphidiphi;
+      STF23_a[idx] = sd.d2phi*sd.d3phi - bd.gamma23/3.0*diphidiphi;
+      STF33_a[idx] = sd.d3phi*sd.d3phi - bd.gamma33/3.0*diphidiphi;
     }
   }
 

@@ -1,6 +1,6 @@
-steps = 1000
+steps = 5000
 
-omp_num_threads = 16
+omp_num_threads = 64
 
 simulation_type = scalar
 

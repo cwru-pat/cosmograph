@@ -367,7 +367,8 @@
 #endif
 
 #define BSSN_MI(I) exp(6.0*paq->phi)*( \
-    - 2.0/3.0*derivative(paq->i, paq->j, paq->k, I, DIFFK_a) - 8*PI*paq->S##I \
+    - 2.0/3.0*derivative(paq->i, paq->j, paq->k, I, DIFFK_a) \
+    - 8*PI*(paq->gammai##I##1*paq->S1 + paq->gammai##I##2*paq->S2+ paq->gammai##I##3*paq->S3) \
     - 2.0/3.0*2.0*paq->d##I##theta \
     + 6.0*( \
       paq->gammai11*paq->A1##I*paq->d1phi + paq->gammai21*paq->A2##I*paq->d1phi + paq->gammai31*paq->A3##I*paq->d1phi \
@@ -387,7 +388,7 @@
 
 #define BSSN_MI_SCALE(I) exp(6.0*paq->phi)*( \
     fabs(2.0/3.0*derivative(paq->i, paq->j, paq->k, I, DIFFK_a)) \
-    + fabs(8*PI*paq->S##I) \
+    + fabs(8*PI*(paq->gammai##I##1*paq->S1 + paq->gammai##I##2*paq->S2+ paq->gammai##I##3*paq->S3)) \
     + 6.0*fabs( \
       paq->gammai11*paq->A1##I*paq->d1phi + paq->gammai21*paq->A2##I*paq->d1phi + paq->gammai31*paq->A3##I*paq->d1phi \
       + paq->gammai12*paq->A1##I*paq->d2phi + paq->gammai22*paq->A2##I*paq->d2phi + paq->gammai32*paq->A3##I*paq->d2phi \

@@ -97,6 +97,10 @@ public:
       iodata->log("Running 'dust' type simulation.");
       staticSim = new Static();
       staticSim->init();
+      if(USE_HARMONIC_ALPHA) {
+        iodata->log("Warning - not using synchronous gauge! You need to use it for dust sims.");
+        throw -1;
+      }
       iodata->log("Creating initial conditions.");
       ICs_set_dust(bssnSim->fields, staticSim->fields, fourier, iodata, bssnSim->frw);
     }
@@ -109,6 +113,9 @@ public:
     else if( simulation_type == "scalar" )
     {
       iodata->log("Running 'scalar' type simulation.");
+      if(!USE_HARMONIC_ALPHA) {
+        iodata->log("Warning - not using harmonic gauge! You may want to use it.");
+      }
       scalarSim = new Scalar();
       iodata->log("Creating initial conditions.");
       ICs_set_scalar_multigrid(bssnSim->fields, scalarSim);
