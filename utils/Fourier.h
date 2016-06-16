@@ -13,7 +13,7 @@
 #include <iostream>
 #include "../cosmo_macros.h"
 #include "../cosmo_types.h"
-#include "../globals.h"
+#include "../cosmo_globals.h"
 
 namespace cosmo
 {

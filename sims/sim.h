@@ -3,12 +3,12 @@
 
 #include "../cosmo_includes.h"
 #include "../cosmo_types.h"
-#include "../globals.h"
+#include "../cosmo_globals.h"
 
 #include "../utils/Fourier.h"
 #include "../utils/reference_frw.h"
 
-#include "../ICs.h"
+#include "../ICs/ICs.h"
 #include "../IO/io.h"
 
 #include "../bssn/bssn.h"

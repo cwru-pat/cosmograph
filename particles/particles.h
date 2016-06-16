@@ -3,7 +3,7 @@
 
 #include "../cosmo_includes.h"
 #include "../cosmo_types.h"
-#include "../globals.h"
+#include "../cosmo_globals.h"
 
 #include "../utils/math.h"
 

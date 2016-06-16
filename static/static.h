@@ -4,7 +4,7 @@
 #include "../cosmo_macros.h"
 #include "../cosmo_includes.h"
 #include "../cosmo_types.h"
-#include "../globals.h"
+#include "../cosmo_globals.h"
 
 #include "../utils/Array.h"
 #include "../utils/reference_frw.h"

@@ -50,7 +50,7 @@ include_directories(/home/jbm120/hdf5/build/include)
 
 file(GLOB COSMO_SOURCES *.cc bssn/*.cc particles/*.cc
   scalar/*.cc IO/*.cc utils/*.cc elliptic_solver/multigrid.cpp
-  static/*.cc sims/*.cc)
+  static/*.cc sims/*.cc ICs/*.cc)
 
 add_executable(cosmo ${COSMO_SOURCES})
 target_link_libraries(cosmo m rt z ${HDF5_LIBRARY} ${FFTW_LIBRARIES})

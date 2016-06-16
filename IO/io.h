@@ -3,7 +3,7 @@
 
 #include "../cosmo_includes.h"
 #include "../cosmo_types.h"
-#include "../globals.h"
+#include "../cosmo_globals.h"
 
 #include "../utils/Fourier.h"
 #include "../utils/reference_frw.h"
@@ -11,9 +11,9 @@
 
 #include "../cosmotrace/raytrace.h"
 
-#include "../IO/IOData.h"
 #include "../bssn/bssn.h"
 #include "../scalar/scalar.h"
+#include "IOData.h"
 
 namespace cosmo
 {

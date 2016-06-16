@@ -4,7 +4,7 @@
 #include "../cosmo_macros.h"
 #include "../cosmo_types.h"
 #include "../cosmo_includes.h"
-#include "../globals.h"
+#include "../cosmo_globals.h"
 
 namespace cosmo
 {

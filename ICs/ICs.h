@@ -1,15 +1,15 @@
 #ifndef COSMO_ICS
 #define COSMO_ICS
 
-#include "cosmo_includes.h"
-#include "cosmo_types.h"
-#include "globals.h"
+#include "../cosmo_includes.h"
+#include "../cosmo_types.h"
+#include "../cosmo_globals.h"
 
 #include "ICs_data.h"
 
-#include "utils/Fourier.h"
+#include "../utils/Fourier.h"
 
-#include "cosmotrace/raytrace.h"
+#include "../cosmotrace/raytrace.h"
 
 namespace cosmo
 {
