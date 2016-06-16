@@ -2,7 +2,12 @@
 #include "cosmo_types.h"
 #include "globals.h"
 
-#include "cosmosim.h"
+#include "sims/sim.h"
+#include "sims/dust.h"
+#include "sims/dust_lambda.h"
+#include "sims/particles.h"
+#include "sims/scalar.h"
+#include "sims/vacuum.h"
 
 using namespace std;
 using namespace cosmo;
@@ -36,17 +41,48 @@ int main(int argc, char **argv)
     std::cout << "Error: please supply exactly one config filename as an argument.\n";
     return EXIT_FAILURE;
   }
+  // TODO: eliminate global _config; feed directly into constructor.
   _config.parse(argv[1]);
 
   // number of threads
   omp_set_num_threads(stoi(_config["omp_num_threads"]));
 
-  // Create and run simulation
+  // Create simulation according to simulation_type
   CosmoSim * cosmoSim;
-// TODO: eliminate global _config; feed directly into constructor.
-  cosmoSim = new CosmoSim();
+  std::string simulation_type = _config["simulation_type"];
+  if( simulation_type == "dust" )
+  {
+    cosmoSim = new DustSim();
+  }
+  else if( simulation_type == "dust_lambda" )
+  {
+    cosmoSim = new DustLambdaSim();
+  }
+  else if( simulation_type == "particles" )
+  {
+    cosmoSim = new ParticleSim();
+  }
+  else if( simulation_type == "scalar" )
+  {
+    cosmoSim = new ScalarSim();
+  }
+  else if( simulation_type == "vacuum" )
+  {
+    cosmoSim = new VacuumSim();
+  }
+  else
+  {
+    std::cerr << "Invalid simulation type specified.";
+    throw 2;
+  }
+
+  // Initialize simulation 
   cosmoSim->init();
+
+  // Run simulation
   cosmoSim->run();
+
+  // Clean up
   cosmoSim->~CosmoSim();
 
   return EXIT_SUCCESS;

@@ -61,12 +61,12 @@ void io_show_progress(idx_t s, idx_t maxs)
     return;
   }
 
-  idx_t s_digits = (int) log10 ((double) s+1.0) + 1;
+  idx_t s_digits = (int) log10 ((double) s) + 1;
   if(s==0)
   {
     s_digits = 1;
   }
-  idx_t maxs_digits = (int) log10 ((double) maxs) + 1;
+  idx_t maxs_digits = (int) log10 ((double) maxs);
 
   std::cout << " Running step " << s;
   for(int i=s_digits; i<=maxs_digits; ++i)

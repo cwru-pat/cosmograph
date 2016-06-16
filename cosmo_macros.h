@@ -3,7 +3,7 @@
 
 /* Cosmological run parameters: */
 // Code runs much slower with global N (slow indexing?)
-#define N 64
+#define N 32
 #define NX N
 #define NY N
 #define NZ N
@@ -37,6 +37,7 @@
 #define BS_H_DAMPING_AMPLITUDE 1.0
 #define JM_K_DAMPING_AMPLITUDE 0.0
 
+// not thoroughly tested / debugged:
 #define USE_Z4c_DAMPING false
 #if USE_Z4c_DAMPING
   #define Z4c_K1_DAMPING_AMPLITUDE 0.05
@@ -46,8 +47,8 @@
   #define Z4c_K2_DAMPING_AMPLITUDE 0.0
 #endif
 
-#define USE_CONFORMAL_SYNC_ALPHA false
-#define USE_HARMONIC_ALPHA false
+// unfinished: #define USE_CONFORMAL_SYNC_ALPHA false
+#define USE_HARMONIC_ALPHA false // dust sims require sync. gauge
 
 #define USE_BSSN_SHIFT true
 

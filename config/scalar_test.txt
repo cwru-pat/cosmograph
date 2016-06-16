@@ -1,4 +1,4 @@
-steps = 5000
+steps = 100
 
 omp_num_threads = 64
 
