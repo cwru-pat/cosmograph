@@ -251,8 +251,14 @@ void io_raytrace_dump(IOData *iodata, idx_t step,
   if( step % std::stoi(_config["IO_raytrace_interval"]) != 0 )
     return;
   
-  idx_t num_values = 6;
+  idx_t num_values = 9;
   idx_t num_rays = rays->size();
+
+  real_t total_E = 0.0;
+  real_t total_Phi = 0.0;
+  real_t total_ell = 0.0;
+  real_t total_Phirho = 0.0;
+  real_t total_rho = 0.0;
 
   RaytraceData<real_t> tmp_rd = {0};
   real_t * ray_dump_values = new real_t[num_rays * num_values];
@@ -266,12 +272,33 @@ void io_raytrace_dump(IOData *iodata, idx_t step,
     ray_dump_values[n*num_values + 3] = tmp_rd.x[2];
     ray_dump_values[n*num_values + 4] = tmp_rd.Phi;
     ray_dump_values[n*num_values + 5] = tmp_rd.ell;
+    ray_dump_values[n*num_values + 6] = tmp_rd.sig_Re;
+    ray_dump_values[n*num_values + 7] = tmp_rd.sig_Im;
+    ray_dump_values[n*num_values + 8] = tmp_rd.rho;
+
+    total_E += tmp_rd.E;
+    total_Phi += tmp_rd.Phi;
+    total_ell += tmp_rd.ell;
+    total_Phirho += tmp_rd.Phi*tmp_rd.rho;
+    total_rho += tmp_rd.E*tmp_rd.rho;
   }
 
+  // Write data from individual rays to file
   std::string dataset_name = "step_" + std::to_string(step);
   std::string file_name = "raytracedata";
   io_dump_2d_array(iodata, ray_dump_values, num_rays, num_values,
     file_name, dataset_name);
+
+  // write average, weighted average (biased) values to file
+  if(total_rho == 0.0)
+    total_rho = 1.0;
+  io_dump_value(iodata, total_E / (real_t) num_rays, "raytracedata_avg", "\t");
+  io_dump_value(iodata, total_Phi / (real_t) num_rays, "raytracedata_avg", "\t");
+  io_dump_value(iodata, total_ell / (real_t) num_rays, "raytracedata_avg", "\t");
+  io_dump_value(iodata, total_rho / (real_t) num_rays, "raytracedata_avg", "\t");
+  io_dump_value(iodata, total_Phirho / total_rho, "raytracedata_avg", "\n");
+
+  return;
 }
 
 /**

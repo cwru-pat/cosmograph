@@ -78,8 +78,14 @@ void CosmoSim::run()
   _timer["loop"].stop();
 
   iodata->log("\nEnding simulation.");
-  iodata->log("Average conformal factor reached "
-    + stringify(average(*bssnSim->fields["DIFFphi_p"])) );
+  iodata->log(
+      "Average conformal factor reached: " + stringify(
+        average(*bssnSim->fields["DIFFphi_p"]) + bssnSim->frw->get_phi()
+      ));
+  iodata->log(
+      "Average extrinsic curvature reached: " + stringify(
+        average(*bssnSim->fields["DIFFK_p"]) + bssnSim->frw->get_K()
+      ));
 }
 
 void CosmoSim::runRayTraceStep()
