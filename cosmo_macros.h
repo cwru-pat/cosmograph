@@ -3,7 +3,7 @@
 
 /* Cosmological run parameters: */
 // Code runs much slower with global N (slow indexing?)
-#define N 32
+#define N 144
 #define NX N
 #define NY N
 #define NZ N
@@ -17,7 +17,7 @@
 
 /* Stability test parameters: 
 #define R 1
-#define N 50
+#define N 144
 #define NX (50*R)
 // NY, NZ should be at least the # points in the stencil
 #define NY 10
