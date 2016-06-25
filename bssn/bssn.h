@@ -10,7 +10,7 @@
 
 #include "../utils/math.h"
 #include "../utils/Array.h"
-#include "../utils/reference_frw.h"
+#include "../utils/FRW.h"
 #include "../cosmotrace/raytrace.h"
 
 namespace cosmo
