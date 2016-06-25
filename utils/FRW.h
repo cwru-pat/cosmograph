@@ -98,7 +98,7 @@ void FRW<RT>::P1_step(RT h)
   for(int n=0; n<num_fluids; ++n)
   {
     std::pair<RT,RT> x = fluids[n];
-    K_source += 4.0*PI_L*x.first*(1.0 + x.second);
+    K_source += 4.0*PI_L*x.first*(1.0 + 3.0*x.second);
   }
   K_K1 = 1.0/3.0*K*K + K_source;
 
@@ -138,7 +138,7 @@ void FRW<RT>::P2_step(RT h)
   {
     std::pair<RT,RT> x = fluids[n];
     RT rho_interm = fluids[n].first + (h/2.0)*fluids_K1[n];
-    K_source += 4.0*PI_L*rho_interm*(1.0 + x.second);
+    K_source += 4.0*PI_L*rho_interm*(1.0 + 3.0*x.second);
   }
   K_K2 = 1.0/3.0*K_interm*K_interm + K_source;
 
@@ -178,7 +178,7 @@ void FRW<RT>::P3_step(RT h)
   {
     std::pair<RT,RT> x = fluids[n];
     RT rho_interm = fluids[n].first + (h/2.0)*fluids_K2[n];
-    K_source += 4.0*PI_L*rho_interm*(1.0 + x.second);
+    K_source += 4.0*PI_L*rho_interm*(1.0 + 3.0*x.second);
   }
   K_K3 = 1.0/3.0*K_interm*K_interm + K_source;
 
@@ -218,7 +218,7 @@ void FRW<RT>::RK_total_step(RT h)
   {
     std::pair<RT,RT> x = fluids[n];
     RT rho_interm = fluids[n].first + h*fluids_K3[n];
-    K_source += 4.0*PI_L*rho_interm*(1.0 + x.second);
+    K_source += 4.0*PI_L*rho_interm*(1.0 + 3.0*x.second);
   }
   K_K4 = 1.0/3.0*K_interm*K_interm + K_source;
 

@@ -315,8 +315,6 @@ void BSSN::init()
 /* set current local field values */
 void BSSN::set_local_vals(BSSNData *paq)
 {
-  SET_LOCAL_INDEXES;
-
   // Pull out values of quantities at a single point
   BSSN_APPLY_TO_FIELDS(SET_LOCAL_VALUES_P);
   BSSN_APPLY_TO_GEN1_EXTRAS(SET_LOCAL_VALUES_P);

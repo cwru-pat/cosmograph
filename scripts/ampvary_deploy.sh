@@ -121,7 +121,7 @@ do
   sed -i.bak "s/IO_1D_grid_interval = 100/IO_1D_grid_interval = $IO1D/" config.txt
 
   # Adjust job name
-  sed -i.bak "s/JOBNAME/A_$i_$JOBDIR/" job.slurm
+  sed -i.bak "s/JOBNAME/A_${i}_${JOBDIR}/" job.slurm
 
   # Run job, go back up a dir
   sbatch job.slurm

@@ -7,7 +7,7 @@
 #include "../cosmo_globals.h"
 
 #include "../utils/Array.h"
-#include "../utils/reference_frw.h"
+#include "../utils/FRW.h"
 
 namespace cosmo
 {

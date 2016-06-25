@@ -33,6 +33,7 @@ CosmoSim::CosmoSim()
 CosmoSim::~CosmoSim()
 {
   iodata->log(_timer.getStateString());
+  std::cout << std::flush;
 }
 
 /**
@@ -86,6 +87,7 @@ void CosmoSim::run()
       "Average extrinsic curvature reached: " + stringify(
         average(*bssnSim->fields["DIFFK_p"]) + bssnSim->frw->get_K()
       ));
+  std::cout << std::flush;
 }
 
 void CosmoSim::runRayTraceStep()

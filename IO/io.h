@@ -6,7 +6,7 @@
 #include "../cosmo_globals.h"
 
 #include "../utils/Fourier.h"
-#include "../utils/reference_frw.h"
+#include "../utils/FRW.h"
 #include "../utils/math.h"
 
 #include "../cosmotrace/raytrace.h"
