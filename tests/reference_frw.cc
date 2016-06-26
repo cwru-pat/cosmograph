@@ -3,6 +3,7 @@
 #include "../utils/FRW.h"
 #include <iostream>
 #include <string>
+#include <cmath>
 
 #define PW2(x) ((x)*(x))
 
@@ -36,8 +37,16 @@ int main()
   std::cout << "  S = " << frw.get_S() << std::endl;
   std::cout << "  K^2 = " << PW2(frw.get_K()) << std::endl;
   std::cout << "  K_eq^2 = " << 75.3982237*frw.get_rho() << std::endl;
+
+  real_t residual = PW2(frw.get_K()) - 75.3982237*frw.get_rho();
   std::cout << "  FRW equation residual: "
-      << PW2(frw.get_K()) - 75.3982237*frw.get_rho() << std::endl;
+      << residual << std::endl;
+
+  if(std::abs(residual) > dt*dt)
+  {
+    std::cout << "Error: large residual detected!" << std::endl;
+    exit(EXIT_FAILURE);
+  }
 
   exit(EXIT_SUCCESS);
 }

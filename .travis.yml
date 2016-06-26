@@ -1,0 +1,9 @@
+
+language: cpp
+
+before_install:
+ - echo -e "machine github.com\n  login jbcm627-travis\n  password Z8wrU3RuBRuM6steQE7e" >> ~/.netrc
+ - sudo apt-get -qq update
+ - sudo apt-get install -y libhdf5-dev fftw-dev zlib1g-dev
+
+script: scripts/travis-test.sh
