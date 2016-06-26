@@ -1,9 +1,34 @@
 
 language: cpp
+sudo: required
+dist: trusty
 
-before_install:
- - echo -e "machine github.com\n  login jbcm627-travis\n  password Z8wrU3RuBRuM6steQE7e" >> ~/.netrc
+git:
+  submodules: false
+
+addons:
+  apt:
+    sources:
+    # add PPAs with more up-to-date toolchains
+    - ubuntu-toolchain-r-test
+    - llvm-toolchain-precise-3.6
+    packages:
+    # install toolchains
+    - gcc-5
+    - g++-5
+    - libhdf5-dev
+    - libfftw3-dev
+    - libzip-dev
+
+install:
+ - pwd
  - sudo apt-get -qq update
- - sudo apt-get install -y libhdf5-dev fftw-dev zlib1g-dev
+ - echo -e "machine github.com login jbcm627-travis password Z8wrU3RuBRuM6steQE7e" >> ~/.netrc
+ - git submodule update --init --recursive
+ - gcc --version
+ - g++ --version
 
-script: scripts/travis-test.sh
+before_script:
+ - export OMP_NUM_THREADS=4
+
+script: scripts/run_tests.sh

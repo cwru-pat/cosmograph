@@ -4,7 +4,7 @@
 #include <iostream>
 #include "../utils/Array.h"
 #include "../utils/math.h"
-#include "../globals.h"
+#include "../cosmo_globals.h"
 
 using namespace cosmo;
 real_t dx;

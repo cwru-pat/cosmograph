@@ -1,7 +1,8 @@
 cosmograph
 ==========
+[![Build Status](https://travis-ci.com/jbcm627/cosmograph.svg?token=j5zJrjKFZL3UXL3HwPp6&branch=master)](https://travis-ci.com/jbcm627/cosmograph)
 
-Cosmological General Relativity And Particle Hydrodynamics
+Cosmological General Relativity And (Perfect fluid | Particle) Hydrodynamics
 
 But we'll see about the "particle" part.
 
