@@ -5,7 +5,7 @@ namespace cosmo
 
 Particles::Particles()
 {
-  // anything to do?
+  particles = new particle_vec();
 }
 
 Particles::~Particles()
@@ -45,7 +45,7 @@ void Particles::init(idx_t n_particles)
     particle_register.p_c = particle;
     particle_register.p_f = particle;
 
-    particles.push_back( particle_register );
+    particles->push_back( particle_register );
   }
 }
 
@@ -62,8 +62,8 @@ void Particles::addParticle(Particle<real_t> particle)
   particle_register.p_a = particle;
   particle_register.p_c = particle;
   particle_register.p_f = particle;
-
-  particles.push_back( particle_register );
+  particles->push_back( particle_register );
+  return;
 }
 
 /**
@@ -262,9 +262,11 @@ ParticleMetricPrimitives<real_t> Particles::getInterpolatedPrimitives(Particle<r
 {
   arr_t & DIFFalpha_a = *bssn_fields["DIFFalpha_a"];
   
-  arr_t & beta1_a = *bssn_fields["beta1_a"];
-  arr_t & beta2_a = *bssn_fields["beta2_a"];
-  arr_t & beta3_a = *bssn_fields["beta3_a"];
+  #if USE_BSSN_SHIFT
+    arr_t & beta1_a = *bssn_fields["beta1_a"];
+    arr_t & beta2_a = *bssn_fields["beta2_a"];
+    arr_t & beta3_a = *bssn_fields["beta3_a"];
+  #endif
 
   arr_t & DIFFphi_a = *bssn_fields["DIFFphi_a"];
 
@@ -291,9 +293,15 @@ ParticleMetricPrimitives<real_t> Particles::getInterpolatedPrimitives(Particle<r
         pp.rootdetg = std::exp(6.0*DIFFphi_a[idx]);
         pp.alpha = DIFFalpha_a[idx];
 
-        pp.beta[0] = beta1_a[idx];
-        pp.beta[1] = beta2_a[idx];
-        pp.beta[2] = beta3_a[idx];
+        #if USE_BSSN_SHIFT
+          pp.beta[0] = beta1_a[idx];
+          pp.beta[1] = beta2_a[idx];
+          pp.beta[2] = beta3_a[idx];
+        #else
+          pp.beta[0] = 0;
+          pp.beta[1] = 0;
+          pp.beta[2] = 0;
+        #endif
 
         pp.gi[aIDX(1,1)] = std::exp(-4.0*DIFFphi_a[idx])*(1.0 + DIFFgamma22_a[idx] + DIFFgamma33_a[idx] - pw2(DIFFgamma23_a[idx]) + DIFFgamma22_a[idx]*DIFFgamma33_a[idx]);
         pp.gi[aIDX(2,2)] = std::exp(-4.0*DIFFphi_a[idx])*(1.0 + DIFFgamma11_a[idx] + DIFFgamma33_a[idx] - pw2(DIFFgamma13_a[idx]) + DIFFgamma11_a[idx]*DIFFgamma33_a[idx]);
@@ -306,9 +314,15 @@ ParticleMetricPrimitives<real_t> Particles::getInterpolatedPrimitives(Particle<r
         {
           pp.dalpha[a] = DER(DIFFalpha_a);
 
-          pp.dbeta[a][0] = DER(beta1_a);
-          pp.dbeta[a][1] = DER(beta2_a);
-          pp.dbeta[a][2] = DER(beta3_a);
+          #if USE_BSSN_SHIFT
+            pp.dbeta[a][0] = DER(beta1_a);
+            pp.dbeta[a][1] = DER(beta2_a);
+            pp.dbeta[a][2] = DER(beta3_a);
+          #else
+            pp.dbeta[a][0] = 0;
+            pp.dbeta[a][1] = 0;
+            pp.dbeta[a][2] = 0;
+          #endif
 
           pp.dgi[a][aIDX(1,1)] = -4.0*DER(DIFFphi_a)*pp.gi[aIDX(1,1)]
             + std::exp(-4.0*DIFFphi_a[idx])*(DER(DIFFgamma22_a) + DER(DIFFgamma33_a) - 2.0*DER(DIFFgamma23_a) + DER(DIFFgamma22_a)*DIFFgamma33_a[idx] + DIFFgamma22_a[idx]*DER(DIFFgamma33_a));

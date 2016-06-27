@@ -6,6 +6,7 @@
 #include "../cosmo_globals.h"
 
 #include "../utils/math.h"
+#include "../utils/Timer.h"
 
 #include "particles_data.h"
 #include "particles_macros.h"
@@ -22,7 +23,7 @@ namespace cosmo
 class Particles
 {
   // list of particle registers
-  std::vector<ParticleRegister<real_t>> particles;
+  particle_vec * particles;
 
 public:
   
@@ -46,11 +47,11 @@ public:
     real_t x_d[3] /* normalized position within cube */
     );
 
-  ParticleMetricPrimitives<real_t> getInterpolatedPrimitivesIncomplete(Particle<real_t> * p,
-    map_t & bssn_fields);
+  ParticleMetricPrimitives<real_t> getInterpolatedPrimitivesIncomplete(
+    Particle<real_t> * p, map_t & bssn_fields);
 
-  ParticleMetricPrimitives<real_t> getInterpolatedPrimitives(Particle<real_t> * p,
-    map_t & bssn_fields);
+  ParticleMetricPrimitives<real_t> getInterpolatedPrimitives(
+    Particle<real_t> * p, map_t & bssn_fields);
 
   void RKStep(ParticleRegister<real_t> * pr, real_t h, real_t RK_sum_coeff,
     map_t & bssn_fields);
@@ -64,11 +65,8 @@ public:
   void regSwap_c_a();
   void stepTerm();
 
-  void addParticlesToBSSNSrc(
-    map_t & bssn_fields);
-
-  void addParticleToBSSNSrc(Particle<real_t> * p_c,
-    map_t & bssn_fields);
+  void addParticlesToBSSNSrc(map_t & bssn_fields);
+  void addParticleToBSSNSrc(Particle<real_t> * p_c, map_t & bssn_fields);
 };
 
 }

@@ -39,6 +39,8 @@ public:
     K_get = K = K_in;
     alpha_get = alpha = 1.0;
     num_fluids = 0.0;
+    rho_get = 0.0;
+    S_get = 0.0;
   }
 
   // "set" variables

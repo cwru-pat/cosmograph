@@ -1,0 +1,22 @@
+steps = 1
+
+omp_num_threads = 1
+
+simulation_type = particles
+peak_amplitude_frac = 5.0
+rho_K_lambda_frac = 0.0
+ic_spec_cut = 1
+IC_viol_amp = 0.0
+
+ray_integrate = 0
+
+output_dir = particle_test
+dump_file = calculated
+
+IO_3D_grid_interval = 100
+IO_2D_grid_interval = 200
+IO_1D_grid_interval = 200
+
+IO_powerspec_interval = 2000
+IO_constraint_interval = 1
+IO_bssnstats_interval = 1

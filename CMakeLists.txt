@@ -3,13 +3,14 @@ project(COSMO)
 cmake_minimum_required(VERSION 2.6.0)
 
 # add -pg for gprof
+# add -g for valgrind
 set(PROFILING         "")
 set(CMAKE_EXE_LINKER_FLAGS  "${PROFILING}")
 
 # add -g for valgrind
-set(OPT_LEVEL         "-O3 -ffast-math")
+set(OPT_LEVEL         "-O1 -ffast-math")
 set(WARNINGS          "-pedantic -Wall -Wno-unused-variable -Wno-unused-function")
-set(CC_OPTS           "-march=native -g")
+set(CC_OPTS           "-march=native")
 set(CMAKE_CXX_FLAGS   "${CC_OPTS} ${OPT_LEVEL} ${WARNINGS} ${PROFILING}")
 
 # Check for OpenMP

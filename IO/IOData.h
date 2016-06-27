@@ -30,6 +30,7 @@ class IOData
     void _init(std::string output_dir_in, int verbosity_in)
     {
       output_dir = output_dir_in;
+      verbosity = verbosity_in;
       size_t len_dir_name = output_dir.length();
 
       std::string log_filename = "log.txt";

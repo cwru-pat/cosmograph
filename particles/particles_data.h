@@ -33,6 +33,8 @@ struct ParticleRegister {
   Particle<RT> p_f;
 };
 
+typedef std::vector<ParticleRegister<real_t>> particle_vec;
+
 /**
  * @brief Data structure for storing metric quantities ("primitives") at an
  * arbitrary point

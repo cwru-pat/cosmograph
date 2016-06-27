@@ -3,6 +3,14 @@
 namespace cosmo
 {
 
+ParticleSim::ParticleSim()
+{
+  if(USE_REFERENCE_FRW)
+  {
+    iodata->log("Error: USE_REFERENCE_FRW must be false for particle sims!");
+  }
+}
+
 void ParticleSim::init()
 {
   _timer["init"].start();
@@ -184,7 +192,7 @@ void ParticleSim::runParticleStep()
 void ParticleSim::runStep()
 {
   runCommonStepTasks();
-  
+
   initParticleStep();
   outputParticleStep();
   runParticleStep();

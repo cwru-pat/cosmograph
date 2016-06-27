@@ -155,7 +155,7 @@ void io_bssn_constraint_violation(IOData *iodata, idx_t step, BSSN * bssnSim)
 {
   if( step % std::stoi(_config["IO_constraint_interval"]) == 0 )
   {
-    real_t H_calcs[7], M_calcs[7];
+    real_t H_calcs[7] = {0}, M_calcs[7] = {0};
 
     // Constraint Violation Calculations
     bssnSim->setHamiltonianConstraintCalcs(H_calcs, false);

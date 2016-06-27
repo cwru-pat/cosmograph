@@ -13,8 +13,8 @@
 #define DER(field) (derivative(x_idx, y_idx, z_idx, a+1, field))
 
 #define PARTICLES_PARALLEL_LOOP(pr) \
-  typename std::vector<ParticleRegister<real_t>>::iterator pr; \
+  typename particle_vec::iterator pr; \
   _Pragma("omp parallel for default(shared) private(pr)") \
-  for(pr = particles.begin(); pr < particles.end(); ++pr) \
+  for(pr = particles->begin(); pr < particles->end(); ++pr) \
 
 #endif

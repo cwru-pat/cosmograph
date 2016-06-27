@@ -17,7 +17,7 @@ protected:
   Particles * particles;
 
 public:
-  ParticleSim(){}
+  ParticleSim();
   ~ParticleSim(){}
 
   void init();
