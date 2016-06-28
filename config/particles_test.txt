@@ -1,6 +1,6 @@
 steps = 1
 
-omp_num_threads = 1
+omp_num_threads = 32
 
 simulation_type = particles
 peak_amplitude_frac = 5.0

@@ -29,7 +29,7 @@
 #define dt (0.1*dx)
 ****/
 
-#define USE_REFERENCE_FRW true
+#define USE_REFERENCE_FRW false
 #define NORMALIZE_GAMMAIJ_AIJ true
 
 // Numerical Error Damping strength parameters

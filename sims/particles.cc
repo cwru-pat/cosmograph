@@ -8,6 +8,7 @@ ParticleSim::ParticleSim()
   if(USE_REFERENCE_FRW)
   {
     iodata->log("Error: USE_REFERENCE_FRW must be false for particle sims!");
+    throw -1;
   }
 }
 
