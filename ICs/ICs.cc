@@ -97,6 +97,13 @@ void set_gaussian_random_field(arr_t & field, Fourier *fourier, ICsData *icd)
             py > -0.5 ? ROUND_2_IDXT(py) : NY + ROUND_2_IDXT(py),
             pz > -0.5 ? ROUND_2_IDXT(pz) : NZ + ROUND_2_IDXT(pz)
           );
+          real_t max_fft_index = NX*NY*(NZ/2+1) - 1;
+          if(fft_index > max_fft_index)
+          {
+            std::cerr << "Warning: index " << fft_index << " is greater than max ("
+              << max_fft_index << ")." << std::endl;
+            fft_index = max_fft_index;
+          }
 
           pmag = sqrt(
             pw2(px * ( (real_t) N / (real_t) NX ) )

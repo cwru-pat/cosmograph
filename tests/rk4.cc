@@ -48,9 +48,15 @@ int main()
     << " (analytic soln is " << soln_t(1.0 + max_steps*dt) << ")"
     << std::endl;
 
-  std::cout << "Residual is: "
-    << x._array_p[0] - soln_t(1.0 + max_steps*dt)
+  real_t residual = x._array_p[0] - soln_t(1.0 + max_steps*dt);
+  std::cout << "Residual is: " << residual
     << " with N*dt^4 = " << dt*dt*dt*dt*max_steps << std::endl;
+
+  if(std::abs(residual) > 10e-5)
+  {
+    std::cout << "Error: unusually large error detected in RK4 integrator!";
+    throw -1;
+  }
 
   exit(EXIT_SUCCESS);
 }

@@ -21,6 +21,11 @@ if [ $? -ne 0 ]; then
     echo "Error: array class check failed!"
     exit 1
 fi
+g++ --std=c++11 rk4.cc -O0 && ./a.out
+if [ $? -ne 0 ]; then
+    echo "Error: RK4 class check failed!"
+    exit 1
+fi
 rm a.out
 
 ###

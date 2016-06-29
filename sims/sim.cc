@@ -32,7 +32,6 @@ CosmoSim::CosmoSim()
 
 CosmoSim::~CosmoSim()
 {
-  iodata->log(_timer.getStateString());
   std::cout << std::flush;
 }
 
@@ -87,6 +86,8 @@ void CosmoSim::run()
       "Average extrinsic curvature reached: " + stringify(
         average(*bssnSim->fields["DIFFK_p"]) + bssnSim->frw->get_K()
       ));
+
+  iodata->log(_timer.getStateString());
   std::cout << std::flush;
 }
 
@@ -94,17 +95,21 @@ void CosmoSim::runRayTraceStep()
 {
   // evolve any light rays
   _timer["Raytrace_step"].start();
-  auto ray = rays.begin();
 
-  #pragma omp parallel for default(shared) private(ray)
-  for(ray = rays.begin(); ray < rays.end(); ++ray)
+  idx_t n = 0;
+  idx_t num_rays = rays.size();
+
+  #pragma omp parallel for default(shared) private(n)
+  for(n = 0; n < num_rays; ++n)
   {
+    RayTrace<real_t, idx_t> * ray = rays[n];
+
     // set primitives from BSSN sim
-    bssnSim->setRaytracePrimitives(*ray);
+    bssnSim->setRaytracePrimitives(ray);
     // evolve ray
-    (*ray)->setDerivedQuantities();
-    (*ray)->evolveRay();
-  }    
+    ray->setDerivedQuantities();
+    ray->evolveRay();
+  }
   _timer["Raytrace_step"].stop();
 }
 
@@ -140,6 +145,8 @@ void CosmoSim::runCommonStepTasks()
       runRayTraceStep();
     }
   }
+
+  return;
 }
 
 void CosmoSim::prepBSSNOutput()
@@ -153,7 +160,7 @@ void CosmoSim::prepBSSNOutput()
     // and potentially subsequent Killing calculations
     BSSNData b_data = {0}; // data structure associated with bssn sim
     bssnSim->set_bd_values(i, j, k, &b_data);
-    
+
     // Additionally set KD (killing vector "Delta" quantities)
     bssnSim->set_KillingDelta(i, j, k, &b_data);
   }

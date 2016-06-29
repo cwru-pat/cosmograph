@@ -1,43 +1,76 @@
 #ifndef COSMO_MACROS
 #define COSMO_MACROS
 
-/* Cosmological run parameters: */
+
+/************************************************/
+/* Variables that can be changed at compilation */
+/* time using, eg, the -D option for gcc.       */
+/************************************************/
+
+// simulation size
 // Code runs much slower with global N (slow indexing?)
-#define N 32
-#define NX N
-#define NY N
-#define NZ N
+#ifndef N
+  #define N 16
+#endif
+#ifndef NX
+  #define NX N
+#endif
+#ifndef NY
+  #define NY N
+#endif
+#ifndef NZ
+  #define NZ N
+#endif
 #define POINTS ((NX)*(NY)*(NZ))
+
 // physical box size (eg., in hubble units)
-#define H_LEN_FRAC 0.5
-// #define dx (H_LEN_FRAC/(1.0*N))
-// #define dt (0.1*dx)
-/****/
+// eg; L = H_LEN_FRAC = N*dx
+#ifndef H_LEN_FRAC
+  #define H_LEN_FRAC 0.5
+#endif
 
+// compile using reference integrator?
+#ifndef USE_REFERENCE_FRW
+  #define USE_REFERENCE_FRW false
+#endif
 
-/* Stability test parameters: 
-#define R 1
-#define N 128
-#define NX (50*R)
-// NY, NZ should be at least the # points in the stencil
-#define NY 10
-#define NZ 10
-#define POINTS ((NX)*(NY)*(NZ))
-// box size in hubble units
-#define H_LEN_FRAC 0.5
-#define dx (1.0/NX)
-#define dt (0.1*dx)
-****/
+// Stencil order
+#ifndef STENCIL_ORDER
+  #define STENCIL_ORDER 8
+#endif
 
-#define USE_REFERENCE_FRW false
-#define NORMALIZE_GAMMAIJ_AIJ true
+// unfinished: #define USE_CONFORMAL_SYNC_ALPHA false
+#ifndef USE_HARMONIC_ALPHA
+  #define USE_HARMONIC_ALPHA false // dust sims require sync. gauge
+#endif
+
+// evolve shift as well? (if not, assumed to be zero)
+#ifndef USE_BSSN_SHIFT
+  #define USE_BSSN_SHIFT true
+#endif
+
+// normalize conformal metric and time-derivative
+#ifndef NORMALIZE_GAMMAIJ_AIJ
+  #define NORMALIZE_GAMMAIJ_AIJ true
+#endif
 
 // Numerical Error Damping strength parameters
-#define KO_ETA 1.0
-#define BS_H_DAMPING_AMPLITUDE 1.0
-#define JM_K_DAMPING_AMPLITUDE 0.0
+#ifndef KO_ETA
+  #define KO_ETA 1.0
+#endif
+#ifndef BS_H_DAMPING_AMPLITUDE
+  #define BS_H_DAMPING_AMPLITUDE 1.0
+#endif
+#ifndef JM_K_DAMPING_AMPLITUDE
+  #define JM_K_DAMPING_AMPLITUDE 0.0
+#endif
 
-// not thoroughly tested / debugged:
+
+/*****************************************/
+/* Additional variable/macro definitions */
+/*****************************************/
+
+// not really tested:
 #define USE_Z4c_DAMPING false
 #if USE_Z4c_DAMPING
   #define Z4c_K1_DAMPING_AMPLITUDE 0.05
@@ -47,20 +80,9 @@
   #define Z4c_K2_DAMPING_AMPLITUDE 0.0
 #endif
 
-// unfinished: #define USE_CONFORMAL_SYNC_ALPHA false
-#define USE_HARMONIC_ALPHA false // dust sims require sync. gauge
-
-#define USE_BSSN_SHIFT true
-
-// Stencil order
-#define STENCIL_ORDER 8
-
 #define STENCIL_CONCATENATOR(function, order) function ## order
 #define STENCIL_EVALUATOR(function, order) STENCIL_CONCATENATOR(function, order)
 #define STENCIL_ORDER_FUNCTION(function) STENCIL_EVALUATOR(function, STENCIL_ORDER)
-
-// WENO "epsilon" parameter
-#define EPS 0.0001
 
 #define PI (4.0*atan(1.0))
 #define SIGN(x) (((x) < 0.0) ? -1 : ((x) > 0.0))

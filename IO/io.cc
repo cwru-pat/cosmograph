@@ -79,7 +79,7 @@ void io_show_progress(idx_t s, idx_t maxs)
   std::cout << " [";
   for(int i=1; i<=ndots; ++i)
   {
-    if(i <= ndots*(s+1)/maxs)
+    if(i <= ndots*s/maxs)
     {
       std::cout << "=";
     }
@@ -297,6 +297,8 @@ void io_raytrace_dump(IOData *iodata, idx_t step,
   io_dump_value(iodata, total_ell / (real_t) num_rays, "raytracedata_avg", "\t");
   io_dump_value(iodata, total_rho / (real_t) num_rays, "raytracedata_avg", "\t");
   io_dump_value(iodata, total_Phirho / total_rho, "raytracedata_avg", "\n");
+
+  delete[] ray_dump_values;
 
   return;
 }
