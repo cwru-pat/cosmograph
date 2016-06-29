@@ -4,7 +4,7 @@ cmake_minimum_required(VERSION 2.6.0)
 
 # add -pg for gprof
 # add -g for valgrind
-set(PROFILING         "")
+set(PROFILING         "-g")
 set(CMAKE_EXE_LINKER_FLAGS  "${PROFILING}")
 
 # add -g for valgrind

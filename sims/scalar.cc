@@ -247,12 +247,11 @@ void ScalarSim::runScalarStep()
     #pragma omp parallel for default(shared) private(i, j, k, b_data)
     LOOP3(i,j,k)
     {
-      bssnSim->K1CalcPt(i, j, k, &b_data);
+      bssnSim->RKEvolvePt(i, j, k, &b_data);
       scalarSim->RKEvolvePt(&b_data);
     }
-    bssnSim->frw->P1_step(dt);
-    bssnSim->regSwap_c_a();
-    scalarSim->RK1Finalize();
+    bssnSim->K1Finalize();
+    scalarSim->K1Finalize();
 
     // Second RK step
     bssnSim->clearSrc();
@@ -260,12 +259,11 @@ void ScalarSim::runScalarStep()
     #pragma omp parallel for default(shared) private(i, j, k, b_data)
     LOOP3(i,j,k)
     {
-      bssnSim->K2CalcPt(i, j, k, &b_data);
+      bssnSim->RKEvolvePt(i, j, k, &b_data);
       scalarSim->RKEvolvePt(&b_data);
     }
-    bssnSim->frw->P2_step(dt);
-    bssnSim->regSwap_c_a();
-    scalarSim->RK2Finalize();
+    bssnSim->K2Finalize();
+    scalarSim->K2Finalize();
 
     // Third RK step
     bssnSim->clearSrc();
@@ -273,12 +271,11 @@ void ScalarSim::runScalarStep()
     #pragma omp parallel for default(shared) private(i, j, k, b_data)
     LOOP3(i,j,k)
     {
-      bssnSim->K3CalcPt(i, j, k, &b_data);
+      bssnSim->RKEvolvePt(i, j, k, &b_data);
       scalarSim->RKEvolvePt(&b_data);
     }
-    bssnSim->frw->P3_step(dt);
-    bssnSim->regSwap_c_a();
-    scalarSim->RK3Finalize();
+    bssnSim->K3Finalize();
+    scalarSim->K3Finalize();
 
     // Fourth RK step
     bssnSim->clearSrc();
@@ -286,12 +283,11 @@ void ScalarSim::runScalarStep()
     #pragma omp parallel for default(shared) private(i, j, k, b_data)
     LOOP3(i,j,k)
     {
-      bssnSim->K4CalcPt(i, j, k, &b_data);
+      bssnSim->RKEvolvePt(i, j, k, &b_data);
       scalarSim->RKEvolvePt(&b_data);
     }
-    bssnSim->frw->RK_total_step(dt);
-    bssnSim->stepTerm();
-    scalarSim->RK4Finalize();
+    bssnSim->K4Finalize();
+    scalarSim->K4Finalize();
 
     // "current" data should be in the _p array.
   _timer["RK_steps"].stop();

@@ -133,6 +133,7 @@ void CosmoSim::runCommonStepTasks()
     if(step == ray_flip_step) {
       iodata->log("\nFlipping sign of dt @ step = " + std::to_string(step) );
       dt = -dt;
+      bssnSim->setDt(dt);
     }
     if(step >= ray_flip_step) {
       outputRayTraceStep();
@@ -148,13 +149,13 @@ void CosmoSim::prepBSSNOutput()
   #pragma omp parallel for default(shared) private(i, j, k)
   LOOP3(i,j,k)
   {
-    // set_paq_values calculates ricci_a and AijAij_a data, needed for output
+    // set_bd_values calculates ricci_a and AijAij_a data, needed for output
     // and potentially subsequent Killing calculations
-    BSSNData b_paq = {0}; // data structure associated with bssn sim
-    bssnSim->set_paq_values(i, j, k, &b_paq);
+    BSSNData b_data = {0}; // data structure associated with bssn sim
+    bssnSim->set_bd_values(i, j, k, &b_data);
     
     // Additionally set KD (killing vector "Delta" quantities)
-    bssnSim->set_KillingDelta(i, j, k, &b_paq);
+    bssnSim->set_KillingDelta(i, j, k, &b_data);
   }
 }
 

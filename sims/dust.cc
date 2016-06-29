@@ -55,7 +55,7 @@ void DustSim::setDustICs()
   // the conformal factor in front of metric is the solution to
   // d^2 exp(\phi) = -2*pi exp(5\phi) * \delta_rho
   // generate gaussian random field 1 + xi = exp(phi) (store xi in phi_p temporarily):
-  set_gaussian_random_field(DIFFphi_p._array, fourier, &icd);
+  set_gaussian_random_field(DIFFphi_p, fourier, &icd);
 
   // delta_rho = -lap(phi)/(1+xi)^5/2pi
   #pragma omp parallel for default(shared) private(i,j,k)
@@ -159,6 +159,9 @@ void DustSim::initDustStep()
     bssnSim->stepInit();
     bssnSim->clearSrc();
     staticSim->addBSSNSrc(bssnSim->fields, bssnSim->frw);
+std::cout << "\n\n A value is: " << bssnSim->frw->get_phi();
+std::cout << " | A value is: " << (*bssnSim->fields["DIFFphi_a"])[10];
+std::cout << " | A value is: " << min(*bssnSim->fields["DIFFphi_a"]) << "\n\n";
   _timer["RK_steps"].stop();
 }
 
@@ -178,28 +181,27 @@ void DustSim::runDustStep()
   _timer["RK_steps"].start();
     // First RK step
     // source already set in initDustStep() (used for output)
-    bssnSim->K1Calc();
-    bssnSim->regSwap_c_a();
+    bssnSim->RKEvolve();
+    bssnSim->K1Finalize();
 
     // Second RK step
     bssnSim->clearSrc();
     staticSim->addBSSNSrc(bssnSim->fields, bssnSim->frw);
-    bssnSim->K2Calc();
-    bssnSim->regSwap_c_a();
+    bssnSim->RKEvolve();
+    bssnSim->K2Finalize();
 
     // Third RK step
     bssnSim->clearSrc();
     staticSim->addBSSNSrc(bssnSim->fields, bssnSim->frw);
-    bssnSim->K3Calc();
-    bssnSim->regSwap_c_a();
+    bssnSim->RKEvolve();
+    bssnSim->K3Finalize();
 
     // Fourth RK step
     bssnSim->clearSrc();
     staticSim->addBSSNSrc(bssnSim->fields, bssnSim->frw);
-    bssnSim->K4Calc();
+    bssnSim->RKEvolve();
+    bssnSim->K4Finalize();
 
-    // Wrap up
-    bssnSim->stepTerm();
     // "current" data should be in the _p array.
   _timer["RK_steps"].stop();
 }

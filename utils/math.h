@@ -611,16 +611,28 @@ inline real_t conformal_average(arr_t & field, arr_t & DIFFphi, real_t phi_FRW)
 
 inline real_t max(arr_t & field)
 {
-  // note this may have poor precision for large datasets
   idx_t i=0, j=0, k=0;
-  real_t max = field[0];
+  real_t max_val = field[0];
   LOOP3(i, j, k)
   {
-    if(field[INDEX(i,j,k)] > max) {
-      max = field[INDEX(i,j,k)];
+    if(field[INDEX(i,j,k)] > max_val) {
+      max_val = field[INDEX(i,j,k)];
     }
   }
-  return max;
+  return max_val;
+}
+
+inline real_t min(arr_t & field)
+{
+  idx_t i=0, j=0, k=0;
+  real_t min_val = field[0];
+  LOOP3(i, j, k)
+  {
+    if(field[INDEX(i,j,k)] < min_val) {
+      min_val = field[INDEX(i,j,k)];
+    }
+  }
+  return min_val;
 }
 
 inline real_t standard_deviation(arr_t & field, real_t avg)

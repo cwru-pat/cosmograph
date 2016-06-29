@@ -52,7 +52,7 @@ void ParticleSim::setParticleICs()
   // the conformal factor in front of metric is the solution to
   // d^2 exp(\phi) = -2*pi exp(5\phi) * \rho
   // generate gaussian random field 1 + xi = exp(phi) (use phi_p as a proxy):
-  set_gaussian_random_field(DIFFphi_p._array, fourier, &icd);
+  set_gaussian_random_field(DIFFphi_p, fourier, &icd);
 
   // rho = -lap(phi)/xi^5/2pi
   LOOP3(i, j, k) {
@@ -156,36 +156,38 @@ void ParticleSim::runParticleStep()
 {
   _timer["RK_steps"].start();
     // First RK step
-    bssnSim->K1Calc();
+    bssnSim->RKEvolve();
     particles->RK1Step(bssnSim->fields);
-    bssnSim->regSwap_c_a();
+    bssnSim->K1Finalize();
     particles->regSwap_c_a();
 
+    // Second RK step source
+    bssnSim->clearSrc();
+    particles->addParticlesToBSSNSrc(bssnSim->fields);
     // Second RK step
-    bssnSim->clearSrc();
-    particles->addParticlesToBSSNSrc(bssnSim->fields);
-    bssnSim->K2Calc();
+    bssnSim->RKEvolve();
     particles->RK2Step(bssnSim->fields);
-    bssnSim->regSwap_c_a();
+    bssnSim->K2Finalize();
     particles->regSwap_c_a();
 
+    // Third RK step source
+    bssnSim->clearSrc();
+    particles->addParticlesToBSSNSrc(bssnSim->fields);
     // Third RK step
-    bssnSim->clearSrc();
-    particles->addParticlesToBSSNSrc(bssnSim->fields);
-    bssnSim->K3Calc();
+    bssnSim->RKEvolve();
     particles->RK3Step(bssnSim->fields);
-    bssnSim->regSwap_c_a();
+    bssnSim->K3Finalize();
     particles->regSwap_c_a();
 
-    // Fourth RK step
+    // Fourth RK step source
     bssnSim->clearSrc();
     particles->addParticlesToBSSNSrc(bssnSim->fields);
-    bssnSim->K4Calc();
+    // Fourth RK step
+    bssnSim->RKEvolve();
     particles->RK4Step(bssnSim->fields);
-
-    // Wrap up
-    bssnSim->stepTerm();
+    bssnSim->K4Finalize();
     particles->stepTerm();
+    
     // "current" data should be in the _p array.
   _timer["RK_steps"].stop();
 }

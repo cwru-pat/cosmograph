@@ -85,7 +85,7 @@ class RK4Register
       }
     }
 
-    void RK1Finalize()
+    void K1Finalize()
     {
       #pragma omp parallel for
       for(IT i=0; i<points; ++i)
@@ -97,7 +97,7 @@ class RK4Register
       swap_a_c();
     }
 
-    void RK2Finalize()
+    void K2Finalize()
     {
       #pragma omp parallel for
       for(IT i=0; i<points; ++i)
@@ -109,7 +109,7 @@ class RK4Register
       swap_a_c();
     }
 
-    void RK3Finalize()
+    void K3Finalize()
     {
       #pragma omp parallel for
       for(IT i=0; i<points; ++i)
@@ -121,7 +121,7 @@ class RK4Register
       swap_a_c();
     }
 
-    void RK4Finalize()
+    void K4Finalize()
     {
       #pragma omp parallel for
       for(IT i=0; i<points; ++i)

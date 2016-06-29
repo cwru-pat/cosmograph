@@ -2,6 +2,7 @@
 #define COSMO_TYPES
 
 #include "utils/Array.h"
+#include "utils/RK4Register.h"
 #include <string>
 #include <map>
 
@@ -15,6 +16,8 @@ typedef double real_t;
 typedef long int idx_t;
 
 typedef CosmoArray<idx_t, real_t> arr_t;
+
+typedef RK4Register<idx_t, real_t> register_t;
 
 typedef std::map <std::string, arr_t *> map_t;
 

@@ -56,7 +56,7 @@ real_t cosmo_power_spectrum(real_t k, ICsData *icd)
 
 // set a field to an arbitrary gaussian random field
 
-void set_gaussian_random_field(real_t *field, Fourier *fourier, ICsData *icd)
+void set_gaussian_random_field(arr_t & field, Fourier *fourier, ICsData *icd)
 {
   idx_t i, j, k;
   real_t px, py, pz, pmag;
@@ -125,7 +125,7 @@ void set_gaussian_random_field(real_t *field, Fourier *fourier, ICsData *icd)
 
   // FFT back; 'field' array should now be populated with a gaussian random
   // field and power spectrum given by cosmo_power_spectrum.
-  fftw_execute_dft_c2r(fourier->p_c2r, fourier->f_field, field);
+  fftw_execute_dft_c2r(fourier->p_c2r, fourier->f_field, field._array);
 
   return;
 }
@@ -190,143 +190,6 @@ void init_ray_vector(std::vector<RayTrace<real_t, idx_t> *> * rays, idx_t n_rays
     RayTrace<real_t, idx_t> * ray;
     ray = new RayTrace<real_t, idx_t> (-std::fabs(dt), dx, rd);
     rays->push_back( ray );
-  }
-}
-
-
-/** -- Need to fix up below --- **/
-
-/**
- * @brief      AwA stability test
- *
- * @param      bssn_fields   The bssn fields
- * @param      static_field  The static field
- */
-void set_stability_test_ICs(map_t & bssn_fields, map_t & static_field)
-{
-  idx_t i, j, k;
-
-  std::random_device rd;
-  std::mt19937 gen(7.0 /*rd()*/);
-  std::uniform_real_distribution<real_t> dist((-1.0e-10)*50/NX*50/NX, (1.0e-10)*50/NX*50/NX);
-
-  LOOP3(i, j, k)
-  {
-    idx_t idx = NP_INDEX(i,j,k);
-
-    // default flat static vacuum spacetime.
-    bssn_fields["DIFFgamma11_p"][idx] = dist(gen);
-    bssn_fields["DIFFgamma11_a"][idx] = dist(gen);
-    bssn_fields["DIFFgamma11_c"][idx] = dist(gen);
-    bssn_fields["DIFFgamma11_f"][idx] = dist(gen);
-    bssn_fields["DIFFgamma12_p"][idx] = dist(gen);
-    bssn_fields["DIFFgamma12_a"][idx] = dist(gen);
-    bssn_fields["DIFFgamma12_c"][idx] = dist(gen);
-    bssn_fields["DIFFgamma12_f"][idx] = dist(gen);
-    bssn_fields["DIFFgamma13_p"][idx] = dist(gen);
-    bssn_fields["DIFFgamma13_a"][idx] = dist(gen);
-    bssn_fields["DIFFgamma13_c"][idx] = dist(gen);
-    bssn_fields["DIFFgamma13_f"][idx] = dist(gen);
-    bssn_fields["DIFFgamma22_p"][idx] = dist(gen);
-    bssn_fields["DIFFgamma22_a"][idx] = dist(gen);
-    bssn_fields["DIFFgamma22_c"][idx] = dist(gen);
-    bssn_fields["DIFFgamma22_f"][idx] = dist(gen);
-    bssn_fields["DIFFgamma23_p"][idx] = dist(gen);
-    bssn_fields["DIFFgamma23_a"][idx] = dist(gen);
-    bssn_fields["DIFFgamma23_c"][idx] = dist(gen);
-    bssn_fields["DIFFgamma23_f"][idx] = dist(gen);
-    bssn_fields["DIFFgamma33_p"][idx] = dist(gen);
-    bssn_fields["DIFFgamma33_a"][idx] = dist(gen);
-    bssn_fields["DIFFgamma33_c"][idx] = dist(gen);
-    bssn_fields["DIFFgamma33_f"][idx] = dist(gen);
-    
-    bssn_fields["DIFFphi_p"][idx] = dist(gen);
-    bssn_fields["DIFFphi_a"][idx] = dist(gen);
-    bssn_fields["DIFFphi_c"][idx] = dist(gen);
-    bssn_fields["DIFFphi_f"][idx] = dist(gen);
-    
-    bssn_fields["A11_p"][idx]     = dist(gen);
-    bssn_fields["A11_a"][idx]     = dist(gen);
-    bssn_fields["A11_c"][idx]     = dist(gen);
-    bssn_fields["A11_f"][idx]     = dist(gen);
-    bssn_fields["A12_p"][idx]     = dist(gen);
-    bssn_fields["A12_a"][idx]     = dist(gen);
-    bssn_fields["A12_c"][idx]     = dist(gen);
-    bssn_fields["A12_f"][idx]     = dist(gen);
-    bssn_fields["A13_p"][idx]     = dist(gen);
-    bssn_fields["A13_a"][idx]     = dist(gen);
-    bssn_fields["A13_c"][idx]     = dist(gen);
-    bssn_fields["A13_f"][idx]     = dist(gen);
-    bssn_fields["A22_p"][idx]     = dist(gen);
-    bssn_fields["A22_a"][idx]     = dist(gen);
-    bssn_fields["A22_c"][idx]     = dist(gen);
-    bssn_fields["A22_f"][idx]     = dist(gen);
-    bssn_fields["A23_p"][idx]     = dist(gen);
-    bssn_fields["A23_a"][idx]     = dist(gen);
-    bssn_fields["A23_c"][idx]     = dist(gen);
-    bssn_fields["A23_f"][idx]     = dist(gen);
-    bssn_fields["A33_p"][idx]     = dist(gen);
-    bssn_fields["A33_a"][idx]     = dist(gen);
-    bssn_fields["A33_c"][idx]     = dist(gen);
-    bssn_fields["A33_f"][idx]     = dist(gen);
-
-    bssn_fields["DIFFK_p"][idx]   = dist(gen);
-    bssn_fields["DIFFK_a"][idx]   = dist(gen);
-    bssn_fields["DIFFK_c"][idx]   = dist(gen);
-    bssn_fields["DIFFK_f"][idx]   = dist(gen);
-
-    bssn_fields["Gamma1_p"][idx]  = dist(gen);
-    bssn_fields["Gamma1_a"][idx]  = dist(gen);
-    bssn_fields["Gamma1_c"][idx]  = dist(gen);
-    bssn_fields["Gamma1_f"][idx]  = dist(gen);
-    bssn_fields["Gamma2_p"][idx]  = dist(gen);
-    bssn_fields["Gamma2_a"][idx]  = dist(gen);
-    bssn_fields["Gamma2_c"][idx]  = dist(gen);
-    bssn_fields["Gamma2_f"][idx]  = dist(gen);
-    bssn_fields["Gamma3_p"][idx]  = dist(gen);
-    bssn_fields["Gamma3_a"][idx]  = dist(gen);
-    bssn_fields["Gamma3_c"][idx]  = dist(gen);
-    bssn_fields["Gamma3_f"][idx]  = dist(gen);
-
-    bssn_fields["DIFFalpha_p"][idx]  = 0.0;
-    bssn_fields["DIFFalpha_a"][idx]  = 0.0;
-    bssn_fields["DIFFalpha_c"][idx]  = 0.0;
-    bssn_fields["DIFFalpha_f"][idx]  = 0.0;
-
-    static_field["DIFFD_a"][NP_INDEX(i,j,k)] = 0.0 + 0.0*dist(gen);
-  }
-}
-
-void set_linear_wave_ICs(map_t & bssn_fields)
-{
-  idx_t i, j, k;
-
-  LOOP3(i,j,k)
-  {
-    bssn_fields["DIFFgamma22_p"][NP_INDEX(i,j,k)] = 1.0e-8*sin( 2.0*PI*((real_t) i)*dx );
-    bssn_fields["DIFFgamma22_a"][NP_INDEX(i,j,k)] = bssn_fields["DIFFgamma22_p"][NP_INDEX(i,j,k)];
-    bssn_fields["DIFFgamma22_f"][NP_INDEX(i,j,k)] = bssn_fields["DIFFgamma22_p"][NP_INDEX(i,j,k)];
-
-    bssn_fields["DIFFgamma33_p"][NP_INDEX(i,j,k)] = -1.0e-8*sin( 2.0*PI*((real_t) i)*dx );
-    bssn_fields["DIFFgamma33_a"][NP_INDEX(i,j,k)] = bssn_fields["DIFFgamma33_p"][NP_INDEX(i,j,k)];
-    bssn_fields["DIFFgamma33_f"][NP_INDEX(i,j,k)] = bssn_fields["DIFFgamma33_p"][NP_INDEX(i,j,k)];
-
-    bssn_fields["A22_p"][NP_INDEX(i,j,k)] = PI*1.0e-8*cos( 2.0*PI*((real_t) i)*dx );
-    bssn_fields["A22_a"][NP_INDEX(i,j,k)] = bssn_fields["A22_p"][NP_INDEX(i,j,k)];
-    bssn_fields["A22_f"][NP_INDEX(i,j,k)] = bssn_fields["A22_p"][NP_INDEX(i,j,k)];
-
-    bssn_fields["A33_p"][NP_INDEX(i,j,k)] = -PI*1.0e-8*cos( 2.0*PI*((real_t) i)*dx );
-    bssn_fields["A33_a"][NP_INDEX(i,j,k)] = bssn_fields["A33_p"][NP_INDEX(i,j,k)];
-    bssn_fields["A33_f"][NP_INDEX(i,j,k)] = bssn_fields["A33_p"][NP_INDEX(i,j,k)];
-
-    // FRW Background parameters
-    // real_t rho = D_MATTER; // phi = 0
-
-    // bssn_fields["r_a"][NP_INDEX(i,j,k)] = rho;
-
-    // bssn_fields["K_p"][NP_INDEX(i,j,k)] = -sqrt(24.0*PI*rho);
-    // bssn_fields["K_a"][NP_INDEX(i,j,k)] = -sqrt(24.0*PI*rho);
-    // bssn_fields["K_f"][NP_INDEX(i,j,k)] = -sqrt(24.0*PI*rho);
   }
 }
 

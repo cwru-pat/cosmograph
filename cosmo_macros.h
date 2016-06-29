@@ -3,7 +3,7 @@
 
 /* Cosmological run parameters: */
 // Code runs much slower with global N (slow indexing?)
-#define N 128
+#define N 32
 #define NX N
 #define NY N
 #define NZ N
@@ -50,7 +50,7 @@
 // unfinished: #define USE_CONFORMAL_SYNC_ALPHA false
 #define USE_HARMONIC_ALPHA false // dust sims require sync. gauge
 
-#define USE_BSSN_SHIFT false
+#define USE_BSSN_SHIFT true
 
 // Stencil order
 #define STENCIL_ORDER 8
@@ -107,34 +107,29 @@
 // structure to store "faces" 2 points away (6 of them; _ext[dimension (x,y,z)][direction (-,+)])
 #define DECLARE_ADJ_ADJACENT_REAL_T(name) real_t name##_adj_ext[3][2]
 
-// Point only
-#define SET_LOCAL_VALUES_P(name) \
-    paq->name = name##_a[paq->idx];
 
 // RK4 method, using 4 "registers".  One for the "_p"revious step data, one
 // for the data being "_a"ctively used for calculation, one for the
 // Runge-Kutta "_c"oefficient being calculated, and lastly the "_f"inal
 // result of the calculation.
-#define RK4_ARRAY_ADDMAP(name)          \
-        fields[#name "_a"] = &name##_a; \
-        fields[#name "_c"] = &name##_c; \
-        fields[#name "_p"] = &name##_p; \
-        fields[#name "_f"] = &name##_f
+#define RK4_ARRAY_ADDMAP(name) \
+        fields[#name "_a"] = & name->_array_a; \
+        fields[#name "_c"] = & name->_array_c; \
+        fields[#name "_p"] = & name->_array_p; \
+        fields[#name "_f"] = & name->_array_f
 
 #define RK4_ARRAY_CREATE(name) \
-        arr_t name##_a, name##_c, name##_p, name##_f
+        register_t * name
 
 #define RK4_ARRAY_ALLOC(name) \
-        name##_a.init(NX, NY, NZ); \
-        name##_c.init(NX, NY, NZ); \
-        name##_p.init(NX, NY, NZ); \
-        name##_f.init(NX, NY, NZ)
+        name = new register_t(); \
+        name->init(NX, NY, NZ, dt)
 
 #define RK4_ARRAY_DELETE(name) \
-        name##_a.~CosmoArray();    \
-        name##_c.~CosmoArray();    \
-        name##_p.~CosmoArray();    \
-        name##_f.~CosmoArray()
+        name->~RK4Register()
+
+#define RK4_SET_LOCAL_VALUES(name) \
+    bd->name = name->_array_a[bd->idx];
 
 // A GEN1 method; just declares one register.
 // Sets up an "_a" (active) register.
@@ -149,5 +144,8 @@
 
 #define GEN1_ARRAY_DELETE(name) \
         name##_a.~CosmoArray()
+
+#define GEN1_SET_LOCAL_VALUES(name) \
+    bd->name = name##_a[bd->idx];
 
 #endif

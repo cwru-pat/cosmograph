@@ -31,11 +31,11 @@ typedef struct {
 class Scalar
 {
 public:
-  RK4Register<idx_t, real_t> phi;
-  RK4Register<idx_t, real_t> Pi;
-  RK4Register<idx_t, real_t> psi1;
-  RK4Register<idx_t, real_t> psi2;
-  RK4Register<idx_t, real_t> psi3;
+  register_t phi;
+  register_t Pi;
+  register_t psi1;
+  register_t psi2;
+  register_t psi3;
 
   Scalar() :
     phi(), Pi(), psi1(), psi2(), psi3()
@@ -78,40 +78,52 @@ public:
     psi3.stepInit();
   }
 
-  void RK1Finalize()
+  void K1Finalize()
   {
-    phi.RK1Finalize();
-    Pi.RK1Finalize();
-    psi1.RK1Finalize();
-    psi2.RK1Finalize();
-    psi3.RK1Finalize();
+    phi.K1Finalize();
+    Pi.K1Finalize();
+    psi1.K1Finalize();
+    psi2.K1Finalize();
+    psi3.K1Finalize();
   }
 
-  void RK2Finalize()
+  void K2Finalize()
   {
-    phi.RK2Finalize();
-    Pi.RK2Finalize();
-    psi1.RK2Finalize();
-    psi2.RK2Finalize();
-    psi3.RK2Finalize();
+    phi.K2Finalize();
+    Pi.K2Finalize();
+    psi1.K2Finalize();
+    psi2.K2Finalize();
+    psi3.K2Finalize();
   }
 
-  void RK3Finalize()
+  void K3Finalize()
   {
-    phi.RK3Finalize();
-    Pi.RK3Finalize();
-    psi1.RK3Finalize();
-    psi2.RK3Finalize();
-    psi3.RK3Finalize();
+    phi.K3Finalize();
+    Pi.K3Finalize();
+    psi1.K3Finalize();
+    psi2.K3Finalize();
+    psi3.K3Finalize();
   }
 
-  void RK4Finalize()
+  void K4Finalize()
   {
-    phi.RK4Finalize();
-    Pi.RK4Finalize();
-    psi1.RK4Finalize();
-    psi2.RK4Finalize();
-    psi3.RK4Finalize();
+    phi.K4Finalize();
+    Pi.K4Finalize();
+    psi1.K4Finalize();
+    psi2.K4Finalize();
+    psi3.K4Finalize();
+  }
+
+  void RKEvolvePt(BSSNData *bd)
+  {
+    ScalarData sd = getScalarData(bd);
+    idx_t idx = bd->idx;
+
+    phi._array_c[idx] = dt_phi(bd, &sd);
+    Pi._array_c[idx] = dt_Pi(bd, &sd);
+    psi1._array_c[idx] = dt_psi1(bd, &sd);
+    psi2._array_c[idx] = dt_psi2(bd, &sd);
+    psi3._array_c[idx] = dt_psi3(bd, &sd);
   }
 
   ScalarData getScalarData(BSSNData *bd)
@@ -147,18 +159,6 @@ public:
     sd.d3psi3 = derivative(i, j, k, 3, psi3._array_a);
 
     return sd;
-  }
-
-  void RKEvolvePt(BSSNData *bd)
-  {
-    ScalarData sd = getScalarData(bd);
-    idx_t idx = bd->idx;
-
-    phi._array_c[idx] = dt_phi(bd, &sd);
-    Pi._array_c[idx] = dt_Pi(bd, &sd);
-    psi1._array_c[idx] = dt_psi1(bd, &sd);
-    psi2._array_c[idx] = dt_psi2(bd, &sd);
-    psi3._array_c[idx] = dt_psi3(bd, &sd);
   }
 
   real_t dt_phi(BSSNData *bd, ScalarData *sd)
@@ -245,7 +245,7 @@ public:
 
       BSSNData bd = {0};
       // TODO: remove redundant computations here?
-      bssnSim->set_paq_values(i, j, k, &bd);
+      bssnSim->set_bd_values(i, j, k, &bd);
       ScalarData sd = getScalarData(&bd);
 
       // n^mu d_mu phi
