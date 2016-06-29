@@ -42,3 +42,7 @@ if [ $? -ne 0 ]; then
 fi
 # Test run
 ./cosmo ../config/dust_test.txt
+if [ $? -ne 0 ]; then
+    echo "Error: run failed!"
+    exit 1
+fi

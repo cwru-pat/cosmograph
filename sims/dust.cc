@@ -159,9 +159,6 @@ void DustSim::initDustStep()
     bssnSim->stepInit();
     bssnSim->clearSrc();
     staticSim->addBSSNSrc(bssnSim->fields, bssnSim->frw);
-std::cout << "\n\n A value is: " << bssnSim->frw->get_phi();
-std::cout << " | A value is: " << (*bssnSim->fields["DIFFphi_a"])[10];
-std::cout << " | A value is: " << min(*bssnSim->fields["DIFFphi_a"]) << "\n\n";
   _timer["RK_steps"].stop();
 }
 
