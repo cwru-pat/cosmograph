@@ -34,8 +34,7 @@ rm a.out
 mkdir -p ../build
 cd ../build
 # Run a 16^3 test
-sed -i.bak "s/define N [0-9]\+/define N 16/" ../cosmo_macros.h
-cmake ..
+cmake -DCMAKE_CXX_COMPILER=g++ -DCOSMO_N=16 -DCOSMO_USE_REFERENCE_FRW=1 ..
 if [ $? -ne 0 ]; then
     echo "Error: cmake failed!"
     exit 1
@@ -45,9 +44,15 @@ if [ $? -ne 0 ]; then
     echo "Error: make failed!"
     exit 1
 fi
-# Test run
+# Test runs
 ./cosmo ../config/dust_test.txt
 if [ $? -ne 0 ]; then
     echo "Error: run failed!"
     exit 1
 fi
+./cosmo ../config/lambda_test.txt
+if [ $? -ne 0 ]; then
+    echo "Error: run failed!"
+    exit 1
+fi
+

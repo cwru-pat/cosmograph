@@ -2,9 +2,9 @@ steps = 100
 
 omp_num_threads = 16
 
-simulation_type = dust
+simulation_type = dust_lambda
 peak_amplitude_frac = 5.0
-rho_K_lambda_frac = 0.0
+rho_K_lambda_frac = 0.07008
 ic_spec_cut = 1
 IC_viol_amp = 0.0
 
@@ -13,7 +13,7 @@ rays_num = 10
 ray_flip_step = 90
 IO_raytrace_interval = 1
 
-output_dir = dust_test
+output_dir = lambda_test
 dump_file = calculated
 
 IO_3D_grid_interval = 10

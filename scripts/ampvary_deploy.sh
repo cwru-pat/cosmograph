@@ -73,9 +73,8 @@ module load cmake/3.2.2
 echo "Creating Directories & Building Project..."
 mkdir -p "../build/$JOBDIR"
 cd ../build
-sed -i.bak "s/define N [0-9]\+/define N $RES/" ../cosmo_macros.h
 rm -rf CMake*
-cmake -DCMAKE_CXX_COMPILER=g++ ..
+cmake -DCMAKE_CXX_COMPILER=g++ -DCOSMO_N=$RES -DCOSMO_USE_REFERENCE_FRW=1 ..
 if [ $? -ne 0 ]; then
   echo "  Unable to compile - Aborting."
   rm ../cosmo_macros.h
@@ -102,7 +101,7 @@ do
   mkdir "$i"
   cd "$i"
   cp ../cosmo cosmo
-  cp ../../../config/fiducial_config.txt config.txt
+  cp ../../../config/dust_fiducial.txt config.txt
   cp ../../../scripts/job_template.slurm job.slurm
 
   # Adjust amplitude

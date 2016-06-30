@@ -40,13 +40,13 @@
 #endif
 
 // unfinished: #define USE_CONFORMAL_SYNC_ALPHA false
-#ifndef USE_HARMONIC_ALPHA
+#ifndef USE_HARMONIC_ALPHA 
   #define USE_HARMONIC_ALPHA false // dust sims require sync. gauge
 #endif
 
 // evolve shift as well? (if not, assumed to be zero)
 #ifndef USE_BSSN_SHIFT
-  #define USE_BSSN_SHIFT true
+  #define USE_BSSN_SHIFT false
 #endif
 
 // normalize conformal metric and time-derivative

@@ -2,52 +2,34 @@
 project(COSMO)
 cmake_minimum_required(VERSION 2.6.0)
 
-# add -pg for gprof
-# add -g for valgrind
-set(PROFILING         "-g")
-set(CMAKE_EXE_LINKER_FLAGS  "${PROFILING}")
+# coloring for messages
+if(NOT WIN32)
+  string(ASCII 27 Esc)
+  set(ColorReset  "${Esc}[m")
+  set(Red         "${Esc}[31m")
+  set(Green       "${Esc}[32m")
+  set(Yellow      "${Esc}[33m")
+  set(Blue        "${Esc}[34m")
+  set(Cyan        "${Esc}[36m")
+endif()
 
-# add -g for valgrind
-set(OPT_LEVEL         "-O1 -ffast-math")
-set(WARNINGS          "-pedantic -Wall -Wno-unused-variable -Wno-unused-function")
-set(CC_OPTS           "-march=native")
-set(CMAKE_CXX_FLAGS   "${CC_OPTS} ${OPT_LEVEL} ${WARNINGS} ${PROFILING}")
+# optimization and debugging
+include(cmake/optimization.cmake)
 
 # Check for OpenMP
-find_package(OpenMP)
-if (OPENMP_FOUND)
-    set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
-    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
-endif()
+include(cmake/openmp.cmake)
 
-# Need these standards for random support
-include(CheckCXXCompilerFlag)
-CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
-CHECK_CXX_COMPILER_FLAG("-std=c++0x" COMPILER_SUPPORTS_CXX0X)
-if(COMPILER_SUPPORTS_CXX11)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-elseif(COMPILER_SUPPORTS_CXX0X)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
-else()
-  message(STATUS "The compiler ${CMAKE_CXX_COMPILER} has no C++11 support. Please use a different C++ compiler.")
-endif()
+# check compiler support
+include(cmake/compiler.cmake)
 
-# FFT libraries for ICs
-find_library(FFTW_LIBRARY
-     NAMES fftw3 libfftw3 fftw libfftw
-     PATHS /home/jbm120/fftw/lib /usr/lib /usr/local/fftw/3.3.4/lib)
-set(FFTW_LIBRARIES "${FFTW_LIBRARY}")
-message(STATUS " FFTW_LIBRARY: ${FFTW_LIBRARY}")
-include_directories(/home/jbm120/fftw/include)
+# compilation options
+include(cmake/options.cmake)
+
+# FFT libraries
+include(cmake/fftw.cmake)
 
 # HDF5 libraries
-find_library(HDF5_LIBRARY
-     NAMES hdf5 libhdf5
-     PATHS /home/jbm120/hdf5/build/lib /usr/lib)
-set(HDF5_LIBRARIES "${HDF5_LIBRARY}")
-message(STATUS " HDF5_LIBRARY: ${HDF5_LIBRARY}")
-include_directories(/home/jbm120/hdf5/build/include)
-
+include(cmake/hdf5.cmake)
 
 file(GLOB COSMO_SOURCES *.cc bssn/*.cc particles/*.cc
   scalar/*.cc IO/*.cc utils/*.cc elliptic_solver/multigrid.cpp
