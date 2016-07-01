@@ -295,7 +295,7 @@
 #endif
 
 #if EXCLUDE_SECOND_ORDER_E
-  #define BSSN_DT_AIJ_SECOND_ORDER 0
+  #define BSSN_DT_AIJ_SECOND_ORDER(I, J) 0
 #else
   #define BSSN_DT_AIJ_SECOND_ORDER(I, J) ( \
         bd->gammai11*bd->A1##I*bd->A1##J + bd->gammai12*bd->A1##I*bd->A2##J + bd->gammai13*bd->A1##I*bd->A3##J \
