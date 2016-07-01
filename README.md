@@ -13,11 +13,12 @@
  - cmake
  - fftw3
  - libz
+ - a compiler with c++11 support
 
 To install these on on linux (Ubuntu, Mint), run a command like:
 
 ```{r, engine='bash', compile}
-sudo apt-get install git cmake libhdf5-dev fftw3-dev libzip-dev
+sudo apt-get install git cmake libhdf5-dev fftw3-dev libzip-dev g++
 ```
 
 ### Setting up the code

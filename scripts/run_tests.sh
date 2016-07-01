@@ -34,7 +34,7 @@ rm a.out
 mkdir -p ../build
 cd ../build
 # Run a 16^3 test
-cmake -DCMAKE_CXX_COMPILER=g++ -DCOSMO_N=16 -DCOSMO_USE_REFERENCE_FRW=1 ..
+cmake -DCMAKE_CXX_COMPILER=g++ ..
 if [ $? -ne 0 ]; then
     echo "Error: cmake failed!"
     exit 1
