@@ -47,12 +47,16 @@ fi
 # Test runs
 ./cosmo ../config/dust_test.txt
 if [ $? -ne 0 ]; then
-    echo "Error: run failed!"
+    echo "Error: dust test run failed!"
     exit 1
 fi
 ./cosmo ../config/lambda_test.txt
 if [ $? -ne 0 ]; then
+    echo "Error: dust+lambda test run failed!"
+    exit 1
+fi
+./cosmo ../config/scalar_test.txt
+if [ $? -ne 0 ]; then
     echo "Error: run failed!"
     exit 1
 fi
-

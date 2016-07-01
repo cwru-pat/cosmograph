@@ -31,7 +31,7 @@
 
 // compile using reference integrator?
 #ifndef USE_REFERENCE_FRW
-  #define USE_REFERENCE_FRW false
+  #define USE_REFERENCE_FRW true
 #endif
 
 // Stencil order

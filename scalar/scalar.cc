@@ -6,12 +6,6 @@ namespace cosmo
 Scalar::Scalar():
   phi(), Pi(), psi1(), psi2(), psi3()
 {
-  if(USE_REFERENCE_FRW)
-  {
-    std::cout << "Reference FRW not supported.";
-    throw -1;
-  }
-
   std::cout << "Creating scalar class with dt=" << dt << "\n";
 
   phi.init(NX, NY, NZ, dt);
@@ -125,7 +119,9 @@ ScalarData Scalar::getScalarData(BSSNData *bd)
 real_t Scalar::dt_phi(BSSNData *bd, ScalarData *sd)
 {
   return (
-    bd->beta1*sd->d1phi + bd->beta2*sd->d2phi + bd->beta3*sd->d3phi
+    #if(USE_BSSN_SHIFT)
+      bd->beta1*sd->d1phi + bd->beta2*sd->d2phi + bd->beta3*sd->d3phi
+    #endif
     - bd->alpha*sd->Pi
   );
 }
@@ -133,7 +129,9 @@ real_t Scalar::dt_phi(BSSNData *bd, ScalarData *sd)
 real_t Scalar::dt_Pi(BSSNData *bd, ScalarData *sd)
 {
   return (
-    bd->beta1*sd->d1Pi + bd->beta2*sd->d2Pi + bd->beta3*sd->d3Pi
+    #if(USE_BSSN_SHIFT)
+      bd->beta1*sd->d1Pi + bd->beta2*sd->d2Pi + bd->beta3*sd->d3Pi
+    #endif
     -exp(-4.0*bd->phi)*(
       bd->gammai11*(bd->alpha*sd->d1psi1 + sd->psi1*bd->d1a) + bd->gammai12*(bd->alpha*sd->d1psi2 + sd->psi1*bd->d2a) + bd->gammai13*(bd->alpha*sd->d1psi3 + sd->psi1*bd->d3a)
       + bd->gammai21*(bd->alpha*sd->d2psi1 + sd->psi2*bd->d1a) + bd->gammai22*(bd->alpha*sd->d2psi2 + sd->psi2*bd->d2a) + bd->gammai23*(bd->alpha*sd->d2psi3 + sd->psi2*bd->d3a)
@@ -154,8 +152,10 @@ real_t Scalar::dt_Pi(BSSNData *bd, ScalarData *sd)
 real_t Scalar::dt_psi1(BSSNData *bd, ScalarData *sd)
 {
   return (
-    bd->beta1*sd->d1psi1 + bd->beta2*sd->d2psi1 + bd->beta3*sd->d3psi1
-    + sd->psi1*bd->d1beta1 + sd->psi2*bd->d1beta2 + sd->psi3*bd->d1beta3
+    #if(USE_BSSN_SHIFT)
+      bd->beta1*sd->d1psi1 + bd->beta2*sd->d2psi1 + bd->beta3*sd->d3psi1
+      + sd->psi1*bd->d1beta1 + sd->psi2*bd->d1beta2 + sd->psi3*bd->d1beta3
+    #endif
     - bd->alpha*sd->d1Pi
     - sd->Pi*bd->d1a
   );
@@ -164,8 +164,10 @@ real_t Scalar::dt_psi1(BSSNData *bd, ScalarData *sd)
 real_t Scalar::dt_psi2(BSSNData *bd, ScalarData *sd)
 {
   return (
-    bd->beta1*sd->d1psi2 + bd->beta2*sd->d2psi2 + bd->beta3*sd->d3psi2
-    + sd->psi1*bd->d2beta1 + sd->psi2*bd->d2beta2 + sd->psi3*bd->d2beta3
+    #if(USE_BSSN_SHIFT)
+      bd->beta1*sd->d1psi2 + bd->beta2*sd->d2psi2 + bd->beta3*sd->d3psi2
+      + sd->psi1*bd->d2beta1 + sd->psi2*bd->d2beta2 + sd->psi3*bd->d2beta3
+    #endif
     - bd->alpha*sd->d2Pi
     - sd->Pi*bd->d2a
   );
@@ -174,8 +176,10 @@ real_t Scalar::dt_psi2(BSSNData *bd, ScalarData *sd)
 real_t Scalar::dt_psi3(BSSNData *bd, ScalarData *sd)
 {
   return (
-    bd->beta1*sd->d1psi3 + bd->beta2*sd->d2psi3 + bd->beta3*sd->d3psi3
-    + sd->psi1*bd->d3beta1 + sd->psi2*bd->d3beta2 + sd->psi3*bd->d3beta3
+    #if(USE_BSSN_SHIFT)
+      bd->beta1*sd->d1psi3 + bd->beta2*sd->d2psi3 + bd->beta3*sd->d3psi3
+      + sd->psi1*bd->d3beta1 + sd->psi2*bd->d3beta2 + sd->psi3*bd->d3beta3
+    #endif
     - bd->alpha*sd->d3Pi
     - sd->Pi*bd->d3a
   );
@@ -210,7 +214,9 @@ void Scalar::addBSSNSource(BSSN * bssnSim)
     // n^mu d_mu phi
     real_t nmudmuphi = (
       dt_phi(&bd, &sd)
-      - bd.beta1*sd.d1phi - bd.beta2*sd.d2phi - bd.beta3*sd.d3phi
+      #if(USE_BSSN_SHIFT)
+        - bd.beta1*sd.d1phi - bd.beta2*sd.d2phi - bd.beta3*sd.d3phi
+      #endif
     )/bd.alpha;
     
     // gammai^ij d_j phi d_i phi
