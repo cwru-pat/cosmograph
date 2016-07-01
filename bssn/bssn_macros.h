@@ -281,20 +281,33 @@
  * Evolution equations for indexed components
  */
 
+#if USE_BSSN_SHIFT
 #define BSSN_DT_DIFFGAMMAIJ(I, J) ( \
     - 2.0*bd->alpha*bd->A##I##J \
     + bd->gamma##I##1*bd->d##J##beta1 + bd->gamma##I##2*bd->d##J##beta2 + bd->gamma##I##3*bd->d##J##beta3 \
     + bd->gamma##J##1*bd->d##I##beta1 + bd->gamma##J##2*bd->d##I##beta2 + bd->gamma##J##3*bd->d##I##beta3 \
     - (2.0/3.0)*bd->gamma##I##J*(bd->d1beta1 + bd->d2beta2 + bd->d3beta3) \
   )
+#else
+#define BSSN_DT_DIFFGAMMAIJ(I, J) ( \
+    - 2.0*bd->alpha*bd->A##I##J \
+  )
+#endif
 
-#define BSSN_DT_AIJ(I, J) ( \
-    exp(-4.0*bd->phi)*( bd->alpha*(bd->ricciTF##I##J - 8.0*PI*bd->STF##I##J) - bd->D##I##D##J##aTF ) \
-    + bd->alpha*((bd->K + 2.0*bd->theta)*bd->A##I##J - 2.0*( \
+#if EXCLUDE_SECOND_ORDER_E
+  #define BSSN_DT_AIJ_SECOND_ORDER 0
+#else
+  #define BSSN_DT_AIJ_SECOND_ORDER(I, J) ( \
         bd->gammai11*bd->A1##I*bd->A1##J + bd->gammai12*bd->A1##I*bd->A2##J + bd->gammai13*bd->A1##I*bd->A3##J \
         + bd->gammai21*bd->A2##I*bd->A1##J + bd->gammai22*bd->A2##I*bd->A2##J + bd->gammai23*bd->A2##I*bd->A3##J \
         + bd->gammai31*bd->A3##I*bd->A1##J + bd->gammai32*bd->A3##I*bd->A2##J + bd->gammai33*bd->A3##I*bd->A3##J \
-      )) \
+      )
+#endif
+
+#if USE_BSSN_SHIFT
+#define BSSN_DT_AIJ(I, J) ( \
+    exp(-4.0*bd->phi)*( bd->alpha*(bd->ricciTF##I##J - 8.0*PI*bd->STF##I##J) - bd->D##I##D##J##aTF ) \
+    + bd->alpha*((bd->K + 2.0*bd->theta)*bd->A##I##J - 2.0*BSSN_DT_AIJ_SECOND_ORDER(I,J)) \
     + bd->beta1*derivative(bd->i, bd->j, bd->k, 1, A##I##J->_array_a) \
     + bd->beta2*derivative(bd->i, bd->j, bd->k, 2, A##I##J->_array_a) \
     + bd->beta3*derivative(bd->i, bd->j, bd->k, 3, A##I##J->_array_a) \
@@ -302,14 +315,28 @@
     + bd->A##J##1*bd->d##I##beta1 + bd->A##J##2*bd->d##I##beta2 + bd->A##J##3*bd->d##I##beta3 \
     - (2.0/3.0)*bd->A##I##J*(bd->d1beta1 + bd->d2beta2 + bd->d3beta3) \
   )
+#else
+#define BSSN_DT_AIJ(I, J) ( \
+    exp(-4.0*bd->phi)*( bd->alpha*(bd->ricciTF##I##J - 8.0*PI*bd->STF##I##J) - bd->D##I##D##J##aTF ) \
+    + bd->alpha*((bd->K + 2.0*bd->theta)*bd->A##I##J - 2.0*BSSN_DT_AIJ_SECOND_ORDER(I,J)) \
+  )
+#endif
 
 #define BSSN_DT_GAMMAI(I) (BSSN_DT_GAMMAI_NOSHIFT(I) + BSSN_DT_GAMMAI_SHIFT(I))
+
+#if EXCLUDE_SECOND_ORDER_E
+#define BSSN_DT_GAMMAI_SECOND_ORDER(I) 0
+#else
+#define BSSN_DT_GAMMAI_SECOND_ORDER(I) ( \
+  bd->G##I##11*bd->Acont11 + bd->G##I##22*bd->Acont22 + bd->G##I##33*bd->Acont33 \
+  + 2.0*(bd->G##I##12*bd->Acont12 + bd->G##I##13*bd->Acont13 + bd->G##I##23*bd->Acont23) \
+)
+#endif
 
 #define BSSN_DT_GAMMAI_NOSHIFT(I) ( \
     - 2.0*(bd->Acont##I##1*bd->d1a + bd->Acont##I##2*bd->d2a + bd->Acont##I##3*bd->d3a) \
     + 2.0*bd->alpha*( \
-        bd->G##I##11*bd->Acont11 + bd->G##I##22*bd->Acont22 + bd->G##I##33*bd->Acont33 \
-          + 2.0*(bd->G##I##12*bd->Acont12 + bd->G##I##13*bd->Acont13 + bd->G##I##23*bd->Acont23) \
+        + BSSN_DT_GAMMAI_SECOND_ORDER(I) \
         - (1.0/3.0) * ( \
             2.0*(bd->gammai##I##1*bd->d1K + bd->gammai##I##2*bd->d2K + bd->gammai##I##3*bd->d3K) \
             + bd->gammai##I##1*bd->d1theta + bd->gammai##I##2*bd->d2theta + bd->gammai##I##3*bd->d3theta \

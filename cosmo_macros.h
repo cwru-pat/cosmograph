@@ -65,6 +65,10 @@
   #define JM_K_DAMPING_AMPLITUDE 0.0
 #endif
 
+// Optionally exclude some second-order terms
+#ifndef EXCLUDE_SECOND_ORDER_E
+  #define EXCLUDE_SECOND_ORDER_E false
+#endif
 
 /*****************************************/
 /* Additional variable/macro definitions */

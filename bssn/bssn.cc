@@ -554,8 +554,10 @@ real_t BSSN::ev_DIFFK(BSSNData *bd)
   return (
     - bd->DDaTR
     + bd->alpha*(
-        bd->AijAij
-        + 1.0/3.0*(bd->DIFFK + 2.0*bd->theta)*(bd->DIFFK + 2.0*bd->theta + 2.0*bd->K_FRW)
+        1.0/3.0*(bd->DIFFK + 2.0*bd->theta)*(bd->DIFFK + 2.0*bd->theta + 2.0*bd->K_FRW)
+        #if !(EXCLUDE_SECOND_ORDER_E)
+          + bd->AijAij
+        #endif
     )
     + 4.0*PI*bd->alpha*(bd->DIFFr + bd->DIFFS)
     - bd->DIFFalpha*(
