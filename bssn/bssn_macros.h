@@ -205,68 +205,36 @@
     (bd->G3##I##J + 2.0*( (3==I)*bd->d##J##phi + (3==J)*bd->d##I##phi - bd->gamma##I##J*gammai3ldlphi))*bd->d3a \
   );
 
+
+#define BSSN_CALCULATE_RICCI_UNITARY_TERM1(K, L, I, J) \
+  bd->gammai##K##L*bd->d##K##d##L##g##I##J
+
+#define BSSN_CALCULATE_RICCI_UNITARY_TERM2(K, I, J) \
+  bd->gamma##K##I*derivative(bd->i, bd->j, bd->k, J, Gamma##K->_array_a)
+
+#define BSSN_CALCULATE_RICCI_UNITARY_TERM3(K, I, J) \
+  bd->Gammad##K*bd->GL##I##J##K
+
+#define BSSN_CALCULATE_RICCI_UNITARY_TERM4(K, L, M, I, J) \
+  bd->gammai##K##L*( \
+    bd->G##M##K##I*bd->GL##J##M##L + bd->G##M##K##J*bd->GL##I##M##L \
+    + bd->G##M##I##K*bd->GL##M##L##J \
+  )
+
 #define BSSN_CALCULATE_RICCI_UNITARY(I, J) bd->ricci##I##J = ( \
     - 0.5*( \
-      bd->gammai11*bd->d1d1g##I##J + bd->gammai22*bd->d2d2g##I##J + bd->gammai33*bd->d3d3g##I##J \
-      + 2.0*(bd->gammai12*bd->d1d2g##I##J + bd->gammai13*bd->d1d3g##I##J + bd->gammai23*bd->d2d3g##I##J) \
+      COSMO_SUMMATION_2_ARGS(BSSN_CALCULATE_RICCI_UNITARY_TERM1, I, J) \
     ) \
     + 0.5*( \
-      bd->gamma1##I*derivative(bd->i, bd->j, bd->k, J, Gamma1->_array_a) + bd->gamma2##I*derivative(bd->i, bd->j, bd->k, J, Gamma2->_array_a) + bd->gamma3##I*derivative(bd->i, bd->j, bd->k, J, Gamma3->_array_a) + \
-      bd->gamma1##J*derivative(bd->i, bd->j, bd->k, I, Gamma1->_array_a) + bd->gamma2##J*derivative(bd->i, bd->j, bd->k, I, Gamma2->_array_a) + bd->gamma3##J*derivative(bd->i, bd->j, bd->k, I, Gamma3->_array_a) \
+      COSMO_SUMMATION_1_ARGS(BSSN_CALCULATE_RICCI_UNITARY_TERM2, I, J) \
+      + COSMO_SUMMATION_1_ARGS(BSSN_CALCULATE_RICCI_UNITARY_TERM2, J, I) \
     ) \
     + 0.5*( \
-      bd->Gammad1*bd->GL##I##J##1 + bd->Gammad2*bd->GL##I##J##2 + bd->Gammad3*bd->GL##I##J##3 \
-      + bd->Gammad1*bd->GL##J##I##1 + bd->Gammad2*bd->GL##J##I##2 + bd->Gammad3*bd->GL##J##I##3 \
+      COSMO_SUMMATION_1_ARGS(BSSN_CALCULATE_RICCI_UNITARY_TERM3, I, J) \
+      + COSMO_SUMMATION_1_ARGS(BSSN_CALCULATE_RICCI_UNITARY_TERM3, J, I) \
     ) \
-    + bd->gammai11*( \
-        bd->G11##I*bd->GL##J##11 + bd->G21##I*bd->GL##J##21 + bd->G31##I*bd->GL##J##31 \
-        + bd->G11##J*bd->GL##I##11 + bd->G21##J*bd->GL##I##21 + bd->G31##J*bd->GL##I##31 \
-        + bd->G1##I##1*bd->GL11##J + bd->G2##I##1*bd->GL21##J + bd->G3##I##1*bd->GL31##J \
-      ) \
-    + bd->gammai12*( \
-        bd->G11##I*bd->GL##J##12 + bd->G21##I*bd->GL##J##22 + bd->G31##I*bd->GL##J##32 \
-        + bd->G11##J*bd->GL##I##12 + bd->G21##J*bd->GL##I##22 + bd->G31##J*bd->GL##I##32 \
-        + bd->G1##I##2*bd->GL11##J + bd->G2##I##2*bd->GL21##J + bd->G3##I##2*bd->GL31##J \
-      ) \
-    + bd->gammai13*( \
-        bd->G11##I*bd->GL##J##13 + bd->G21##I*bd->GL##J##23 + bd->G31##I*bd->GL##J##33 \
-        + bd->G11##J*bd->GL##I##13 + bd->G21##J*bd->GL##I##23 + bd->G31##J*bd->GL##I##33 \
-        + bd->G1##I##3*bd->GL11##J + bd->G2##I##3*bd->GL21##J + bd->G3##I##3*bd->GL31##J \
-      ) \
-    \
-    + bd->gammai21*( \
-        bd->G12##I*bd->GL##J##11 + bd->G22##I*bd->GL##J##21 + bd->G32##I*bd->GL##J##31 \
-        + bd->G12##J*bd->GL##I##11 + bd->G22##J*bd->GL##I##21 + bd->G32##J*bd->GL##I##31 \
-        + bd->G1##I##1*bd->GL12##J + bd->G2##I##1*bd->GL22##J + bd->G3##I##1*bd->GL32##J \
-      ) \
-    + bd->gammai22*( \
-        bd->G12##I*bd->GL##J##12 + bd->G22##I*bd->GL##J##22 + bd->G32##I*bd->GL##J##32 \
-        + bd->G12##J*bd->GL##I##12 + bd->G22##J*bd->GL##I##22 + bd->G32##J*bd->GL##I##32 \
-        + bd->G1##I##2*bd->GL12##J + bd->G2##I##2*bd->GL22##J + bd->G3##I##2*bd->GL32##J \
-      ) \
-    + bd->gammai23*( \
-        bd->G12##I*bd->GL##J##13 + bd->G22##I*bd->GL##J##23 + bd->G32##I*bd->GL##J##33 \
-        + bd->G12##J*bd->GL##I##13 + bd->G22##J*bd->GL##I##23 + bd->G32##J*bd->GL##I##33 \
-        + bd->G1##I##3*bd->GL12##J + bd->G2##I##3*bd->GL22##J + bd->G3##I##3*bd->GL32##J \
-      ) \
-    \
-    + bd->gammai31*( \
-        bd->G13##I*bd->GL##J##11 + bd->G23##I*bd->GL##J##21 + bd->G33##I*bd->GL##J##31 \
-        + bd->G13##J*bd->GL##I##11 + bd->G23##J*bd->GL##I##21 + bd->G33##J*bd->GL##I##31 \
-        + bd->G1##I##1*bd->GL13##J + bd->G2##I##1*bd->GL23##J + bd->G3##I##1*bd->GL33##J \
-      ) \
-    + bd->gammai32*( \
-        bd->G13##I*bd->GL##J##12 + bd->G23##I*bd->GL##J##22 + bd->G33##I*bd->GL##J##32 \
-        + bd->G13##J*bd->GL##I##12 + bd->G23##J*bd->GL##I##22 + bd->G33##J*bd->GL##I##32 \
-        + bd->G1##I##2*bd->GL13##J + bd->G2##I##2*bd->GL23##J + bd->G3##I##2*bd->GL33##J \
-      ) \
-    + bd->gammai33*( \
-        bd->G13##I*bd->GL##J##13 + bd->G23##I*bd->GL##J##23 + bd->G33##I*bd->GL##J##33 \
-        + bd->G13##J*bd->GL##I##13 + bd->G23##J*bd->GL##I##23 + bd->G33##J*bd->GL##I##33 \
-        + bd->G1##I##3*bd->GL13##J + bd->G2##I##3*bd->GL23##J + bd->G3##I##3*bd->GL33##J \
-      ) \
+    + COSMO_SUMMATION_3_ARGS(BSSN_CALCULATE_RICCI_UNITARY_TERM4, I, J) \
   );
-
 
 #define BSSN_CALCULATE_DIDJGAMMA_PERMS(I, J)           \
   bd->d##I##d##J##g11 = double_derivative(bd->i, bd->j, bd->k, I, J, DIFFgamma11->_array_a); \
