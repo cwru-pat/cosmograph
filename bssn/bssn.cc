@@ -19,6 +19,8 @@ BSSN::BSSN()
 
   // FRW reference integrator
   frw = new FRW<real_t> (0.0, 0.0);
+
+  init();
 }
 
 BSSN::~BSSN()
@@ -33,12 +35,12 @@ void BSSN::set_gammai_values(idx_t i, idx_t j, idx_t k, BSSNData *bd)
   // Compute the inverse metric algebraically at each point
   // assumes det(gamma) = 1
   idx_t idx = NP_INDEX(i,j,k);
-  bd->gammai11 = 1.0 + DIFFgamma22->_array_a[idx] + DIFFgamma33->_array_a[idx] - pw2(DIFFgamma23->_array_a[idx]) + DIFFgamma22->_array_a[idx]*DIFFgamma33->_array_a[idx];
-  bd->gammai22 = 1.0 + DIFFgamma11->_array_a[idx] + DIFFgamma33->_array_a[idx] - pw2(DIFFgamma13->_array_a[idx]) + DIFFgamma11->_array_a[idx]*DIFFgamma33->_array_a[idx];
-  bd->gammai33 = 1.0 + DIFFgamma11->_array_a[idx] + DIFFgamma22->_array_a[idx] - pw2(DIFFgamma12->_array_a[idx]) + DIFFgamma11->_array_a[idx]*DIFFgamma22->_array_a[idx];
-  bd->gammai12 = DIFFgamma13->_array_a[idx]*DIFFgamma23->_array_a[idx] - DIFFgamma12->_array_a[idx]*(1.0 + DIFFgamma33->_array_a[idx]);
-  bd->gammai13 = DIFFgamma12->_array_a[idx]*DIFFgamma23->_array_a[idx] - DIFFgamma13->_array_a[idx]*(1.0 + DIFFgamma22->_array_a[idx]);
-  bd->gammai23 = DIFFgamma12->_array_a[idx]*DIFFgamma13->_array_a[idx] - DIFFgamma23->_array_a[idx]*(1.0 + DIFFgamma11->_array_a[idx]);
+  bd->gammai11 = 1.0 + bd->DIFFgamma22 + bd->DIFFgamma33 - pw2(bd->DIFFgamma23) + bd->DIFFgamma22*bd->DIFFgamma33;
+  bd->gammai22 = 1.0 + bd->DIFFgamma11 + bd->DIFFgamma33 - pw2(bd->DIFFgamma13) + bd->DIFFgamma11*bd->DIFFgamma33;
+  bd->gammai33 = 1.0 + bd->DIFFgamma11 + bd->DIFFgamma22 - pw2(bd->DIFFgamma12) + bd->DIFFgamma11*bd->DIFFgamma22;
+  bd->gammai12 = bd->DIFFgamma13*bd->DIFFgamma23 - bd->DIFFgamma12*(1.0 + bd->DIFFgamma33);
+  bd->gammai13 = bd->DIFFgamma12*bd->DIFFgamma23 - bd->DIFFgamma13*(1.0 + bd->DIFFgamma22);
+  bd->gammai23 = bd->DIFFgamma12*bd->DIFFgamma13 - bd->DIFFgamma23*(1.0 + bd->DIFFgamma11);
 }
 
 void BSSN::set_DIFFgamma_Aij_norm()
@@ -307,6 +309,7 @@ void BSSN::calculate_dalpha_dphi(BSSNData *bd)
   bd->d2phi = derivative(bd->i, bd->j, bd->k, 2, DIFFphi->_array_a);
   bd->d3phi = derivative(bd->i, bd->j, bd->k, 3, DIFFphi->_array_a);
 
+  // second derivatives of phi
   bd->d1d1phi = double_derivative(bd->i, bd->j, bd->k, 1, 1, DIFFphi->_array_a);
   bd->d2d2phi = double_derivative(bd->i, bd->j, bd->k, 2, 2, DIFFphi->_array_a);
   bd->d3d3phi = double_derivative(bd->i, bd->j, bd->k, 3, 3, DIFFphi->_array_a);
@@ -322,7 +325,7 @@ void BSSN::calculate_dalpha_dphi(BSSNData *bd)
 
 void BSSN::calculate_dK(BSSNData *bd)
 {
-  // normal derivatives of phi
+  // normal derivatives of K
   bd->d1K = derivative(bd->i, bd->j, bd->k, 1, DIFFK->_array_a);
   bd->d2K = derivative(bd->i, bd->j, bd->k, 2, DIFFK->_array_a);
   bd->d3K = derivative(bd->i, bd->j, bd->k, 3, DIFFK->_array_a);
@@ -421,16 +424,9 @@ void BSSN::calculateRicciTF(BSSNData *bd)
   // unitary pieces
   BSSN_APPLY_TO_IJ_PERMS(BSSN_CALCULATE_RICCI_UNITARY)
 
-  bd->Uricci11 = bd->ricci11;
-  bd->Uricci12 = bd->ricci12;
-  bd->Uricci13 = bd->ricci13;
-  bd->Uricci22 = bd->ricci22;
-  bd->Uricci23 = bd->ricci23;
-  bd->Uricci33 = bd->ricci33;
-
-  /* calculate unitary Ricci scalar at this point. */
-  bd->unitRicci = bd->ricci11*bd->gammai11 + bd->ricci22*bd->gammai22 + bd->ricci33*bd->gammai33
-            + 2.0*(bd->ricci12*bd->gammai12 + bd->ricci13*bd->gammai13 + bd->ricci23*bd->gammai23);
+  /* calculate unitary Ricci scalar. */
+  bd->unitRicci = bd->Uricci11*bd->gammai11 + bd->Uricci22*bd->gammai22 + bd->Uricci33*bd->gammai33
+            + 2.0*(bd->Uricci12*bd->gammai12 + bd->Uricci13*bd->gammai13 + bd->Uricci23*bd->gammai23);
 
   real_t expression = (
     bd->gammai11*(bd->D1D1phi + 2.0*bd->d1phi*bd->d1phi)
@@ -444,29 +440,30 @@ void BSSN::calculateRicciTF(BSSNData *bd)
   );
 
   /* phi-piece */
-  bd->ricci11 += -2.0*( bd->D1D1phi - 2.0*bd->d1phi*bd->d1phi + bd->gamma11*(expression) );
-  bd->ricci12 += -2.0*( bd->D1D2phi - 2.0*bd->d1phi*bd->d2phi + bd->gamma12*(expression) );
-  bd->ricci13 += -2.0*( bd->D1D3phi - 2.0*bd->d1phi*bd->d3phi + bd->gamma13*(expression) );
-  bd->ricci22 += -2.0*( bd->D2D2phi - 2.0*bd->d2phi*bd->d2phi + bd->gamma22*(expression) );
-  bd->ricci23 += -2.0*( bd->D2D3phi - 2.0*bd->d2phi*bd->d3phi + bd->gamma23*(expression) );
-  bd->ricci33 += -2.0*( bd->D3D3phi - 2.0*bd->d3phi*bd->d3phi + bd->gamma33*(expression) );
+  bd->ricci11 = bd->Uricci11 - 2.0*( bd->D1D1phi - 2.0*bd->d1phi*bd->d1phi + bd->gamma11*(expression) );
+  bd->ricci12 = bd->Uricci12 - 2.0*( bd->D1D2phi - 2.0*bd->d1phi*bd->d2phi + bd->gamma12*(expression) );
+  bd->ricci13 = bd->Uricci13 - 2.0*( bd->D1D3phi - 2.0*bd->d1phi*bd->d3phi + bd->gamma13*(expression) );
+  bd->ricci22 = bd->Uricci22 - 2.0*( bd->D2D2phi - 2.0*bd->d2phi*bd->d2phi + bd->gamma22*(expression) );
+  bd->ricci23 = bd->Uricci23 - 2.0*( bd->D2D3phi - 2.0*bd->d2phi*bd->d3phi + bd->gamma23*(expression) );
+  bd->ricci33 = bd->Uricci33 - 2.0*( bd->D3D3phi - 2.0*bd->d3phi*bd->d3phi + bd->gamma33*(expression) );
 
   /* calculate full Ricci scalar at this point */
-  bd->ricci = bd->ricci11*bd->gammai11 + bd->ricci22*bd->gammai22 + bd->ricci33*bd->gammai33
-            + 2.0*(bd->ricci12*bd->gammai12 + bd->ricci13*bd->gammai13 + bd->ricci23*bd->gammai23);
-  bd->ricci *= exp(-4.0*bd->phi);
+  bd->ricci = exp(-4.0*bd->phi)*(
+      bd->ricci11*bd->gammai11 + bd->ricci22*bd->gammai22 + bd->ricci33*bd->gammai33
+      + 2.0*(bd->ricci12*bd->gammai12 + bd->ricci13*bd->gammai13 + bd->ricci23*bd->gammai23)
+    );
   /* store ricci scalar here too. */
   ricci_a[bd->idx] = bd->ricci;
 
   /* remove trace. Note that \bar{gamma}_{ij}*\bar{gamma}^{kl}R_{kl} = (unbarred gammas). */
-  bd->trace = bd->gammai11*bd->ricci11 + bd->gammai22*bd->ricci22 + bd->gammai33*bd->ricci33
-      + 2.0*(bd->gammai12*bd->ricci12 + bd->gammai13*bd->ricci13 + bd->gammai23*bd->ricci23);
-  bd->ricciTF11 = bd->ricci11 - (1.0/3.0)*bd->gamma11*bd->trace;
-  bd->ricciTF12 = bd->ricci12 - (1.0/3.0)*bd->gamma12*bd->trace;
-  bd->ricciTF13 = bd->ricci13 - (1.0/3.0)*bd->gamma13*bd->trace;
-  bd->ricciTF22 = bd->ricci22 - (1.0/3.0)*bd->gamma22*bd->trace;
-  bd->ricciTF23 = bd->ricci23 - (1.0/3.0)*bd->gamma23*bd->trace;
-  bd->ricciTF33 = bd->ricci33 - (1.0/3.0)*bd->gamma33*bd->trace;
+  bd->ricciTF11 = bd->ricci11 - (1.0/3.0)*exp(4.0*bd->phi)*bd->gamma11*bd->ricci;
+  bd->ricciTF12 = bd->ricci12 - (1.0/3.0)*exp(4.0*bd->phi)*bd->gamma12*bd->ricci;
+  bd->ricciTF13 = bd->ricci13 - (1.0/3.0)*exp(4.0*bd->phi)*bd->gamma13*bd->ricci;
+  bd->ricciTF22 = bd->ricci22 - (1.0/3.0)*exp(4.0*bd->phi)*bd->gamma22*bd->ricci;
+  bd->ricciTF23 = bd->ricci23 - (1.0/3.0)*exp(4.0*bd->phi)*bd->gamma23*bd->ricci;
+  bd->ricciTF33 = bd->ricci33 - (1.0/3.0)*exp(4.0*bd->phi)*bd->gamma33*bd->ricci;
+
+  return;
 }
 
 

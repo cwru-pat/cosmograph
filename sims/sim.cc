@@ -42,7 +42,6 @@ void CosmoSim::simInit()
 {
   // Always use GR fields
   bssnSim = new BSSN();
-  bssnSim->init();
 
   // FFT helper
   fourier = new Fourier();

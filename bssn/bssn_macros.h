@@ -216,12 +216,13 @@
   bd->Gammad##K*bd->GL##I##J##K
 
 #define BSSN_CALCULATE_RICCI_UNITARY_TERM4(K, L, M, I, J) \
-  bd->gammai##K##L*( \
-    bd->G##M##K##I*bd->GL##J##M##L + bd->G##M##K##J*bd->GL##I##M##L \
-    + bd->G##M##I##K*bd->GL##M##L##J \
+  bd->gammai##L##M*( \
+    bd->G##K##L##I*bd->GL##J##K##M + bd->G##K##L##J*bd->GL##I##K##M \
+    /* symmetrize below because symmetry */ \
+    + 0.5*(bd->G##K##I##M*bd->GL##K##L##J + bd->G##K##J##M*bd->GL##K##L##I) \
   )
 
-#define BSSN_CALCULATE_RICCI_UNITARY(I, J) bd->ricci##I##J = ( \
+#define BSSN_CALCULATE_RICCI_UNITARY(I, J) bd->Uricci##I##J = ( \
     - 0.5*( \
       COSMO_SUMMATION_2_ARGS(BSSN_CALCULATE_RICCI_UNITARY_TERM1, I, J) \
     ) \
@@ -341,7 +342,7 @@
 // Momentum constraint with index lowered using the conformal metric:
 // M_I == \bar{gamma}_{IJ} M^J
 #define BSSN_MI(I) exp(6.0*bd->phi)*( \
-    - 2.0/3.0*derivative(bd->i, bd->j, bd->k, I, DIFFK->_array_a) \
+    - 2.0/3.0*bd->d##I##K \
     /* Note: S_I was lowered with the full metric, not conformal. */ \
     - 8*PI*(bd->S##I) \
     - 2.0/3.0*2.0*bd->d##I##theta \

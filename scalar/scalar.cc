@@ -69,6 +69,17 @@ void Scalar::K4Finalize()
   psi3.K4Finalize();
 }
 
+void Scalar::RKEvolve(BSSNData *bd)
+{
+  idx_t i, j, k;
+  
+  #pragma omp parallel for default(shared) private(i, j, k)
+  LOOP3(i,j,k)
+  {
+    RKEvolvePt(bd);
+  }
+}
+
 void Scalar::RKEvolvePt(BSSNData *bd)
 {
   ScalarData sd = getScalarData(bd);
@@ -225,23 +236,25 @@ void Scalar::addBSSNSource(BSSN * bssnSim)
       + 2.0*(bd.gammai12*sd.d1phi*sd.d2phi + bd.gammai13*sd.d1phi*sd.d3phi + bd.gammai23*sd.d2phi*sd.d3phi)
     );
 
-    DIFFr_a[idx] = 0.5*nmudmuphi*nmudmuphi
+    DIFFr_a[idx] += 0.5*nmudmuphi*nmudmuphi
       + 0.5*exp(-4.0*bd.phi)*diphidiphi + V(sd.phi);
 
-    DIFFS_a[idx] = 3.0/2.0*nmudmuphi*nmudmuphi
+    DIFFS_a[idx] += 3.0/2.0*nmudmuphi*nmudmuphi
       - 0.5*exp(-4.0*bd.phi)*diphidiphi - 3.0*V(sd.phi);
 
-    S1_a[idx] = -nmudmuphi*sd.d1phi;
-    S2_a[idx] = -nmudmuphi*sd.d2phi;
-    S3_a[idx] = -nmudmuphi*sd.d3phi;
+    S1_a[idx] += -nmudmuphi*sd.d1phi;
+    S2_a[idx] += -nmudmuphi*sd.d2phi;
+    S3_a[idx] += -nmudmuphi*sd.d3phi;
 
-    STF11_a[idx] = sd.d1phi*sd.d1phi - bd.gamma11/3.0*diphidiphi;
-    STF12_a[idx] = sd.d1phi*sd.d2phi - bd.gamma12/3.0*diphidiphi;
-    STF13_a[idx] = sd.d1phi*sd.d3phi - bd.gamma13/3.0*diphidiphi;
-    STF22_a[idx] = sd.d2phi*sd.d2phi - bd.gamma22/3.0*diphidiphi;
-    STF23_a[idx] = sd.d2phi*sd.d3phi - bd.gamma23/3.0*diphidiphi;
-    STF33_a[idx] = sd.d3phi*sd.d3phi - bd.gamma33/3.0*diphidiphi;
+    STF11_a[idx] += sd.d1phi*sd.d1phi - bd.gamma11/3.0*diphidiphi;
+    STF12_a[idx] += sd.d1phi*sd.d2phi - bd.gamma12/3.0*diphidiphi;
+    STF13_a[idx] += sd.d1phi*sd.d3phi - bd.gamma13/3.0*diphidiphi;
+    STF22_a[idx] += sd.d2phi*sd.d2phi - bd.gamma22/3.0*diphidiphi;
+    STF23_a[idx] += sd.d2phi*sd.d3phi - bd.gamma23/3.0*diphidiphi;
+    STF33_a[idx] += sd.d3phi*sd.d3phi - bd.gamma33/3.0*diphidiphi;
   }
+
+  return;
 }
 
 real_t Scalar::dV(real_t phi_in)

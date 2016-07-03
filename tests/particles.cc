@@ -26,7 +26,6 @@ int main()
   // initialize GR sim; particles needs to reference this
   // but - don't evolve, remaining Minkowski/flat
   BSSN bssnSim;
-  bssnSim.init();
 
   // make a particle
   std::cout << "Creating Particles class..." << std::endl;
