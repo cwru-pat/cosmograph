@@ -51,7 +51,7 @@ void BSSN::set_DIFFgamma_Aij_norm()
    * need to come up with something else to preserve both
    * trace + determinant constraints.
    */
-  #pragma omp parallel for default(shared) private(i, j, k)
+# pragma omp parallel for default(shared) private(i, j, k)
   LOOP3(i, j, k)
   {
     idx_t idx = NP_INDEX(i,j,k);
@@ -140,12 +140,12 @@ void BSSN::set_bd_values(idx_t i, idx_t j, idx_t k, BSSNData *bd)
   calculate_ddgamma(bd);
   calculate_dalpha_dphi(bd);
   calculate_dK(bd);
-  #if USE_Z4c_DAMPING
+# if USE_Z4c_DAMPING
     calculate_dtheta(bd);
-  #endif
-  #if USE_BSSN_SHIFT
+# endif
+# if USE_BSSN_SHIFT
     calculate_dbeta(bd);
-  #endif
+# endif
 
   // Christoffels depend on metric & derivs.
   calculate_conformal_christoffels(bd);
@@ -189,16 +189,16 @@ void BSSN::stepInit()
 {
   BSSN_RK_INITIALIZE; // macro calls stepInit for all fields
 
-  #if NORMALIZE_GAMMAIJ_AIJ
+# if NORMALIZE_GAMMAIJ_AIJ
     set_DIFFgamma_Aij_norm(); // norms _a register
-  #endif
+# endif
 }
 
 void BSSN::RKEvolve()
 {
   idx_t i, j, k;
 
-  #pragma omp parallel for default(shared) private(i, j, k)
+# pragma omp parallel for default(shared) private(i, j, k)
   LOOP3(i, j, k)
   {
     BSSNData bd = {0};
@@ -241,7 +241,7 @@ void BSSN::K4Finalize()
 void BSSN::clearSrc()
 {
   idx_t i, j, k;
-  #pragma omp parallel for default(shared) private(i, j, k)
+# pragma omp parallel for default(shared) private(i, j, k)
   LOOP3(i, j, k)
   {
     idx_t idx = NP_INDEX(i,j,k);
@@ -647,7 +647,7 @@ void BSSN::setHamiltonianConstraintCalcs(real_t H_values[7], bool reset_bd)
 
   if(reset_bd)
   {
-    #pragma omp parallel for default(shared) private(i, j, k)
+#   pragma omp parallel for default(shared) private(i, j, k)
     LOOP3(i,j,k)
     {
       BSSNData bd = {0};
@@ -655,7 +655,7 @@ void BSSN::setHamiltonianConstraintCalcs(real_t H_values[7], bool reset_bd)
     }
   }
 
-  #pragma omp parallel for default(shared) private(i, j, k) reduction(+:mean_H,mean_H_scale,mean_H_scaled)
+# pragma omp parallel for default(shared) private(i, j, k) reduction(+:mean_H,mean_H_scale,mean_H_scaled)
   LOOP3(i,j,k)
   {
     idx_t idx = NP_INDEX(i,j,k);
@@ -683,7 +683,7 @@ void BSSN::setHamiltonianConstraintCalcs(real_t H_values[7], bool reset_bd)
   mean_H_scaled /= POINTS;
 
   // stdev relies on mean calcs
-  #pragma omp parallel for default(shared) private(i, j, k) reduction(+:stdev_H,stdev_H_scaled)
+# pragma omp parallel for default(shared) private(i, j, k) reduction(+:stdev_H,stdev_H_scaled)
   LOOP3(i,j,k)
   {
     idx_t idx = NP_INDEX(i,j,k);
@@ -712,24 +712,24 @@ void BSSN::setHamiltonianConstraintCalcs(real_t H_values[7], bool reset_bd)
 
 real_t BSSN::hamiltonianConstraintCalc(idx_t idx)
 {
-  #if USE_Z4c_DAMPING
+# if USE_Z4c_DAMPING
     real_t theta = theta->_array_a[idx];
-  #else
+# else
     real_t theta = 0.0;
-  #endif
+# endif
 
-  #if USE_REFERENCE_FRW
+# if USE_REFERENCE_FRW
     real_t K_FRW = frw->get_K();
     real_t phi_FRW = frw->get_phi();
     real_t rho_FRW = frw->get_rho();
     return -exp(5.0*(DIFFphi->_array_a[idx] + phi_FRW))/8.0*(
       ricci_a[idx] + 2.0/3.0*pw2(K_FRW + DIFFK->_array_a[idx] + 2.0*theta) - AijAij_a[idx] - 16.0*PI*(DIFFr_a[idx] + rho_FRW)
     );
-  #else
+# else
     return -exp(5.0*DIFFphi->_array_a[idx])/8.0*(
       ricci_a[idx] + 2.0/3.0*pw2(DIFFK->_array_a[idx] + 2.0*theta) - AijAij_a[idx] - 16.0*PI*DIFFr_a[idx]
     );
-  #endif
+# endif
 }
 
 real_t BSSN::hamiltonianConstraintScale(idx_t idx)
@@ -738,11 +738,11 @@ real_t BSSN::hamiltonianConstraintScale(idx_t idx)
   real_t phi_FRW = frw->get_phi();
   real_t rho_FRW = frw->get_rho();
 
-  #if USE_Z4c_DAMPING
+# if USE_Z4c_DAMPING
     real_t theta = theta->_array_a[idx];
-  #else
+# else
     real_t theta = 0.0;
-  #endif
+# endif
 
   // sqrt sum of sq. of terms for appx. mag / scale
   return (exp(5.0*(DIFFphi->_array_a[idx] + phi_FRW))/8.0)*
@@ -767,7 +767,7 @@ void BSSN::setMomentumConstraintCalcs(real_t M_values[7])
   real_t stdev_M_scaled = 0.0;
   real_t max_M_scaled = 0.0;
 
-  #pragma omp parallel for default(shared) private(i, j, k) reduction(+:mean_M,mean_M_scale,mean_M_scaled)
+# pragma omp parallel for default(shared) private(i, j, k) reduction(+:mean_M,mean_M_scale,mean_M_scaled)
   LOOP3(i,j,k)
   {
     idx_t idx = NP_INDEX(i,j,k);
@@ -791,7 +791,7 @@ void BSSN::setMomentumConstraintCalcs(real_t M_values[7])
     mean_M_scale += M_scale;
     mean_M_scaled += M_scaled;
 
-    #pragma omp critical
+#   pragma omp critical
     {
       if(fabs(M) > max_M)
       {
@@ -807,7 +807,7 @@ void BSSN::setMomentumConstraintCalcs(real_t M_values[7])
   mean_M_scaled /= POINTS;
 
   // stdev relies on mean calcs
-  #pragma omp parallel for default(shared) private(i, j, k) reduction(+:stdev_M,stdev_M_scaled)
+# pragma omp parallel for default(shared) private(i, j, k) reduction(+:stdev_M,stdev_M_scaled)
   LOOP3(i,j,k)
   {
     idx_t idx = NP_INDEX(i,j,k);
@@ -1019,4 +1019,4 @@ RaytracePrimitives<real_t> BSSN::getRaytraceData(BSSNData *bd)
   return rp;
 }
 
-}
+} // namespace cosmo
