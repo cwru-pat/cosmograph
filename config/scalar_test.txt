@@ -4,7 +4,7 @@ omp_num_threads = 4
 
 simulation_type = scalar
 
-num_v_cycles = 5
+num_v_cycles = 15
 phi_0 = 0.0
 delta_phi = 0.01
 n_max = 1

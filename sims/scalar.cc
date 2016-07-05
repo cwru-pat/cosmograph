@@ -198,17 +198,14 @@ void ScalarSim::setScalarMultigridICs()
   arr_t & phi_p = *bssnSim->fields["DIFFphi_p"];
   arr_t & phi_a = *bssnSim->fields["DIFFphi_a"];
 
-  real_t * u = multigrid.getSolution();
+  REAL_T * u = multigrid.getSolution();
   
   #pragma omp parallel for
   LOOP3(i, j, k)
   {
-    phi_p[INDEX(i,j,k)] = std::log(std::abs(u[INDEX(i,j,k)]));
-    phi_a[INDEX(i,j,k)] = std::log(std::abs(u[INDEX(i,j,k)]));
+    phi_p[INDEX(i,j,k)] = (real_t) std::log(std::abs(u[INDEX(i,j,k)]));
+    phi_a[INDEX(i,j,k)] = (real_t) std::log(std::abs(u[INDEX(i,j,k)]));
   }
-
-  // TODO: Why doesn't this work?
-  // multigrid.~FASMultigrid();
 
   std::cout << "Finished setting ICs!\n" << std::flush;
 
