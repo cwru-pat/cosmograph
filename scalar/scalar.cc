@@ -265,7 +265,7 @@ real_t Scalar::dV(real_t phi_in)
 real_t Scalar::V(real_t phi_in)
 {
   // TODO: discuss how to set this better
-  return 0.00001;
+  return 0.000005;
 }
 
 real_t Scalar::scalarConstraint(idx_t i, idx_t j, idx_t k, idx_t dir)
