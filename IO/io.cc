@@ -257,7 +257,7 @@ void io_raytrace_dump(IOData *iodata, idx_t step,
   real_t total_E = 0.0;
   real_t total_Phi = 0.0;
   real_t total_ell = 0.0;
-  real_t total_Phirho = 0.0;
+  real_t total_ellrho = 0.0;
   real_t total_rho = 0.0;
 
   RaytraceData<real_t> tmp_rd = {0};
@@ -279,7 +279,7 @@ void io_raytrace_dump(IOData *iodata, idx_t step,
     total_E += tmp_rd.E;
     total_Phi += tmp_rd.Phi;
     total_ell += tmp_rd.ell;
-    total_Phirho += tmp_rd.Phi*tmp_rd.rho;
+    total_ellrho += tmp_rd.ell*tmp_rd.rho;
     total_rho += tmp_rd.E*tmp_rd.rho;
   }
 
@@ -296,7 +296,7 @@ void io_raytrace_dump(IOData *iodata, idx_t step,
   io_dump_value(iodata, total_Phi / (real_t) num_rays, "raytracedata_avg", "\t");
   io_dump_value(iodata, total_ell / (real_t) num_rays, "raytracedata_avg", "\t");
   io_dump_value(iodata, total_rho / (real_t) num_rays, "raytracedata_avg", "\t");
-  io_dump_value(iodata, total_Phirho / total_rho, "raytracedata_avg", "\n");
+  io_dump_value(iodata, total_ellrho / total_rho, "raytracedata_avg", "\n");
 
   delete[] ray_dump_values;
 

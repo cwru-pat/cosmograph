@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --nodes=1
 #SBATCH --cpus-per-task=16
-#SBATCH --time=100:00:00
+#SBATCH --time=50:00:00
 #SBATCH --mem=20g
 #SBATCH -A gds6
 #SBATCH --mail-type=STAGE_OUT
