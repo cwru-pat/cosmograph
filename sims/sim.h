@@ -53,6 +53,7 @@ public:
   void outputRayTraceStep();
 
   void prepBSSNOutput();
+  void outputStateInformation();
 
   idx_t simNumNaNs();
   void setVerbosity(int verbosity_in);

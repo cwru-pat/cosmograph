@@ -77,15 +77,7 @@ void CosmoSim::run()
   _timer["loop"].stop();
 
   iodata->log("\nEnding simulation.");
-  iodata->log(
-      "Average conformal factor reached: " + stringify(
-        average(*bssnSim->fields["DIFFphi_p"]) + bssnSim->frw->get_phi()
-      ));
-  iodata->log(
-      "Average extrinsic curvature reached: " + stringify(
-        average(*bssnSim->fields["DIFFK_p"]) + bssnSim->frw->get_K()
-      ));
-
+  outputStateInformation();
   iodata->log(_timer.getStateString());
   std::cout << std::flush;
 }
@@ -163,6 +155,41 @@ void CosmoSim::prepBSSNOutput()
     // Additionally set KD (killing vector "Delta" quantities)
     bssnSim->set_KillingDelta(i, j, k, &b_data);
   }
+}
+
+void CosmoSim::outputStateInformation()
+{
+  // make sure simulation information is present in the _a register
+  // TODO: Source values may be off; correct this?
+  bssnSim->stepInit();
+  prepBSSNOutput();
+  iodata->log(
+      "Average | Min | Max conformal factor reached: " + stringify(
+        average(*bssnSim->fields["DIFFphi_a"]) + bssnSim->frw->get_phi()
+      ) + " | " + stringify(
+        min(*bssnSim->fields["DIFFphi_a"]) + bssnSim->frw->get_phi()
+      ) + " | " + stringify(
+        max(*bssnSim->fields["DIFFphi_a"]) + bssnSim->frw->get_phi()
+      ));
+  iodata->log(
+      "Average | Min | Max extrinsic curvature reached: " + stringify(
+        average(*bssnSim->fields["DIFFK_a"]) + bssnSim->frw->get_K()
+      ) + " | " + stringify(
+        min(*bssnSim->fields["DIFFK_a"]) + bssnSim->frw->get_K()
+      ) + " | " + stringify(
+        max(*bssnSim->fields["DIFFK_a"]) + bssnSim->frw->get_K()
+      ));
+  real_t H_calcs[7] = {0}, M_calcs[7] = {0};
+  bssnSim->setHamiltonianConstraintCalcs(H_calcs, false);
+  iodata->log(
+      "Final Max. Hamiltonian constraint violation: "
+      + stringify(H_calcs[2])
+    );
+  bssnSim->setMomentumConstraintCalcs(M_calcs);
+  iodata->log(
+      "Final Max. Momentum constraint violation: "
+      + stringify(M_calcs[2])
+    );
 }
 
 idx_t CosmoSim::simNumNaNs()

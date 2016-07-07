@@ -1,10 +1,13 @@
 #!/bin/bash
 
-# Check for correct syntax (2 arguments)
-if [ $# -ne 2 ]; then
-    echo $0: usage: ./test.sh RESOLUTION USE_LAMBDA
+# Check for correct syntax (4 arguments)
+if [ $# -ne 4 ]; then
+    echo "$0: usage: ./test.sh RESOLUTION USE_LAMBDA LINEARIZE_FRW LINEARIZE_SMALL"
     exit 1
 fi
+
+# Amplitudes to run for:
+declare -a AMPLITUDES=("40.00" "20.00" "10.00" "05.00" "02.50" "01.25")
 
 # Validate resolution
 RES=$1
@@ -23,8 +26,25 @@ else
   LAMBDA=false
 fi
 
-# Amplitudes to run for:
-declare -a AMPLITUDES=("40.00" "20.00" "10.00" "05.00" "02.50" "01.25")
+# Validate LINEARIZE_FRW
+LINEARIZE_FRW=$3
+if (( $LINEARIZE_FRW > 0 )) ; then
+  LINEARIZE_FRW=true
+  LINEARIZE_FRW_FLAG="-DCOSMO_EXCLUDE_SECOND_ORDER_FRW=1"
+else
+  LINEARIZE_FRW=false
+  LINEARIZE_FRW_FLAG=''
+fi
+
+# Validate LINEARIZE_SMALL
+LINEARIZE_SMALL=$4
+if (( $LINEARIZE_SMALL > 0 )) ; then
+  LINEARIZE_SMALL=true
+  LINEARIZE_SMALL_FLAG="-DCOSMO_EXCLUDE_SECOND_ORDER_SMALL=1"
+else
+  LINEARIZE_SMALL=false
+  LINEARIZE_SMALL_FLAG=''
+fi
 
 # simulation step information
 STEPS=$((12000*$RES/128 + 1))
@@ -34,15 +54,22 @@ IO2D=$((1000*$RES/128))
 IO1D=$((100*$RES/128))
 
 # Job directory
+JOBDIR="ampvary_$RES"
 if "$LAMBDA" ; then
-  JOBDIR="ampvary_lambda_$RES"
-else
-  JOBDIR="ampvary_$RES"
+  JOBDIR="${JOBDIR}_lambda"
+fi
+if "$LINEARIZE_SMALL" ; then
+  JOBDIR="${JOBDIR}_linearsmall"
+fi
+if "$LINEARIZE_FRW" ; then
+  JOBDIR="${JOBDIR}_linearfrw"
 fi
 
 echo "Deploying runs with:"
 echo "  Res = $RES"
 echo "  Lambda = $LAMBDA"
+echo "  LINEARIZE_FRW = $LINEARIZE_FRW"
+echo "  LINEARIZE_SMALL = $LINEARIZE_SMALL"
 echo "  For amplitudes:"
 echo "    ${AMPLITUDES[*]}"
 echo "  Will output to $JOBDIR"
@@ -74,22 +101,16 @@ echo "Creating Directories & Building Project..."
 mkdir -p "../build/$JOBDIR"
 cd ../build
 rm -rf CMake*
-cmake -DCMAKE_CXX_COMPILER=g++ -DCOSMO_N=$RES -DCOSMO_USE_REFERENCE_FRW=1 ..
+cmake -DCMAKE_CXX_COMPILER=g++ -DCOSMO_N=$RES -DCOSMO_USE_REFERENCE_FRW=1 "$LINEARIZE_SMALL_FLAG" "$LINEARIZE_FRW_FLAG" ..
 if [ $? -ne 0 ]; then
   echo "  Unable to compile - Aborting."
-  rm ../cosmo_macros.h
-  mv ../cosmo_macros.h.bak ../cosmo_macros.h
   exit 1
 fi
-make
+make -j16
 if [ $? -ne 0 ]; then
   echo "  Unable to compile - Aborting."
-  rm ../cosmo_macros.h
-  mv ../cosmo_macros.h.bak ../cosmo_macros.h
   exit 1
 fi
-rm ../cosmo_macros.h
-mv ../cosmo_macros.h.bak ../cosmo_macros.h
 mv cosmo "$JOBDIR/."
 cd "$JOBDIR"
 
@@ -131,4 +152,4 @@ done
 echo ""
 echo "All done!"
 echo "squeue -u jbm120 is"
-squeue -u jbm120
+squeue -u jbm120 --start

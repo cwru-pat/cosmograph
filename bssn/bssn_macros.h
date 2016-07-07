@@ -215,12 +215,16 @@
 #define BSSN_CALCULATE_RICCI_UNITARY_TERM3(K, I, J) \
   bd->Gammad##K*bd->GL##I##J##K
 
+#if EXCLUDE_SECOND_ORDER_SMALL
+#define BSSN_CALCULATE_RICCI_UNITARY_TERM4(K, L, M, I, J) 0
+#else
 #define BSSN_CALCULATE_RICCI_UNITARY_TERM4(K, L, M, I, J) \
   bd->gammai##L##M*( \
     bd->G##K##L##I*bd->GL##J##K##M + bd->G##K##L##J*bd->GL##I##K##M \
     /* symmetrize below because symmetry */ \
     + 0.5*(bd->G##K##I##M*bd->GL##K##L##J + bd->G##K##J##M*bd->GL##K##L##I) \
   )
+#endif
 
 #define BSSN_CALCULATE_RICCI_UNITARY(I, J) bd->Uricci##I##J = ( \
     - 0.5*( \
@@ -263,20 +267,30 @@
   )
 #endif
 
-#if EXCLUDE_SECOND_ORDER_E
-  #define BSSN_DT_AIJ_SECOND_ORDER(I, J) 0
+#if EXCLUDE_SECOND_ORDER_SMALL
+# define BSSN_DT_AIJ_SECOND_ORDER_AA(I, J) 0
 #else
-  #define BSSN_DT_AIJ_SECOND_ORDER(I, J) ( \
-        bd->gammai11*bd->A1##I*bd->A1##J + bd->gammai12*bd->A1##I*bd->A2##J + bd->gammai13*bd->A1##I*bd->A3##J \
-        + bd->gammai21*bd->A2##I*bd->A1##J + bd->gammai22*bd->A2##I*bd->A2##J + bd->gammai23*bd->A2##I*bd->A3##J \
-        + bd->gammai31*bd->A3##I*bd->A1##J + bd->gammai32*bd->A3##I*bd->A2##J + bd->gammai33*bd->A3##I*bd->A3##J \
-      )
+# define BSSN_DT_AIJ_SECOND_ORDER_AA(I, J) ( \
+      bd->gammai11*bd->A1##I*bd->A1##J + bd->gammai12*bd->A1##I*bd->A2##J + bd->gammai13*bd->A1##I*bd->A3##J \
+      + bd->gammai21*bd->A2##I*bd->A1##J + bd->gammai22*bd->A2##I*bd->A2##J + bd->gammai23*bd->A2##I*bd->A3##J \
+      + bd->gammai31*bd->A3##I*bd->A1##J + bd->gammai32*bd->A3##I*bd->A2##J + bd->gammai33*bd->A3##I*bd->A3##J \
+    )
+#endif
+
+#if EXCLUDE_SECOND_ORDER_SMALL
+# define BSSN_DT_AIJ_SECOND_ORDER_KA(I, J) ( \
+    (bd->K_FRW + 2.0*bd->theta)*bd->A##I##J \
+  )
+#else
+# define BSSN_DT_AIJ_SECOND_ORDER_KA(I, J) ( \
+    (bd->K + 2.0*bd->theta)*bd->A##I##J \
+  )
 #endif
 
 #if USE_BSSN_SHIFT
 #define BSSN_DT_AIJ(I, J) ( \
     exp(-4.0*bd->phi)*( bd->alpha*(bd->ricciTF##I##J - 8.0*PI*bd->STF##I##J) - bd->D##I##D##J##aTF ) \
-    + bd->alpha*((bd->K + 2.0*bd->theta)*bd->A##I##J - 2.0*BSSN_DT_AIJ_SECOND_ORDER(I,J)) \
+    + bd->alpha*(BSSN_DT_AIJ_SECOND_ORDER_KA(I,J) - 2.0*BSSN_DT_AIJ_SECOND_ORDER_AA(I,J)) \
     + bd->beta1*derivative(bd->i, bd->j, bd->k, 1, A##I##J->_array_a) \
     + bd->beta2*derivative(bd->i, bd->j, bd->k, 2, A##I##J->_array_a) \
     + bd->beta3*derivative(bd->i, bd->j, bd->k, 3, A##I##J->_array_a) \
@@ -287,18 +301,19 @@
 #else
 #define BSSN_DT_AIJ(I, J) ( \
     exp(-4.0*bd->phi)*( bd->alpha*(bd->ricciTF##I##J - 8.0*PI*bd->STF##I##J) - bd->D##I##D##J##aTF ) \
-    + bd->alpha*((bd->K + 2.0*bd->theta)*bd->A##I##J - 2.0*BSSN_DT_AIJ_SECOND_ORDER(I,J)) \
+    + bd->alpha*(BSSN_DT_AIJ_SECOND_ORDER_KA(I,J) - 2.0*BSSN_DT_AIJ_SECOND_ORDER_AA(I,J)) \
   )
 #endif
 
 #define BSSN_DT_GAMMAI(I) (BSSN_DT_GAMMAI_NOSHIFT(I) + BSSN_DT_GAMMAI_SHIFT(I))
 
-#if EXCLUDE_SECOND_ORDER_E
+#if EXCLUDE_SECOND_ORDER_SMALL
 #define BSSN_DT_GAMMAI_SECOND_ORDER(I) 0
 #else
 #define BSSN_DT_GAMMAI_SECOND_ORDER(I) ( \
   bd->G##I##11*bd->Acont11 + bd->G##I##22*bd->Acont22 + bd->G##I##33*bd->Acont33 \
   + 2.0*(bd->G##I##12*bd->Acont12 + bd->G##I##13*bd->Acont13 + bd->G##I##23*bd->Acont23) \
+  + 6.0*(bd->Acont##I##1*bd->d1phi + bd->Acont##I##2*bd->d2phi + bd->Acont##I##3*bd->d3phi) \
 )
 #endif
 
@@ -314,7 +329,6 @@
             bd->Gamma##I - bd->Gammad##I \
           ) \
         - 8.0*PI*(bd->gammai##I##1*bd->S1 + bd->gammai##I##2*bd->S2 + bd->gammai##I##3*bd->S3) \
-        + 6.0 * (bd->Acont##I##1*bd->d1phi + bd->Acont##I##2*bd->d2phi + bd->Acont##I##3*bd->d3phi) \
       ) \
     )
 

@@ -66,8 +66,11 @@
 #endif
 
 // Optionally exclude some second-order terms
-#ifndef EXCLUDE_SECOND_ORDER_E
-  #define EXCLUDE_SECOND_ORDER_E false
+#ifndef EXCLUDE_SECOND_ORDER_SMALL
+  #define EXCLUDE_SECOND_ORDER_SMALL false
+#endif
+#ifndef EXCLUDE_SECOND_ORDER_FRW
+  #define EXCLUDE_SECOND_ORDER_FRW false
 #endif
 
 /*****************************************/
