@@ -173,7 +173,7 @@ void ScalarSim::setScalarMultigridICs()
       );
     multigrid.setPolySrcAtPt(i, j, k, 0, value);
 
-    value = PI*scalarSim->V(phi[INDEX(i,j,k)]) - K_a[INDEX(i,j,k)]*K_a[INDEX(i,j,k)]/12.0;
+    value = 2.0* PI*scalarSim->V(phi[INDEX(i,j,k)]) - K_a[INDEX(i,j,k)]*K_a[INDEX(i,j,k)]/12.0;
     multigrid.setPolySrcAtPt(i, j, k, 1, value);
   }
   multigrid.initializeRhoHeirarchy();
