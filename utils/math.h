@@ -9,15 +9,26 @@
 namespace cosmo
 {
 
+/**
+ * @brief Kreiss-Oliger dissipation for 2nd-order stencils
+ * @details
+ * Works only for 2nd-order accurate (Odx2) derivatives
+ * accuracy a = 2r - 2
+ * r = (a + 2)/2
+ * for a = 2, r = 2
+ * Q = (-1)^r * (dx)^(2r-1) D_+^r D_- ^r / 2^(2r)
+ *   = dx^3 / 2^6 D_+^2 D_-^2
+ *   = dx^3 / 64 * [stencil: 1, -4, 6, -4, 1]
+ * TODO: higher order?
+ * 
+ * @param i gridpoint in x-dir
+ * @param j gridpoint in y-dir
+ * @param k gridpoint in z-dir
+ * @param field releavnt field
+ * @return dissipation factor
+ */
 inline real_t KO_dissipation_Q(idx_t i, idx_t j, idx_t k, arr_t & field)
 {
-  // Works only for 2nd-order accurate (Odx2) derivatives
-  // accuracy a = 2r - 2
-  // r = (a + 2)/2
-  // for a = 2, r = 2
-  // Q = (-1)^r * (dx)^(2r-1) D_+^r D_- ^r / 2^(2r)
-  //   = dx^3 / 2^6 D_+^2 D_-^2
-  //   = dx^3 / 64 * [stencil: 1, -4, 6, -4, 1]
   #if STENCIL_ORDER == 2
     real_t stencil = (
         1.0*field[INDEX(i-2,j,k)] + 1.0*field[INDEX(i,j-2,k)] + 1.0*field[INDEX(i,j,k-2)]
@@ -527,25 +538,69 @@ inline real_t double_derivative_stencil_Odx8(idx_t i, idx_t j, idx_t k, int d,
   return 0;
 }
 
-/* stencil functions to use: */
+/**
+ * @brief Compute a derivative using a stencil order defined by a
+ * preprocessor directive
+ * 
+ * @param i x-index
+ * @param j x-index
+ * @param k x-index
+ * @param d direction of derivative
+ * @param field field to differentiate
+ * @return derivative
+ */
 inline real_t derivative(idx_t i, idx_t j, idx_t k, int d,
     arr_t & field)
 {
   return STENCIL_ORDER_FUNCTION(derivative_Odx)(i, j, k, d, field);
 }
 
+/**
+ * @brief Compute a mixed derivative using a stencil order defined by a
+ * preprocessor directive
+ * 
+ * @param i x-index
+ * @param j x-index
+ * @param k x-index
+ * @param d1 direction of derivative in one direction
+ * @param d2 direction of derivative in another direction
+ * @param field field to differentiate
+ * @return derivative
+ */
 inline real_t mixed_derivative_stencil(idx_t i, idx_t j, idx_t k, int d1, int d2, arr_t & field)
 {
   return STENCIL_ORDER_FUNCTION(mixed_derivative_stencil_Odx)(i, j, k, d1, d2, field);
 }
 
+/**
+ * @brief Compute a second-order derivative using a stencil order defined by a
+ * preprocessor directive
+ * 
+ * @param i x-index
+ * @param j x-index
+ * @param k x-index
+ * @param d direction of 2nd order derivative to compute
+ * @param field field to differentiate
+ * @return derivative
+ */
 inline real_t double_derivative_stencil(idx_t i, idx_t j, idx_t k, int d,
     arr_t & field)
 {
   return STENCIL_ORDER_FUNCTION(double_derivative_stencil_Odx)(i, j, k, d, field);
 }
 
-/* more generic function for 2nd derivs */
+/**
+ * @brief A more generic function for 2nd derivs; calls
+ * either @double_derivative_stencil or @mixed_derivative_stencil
+ * 
+ * @param i x-index
+ * @param j x-index
+ * @param k x-index
+ * @param d1 direction of first derivative
+ * @param d2 direction of second derivative
+ * @param field field to differentiate
+ * @return derivative
+ */
 inline real_t double_derivative(idx_t i, idx_t j, idx_t k, int d1, int d2,
     arr_t & field)
 {
@@ -559,6 +614,18 @@ inline real_t double_derivative(idx_t i, idx_t j, idx_t k, int d1, int d2,
   return 0;
 }
 
+/**
+ * @brief Computes the laplacian of a field
+ * @details sums up double_derivatives
+ * 
+ * @brief A more generic function for 2nd derivs; calls
+ * either @double_derivative_stencil or @mixed_derivative_stencil
+ * 
+ * @param i x-index
+ * @param j x-index
+ * @param k x-index
+ * @return laplacian
+ */
 inline real_t laplacian(idx_t i, idx_t j, idx_t k, arr_t & field)
 {
   return (
@@ -568,6 +635,12 @@ inline real_t laplacian(idx_t i, idx_t j, idx_t k, arr_t & field)
   );
 }
 
+/**
+ * @brief Compute the average of a field
+ * 
+ * @param field field to average
+ * @return average
+ */
 inline real_t average(arr_t & field)
 {
   // note this may have poor precision for large datasets
@@ -582,6 +655,14 @@ inline real_t average(arr_t & field)
   return sum/POINTS;
 }
 
+/**
+ * @brief Compute the average volume of a simulation
+ * 
+ * @param DIFFphi difference variable conformal factor field
+ * @param phi_FRW reference FRW conformal factor
+ * 
+ * @return [description]
+ */
 inline real_t volume_average(arr_t & DIFFphi, real_t phi_FRW)
 {
   real_t sum = 0.0; 
@@ -595,6 +676,14 @@ inline real_t volume_average(arr_t & DIFFphi, real_t phi_FRW)
   return sum/POINTS;
 }
 
+/**
+ * @brief Compute the volume-weighted average of a field
+ * 
+ * @param field field to average
+ * @param DIFFphi difference variable conformal factor field
+ * @param phi_FRW reference FRW conformal factor
+ * @return volume-weighted average
+ */
 inline real_t conformal_average(arr_t & field, arr_t & DIFFphi, real_t phi_FRW)
 {
   real_t sum = 0.0; 
@@ -609,32 +698,13 @@ inline real_t conformal_average(arr_t & field, arr_t & DIFFphi, real_t phi_FRW)
   return sum/POINTS/vol;
 }
 
-inline real_t max(arr_t & field)
-{
-  idx_t i=0, j=0, k=0;
-  real_t max_val = field[0];
-  LOOP3(i, j, k)
-  {
-    if(field[INDEX(i,j,k)] > max_val) {
-      max_val = field[INDEX(i,j,k)];
-    }
-  }
-  return max_val;
-}
-
-inline real_t min(arr_t & field)
-{
-  idx_t i=0, j=0, k=0;
-  real_t min_val = field[0];
-  LOOP3(i, j, k)
-  {
-    if(field[INDEX(i,j,k)] < min_val) {
-      min_val = field[INDEX(i,j,k)];
-    }
-  }
-  return min_val;
-}
-
+/**
+ * @brief Compute the standard deviation of a field
+ * 
+ * @param field field to analyze
+ * @param avg pre-computed average of a field
+ * @return standard deviation
+ */
 inline real_t standard_deviation(arr_t & field, real_t avg)
 {
   // note this may have poor precision for large datasets
@@ -648,12 +718,27 @@ inline real_t standard_deviation(arr_t & field, real_t avg)
   return sqrt(sum/(POINTS-1));
 }
 
+/**
+ * @brief Compute the standard deviation of a field
+ * 
+ * @param field field to analyze
+ * @return standard deviation
+ */
 inline real_t standard_deviation(arr_t & field)
 {
   real_t avg = average(field);
   return standard_deviation(field, avg);
 }
 
+/**
+ * @brief Compute the volume-weighted standard deviation of a field
+ * 
+ * @param field field to analyze
+ * @param DIFFphi difference variable conformal factor field
+ * @param phi_FRW reference FRW conformal factor
+ * @param avg pre-computed volume-weighted average
+ * @return volume-weighted standard deviation
+ */
 inline real_t conformal_standard_deviation(arr_t & field, arr_t & DIFFphi, real_t phi_FRW, real_t avg)
 {
   real_t sum = 0.0; 
@@ -668,12 +753,56 @@ inline real_t conformal_standard_deviation(arr_t & field, arr_t & DIFFphi, real_
   return sqrt(sum/(POINTS-1)/vol);
 }
 
+/**
+ * @brief Compute the volume-weighted standard deviation of a field
+ * 
+ * @param field field to analyze
+ * @param DIFFphi difference variable conformal factor field
+ * @param phi_FRW reference FRW conformal factor
+ * @return volume-weighted standard deviation
+ */
 inline real_t conformal_standard_deviation(arr_t & field, arr_t & DIFFphi, real_t phi_FRW)
 {
   real_t avg = conformal_average(field, DIFFphi, phi_FRW);
   return conformal_standard_deviation(field, DIFFphi, phi_FRW, avg);
 }
 
+/**
+ * @brief Compute the maximum value of a field
+ */
+inline real_t max(arr_t & field)
+{
+  idx_t i=0, j=0, k=0;
+  real_t max_val = field[0];
+  LOOP3(i, j, k)
+  {
+    if(field[INDEX(i,j,k)] > max_val) {
+      max_val = field[INDEX(i,j,k)];
+    }
+  }
+  return max_val;
+}
+
+/**
+ * @brief Compute the minimum value of a field
+ */
+inline real_t min(arr_t & field)
+{
+  idx_t i=0, j=0, k=0;
+  real_t min_val = field[0];
+  LOOP3(i, j, k)
+  {
+    if(field[INDEX(i,j,k)] < min_val) {
+      min_val = field[INDEX(i,j,k)];
+    }
+  }
+  return min_val;
+}
+
+/**
+ * @brief compute the number of NAN values in a field
+ * @details may have portability issues
+ */
 inline idx_t numNaNs(arr_t & field)
 {
   idx_t i=0, j=0, k=0;

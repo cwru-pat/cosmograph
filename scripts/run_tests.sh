@@ -2,6 +2,11 @@
 
 echo "Running some tests."
 
+# Switch to the directory containing this script,
+cd "$(dirname "$0")"
+# And up a directory should be the main codebase.
+cd ..
+
 ###
 # Tests in tests directory
 ###

@@ -39,6 +39,15 @@ public:
 };
 
 
+/**
+ * @brief Initialize a fourier class instance
+ * @details Create fftw plans, allocate memory
+ * 
+ * @param nx points in x-direction
+ * @param ny points in y-direction
+ * @param nz points in z-direction
+ * @param field any nx*ny*nz grid for planning
+ */
 template<typename IT, typename RT>
 void Fourier::Initialize(IT nx, IT ny, IT nz, RT *field)
 {
@@ -55,6 +64,13 @@ void Fourier::Initialize(IT nx, IT ny, IT nz, RT *field)
                                FFTW_MEASURE);
 }
 
+/**
+ * @brief Compute a power spectrum and write to file
+ * 
+ * @param in Grid to compute the spectrum of
+ * @param iodata reference to data structure containing output directory
+ * information, iodata->dir()
+ */
 template<typename RT, typename IOT>
 void Fourier::powerDump(RT *in, IOT *iodata)
 {

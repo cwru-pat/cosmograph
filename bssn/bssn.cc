@@ -3,6 +3,11 @@
 namespace cosmo
 {
 
+/**
+ * @brief Constructor for BSSN class
+ * @details Allocate memory for fields, add fields to map,
+ * create reference FRW integrator, and call @BSSN::init.
+ */
 BSSN::BSSN()
 {
   // BSSN fields

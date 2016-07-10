@@ -5,6 +5,10 @@ build/*
 # test config files
 config/*.test
 
+# Generated doxygen files
+docs/latex/*
+docs/html/*
+
 # Compiled Object files
 *.slo
 *.lo
@@ -29,3 +33,6 @@ config/*.test
 
 # Vim swap files
 *.swp
+
+# Temporary files
+*.tmp
