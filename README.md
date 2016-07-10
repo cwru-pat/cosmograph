@@ -1,8 +1,8 @@
-# cosmograph
+# CosmoGRaPH Code
 
 [![Build Status](https://travis-ci.com/jbcm627/cosmograph.svg?token=j5zJrjKFZL3UXL3HwPp6&branch=master)](https://travis-ci.com/jbcm627/cosmograph)
 
-## Cosmological General Relativity And (Perfect fluid | Particle) Hydrodynamics
+## Cosmological General Relativity And (Perfect fluid | Particle) Hydrodynamics Code
 
 *But we'll see about the "particle" part.*
 
@@ -30,9 +30,9 @@ sudo apt-get install git cmake libhdf5-dev fftw3-dev libzip-dev g++
 ### Running tests
 
 In order to make sure the code is working, you can try running the provided
-tests script. This script is run by travis-ci as well, in an effort to detect
-problems introduced by changes to the code. Once you have cloned the code and
-submodules, you can run:
+tests script. This script is run by [travis-ci](https://travis-ci.com/jbcm627/cosmograph)
+as well, in an effort to detect problems introduced by changes to the code.
+Once you have cloned the code and submodules, you can run:
 
 ```{r, engine='bash', run_tests}
 ./scripts/tests.sh

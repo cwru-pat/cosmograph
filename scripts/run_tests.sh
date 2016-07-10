@@ -44,7 +44,7 @@ if [ $? -ne 0 ]; then
     echo "Error: cmake failed!"
     exit 1
 fi
-make
+make -j16
 if [ $? -ne 0 ]; then
     echo "Error: make failed!"
     exit 1
