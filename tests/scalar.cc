@@ -37,15 +37,15 @@ int main()
   // make a scalar field class
   Scalar scalarSim;
 
-  // initialize with \phi = x + y + z
+  // initialize with \phi = x^2 + y^2 + z^2
   std::cout << "Initializing scalar field..." << std::endl;
   #pragma omp parallel for default(shared) private(i, j, k, b_data)
   LOOP3(i,j,k)
   {
-    scalarSim.phi._array_p[NP_INDEX(i,j,k)] = i + j + k;
-    scalarSim.psi1._array_p[NP_INDEX(i,j,k)] = 1;
-    scalarSim.psi2._array_p[NP_INDEX(i,j,k)] = 1;
-    scalarSim.psi3._array_p[NP_INDEX(i,j,k)] = 1;
+    scalarSim.phi._array_p[NP_INDEX(i,j,k)] = i*i + j*j + k*k;
+    scalarSim.psi1._array_p[NP_INDEX(i,j,k)] = 2.0*i;
+    scalarSim.psi2._array_p[NP_INDEX(i,j,k)] = 2.0*j;
+    scalarSim.psi3._array_p[NP_INDEX(i,j,k)] = 2.0*k;
     scalarSim.Pi._array_p[NP_INDEX(i,j,k)] = 1;
   }
   scalarSim.stepInit(); // copy over to _a register 

@@ -2,12 +2,12 @@
 
 # Check for correct syntax (4 arguments)
 if [ $# -ne 4 ]; then
-    echo "$0: usage: ./test.sh RESOLUTION USE_LAMBDA LINEARIZE_FRW LINEARIZE_SMALL"
+    echo "$0: usage: ./deploy_runs.sh RESOLUTION USE_LAMBDA LINEARIZE_FRW LINEARIZE_SMALL"
     exit 1
 fi
 
 # Amplitudes to run for:
-declare -a AMPLITUDES=("40.00" "20.00" "10.00" "05.00" "02.50" "01.25")
+declare -a AMPLITUDES=("40.00")
 
 # Validate resolution
 RES=$1
