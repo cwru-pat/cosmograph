@@ -8,7 +8,9 @@
 namespace cosmo
 {
 
-/** Timer -- an individual timer **/
+/**
+ * @brief Individual timer classes used by the TimerManager class.
+ */
 class Timer
 {
 public:
@@ -29,7 +31,10 @@ private:
   struct timespec m_stoptime;
 };
 
-/** TimerManager -- access timers via TM["my_timer"].start() **/
+/**
+ * @brief TimerManager class containing multiple timers;
+ * access individual timers via, eg, TM["my_timer"].start()
+ */
 class TimerManager
 {
 public:

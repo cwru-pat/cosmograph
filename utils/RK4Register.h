@@ -8,6 +8,13 @@
 namespace cosmo
 {
 
+/**
+ * @brief RK4 Class for integration
+ * @details See the docs/RK4_integration.pptx file.
+ * 
+ * @tparam IT Index type
+ * @tparam RT Real type
+ */
 template<typename IT, typename RT>
 class RK4Register
 {

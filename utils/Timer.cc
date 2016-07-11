@@ -20,6 +20,9 @@ Timer Timer::operator-(const Timer &t2)
   return t;
 }
 
+/**
+ * @brief Stop timer
+ */
 void Timer::stop()
 {
   clock_gettime(CLOCK_MONOTONIC, &m_stoptime);
@@ -27,6 +30,9 @@ void Timer::stop()
   m_secs += (m_stoptime.tv_nsec - m_starttime.tv_nsec)*1e-9;
 }
 
+/**
+ * @brief Reset timer
+ */
 void Timer::reset()
 {
   m_secs = 0.;
@@ -36,6 +42,10 @@ void Timer::reset()
   m_stoptime.tv_nsec  = 0;
 }
 
+/**
+ * @brief Get string representing current
+ * timing information from all timers
+ */
 std::string TimerManager::getStateString()
 {
   std::map<std::string,Timer>::iterator it;
@@ -51,7 +61,6 @@ std::string TimerManager::getStateString()
 
   return str;
 }
-
 
 std::ostream& operator<<(std::ostream &ostr, const Timer &t)
 {

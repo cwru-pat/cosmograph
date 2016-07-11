@@ -16,7 +16,9 @@
 namespace cosmo
 {
 
-/** BSSN class **/
+/**
+ * @brief BSSN Class: evolves BSSN metric fields, computes derived quantities
+ */
 class BSSN
 {
   /* arrays for storing fields */
@@ -27,9 +29,8 @@ class BSSN
 public:
   map_t fields;
 
-  // Standard FRW spacetime integrator - for a
-  // reference metric
-  FRW<real_t> * frw;
+  // Standard FRW spacetime integrator - for a reference metric
+  FRW<real_t> * frw; ///< FRW reference metric instance
 
   BSSN();
   ~BSSN();
