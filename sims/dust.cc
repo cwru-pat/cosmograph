@@ -205,9 +205,8 @@ void DustSim::runDustStep()
 
 void DustSim::runStep()
 {
-  runCommonStepTasks();
-
   initDustStep();
+  runCommonStepTasks();
   outputDustStep();
   runDustStep();
 }
