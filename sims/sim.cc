@@ -190,6 +190,15 @@ void CosmoSim::outputStateInformation()
       "Final Max. Momentum constraint violation: "
       + stringify(M_calcs[2])
     );
+
+  if(ray_integrate)
+  {
+    RaytraceData<real_t> rd = rays[0]->getRaytraceData();
+    iodata->log(
+        "rays[0] beam width: "
+        + stringify(rd.ell)
+      );
+  }
 }
 
 idx_t CosmoSim::simNumNaNs()
