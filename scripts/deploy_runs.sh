@@ -2,8 +2,7 @@
 
 # Switch to the directory containing this script,
 cd "$(dirname "$0")"
-# And up a directory should be the main codebase.
-cd ..
+# up a directory should be the main codebase.
 
 # Some colors
 RED='\033[31m'
@@ -202,13 +201,13 @@ do
   sed -i.bak "s/IO_1D_grid_interval = 100/IO_1D_grid_interval = $IO1D/" config.txt
 
   # Run job, go back up a dir
-  if [ ! "$DRY_RUN" ]; then
+  if [ "$DRY_RUN" = false ]; then
     if "$USE_CLUSTER"; then
       printf "${GREEN}Queueing job A_${i}_${JOBDIR}.${NC}\n"
-      #sbatch job.slurm
+      sbatch job.slurm
     else
       printf "${GREEN}Running job.${NC}\n"
-      #./cosmo config.txt
+      ./cosmo config.txt
     fi
   fi
 

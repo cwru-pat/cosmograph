@@ -59,6 +59,12 @@ example, to change the resolution to `N=32`, the cmake command will be
 cmake -DCOSMO_N=32 ..
 ```
 
+#### Deploy script
+
+In the `scripts` directory, a `deploy_runs.sh` bash script exists to help
+deploy BSSN+dust runs quickly. Run `deploy_runs.sh --help` for some usage
+details.
+
 ### Running the code
 
 The generated executable should accept a single configuration file as a
