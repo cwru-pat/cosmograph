@@ -24,17 +24,30 @@ class RK4Register
     RT sim_dt;
 
   public:
-    CosmoArray<IT, RT> _array_p;
-    CosmoArray<IT, RT> _array_a;
-    CosmoArray<IT, RT> _array_c;
-    CosmoArray<IT, RT> _array_f;
+    CosmoArray<IT, RT> _array_p; ///< "_p" register: contains data from _p_revious step
+    CosmoArray<IT, RT> _array_a; ///< "_a" register: containes _a_ctive data needed for _c_omputations
+    CosmoArray<IT, RT> _array_c; ///< "_c" register: contains _c_omputed values
+    CosmoArray<IT, RT> _array_f; ///< "_f" register: containes final value of RK4 step
 
+    /**
+     * @brief Constructor calls CosmoArray constructors; call RK4Register::init
+     * to initialize class
+     */
     RK4Register() :
       _array_p(), _array_a(), _array_c(), _array_f()
     {
       // call init()
     }
 
+    /**
+     * @brief Initialize class variables; call CosmoArray::init for array members
+     * @details Set "dt" for class instance; grid dimensions
+     * 
+     * @param nx_in num. grid points in x-direction
+     * @param ny_in num. grid points in y-direction
+     * @param nz_in num. grid points in z-direction
+     * @param sim_dt_in initial timestep
+     */
     void init(IT nx_in, IT ny_in, IT nz_in, RT sim_dt_in)
     {
       setDt(sim_dt_in);
@@ -47,6 +60,9 @@ class RK4Register
       _array_f.init(nx_in, ny_in, nz_in);
     }
 
+    /**
+     * @brief Set "dt" for RK4Register instance
+     */
     void setDt(RT sim_dt_in)
     {
       sim_dt = sim_dt_in;
@@ -60,6 +76,11 @@ class RK4Register
       _array_f.~CosmoArray();
     }
 
+    /**
+     * @brief Set "name" property of instance, CosmoArray member instances
+     * 
+     * @param name_in name
+     */
     void setName(std::string name_in)
     {
       name = name_in;
@@ -69,12 +90,18 @@ class RK4Register
       _array_f.setName(name_in + "_f");
     }
 
+    /**
+     * @brief Swap data in and names of _a and _c registers
+     */
     void swap_a_c()
     {
       std::swap(_array_a.name, _array_c.name);
       std::swap(_array_a._array, _array_c._array);
     }
 
+    /**
+     * @brief Swap data in and names of _p and _f registers
+     */
     void swap_p_f()
     {
       std::swap(_array_p.name, _array_f.name);

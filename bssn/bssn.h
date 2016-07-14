@@ -27,7 +27,7 @@ class BSSN
   BSSN_APPLY_TO_GEN1_EXTRAS(GEN1_ARRAY_CREATE)
 
 public:
-  map_t fields;
+  map_t fields; ///< Public map from names to internal arrays
 
   // Standard FRW spacetime integrator - for a reference metric
   FRW<real_t> * frw; ///< FRW reference metric instance

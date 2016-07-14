@@ -1,5 +1,11 @@
 #!/bin/bash
 
+# Switch to the directory containing this script,
+cd "$(dirname "$0")"
+# And up a directory should be the main codebase.
+cd ..
+
+# Some colors
 RED='\033[31m'
 GREEN='\033[32m'
 YELLOW='\033[33m'

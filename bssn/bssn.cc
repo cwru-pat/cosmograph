@@ -6,7 +6,7 @@ namespace cosmo
 /**
  * @brief Constructor for BSSN class
  * @details Allocate memory for fields, add fields to map,
- * create reference FRW integrator, and call @BSSN::init.
+ * create reference FRW integrator, and call BSSN::init.
  */
 BSSN::BSSN()
 {
@@ -35,11 +35,18 @@ BSSN::~BSSN()
   BSSN_APPLY_TO_GEN1_EXTRAS(GEN1_ARRAY_DELETE)
 }
 
+/**
+ * @brief Compute and store inverse conformal difference metric components given
+ * the conformal difference metric in a BSSNData struct
+ * @details Computed assuming \f$det(\bar{\gamma}_{ij}) = 1\f$
+ * 
+ * @param i x-index
+ * @param j y-index
+ * @param k z-index
+ * @param bd BSSNData containing initialized conformal difference metric components
+ */
 void BSSN::set_gammai_values(idx_t i, idx_t j, idx_t k, BSSNData *bd)
 {
-  // Compute the inverse metric algebraically at each point
-  // assumes det(gamma) = 1
-  idx_t idx = NP_INDEX(i,j,k);
   bd->gammai11 = 1.0 + bd->DIFFgamma22 + bd->DIFFgamma33 - pw2(bd->DIFFgamma23) + bd->DIFFgamma22*bd->DIFFgamma33;
   bd->gammai22 = 1.0 + bd->DIFFgamma11 + bd->DIFFgamma33 - pw2(bd->DIFFgamma13) + bd->DIFFgamma11*bd->DIFFgamma33;
   bd->gammai33 = 1.0 + bd->DIFFgamma11 + bd->DIFFgamma22 - pw2(bd->DIFFgamma12) + bd->DIFFgamma11*bd->DIFFgamma22;
@@ -48,13 +55,17 @@ void BSSN::set_gammai_values(idx_t i, idx_t j, idx_t k, BSSNData *bd)
   bd->gammai23 = bd->DIFFgamma12*bd->DIFFgamma13 - bd->DIFFgamma23*(1.0 + bd->DIFFgamma11);
 }
 
+/**
+ * @brief Normalize the conformal difference metric, make sure the conformal
+ * extrinsic curvature is trace-free.
+ */
 void BSSN::set_DIFFgamma_Aij_norm()
 {
   idx_t i, j, k;
 
   /* This potentially breaks conservation of trace:
    * need to come up with something else to preserve both
-   * trace + determinant constraints.
+   * trace + determinant constraints?
    */
 # pragma omp parallel for default(shared) private(i, j, k)
   LOOP3(i, j, k)
@@ -108,6 +119,15 @@ void BSSN::set_DIFFgamma_Aij_norm()
   }
 }
 
+/**
+ * @brief Populate values in a BSSNData struct
+ * @details Compute all of them, except full metric m (TODO)
+ * 
+ * @param i x-index
+ * @param j y-index
+ * @param k z-index
+ * @param bd BSSNData struct to populate
+ */
 void BSSN::set_bd_values(idx_t i, idx_t j, idx_t k, BSSNData *bd)
 {
   bd->i = i;
@@ -164,6 +184,11 @@ void BSSN::set_bd_values(idx_t i, idx_t j, idx_t k, BSSNData *bd)
   bd->H = hamiltonianConstraintCalc(bd->idx);
 }
 
+/**
+ * @brief Initialize fields in BSSN class to defaults
+ * @details BSSN fields initialized to a flat (difference) metric with zero source;
+ * thus all fields in all registers are zeroed. Reference integrator unaffected.
+ */
 void BSSN::init()
 {
   idx_t idx;
@@ -184,12 +209,20 @@ void BSSN::init()
   }
 }
 
+/**
+ * @brief Set integration timestep (eg, raytracing code calls this with negative dt when beginning to integrate backwards)
+ * 
+ * @param dt new timesetp
+ */
 void BSSN::setDt(real_t dt)
 {
   BSSN_SET_DT(dt);
 }
 
-// Init _a register with _p values, _f with 0
+/**
+ * @brief Call RK4Register class step initialization; normalize Aij and DIFFgammaIJ fields
+ * @details See RK4Register::stepInit() method.
+ */
 void BSSN::stepInit()
 {
   BSSN_RK_INITIALIZE; // macro calls stepInit for all fields
@@ -199,6 +232,9 @@ void BSSN::stepInit()
 # endif
 }
 
+/**
+ * @brief Call BSSN::RKEvolvePt for all points
+ */
 void BSSN::RKEvolve()
 {
   idx_t i, j, k;
@@ -211,38 +247,67 @@ void BSSN::RKEvolve()
   }
 }
 
+/**
+ * @brief Compute the BSSN evolution functions
+ * @details Calls the BSSN evolution functions on the _a register; stores the
+ * result in the _c register. Computed data (Riemann tensor, etc) is stored
+ * in the BSSNData struct. Computed values of AijAij and Ricci are stored in
+ * the corresponding arrays.
+ * 
+ * @param i x-index
+ * @param j y-index
+ * @param k z-index
+ * @param bd reference to a BSSNData struct
+ */
 void BSSN::RKEvolvePt(idx_t i, idx_t j, idx_t k, BSSNData * bd)
 {
   set_bd_values(i, j, k, bd);
   BSSN_RK_EVOLVE_PT; // macro stores ev_field to _c register for all fields
 }
 
-// RK Steps
+/**
+ * @brief Call RK4Register::K1Finalize finalization routine for BSSN fields,
+ * call FRW::P1_step for reference FRW integrator
+ */
 void BSSN::K1Finalize()
 {
   frw->P1_step(dt);
   BSSN_FINALIZE_K(1);
 }
 
+/**
+ * @brief Call RK4Register::K2Finalize finalization routine for BSSN fields,
+ * call FRW::P2_step for reference FRW integrator
+ */
 void BSSN::K2Finalize()
 {
   frw->P2_step(dt);
   BSSN_FINALIZE_K(2);
 }
 
+/**
+ * @brief Call RK4Register::K3Finalize finalization routine for BSSN fields,
+ * call FRW::P3_step for reference FRW integrator
+ */
 void BSSN::K3Finalize()
 {
   frw->P3_step(dt);
   BSSN_FINALIZE_K(3);
 }
 
+/**
+ * @brief Call RK4Register::K4Finalize finalization routine for BSSN fields,
+ * call FRW::RK_total_step for reference FRW integrator
+ */
 void BSSN::K4Finalize()
 {
   frw->RK_total_step(dt);
   BSSN_FINALIZE_K(4);
 }
 
-
+/**
+ * @brief zero all BSSN source term fields
+ */
 void BSSN::clearSrc()
 {
   idx_t i, j, k;
@@ -254,7 +319,12 @@ void BSSN::clearSrc()
   }
 }
 
-// Full RK step
+/**
+ * @brief Call Perform a full RK4 step, minus initialization.
+ * @details Calls:
+ * BSSN::RKEvolve, BSSN::K1Finalize, BSSN::RKEvolve, BSSN::K2Finalize,
+ * BSSN::RKEvolve, BSSN::K3Finalize, BSSN::RKEvolve, BSSN::K4Finalize
+ */
 void BSSN::step()
 {
   // stepInit must still be called
@@ -268,6 +338,7 @@ void BSSN::step()
   RKEvolve();
   K4Finalize();
 }
+
 
 /*
 ******************************************************************************
