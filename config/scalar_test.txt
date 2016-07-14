@@ -1,6 +1,6 @@
-steps = 100
+steps = 10
 
-omp_num_threads = 4
+omp_num_threads = 2
 
 simulation_type = scalar
 
@@ -20,7 +20,7 @@ IO_2D_grid_interval = 100
 IO_1D_grid_interval = 10
 
 IO_powerspec_interval = 100
-IO_constraint_interval = 10
+IO_constraint_interval = 1
 IO_bssnstats_interval = 10
 
 rho_K_lambda_frac = 0 

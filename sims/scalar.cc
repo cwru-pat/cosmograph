@@ -17,7 +17,8 @@ void ScalarSim::init()
 
   scalarSim = new Scalar();
   iodata->log("Creating initial conditions.");
-  setScalarMultigridICs();
+  //setScalarMultigridICs();
+  setAnalyticScalarTestICs();
   iodata->log("Finished setting ICs.");
 
   _timer["init"].stop();
@@ -75,6 +76,123 @@ void ScalarSim::setScalarWaveICs()
   return;
 }
 
+void ScalarSim::setAnalyticScalarTestICs()
+{
+  idx_t i, j, k;
+
+  arr_t & phi_p = *bssnSim->fields["DIFFphi_p"];
+  arr_t & phi_a = *bssnSim->fields["DIFFphi_a"];
+
+  //chosing the analytic solution first
+  #pragma omp parallel for
+  LOOP3(i, j, k)
+  {
+    phi_p[INDEX(i,j,k)] = 1.0 + 0.01 * std::sin(4.0 * PI *( (real_t)i / NX - 0.125));
+    phi_a[INDEX(i,j,k)] = 1.0 + 0.01 * std::sin(4.0 * PI *( (real_t)i / NX - 0.125));
+  }
+
+  arr_t & phi = scalarSim->phi._array_p; // field
+  arr_t & psi1 = scalarSim->psi1._array_p; // derivative of phi in x-dir
+  arr_t & psi2 = scalarSim->psi3._array_p; // derivative of phi in y-dir
+  arr_t & psi3 = scalarSim->psi2._array_p; // derivative of phi in z-dir
+
+  arr_t & Pi = scalarSim->Pi._array_p; // time-derivative of field phi
+  
+  arr_t & K_p = *bssnSim->fields["DIFFK_p"]; // extrinsic curvature
+  arr_t & K_a = *bssnSim->fields["DIFFK_a"]; // extrinsic curvature
+
+  real_t n_max = std::stoi(_config["n_max"]);
+  real_t phi_0 = std::stod(_config["phi_0"]);
+  real_t delta = std::stod(_config["delta_phi"]);
+
+  #pragma omp parallel for default(shared) private(i,j,k)
+  LOOP3(i,j,k)
+  {
+    K_a[INDEX(i,j,k)] = K_p[INDEX(i,j,k)] = 9.763423957014197;
+  }
+  real_t Lambda = 1.0;
+  
+  real_t * temp, * der_bak;
+  temp = new real_t[NX], der_bak = new real_t[NX];
+  real_t lap_dif = 0;
+  for(i = 0; i < NX; i++)
+  {
+    if(2.0 * i <= NX)
+      temp[i] = std::sqrt(std::fabs(
+      (pw2(4.0 * PI) * 0.01  *  std::sin(4.0 * PI *( (real_t)i / NX - 0.125) )
+       +(-2.0 * PI * Lambda + pw2(K_a[INDEX(i,0,0)])/12.0 )*
+       std::pow(phi_a[INDEX(i,0,0)], 5.0) )
+      /(PI * phi_a[INDEX(i,0,0)] ) )) ;
+    else
+      temp[i]= -  std::sqrt(std::fabs(
+      (pw2(4.0 * PI) * 0.01  *  std::sin(4.0 * PI *( (real_t)i / NX - 0.125) )
+       +(-2.0 * PI * Lambda + pw2(K_a[INDEX(i,0,0)])/12.0 )*
+       std::pow(phi_a[INDEX(i,0,0)], 5.0) )
+      /(PI * phi_a[INDEX(i,0,0)] ) )) ;
+    der_bak[i] = temp[i];
+    for(j = 0; j < NY; j++)
+      for(k = 0; k < NZ; k++)
+	phi[INDEX(i,j,k)] = temp[i];
+    lap_dif = std::max(lap_dif, std::fabs(double_derivative(i,0,0,1,1,phi_p)
+					  +pw2(4.0 * PI) * 0.01  *  std::sin(4.0 * PI *( (real_t)i / NX - 0.125) ) ) );
+  }
+  std::cout<<"Difference between exact lap and discrete lap is: "<<lap_dif<<"\n";
+  Fourier * fourier;
+  fourier = new Fourier();
+
+  fourier->Initialize_1D(NX, temp);
+  fourier->execute_f_r2c(0);
+
+
+
+  for(i = 0; i < NX/2 +1; i++)
+  {
+    if(i > 0)
+    {
+      std::swap(fourier->f_field[i][0], fourier->f_field[i][1]);
+      fourier->f_field[i][1] = -fourier->f_field[i][1];
+      /*      fourier->f_field[i][0] = dx * fourier->f_field[i][0] /
+	( std::sin(2.0 * PI * (real_t) i / NX));
+      fourier->f_field[i][1] = dx * fourier->f_field[i][1] /
+	  ( std::sin(2.0 * PI * (real_t) i / NX));*/
+      fourier->f_field[i][0] = dx * fourier->f_field[i][0] /
+	( 2.0 * PI * (real_t) i / NX);
+      fourier->f_field[i][1] = dx * fourier->f_field[i][1] /
+	  ( 2.0 * PI * (real_t) i / NX);
+    }
+    else
+      fourier->f_field[i][0] = fourier->f_field[i][1] = 0;
+    
+  }
+  fourier->execute_f_c2r(0);
+
+  LOOP3(i,j,k)
+  {
+    phi[INDEX(i,j,k)] = temp[i]/NX;
+    phi_p[INDEX(i,j,k)] =(real_t) std::log(phi_p[INDEX(i,j,k)]);
+    phi_a[INDEX(i,j,k)] =(real_t) std::log(phi_a[INDEX(i,j,k)]);
+  }
+
+  real_t max_deviation =- 1e100;
+
+  for(i = 0; i < NX; i++)
+  {
+    max_deviation = std::max(max_deviation,std::fabs( derivative(i,0,0,1,phi) - der_bak[i]));
+  }
+  std::cout<<"The maximum deviation for solving scalar field under analytic solution of phi under odx8 is: "<<max_deviation;
+  std::cout<<"\n";
+
+    // initialize psi according to values in phi
+  #pragma omp parallel for default(shared) private(i,j,k)
+  LOOP3(i,j,k)
+  {
+    psi1[INDEX(i,j,k)] = derivative(i, j, k, 1, phi);
+    psi2[INDEX(i,j,k)] = derivative(i, j, k, 2, phi);
+    psi3[INDEX(i,j,k)] = derivative(i, j, k, 3, phi);
+  }
+
+  fourier->~Fourier();
+}
 /**
  * @brief Use the multigrid solver to solve for metric factors given
  * a particular scalar field implementation.

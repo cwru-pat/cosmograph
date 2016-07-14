@@ -33,7 +33,12 @@ public:
 
   template<typename IT, typename RT>
   void Initialize(IT nx, IT ny, IT nz, RT *field);
-
+  template<typename IT, typename RT>
+  void Initialize_1D(IT n, RT *field);
+  template<typename ft>
+  void execute_f_r2c(ft rt );
+  template<typename ct>
+  void execute_f_c2r(ct rt);
   template<typename RT, typename IOT>
   void powerDump(RT *in, IOT *iodata);
 };
@@ -64,6 +69,30 @@ void Fourier::Initialize(IT nx, IT ny, IT nz, RT *field)
                                FFTW_MEASURE);
 }
 
+template<typename IT, typename RT>
+void Fourier::Initialize_1D(IT n, RT *field)
+{
+  //fftw_malloc
+  f_field = (fftw_complex *) fftw_malloc((n/2 +1)*((long long) sizeof(fftw_complex)));
+
+  // create plans
+  p_r2c = fftw_plan_dft_r2c_1d(n,
+                               field, f_field,FFTW_ESTIMATE
+                               );
+  p_c2r = fftw_plan_dft_c2r_1d(n,
+                               f_field, field,FFTW_ESTIMATE
+			       );
+}
+template<typename ft> 
+void Fourier::execute_f_r2c(ft rt)
+{
+   fftw_execute(p_r2c);
+}
+template<typename ct>
+void Fourier::execute_f_c2r(ct rt)
+{
+   fftw_execute(p_c2r);
+}
 /**
  * @brief Compute a power spectrum and write to file
  * 
@@ -75,6 +104,7 @@ template<typename RT, typename IOT>
 void Fourier::powerDump(RT *in, IOT *iodata)
 {
   // Transform input array
+  
   fftw_execute_dft_r2c(p_r2c, in, f_field);
 
   // average power over angles
