@@ -82,5 +82,5 @@ int main(int argc, char **argv)
   // Run simulation
   cosmoSim->run();
 
-  exit(EXIT_SUCCESS);
+  return EXIT_SUCCESS;
 }

@@ -36,26 +36,6 @@ BSSN::~BSSN()
 }
 
 /**
- * @brief Compute and store inverse conformal difference metric components given
- * the conformal difference metric in a BSSNData struct
- * @details Computed assuming \f$det(\bar{\gamma}_{ij}) = 1\f$
- * 
- * @param i x-index
- * @param j y-index
- * @param k z-index
- * @param bd BSSNData containing initialized conformal difference metric components
- */
-void BSSN::set_gammai_values(idx_t i, idx_t j, idx_t k, BSSNData *bd)
-{
-  bd->gammai11 = 1.0 + bd->DIFFgamma22 + bd->DIFFgamma33 - pw2(bd->DIFFgamma23) + bd->DIFFgamma22*bd->DIFFgamma33;
-  bd->gammai22 = 1.0 + bd->DIFFgamma11 + bd->DIFFgamma33 - pw2(bd->DIFFgamma13) + bd->DIFFgamma11*bd->DIFFgamma33;
-  bd->gammai33 = 1.0 + bd->DIFFgamma11 + bd->DIFFgamma22 - pw2(bd->DIFFgamma12) + bd->DIFFgamma11*bd->DIFFgamma22;
-  bd->gammai12 = bd->DIFFgamma13*bd->DIFFgamma23 - bd->DIFFgamma12*(1.0 + bd->DIFFgamma33);
-  bd->gammai13 = bd->DIFFgamma12*bd->DIFFgamma23 - bd->DIFFgamma13*(1.0 + bd->DIFFgamma22);
-  bd->gammai23 = bd->DIFFgamma12*bd->DIFFgamma13 - bd->DIFFgamma23*(1.0 + bd->DIFFgamma11);
-}
-
-/**
  * @brief Normalize the conformal difference metric, make sure the conformal
  * extrinsic curvature is trace-free.
  */
@@ -117,71 +97,6 @@ void BSSN::set_DIFFgamma_Aij_norm()
     A13->_array_a[idx] = ( A13->_array_a[idx] - 1.0/3.0*DIFFgamma13->_array_a[idx]*trA ) / (1.0 - one_minus_det_gamma_thirdpow);
     A23->_array_a[idx] = ( A23->_array_a[idx] - 1.0/3.0*DIFFgamma23->_array_a[idx]*trA ) / (1.0 - one_minus_det_gamma_thirdpow);
   }
-}
-
-/**
- * @brief Populate values in a BSSNData struct
- * @details Compute all of them, except full metric m (TODO)
- * 
- * @param i x-index
- * @param j y-index
- * @param k z-index
- * @param bd BSSNData struct to populate
- */
-void BSSN::set_bd_values(idx_t i, idx_t j, idx_t k, BSSNData *bd)
-{
-  bd->i = i;
-  bd->j = j;
-  bd->k = k;
-  bd->idx = NP_INDEX(i,j,k);
-
-  // need to set FRW quantities first
-  bd->phi_FRW = frw->get_phi();
-  bd->K_FRW = frw->get_K();
-  bd->rho_FRW = frw->get_rho();
-  bd->S_FRW = frw->get_S();
-
-  // draw data from cache
-  set_local_vals(bd);
-  set_gammai_values(i, j, k, bd);
-
-  // non-DIFF quantities
-  bd->phi      =   bd->DIFFphi + bd->phi_FRW;
-  bd->K        =   bd->DIFFK + bd->K_FRW;
-  bd->gamma11  =   bd->DIFFgamma11 + 1.0;
-  bd->gamma12  =   bd->DIFFgamma12;
-  bd->gamma13  =   bd->DIFFgamma13;
-  bd->gamma22  =   bd->DIFFgamma22 + 1.0;
-  bd->gamma23  =   bd->DIFFgamma23;
-  bd->gamma33  =   bd->DIFFgamma33 + 1.0;
-  bd->r        =   bd->DIFFr + bd->rho_FRW;
-  bd->S        =   bd->DIFFS + bd->S_FRW;
-  bd->alpha    =   bd->DIFFalpha + 1.0;
-
-  // pre-compute re-used quantities
-  // gammas & derivs first
-  calculate_Acont(bd);
-  calculate_dgamma(bd);
-  calculate_ddgamma(bd);
-  calculate_dalpha_dphi(bd);
-  calculate_dK(bd);
-# if USE_Z4c_DAMPING
-    calculate_dtheta(bd);
-# endif
-# if USE_BSSN_SHIFT
-    calculate_dbeta(bd);
-# endif
-
-  // Christoffels depend on metric & derivs.
-  calculate_conformal_christoffels(bd);
-  // DDw depend on christoffels, metric, and derivs
-  calculateDDphi(bd);
-  calculateDDalphaTF(bd);
-  // Ricci depends on DDphi
-  calculateRicciTF(bd);
-
-  // H depends on AijAij and ricci arrays
-  bd->H = hamiltonianConstraintCalc(bd->idx);
 }
 
 /**
@@ -342,20 +257,119 @@ void BSSN::step()
 
 /*
 ******************************************************************************
-Calculate independent quantities for later use (minimize # times calc'd)
+
+ Calculate independent quantities for later use
+(minimize # times derivatives are computed, etc)
+
 ******************************************************************************
 */
 
 
-/* set current local field values */
+/**
+ * @brief Populate values in a BSSNData struct
+ * @details Compute all of them, except full metric m (TODO)
+ * 
+ * @param i x-index
+ * @param j y-index
+ * @param k z-index
+ * @param bd BSSNData struct to populate
+ */
+void BSSN::set_bd_values(idx_t i, idx_t j, idx_t k, BSSNData *bd)
+{
+  bd->i = i;
+  bd->j = j;
+  bd->k = k;
+  bd->idx = NP_INDEX(i,j,k);
+
+  // need to set FRW quantities first
+  bd->phi_FRW = frw->get_phi();
+  bd->K_FRW = frw->get_K();
+  bd->rho_FRW = frw->get_rho();
+  bd->S_FRW = frw->get_S();
+
+  // draw data from cache
+  set_local_vals(bd);
+  set_gammai_values(i, j, k, bd);
+
+  // non-DIFF quantities
+  bd->phi      =   bd->DIFFphi + bd->phi_FRW;
+  bd->K        =   bd->DIFFK + bd->K_FRW;
+  bd->gamma11  =   bd->DIFFgamma11 + 1.0;
+  bd->gamma12  =   bd->DIFFgamma12;
+  bd->gamma13  =   bd->DIFFgamma13;
+  bd->gamma22  =   bd->DIFFgamma22 + 1.0;
+  bd->gamma23  =   bd->DIFFgamma23;
+  bd->gamma33  =   bd->DIFFgamma33 + 1.0;
+  bd->r        =   bd->DIFFr + bd->rho_FRW;
+  bd->S        =   bd->DIFFS + bd->S_FRW;
+  bd->alpha    =   bd->DIFFalpha + 1.0;
+
+  // pre-compute re-used quantities
+  // gammas & derivs first
+  calculate_Acont(bd);
+  calculate_dgamma(bd);
+  calculate_ddgamma(bd);
+  calculate_dalpha_dphi(bd);
+  calculate_dK(bd);
+# if USE_Z4c_DAMPING
+    calculate_dtheta(bd);
+# endif
+# if USE_BSSN_SHIFT
+    calculate_dbeta(bd);
+# endif
+
+  // Christoffels depend on metric & derivs.
+  calculate_conformal_christoffels(bd);
+  // DDw depend on christoffels, metric, and derivs
+  calculateDDphi(bd);
+  calculateDDalphaTF(bd);
+  // Ricci depends on DDphi
+  calculateRicciTF(bd);
+
+  // H depends on AijAij and ricci arrays
+  bd->H = hamiltonianConstraintCalc(bd->idx);
+}
+
+
+/**
+ * @brief Set "local values"; set BSSNData values corresponding to field
+ * values at a point.
+ *
+ * @param      bd    BSSNData struct with idx set.
+ */
 void BSSN::set_local_vals(BSSNData *bd)
 {
-  // Pull out values of quantities at a single point
   BSSN_APPLY_TO_FIELDS(RK4_SET_LOCAL_VALUES);
   BSSN_APPLY_TO_GEN1_EXTRAS(GEN1_SET_LOCAL_VALUES);
   BSSN_APPLY_TO_SOURCES(GEN1_SET_LOCAL_VALUES);
 }
 
+/**
+ * @brief Compute and store inverse conformal difference metric components given
+ * the conformal difference metric in a BSSNData struct
+ * @details Computed assuming \f$det(\bar{\gamma}_{ij}) = 1\f$
+ * 
+ * @param i x-index
+ * @param j y-index
+ * @param k z-index
+ * @param bd BSSNData containing initialized conformal difference metric components
+ */
+void BSSN::set_gammai_values(idx_t i, idx_t j, idx_t k, BSSNData *bd)
+{
+  bd->gammai11 = 1.0 + bd->DIFFgamma22 + bd->DIFFgamma33 - pw2(bd->DIFFgamma23) + bd->DIFFgamma22*bd->DIFFgamma33;
+  bd->gammai22 = 1.0 + bd->DIFFgamma11 + bd->DIFFgamma33 - pw2(bd->DIFFgamma13) + bd->DIFFgamma11*bd->DIFFgamma33;
+  bd->gammai33 = 1.0 + bd->DIFFgamma11 + bd->DIFFgamma22 - pw2(bd->DIFFgamma12) + bd->DIFFgamma11*bd->DIFFgamma22;
+  bd->gammai12 = bd->DIFFgamma13*bd->DIFFgamma23 - bd->DIFFgamma12*(1.0 + bd->DIFFgamma33);
+  bd->gammai13 = bd->DIFFgamma12*bd->DIFFgamma23 - bd->DIFFgamma13*(1.0 + bd->DIFFgamma22);
+  bd->gammai23 = bd->DIFFgamma12*bd->DIFFgamma13 - bd->DIFFgamma23*(1.0 + bd->DIFFgamma11);
+}
+
+/**
+ * @brief Calculate contravariant version of conformal trace-free extrinsic
+ * curvature, \f$\bar{A}^{ij}\f$.
+ *
+ * @param bd BSSNData struct with inverse metric, Aij already computed.
+ */
 void BSSN::calculate_Acont(BSSNData *bd)
 {
   // A^ij is calculated from A_ij by raising wrt. the conformal metric
@@ -367,17 +381,34 @@ void BSSN::calculate_Acont(BSSNData *bd)
   bd->AijAij = AijAij_a[bd->idx];
 }
 
-/* Calculate metric derivatives */
+/**
+ * @brief Compute partial derivatives of the conformal metric, store in a
+ * BSSNData instance
+ *
+ * @param bd BSSNData struct reference
+ */
 void BSSN::calculate_dgamma(BSSNData *bd)
 {
   BSSN_APPLY_TO_IJK_PERMS(BSSN_CALCULATE_DGAMMA)
 }
 
+/**
+ * @brief Compute second partial derivatives of the conformal metric, store in
+ * a BSSNData instance
+ *
+ * @param bd BSSNData struct reference
+ */
 void BSSN::calculate_ddgamma(BSSNData *bd)
 {
   BSSN_APPLY_TO_IJ_PERMS(BSSN_CALCULATE_DIDJGAMMA_PERMS)
 }
 
+/**
+ * @brief Compute partial derivatives of the lapse and conformal factor, store
+ * in a BSSNData instance
+ *
+ * @param bd BSSNData struct reference
+ */
 void BSSN::calculate_dalpha_dphi(BSSNData *bd)
 {
   // normal derivatives of phi
@@ -399,6 +430,12 @@ void BSSN::calculate_dalpha_dphi(BSSNData *bd)
   bd->d3a = derivative(bd->i, bd->j, bd->k, 3, DIFFalpha->_array_a);
 }
 
+/**
+ * @brief Compute partial derivatives of the trace of the extrinsic curvature,
+ * store in a BSSNData instance
+ *
+ * @param bd BSSNData struct reference
+ */
 void BSSN::calculate_dK(BSSNData *bd)
 {
   // normal derivatives of K
@@ -435,7 +472,9 @@ void BSSN::calculate_dbeta(BSSNData *bd)
 
 /*
 ******************************************************************************
-"dependent" quantities (depend on previously calc'd vals)
+
+Compute "dependent" quantities (depend on previously calc'd vals)
+
 ******************************************************************************
 */
 
@@ -559,7 +598,9 @@ void BSSN::calculateRicciTF(BSSNData *bd)
 
 /*
 ******************************************************************************
+
 (optional) Calculations of additional quantities
+
 ******************************************************************************
 */
 
@@ -613,7 +654,9 @@ void BSSN::set_full_metric_der(BSSNData *bd)
 
 /*
 ******************************************************************************
+
 Evolution equation calculations
+
 ******************************************************************************
 */
 
@@ -717,7 +760,9 @@ real_t BSSN::ev_beta3(BSSNData *bd)
 
 /*
 ******************************************************************************
+
 Constraint violtion calculations
+
 ******************************************************************************
 */
 
@@ -996,8 +1041,10 @@ real_t BSSN::metricConstraintTotalMag()
 
 /*
 ******************************************************************************
+
 Populate a RaytracePrimitives struct with values from a BSSN struct
  (plus derivatives on the A_ij field)
+
 ******************************************************************************
 */
 
