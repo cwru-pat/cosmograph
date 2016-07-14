@@ -28,6 +28,7 @@ public:
   void runScalarStep();
   void runStep();
   void setAnalyticScalarTestICs();
+  void setZeroScalarTestICs();
 };
 
 } /* namespace cosmo */

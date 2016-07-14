@@ -18,7 +18,8 @@ void ScalarSim::init()
   scalarSim = new Scalar();
   iodata->log("Creating initial conditions.");
   //setScalarMultigridICs();
-  setAnalyticScalarTestICs();
+  //setAnalyticScalarTestICs();
+  setZeroScalarTestICs();
   iodata->log("Finished setting ICs.");
 
   _timer["init"].stop();
@@ -76,6 +77,39 @@ void ScalarSim::setScalarWaveICs()
   return;
 }
 
+void ScalarSim::setZeroScalarTestICs()
+{
+  idx_t i, j, k;
+
+  arr_t & phi_p = *bssnSim->fields["DIFFphi_p"];
+  arr_t & phi_a = *bssnSim->fields["DIFFphi_a"];
+
+  arr_t & phi = scalarSim->phi._array_p; // field
+  arr_t & psi1 = scalarSim->psi1._array_p; // derivative of phi in x-dir
+  arr_t & psi2 = scalarSim->psi3._array_p; // derivative of phi in y-dir
+  arr_t & psi3 = scalarSim->psi2._array_p; // derivative of phi in z-dir
+
+  arr_t & Pi = scalarSim->Pi._array_p; // time-derivative of field phi
+  
+  arr_t & K_p = *bssnSim->fields["DIFFK_p"]; // extrinsic curvature
+  arr_t & K_a = *bssnSim->fields["DIFFK_a"]; // extrinsic curvature
+
+  real_t Lambda = 1.0;
+  LOOP3(i,j,k)
+  {
+    phi[INDEX(i,j,k)] = 0;
+    phi_p[INDEX(i,j,k)] = phi_a[INDEX(i,j,k)] = 0;
+    K_a[INDEX(i,j,k)] = K_p[INDEX(i,j,k)] = -std::sqrt(24 * PI * Lambda);
+  }
+  
+  LOOP3(i,j,k)
+  {
+    psi1[INDEX(i,j,k)] = derivative(i, j, k, 1, phi);
+    psi2[INDEX(i,j,k)] = derivative(i, j, k, 2, phi);
+    psi3[INDEX(i,j,k)] = derivative(i, j, k, 3, phi);
+  }
+
+}    
 void ScalarSim::setAnalyticScalarTestICs()
 {
   idx_t i, j, k;
@@ -171,7 +205,9 @@ void ScalarSim::setAnalyticScalarTestICs()
     phi[INDEX(i,j,k)] = temp[i]/NX;
     phi_p[INDEX(i,j,k)] =(real_t) std::log(phi_p[INDEX(i,j,k)]);
     phi_a[INDEX(i,j,k)] =(real_t) std::log(phi_a[INDEX(i,j,k)]);
+    
   }
+
 
   real_t max_deviation =- 1e100;
 
