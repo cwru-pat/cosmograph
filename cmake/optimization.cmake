@@ -1,9 +1,9 @@
 SET(COSMO_DEBUG FALSE CACHE STRING "Turn on debug mode (turn off optimizations, turn on valgrind")
 SET(COSMO_PROFILE FALSE CACHE STRING "Turn on profiling (gprof flag)")
 
-# add -pg for gprof
-# add -g for valgrind
+
 if(COSMO_DEBUG)
+  # add -g for valgrind
   set(PROFILING     "-g")
   set(OPT_LEVEL     "-O1")
   set(CC_OPTS       "")
@@ -13,6 +13,7 @@ else()
   set(CC_OPTS       "-march=native")
 endif()
 
+# add -pg for gprof
 if(COSMO_PROFILE)
   set(PROFILING "${PROFILING} -pg")
 endif()

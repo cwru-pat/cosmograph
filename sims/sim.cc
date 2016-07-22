@@ -17,6 +17,7 @@ CosmoSim::CosmoSim()
   step = 0;
   num_steps = stoi(_config["steps"]);
 
+# if USE_COSMOTRACE
   // integrating any light rays?
   if( stoi(_config["ray_integrate"]) == 1 )
   {
@@ -27,6 +28,7 @@ CosmoSim::CosmoSim()
   {
     ray_integrate = false;
   }
+# endif
 
   // Store simulation type
   simulation_type = _config["simulation_type"];
@@ -50,6 +52,7 @@ void CosmoSim::simInit()
   fourier->Initialize(NX, NY, NZ,
     bssnSim->fields["DIFFphi_a"]->_array /* arbitrary array for planning */);
 
+# if USE_COSMOTRACE
   // initialize raytracing if needed
   if(ray_integrate)
   {
@@ -61,6 +64,7 @@ void CosmoSim::simInit()
     int rays_num = std::stoi(_config["rays_num"]);
     init_ray_vector(&rays, rays_num);
   }
+# endif
 }
 
 /**
@@ -84,6 +88,7 @@ void CosmoSim::run()
   std::cout << std::flush;
 }
 
+#if USE_COSMOTRACE
 void CosmoSim::runRayTraceStep()
 {
   // evolve any light rays
@@ -112,6 +117,7 @@ void CosmoSim::outputRayTraceStep()
   io_raytrace_dump(iodata, step, &rays);
   _timer["output"].stop();
 }
+#endif
 
 void CosmoSim::runCommonStepTasks()
 {
@@ -125,6 +131,7 @@ void CosmoSim::runCommonStepTasks()
   // progress bar in terminal
   io_show_progress(step, num_steps);
 
+# if USE_COSMOTRACE
   // Evolve light rays when integrating backwards
   if(ray_integrate)
   {
@@ -138,8 +145,7 @@ void CosmoSim::runCommonStepTasks()
       runRayTraceStep();
     }
   }
-
-  return;
+# endif
 }
 
 void CosmoSim::prepBSSNOutput()
@@ -193,6 +199,7 @@ void CosmoSim::outputStateInformation()
       + stringify(M_calcs[2])
     );
 
+# if USE_COSMOTRACE
   if(ray_integrate)
   {
     RaytraceData<real_t> rd = rays[0]->getRaytraceData();
@@ -201,6 +208,7 @@ void CosmoSim::outputStateInformation()
         + stringify(rd.ell)
       );
   }
+# endif
 }
 
 idx_t CosmoSim::simNumNaNs()

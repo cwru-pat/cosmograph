@@ -11,7 +11,10 @@
 #include "../utils/math.h"
 #include "../utils/Array.h"
 #include "../utils/FRW.h"
+
+#if USE_COSMOTRACE
 #include "../cosmotrace/raytrace.h"
+#endif
 
 namespace cosmo
 {
@@ -126,10 +129,12 @@ public:
 
     real_t metricConstraintTotalMag();
 
+# if USE_COSMOTRACE
   /* Raytracing functionality */
     RaytracePrimitives<real_t> getRaytraceData(BSSNData *bd);
     void setRaytraceCornerPrimitives(RayTrace<real_t, idx_t> *rt);
     void setRaytracePrimitives(RayTrace<real_t, idx_t> *rt);
+# endif
 
 };
 

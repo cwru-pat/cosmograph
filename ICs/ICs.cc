@@ -137,6 +137,7 @@ void set_gaussian_random_field(arr_t & field, Fourier *fourier, ICsData *icd)
   return;
 }
 
+#if USE_COSMOTRACE
 /**
  * @brief Initialize vector of rays
  * @details Initialize a vector of rays with given rays, given velocity
@@ -199,5 +200,6 @@ void init_ray_vector(std::vector<RayTrace<real_t, idx_t> *> * rays, idx_t n_rays
     rays->push_back( ray );
   }
 }
+#endif
 
 } // namespace cosmo

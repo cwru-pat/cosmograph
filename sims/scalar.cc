@@ -40,7 +40,12 @@ void ScalarSim::setICs()
   }
   else if(_config["scalar_ic_type"] == "multigrid")
   {
+#   if USE_MULTIGRID
     scalar_ic_set_multigrid(bssnSim, scalarSim);
+#   else
+    iodata->log("Error: Multigrid solver was not compiled.");
+    throw -1;    
+#   endif
   }
   else
   {

@@ -4,7 +4,10 @@
 #include "../cosmo_types.h"
 #include "../cosmo_globals.h"
 
+#if USE_MULTIGRID
 #include "../elliptic_solver/multigrid.h"
+#endif
+
 #include "../utils/Fourier.h"
 
 namespace cosmo
@@ -193,6 +196,7 @@ void scalar_ic_set_semianalytic_test(BSSN * bssn, Scalar * scalar)
   }
 }
 
+#if USE_MULTIGRID
 /**
  * @brief Use the multigrid solver to solve for metric factors given
  * a particular scalar field implementation.
@@ -325,5 +329,6 @@ void scalar_ic_set_multigrid(BSSN * bssn, Scalar * scalar)
 
   return;
 }
+#endif // if USE_MULTIGRID
 
 } // namespace cosmo

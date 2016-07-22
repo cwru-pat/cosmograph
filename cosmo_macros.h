@@ -73,6 +73,14 @@
   #define EXCLUDE_SECOND_ORDER_FRW false
 #endif
 
+// Optionally compile without raytracing, multigrid classes
+#ifndef USE_MULTIGRID
+  #define USE_MULTIGRID true
+#endif
+#ifndef USE_COSMOTRACE
+  #define USE_COSMOTRACE true
+#endif
+
 /*****************************************/
 /* Additional variable/macro definitions */
 /*****************************************/

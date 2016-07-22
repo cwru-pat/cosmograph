@@ -238,6 +238,7 @@ void io_bssn_dump_statistics(IOData *iodata, idx_t step,
   gzclose(datafile);
 }
 
+#if USE_COSMOTRACE
 /**
  * @brief      Write ray information to file
  *
@@ -302,6 +303,7 @@ void io_raytrace_dump(IOData *iodata, idx_t step,
 
   return;
 }
+#endif
 
 /**
  * @brief      Output 3d snapshot of BSSN fields in _a register

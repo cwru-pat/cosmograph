@@ -1038,7 +1038,7 @@ real_t BSSN::metricConstraintTotalMag()
   return constraint_mag;
 }
 
-
+#if USE_COSMOTRACE
 /*
 ******************************************************************************
 
@@ -1155,5 +1155,6 @@ RaytracePrimitives<real_t> BSSN::getRaytraceData(BSSNData *bd)
 
   return rp;
 }
+#endif // if USE_COSMOTRACE
 
 } // namespace cosmo

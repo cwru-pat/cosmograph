@@ -538,28 +538,21 @@ void Particles::addParticlesToBSSNSrc(
     real_t MnA = p_a.M / W / dx/dx/dx / pp_a.rootdetg;
 
     // Eq . 5.226 in Baumgarte & Shapiro
-    #pragma omp atomic
-    DIFFr_a[idx] += MnA*W*W;
-    #pragma omp atomic
-    DIFFS_a[idx] += MnA*W*W - MnA;
-    #pragma omp atomic
-    S1_a[idx] += MnA*W*p_a.U[0];
-    #pragma omp atomic
-    S2_a[idx] += MnA*W*p_a.U[1];
-    #pragma omp atomic
-    S3_a[idx] += MnA*W*p_a.U[2];
-    #pragma omp atomic
-    STF11_a[idx] += MnA*p_a.U[0]*p_a.U[0];
-    #pragma omp atomic
-    STF12_a[idx] += MnA*p_a.U[0]*p_a.U[1];
-    #pragma omp atomic
-    STF13_a[idx] += MnA*p_a.U[0]*p_a.U[2];
-    #pragma omp atomic
-    STF22_a[idx] += MnA*p_a.U[1]*p_a.U[1];
-    #pragma omp atomic
-    STF23_a[idx] += MnA*p_a.U[1]*p_a.U[2];
-    #pragma omp atomic
-    STF33_a[idx] += MnA*p_a.U[2]*p_a.U[2];
+    // TODO: benchmark critical vs atomic
+    #pragma omp critical
+    {
+      DIFFr_a[idx] += MnA*W*W;
+      DIFFS_a[idx] += MnA*W*W - MnA;
+      S1_a[idx] += MnA*W*p_a.U[0];
+      S2_a[idx] += MnA*W*p_a.U[1];
+      S3_a[idx] += MnA*W*p_a.U[2];
+      STF11_a[idx] += MnA*p_a.U[0]*p_a.U[0];
+      STF12_a[idx] += MnA*p_a.U[0]*p_a.U[1];
+      STF13_a[idx] += MnA*p_a.U[0]*p_a.U[2];
+      STF22_a[idx] += MnA*p_a.U[1]*p_a.U[1];
+      STF23_a[idx] += MnA*p_a.U[1]*p_a.U[2];
+      STF33_a[idx] += MnA*p_a.U[2]*p_a.U[2];
+    }
   }
 
   _timer["Particles::addToBSSNSrc"].stop();

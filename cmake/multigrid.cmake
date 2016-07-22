@@ -1,0 +1,10 @@
+unset(../elliptic_solver/multigrid.h CACHE)
+if(EXISTS ../elliptic_solver/multigrid.h)
+  add_definitions(-DUSE_MULTIGRID=1)
+else()
+  add_definitions(-DUSE_MULTIGRID=0)
+  message(WARNING "${Yellow}Compiling without multigrid support; some features may not work.${ColorReset}")
+endif()
+
+unset(MULTIGRID_SOURCES CACHE)
+file(GLOB MULTIGRID_SOURCES elliptic_solver/multigrid.cpp)

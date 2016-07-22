@@ -9,7 +9,9 @@
 #include "../utils/FRW.h"
 #include "../utils/math.h"
 
+#if USE_COSMOTRACE
 #include "../cosmotrace/raytrace.h"
+#endif
 
 #include "../bssn/bssn.h"
 #include "../scalar/scalar.h"
@@ -30,8 +32,10 @@ void io_bssn_constraint_violation(IOData *iodata, idx_t step, BSSN * bssnSim);
 void io_bssn_dump_statistics(IOData *iodata, idx_t step,
   map_t & bssn_fields, FRW<real_t> *frw);
 
+# if USE_COSMOTRACE
 void io_raytrace_dump(IOData *iodata, idx_t step,
   std::vector<RayTrace<real_t, idx_t> *> const * rays);
+#endif
 
 void io_scalar_snapshot(IOData *iodata, idx_t step, Scalar * scalar);
 

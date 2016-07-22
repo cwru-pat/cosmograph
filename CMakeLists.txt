@@ -16,7 +16,7 @@ endif()
 # optimization and debugging
 include(cmake/optimization.cmake)
 
-# Check for OpenMP
+# check for OpenMP
 include(cmake/openmp.cmake)
 
 # check compiler support
@@ -25,6 +25,10 @@ include(cmake/compiler.cmake)
 # compilation options
 include(cmake/options.cmake)
 
+# check for raytracing, multigrid modules
+include(cmake/cosmotrace.cmake)
+include(cmake/multigrid.cmake)
+
 # FFT libraries
 include(cmake/fftw.cmake)
 
@@ -32,8 +36,7 @@ include(cmake/fftw.cmake)
 include(cmake/hdf5.cmake)
 
 file(GLOB COSMO_SOURCES *.cc bssn/*.cc particles/*.cc
-  scalar/*.cc IO/*.cc utils/*.cc elliptic_solver/multigrid.cpp
-  static/*.cc sims/*.cc ICs/*.cc)
+  scalar/*.cc IO/*.cc utils/*.cc static/*.cc sims/*.cc ICs/*.cc)
 
-add_executable(cosmo ${COSMO_SOURCES})
+add_executable(cosmo ${COSMO_SOURCES} ${MULTIGRID_SOURCES})
 target_link_libraries(cosmo m rt z ${HDF5_LIBRARY} ${FFTW_LIBRARIES})

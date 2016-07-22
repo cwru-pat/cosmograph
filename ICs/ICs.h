@@ -9,7 +9,9 @@
 
 #include "../utils/Fourier.h"
 
+#if USE_COSMOTRACE
 #include "../cosmotrace/raytrace.h"
+#endif
 
 namespace cosmo
 {
@@ -19,8 +21,10 @@ ICsData cosmo_get_ICsData();
 real_t cosmo_power_spectrum(real_t k, ICsData *icd);
 void set_gaussian_random_field(arr_t & field, Fourier *fourier, ICsData *icd);
 
+#if USE_COSMOTRACE
 void init_ray_vector(std::vector<RayTrace<real_t, idx_t> *> * rays,
   idx_t n_rays);
+#endif
 
 } // namespace cosmo
 

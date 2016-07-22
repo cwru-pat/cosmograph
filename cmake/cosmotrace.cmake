@@ -1,0 +1,7 @@
+unset(../cosmotrace/raytrace.h CACHE)
+if(EXISTS ../cosmotrace/raytrace.h)
+  add_definitions(-DUSE_COSMOTRACE=1)
+else()
+  add_definitions(-DUSE_COSMOTRACE=0)
+  message(WARNING "${Yellow}Compiling without raytracing support; some features may not work.${ColorReset}")
+endif()

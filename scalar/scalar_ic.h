@@ -16,7 +16,10 @@ namespace cosmo
 void scalar_ic_set_wave(BSSN * bssn, Scalar * scalar);
 void scalar_ic_set_Lambda(BSSN * bssn, Scalar * scalar);
 void scalar_ic_set_semianalytic_test(BSSN * bssn, Scalar * scalar);
+
+#if USE_MULTIGRID
 void scalar_ic_set_multigrid(BSSN * bssn, Scalar * scalar);
+#endif
 
 }
 

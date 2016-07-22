@@ -30,9 +30,11 @@ protected:
 
   int verbosity;
 
+# if USE_COSMOTRACE
   bool ray_integrate;
   idx_t ray_flip_step;
   std::vector<RayTrace<real_t, idx_t> *> rays;
+# endif
 
 public:
   CosmoSim();
@@ -48,8 +50,10 @@ public:
   void run();
   void runCommonStepTasks();
 
+# if USE_COSMOTRACE
   void runRayTraceStep();
   void outputRayTraceStep();
+#endif
 
   void prepBSSNOutput();
   void outputStateInformation();
