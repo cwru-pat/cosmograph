@@ -511,12 +511,12 @@ void Particles::addParticlesToBSSNSrc(
   arr_t & S1_a = *bssn_fields["S1_a"];
   arr_t & S2_a = *bssn_fields["S2_a"];
   arr_t & S3_a = *bssn_fields["S3_a"];
-  arr_t & S11_a = *bssn_fields["STF11_a"];
-  arr_t & S12_a = *bssn_fields["STF12_a"];
-  arr_t & S13_a = *bssn_fields["STF13_a"];
-  arr_t & S22_a = *bssn_fields["STF22_a"];
-  arr_t & S23_a = *bssn_fields["STF23_a"];
-  arr_t & S33_a = *bssn_fields["STF33_a"];
+  arr_t & STF11_a = *bssn_fields["STF11_a"];
+  arr_t & STF12_a = *bssn_fields["STF12_a"];
+  arr_t & STF13_a = *bssn_fields["STF13_a"];
+  arr_t & STF22_a = *bssn_fields["STF22_a"];
+  arr_t & STF23_a = *bssn_fields["STF23_a"];
+  arr_t & STF33_a = *bssn_fields["STF33_a"];
 
   PARTICLES_PARALLEL_LOOP(pr)
   {
@@ -549,18 +549,17 @@ void Particles::addParticlesToBSSNSrc(
     #pragma omp atomic
     S3_a[idx] += MnA*W*p_a.U[2];
     #pragma omp atomic
-    S11_a[idx] += MnA*p_a.U[0]*p_a.U[0];
+    STF11_a[idx] += MnA*p_a.U[0]*p_a.U[0];
     #pragma omp atomic
-    S12_a[idx] += MnA*p_a.U[0]*p_a.U[1];
+    STF12_a[idx] += MnA*p_a.U[0]*p_a.U[1];
     #pragma omp atomic
-    S13_a[idx] += MnA*p_a.U[0]*p_a.U[2];
+    STF13_a[idx] += MnA*p_a.U[0]*p_a.U[2];
     #pragma omp atomic
-    S22_a[idx] += MnA*p_a.U[1]*p_a.U[1];
+    STF22_a[idx] += MnA*p_a.U[1]*p_a.U[1];
     #pragma omp atomic
-    S23_a[idx] += MnA*p_a.U[1]*p_a.U[2];
+    STF23_a[idx] += MnA*p_a.U[1]*p_a.U[2];
     #pragma omp atomic
-    S33_a[idx] += MnA*p_a.U[2]*p_a.U[2];
-
+    STF33_a[idx] += MnA*p_a.U[2]*p_a.U[2];
   }
 
   _timer["Particles::addToBSSNSrc"].stop();

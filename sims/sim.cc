@@ -1,4 +1,6 @@
 #include "sim.h"
+#include "../ICs/ICs.h"
+#include "../cosmo_globals.h"
 
 namespace cosmo
 {

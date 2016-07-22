@@ -3,6 +3,10 @@
 namespace cosmo
 {
 
+/**
+ * @brief Constructor: initialize fields needed for scalar evolution,
+ * set timestep according to global `dt`.
+ */
 Scalar::Scalar():
   phi(), Pi(), psi1(), psi2(), psi3()
 {
@@ -24,6 +28,9 @@ Scalar::~Scalar()
   psi3.~RK4Register();
 }
 
+/**
+ * @brief Call RK4Register::stepInit for fields.
+ */
 void Scalar::stepInit()
 {
   phi.stepInit();
@@ -33,6 +40,9 @@ void Scalar::stepInit()
   psi3.stepInit();
 }
 
+/**
+ * @brief Call RK4Register::K1Finalize for fields.
+ */
 void Scalar::K1Finalize()
 {
   phi.K1Finalize();
@@ -196,19 +206,19 @@ real_t Scalar::dt_psi3(BSSNData *bd, ScalarData *sd)
   );
 }
 
-void Scalar::addBSSNSource(BSSN * bssnSim)
+void Scalar::addBSSNSource(BSSN * bssn)
 {
-  arr_t & DIFFr_a = *bssnSim->fields["DIFFr_a"];
-  arr_t & DIFFS_a = *bssnSim->fields["DIFFS_a"];
-  arr_t & S1_a = *bssnSim->fields["S1_a"];
-  arr_t & S2_a = *bssnSim->fields["S2_a"];
-  arr_t & S3_a = *bssnSim->fields["S3_a"];
-  arr_t & STF11_a = *bssnSim->fields["STF11_a"];
-  arr_t & STF12_a = *bssnSim->fields["STF12_a"];
-  arr_t & STF13_a = *bssnSim->fields["STF13_a"];
-  arr_t & STF22_a = *bssnSim->fields["STF22_a"];
-  arr_t & STF23_a = *bssnSim->fields["STF23_a"];
-  arr_t & STF33_a = *bssnSim->fields["STF33_a"];
+  arr_t & DIFFr_a = *bssn->fields["DIFFr_a"];
+  arr_t & DIFFS_a = *bssn->fields["DIFFS_a"];
+  arr_t & S1_a = *bssn->fields["S1_a"];
+  arr_t & S2_a = *bssn->fields["S2_a"];
+  arr_t & S3_a = *bssn->fields["S3_a"];
+  arr_t & STF11_a = *bssn->fields["STF11_a"];
+  arr_t & STF12_a = *bssn->fields["STF12_a"];
+  arr_t & STF13_a = *bssn->fields["STF13_a"];
+  arr_t & STF22_a = *bssn->fields["STF22_a"];
+  arr_t & STF23_a = *bssn->fields["STF23_a"];
+  arr_t & STF33_a = *bssn->fields["STF33_a"];
 
   idx_t i, j, k;
 
@@ -219,7 +229,7 @@ void Scalar::addBSSNSource(BSSN * bssnSim)
 
     BSSNData bd = {0};
     // TODO: remove redundant computations here?
-    bssnSim->set_bd_values(i, j, k, &bd);
+    bssn->set_bd_values(i, j, k, &bd);
     ScalarData sd = getScalarData(&bd);
 
     // n^mu d_mu phi
@@ -265,7 +275,7 @@ real_t Scalar::dV(real_t phi_in)
 real_t Scalar::V(real_t phi_in)
 {
   // TODO: discuss how to set this better
-  //return 0.000005;
+  return 0.000005;
   return 1.0;
 }
 

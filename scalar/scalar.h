@@ -27,9 +27,15 @@ typedef struct {
 
 } ScalarData;
 
-/** Scalar class **/
+/**
+ * @brief Class implementing functionality for a scalar field that relies on a
+ * BSSN instance.
+ */
 class Scalar
 {
+  // real_t (*_dV)(real_t);
+  // real_t (*_V)(real_t);
+
 public:
   register_t phi;
   register_t Pi;
@@ -56,9 +62,15 @@ public:
   real_t dt_psi2(BSSNData *bd, ScalarData *sd);
   real_t dt_psi3(BSSNData *bd, ScalarData *sd);
 
+  // Determine potential using an anonymous function?
+  // template<typename F>
+  // set_dV()
+  // {
+  // }
+
   real_t dV(real_t phi_in);
   real_t V(real_t phi_in);
-  void addBSSNSource(BSSN * bssnSim);
+  void addBSSNSource(BSSN * bssn);
 
   real_t scalarConstraint(idx_t i, idx_t j, idx_t k, idx_t dir);
 

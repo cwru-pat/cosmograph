@@ -1,8 +1,9 @@
-steps = 400
+steps = 100
 
-omp_num_threads = 2
+omp_num_threads = 4
 
 simulation_type = scalar
+scalar_ic_type = Lambda
 
 num_v_cycles = 15
 phi_0 = 0.0

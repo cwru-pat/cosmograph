@@ -79,6 +79,9 @@ int main(int argc, char **argv)
   // Initialize simulation 
   cosmoSim->init();
 
+  // Generate initial conditions
+  cosmoSim->setICs();
+
   // Run simulation
   cosmoSim->run();
 

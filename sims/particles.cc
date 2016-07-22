@@ -1,15 +1,12 @@
 #include "particles.h"
+#include "../static/static_ic.h"
 
 namespace cosmo
 {
 
 ParticleSim::ParticleSim()
 {
-  if(USE_REFERENCE_FRW)
-  {
-    iodata->log("Error: USE_REFERENCE_FRW must be false for particle sims!");
-    throw -1;
-  }
+
 }
 
 void ParticleSim::init()
@@ -21,7 +18,6 @@ void ParticleSim::init()
 
   iodata->log("Running 'particles' type simulation.");
   particles = new Particles();
-  setParticleICs();
 
   _timer["init"].stop();
 }
@@ -36,8 +32,9 @@ void ParticleSim::init()
  * @param      fourier       { parameter_description }
  * @param      iod           { parameter_description }
  */
-void ParticleSim::setParticleICs()
+void ParticleSim::setICs()
 {
+  // TODO: Move to separate file?
   idx_t i, j, k;
   ICsData icd = cosmo_get_ICsData();
   real_t rho_FRW = icd.rho_K_matter;
@@ -71,7 +68,7 @@ void ParticleSim::setParticleICs()
       + double_derivative(i, j, k, 2, 2, DIFFphi_p)
       + double_derivative(i, j, k, 3, 3, DIFFphi_p)
     );
-    real_t rho = rho_FRW + DIFFr[INDEX(i,j,k)];
+    real_t rho = DIFFr[INDEX(i,j,k)];
     real_t rootdetg = std::exp(6.0*DIFFphi_p[INDEX(i,j,k)]);
     particle.M = rho*dx*dx*dx*rootdetg;
 
@@ -156,6 +153,12 @@ void ParticleSim::runParticleStep()
 {
   _timer["RK_steps"].start();
     // First RK step
+//<<< TODO: REMOVE
+real_t H_calcs[7] = {0}, M_calcs[7] = {0};
+bssnSim->setHamiltonianConstraintCalcs(H_calcs, false);
+bssnSim->setMomentumConstraintCalcs(M_calcs);
+std::cout << "\n Max. Momentum Violation:" << std::setprecision(19) << M_calcs[2] << "\n";
+std::cout << "\n Max. Hamiltonian Violation:" << std::setprecision(19) << H_calcs[2] << "\n";
     bssnSim->RKEvolve();
     particles->RK1Step(bssnSim->fields);
     bssnSim->K1Finalize();
@@ -164,6 +167,10 @@ void ParticleSim::runParticleStep()
     // Second RK step source
     bssnSim->clearSrc();
     particles->addParticlesToBSSNSrc(bssnSim->fields);
+bssnSim->setHamiltonianConstraintCalcs(H_calcs, false);
+bssnSim->setMomentumConstraintCalcs(M_calcs);
+std::cout << "\n Max. Momentum Violation:" << std::setprecision(19) << M_calcs[2] << "\n";
+std::cout << "\n Max. Hamiltonian Violation:" << std::setprecision(19) << H_calcs[2] << "\n";
     // Second RK step
     bssnSim->RKEvolve();
     particles->RK2Step(bssnSim->fields);
@@ -173,6 +180,10 @@ void ParticleSim::runParticleStep()
     // Third RK step source
     bssnSim->clearSrc();
     particles->addParticlesToBSSNSrc(bssnSim->fields);
+bssnSim->setHamiltonianConstraintCalcs(H_calcs, false);
+bssnSim->setMomentumConstraintCalcs(M_calcs);
+std::cout << "\n Max. Momentum Violation:" << std::setprecision(19) << M_calcs[2] << "\n";
+std::cout << "\n Max. Hamiltonian Violation:" << std::setprecision(19) << H_calcs[2] << "\n";
     // Third RK step
     bssnSim->RKEvolve();
     particles->RK3Step(bssnSim->fields);

@@ -21,7 +21,7 @@ public:
   ~ParticleSim(){}
 
   void init();
-  void setParticleICs();
+  void setICs();
   void initParticleStep();
   void outputParticleStep();
   void runParticleStep();
