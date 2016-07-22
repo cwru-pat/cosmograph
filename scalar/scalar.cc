@@ -149,11 +149,11 @@ real_t Scalar::dt_Pi(BSSNData *bd, ScalarData *sd)
       + bd->gammai31*(bd->alpha*sd->d3psi1 + sd->psi3*bd->d1a) + bd->gammai32*(bd->alpha*sd->d3psi2 + sd->psi3*bd->d2a) + bd->gammai33*(bd->alpha*sd->d3psi3 + sd->psi3*bd->d3a)
     ) + bd->alpha*( (
         bd->Gamma1 - 2.0*(bd->gammai11*bd->d1phi + bd->gammai12*bd->d2phi + bd->gammai13*bd->d3phi)
-      )*sd->psi1 + (
+      )*sd->psi1*exp(-4.0*bd->phi) + (
         bd->Gamma2 - 2.0*(bd->gammai21*bd->d1phi + bd->gammai22*bd->d2phi + bd->gammai23*bd->d3phi)
-      )*sd->psi2 + (
+      )*sd->psi2*exp(-4.0*bd->phi) + (
         bd->Gamma3 - 2.0*(bd->gammai31*bd->d1phi + bd->gammai32*bd->d2phi + bd->gammai33*bd->d3phi)
-      )*sd->psi3
+      )*sd->psi3* exp(-4.0*bd->phi)
       + bd->K*sd->Pi
       + dV(sd->phi)
     )
