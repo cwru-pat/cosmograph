@@ -3,6 +3,7 @@ steps = 100
 omp_num_threads = 4
 
 simulation_type = scalar
+scalar_ic_type = Lambda
 
 num_v_cycles = 15
 phi_0 = 0.0
@@ -20,7 +21,7 @@ IO_2D_grid_interval = 100
 IO_1D_grid_interval = 10
 
 IO_powerspec_interval = 100
-IO_constraint_interval = 10
+IO_constraint_interval = 1
 IO_bssnstats_interval = 10
 
 rho_K_lambda_frac = 0 

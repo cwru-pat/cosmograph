@@ -11,9 +11,6 @@ void VacuumSim::init()
   simInit();
 
   iodata->log("Running 'vacuum' type simulation.");
-  // TODO: Set vacuum ICs (eg, AwA test)
-  setVacuumICs();
-
   _timer["init"].stop();
 }
 
@@ -23,9 +20,16 @@ void VacuumSim::init()
  * @param[in]  map to BSSN fields
  * @param      initialized IOData
  */
-void VacuumSim::setVacuumICs()
+void VacuumSim::setICs()
 {
+  _timer["ICs"].start();
+  iodata->log("Setting initial conditions (ICs).");
+
   // meh
+  // TODO: Set vacuum ICs (eg, AwA test)
+
+  iodata->log("Finished setting ICs.");
+  _timer["ICs"].stop();
 }
 
 void VacuumSim::initVacuumStep()

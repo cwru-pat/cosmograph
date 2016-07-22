@@ -3,14 +3,11 @@
 
 #include "../cosmo_includes.h"
 #include "../cosmo_types.h"
-#include "../cosmo_globals.h"
 
 #include "../utils/Fourier.h"
 #include "../utils/FRW.h"
 
-#include "../ICs/ICs.h"
 #include "../IO/io.h"
-
 #include "../bssn/bssn.h"
 
 
@@ -41,9 +38,11 @@ public:
   CosmoSim();
   ~CosmoSim();
 
-  // functions will be called in main()
+  // These functions will be called in main();
+  // Each derived class should implement them.
   virtual void init() = 0;
   virtual void runStep() = 0;
+  virtual void setICs() = 0;
 
   void simInit();
   void run();

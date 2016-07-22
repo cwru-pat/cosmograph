@@ -16,7 +16,7 @@ public:
   ~VacuumSim(){}
 
   void init();
-  void setVacuumICs();
+  void setICs();
   void initVacuumStep();
   void outputVacuumStep();
   void runVacuumStep();

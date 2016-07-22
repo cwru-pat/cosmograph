@@ -16,7 +16,9 @@ public:
   ~DustLambdaSim(){}
 
   void init();
-  void addLambdaICs();
+  void setICs();
+  // use DustSim implementation of runStep;
+  // only ICs need to be different.
 };
 
 } /* namespace cosmo */

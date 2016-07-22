@@ -1,4 +1,5 @@
 #include "dust_lambda.h"
+#include "../static/static_ic.h"
 
 namespace cosmo
 {
@@ -24,18 +25,19 @@ void DustLambdaSim::init()
   staticSim = new Static();
   staticSim->init();
 
-  iodata->log("Creating initial conditions.");
-  setDustICs();
-  addLambdaICs();
-
   _timer["init"].stop();
 }
 
 /**
  * @brief Add in a lambda component to a dust simulation.
  */
-void DustLambdaSim::addLambdaICs()
+void DustLambdaSim::setICs()
 {
+  _timer["ICs"].start();
+  iodata->log("Setting initial conditions (ICs).");
+
+  dust_ic_set_random(bssnSim, staticSim, fourier, iodata);
+
   ICsData icd = cosmo_get_ICsData();
   auto & frw = bssnSim->frw;
   
@@ -48,6 +50,9 @@ void DustLambdaSim::addLambdaICs()
   frw->set_K(K_frw);
   // dust already added; just need lambda
   frw->addFluid(rho_lambda, -1.0 /* w=-1 */);
+
+  iodata->log("Finished setting ICs.");
+  _timer["ICs"].stop();
 }
 
 } /* namespace cosmo */

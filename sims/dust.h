@@ -21,7 +21,7 @@ public:
   ~DustSim(){}
 
   void init();
-  void setDustICs();
+  void setICs();
   void initDustStep();
   void outputDustStep();
   void runDustStep();

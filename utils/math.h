@@ -157,38 +157,26 @@ inline real_t derivative_Odx8(idx_t i, idx_t j, idx_t k, int d,
   switch (d) {
     case 1:
       return (
-        1.0/280.0*field[INDEX(i-4,j,k)]
-        - 4.0/105.0*field[INDEX(i-3,j,k)]
-        + 1.0/5.0*field[INDEX(i-2,j,k)]
-        - 4.0/5.0*field[INDEX(i-1,j,k)]
-        + 4.0/5.0*field[INDEX(i+1,j,k)]
-        - 1.0/5.0*field[INDEX(i+2,j,k)]
-        + 4.0/105.0*field[INDEX(i+3,j,k)]
-        - 1.0/280.0*field[INDEX(i+4,j,k)]
+        ( 1.0/280.0*field[INDEX(i-4,j,k)] - 1.0/280.0*field[INDEX(i+4,j,k)] )
+        + ( - 4.0/105.0*field[INDEX(i-3,j,k)] + 4.0/105.0*field[INDEX(i+3,j,k)] )
+        + ( 1.0/5.0*field[INDEX(i-2,j,k)] - 1.0/5.0*field[INDEX(i+2,j,k)] )
+        + ( - 4.0/5.0*field[INDEX(i-1,j,k)] + 4.0/5.0*field[INDEX(i+1,j,k)] )
       )/dx;
       break;
     case 2:
       return (
-        1.0/280.0*field[INDEX(i,j-4,k)]
-        - 4.0/105.0*field[INDEX(i,j-3,k)]
-        + 1.0/5.0*field[INDEX(i,j-2,k)]
-        - 4.0/5.0*field[INDEX(i,j-1,k)]
-        + 4.0/5.0*field[INDEX(i,j+1,k)]
-        - 1.0/5.0*field[INDEX(i,j+2,k)]
-        + 4.0/105.0*field[INDEX(i,j+3,k)]
-        - 1.0/280.0*field[INDEX(i,j+4,k)]
+        ( 1.0/280.0*field[INDEX(i,j-4,k)] - 1.0/280.0*field[INDEX(i,j+4,k)] )
+        - ( 4.0/105.0*field[INDEX(i,j-3,k)] - 4.0/105.0*field[INDEX(i,j+3,k)] )
+        + ( 1.0/5.0*field[INDEX(i,j-2,k)] - 1.0/5.0*field[INDEX(i,j+2,k)] )
+        - ( 4.0/5.0*field[INDEX(i,j-1,k)] - 4.0/5.0*field[INDEX(i,j+1,k)] )
       )/dx;
       break;
     case 3:
       return (
-        1.0/280.0*field[INDEX(i,j,k-4)]
-        - 4.0/105.0*field[INDEX(i,j,k-3)]
-        + 1.0/5.0*field[INDEX(i,j,k-2)]
-        - 4.0/5.0*field[INDEX(i,j,k-1)]
-        + 4.0/5.0*field[INDEX(i,j,k+1)]
-        - 1.0/5.0*field[INDEX(i,j,k+2)]
-        + 4.0/105.0*field[INDEX(i,j,k+3)]
-        - 1.0/280.0*field[INDEX(i,j,k+4)]
+        ( 1.0/280.0*field[INDEX(i,j,k-4)] - 1.0/280.0*field[INDEX(i,j,k+4)] )
+        + ( - 4.0/105.0*field[INDEX(i,j,k-3)] + 4.0/105.0*field[INDEX(i,j,k+3)] )
+        + ( 1.0/5.0*field[INDEX(i,j,k-2)] - 1.0/5.0*field[INDEX(i,j,k+2)] )
+        + ( - 4.0/5.0*field[INDEX(i,j,k-1)] + 4.0/5.0*field[INDEX(i,j,k+1)] )
       )/dx;
       break;
   }
