@@ -98,7 +98,6 @@ void ScalarSim::runScalarStep()
     // Second RK step
     bssnSim->clearSrc();
     scalarSim->addBSSNSource(bssnSim);
-
     #pragma omp parallel for default(shared) private(i, j, k, b_data)
     LOOP3(i,j,k)
     {
@@ -111,7 +110,6 @@ void ScalarSim::runScalarStep()
     // Third RK step
     bssnSim->clearSrc();
     scalarSim->addBSSNSource(bssnSim);
-
     #pragma omp parallel for default(shared) private(i, j, k, b_data)
     LOOP3(i,j,k)
     {

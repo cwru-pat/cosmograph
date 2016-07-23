@@ -29,6 +29,7 @@ void io_bssn_fields_snapshot(IOData *iodata, idx_t step,
 void io_bssn_fields_powerdump(IOData *iodata, idx_t step,
   map_t & bssn_fields, Fourier *fourier);
 void io_bssn_constraint_violation(IOData *iodata, idx_t step, BSSN * bssnSim);
+void io_print_constraint_violation(IOData *iodata, BSSN * bssnSim);
 void io_bssn_dump_statistics(IOData *iodata, idx_t step,
   map_t & bssn_fields, FRW<real_t> *frw);
 
@@ -42,6 +43,8 @@ void io_scalar_snapshot(IOData *iodata, idx_t step, Scalar * scalar);
 void io_dump_2dslice(IOData *iodata, arr_t & field, std::string filename);
 void io_dump_3dslice(IOData *iodata, arr_t & field, std::string filename);
 void io_dump_strip(IOData *iodata, arr_t & field, std::string file,
+  int axis, idx_t n1, idx_t n2);
+void io_print_strip(IOData *iodata, arr_t & field,
   int axis, idx_t n1, idx_t n2);
 void io_dump_value(IOData *iodata, real_t value, std::string filename,
   std::string delimiter);

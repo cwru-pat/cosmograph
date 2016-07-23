@@ -146,9 +146,6 @@ void io_bssn_fields_powerdump(IOData *iodata, idx_t step,
 
 /**
  * @brief      Output constraint violation amplitudes
- *
- * @param      iodata   { parameter_description }
- * @param      bssnSim  { parameter_description }
  */
 void io_bssn_constraint_violation(IOData *iodata, idx_t step, BSSN * bssnSim)
 {
@@ -169,6 +166,24 @@ void io_bssn_constraint_violation(IOData *iodata, idx_t step, BSSN * bssnSim)
     io_dump_value(iodata, M_calcs[6], "M_violations", "\t"); // max(M/[M])
     io_dump_value(iodata, M_calcs[2], "M_violations", "\n"); // max(M)
   }
+}
+
+/**
+ * @brief Print constraint violation (useful for debugging?)
+ */
+void io_print_constraint_violation(IOData *iodata, BSSN * bssnSim)
+{
+  real_t H_calcs[7] = {0}, M_calcs[7] = {0};
+  iodata->log( "\nConstraint Violation: " );
+
+  // Constraint Violation Calculations
+  bssnSim->setHamiltonianConstraintCalcs(H_calcs, false);
+  iodata->log( "Max |H/[H]|: " + stringify(H_calcs[6]) );
+  iodata->log( "Max |H|: " + stringify(H_calcs[2]) );
+
+  bssnSim->setMomentumConstraintCalcs(M_calcs);
+  iodata->log( "Max |M/[M]|: " + stringify(M_calcs[6]) );
+  iodata->log( "Max |M|: " + stringify(M_calcs[2]) );
 }
 
 /**
@@ -459,6 +474,37 @@ void io_dump_strip(IOData *iodata, arr_t & field, std::string file,
   gzwrite(datafile, "\n", strlen("\n"));
 
   gzclose(datafile);
+
+  return;
+}
+
+void io_print_strip(IOData *iodata, arr_t & field,
+  int axis, idx_t n1, idx_t n2)
+{
+  std::cout << "\nField values:\n{";
+  switch (axis)
+  {
+    case 1:
+      for(idx_t i=0; i<NX; i++)
+      {
+        std::cout << std::setprecision(19) << field[INDEX(i,n1,n2)] << ", ";
+      }
+      break;
+    case 2:
+      for(idx_t j=0; j<NY; j++)
+      {
+        std::cout << std::setprecision(19) << field[INDEX(n1,j,n2)] << ", ";
+      }
+      break;
+    case 3:
+      for(idx_t k=0; k<NZ; k++)
+      {
+        std::cout << std::setprecision(19) << field[INDEX(n1,n2,k)] << ", ";
+      }
+      break;
+  }
+
+  std::cout << "}\n";
 
   return;
 }

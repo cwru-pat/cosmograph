@@ -206,8 +206,8 @@ void scalar_ic_set_multigrid(BSSN * bssn, Scalar * scalar)
   // Choose a configuration for the scalar fields first:
   arr_t & phi = scalar->phi._array_p; // field
   arr_t & psi1 = scalar->psi1._array_p; // derivative of phi in x-dir
-  arr_t & psi2 = scalar->psi3._array_p; // derivative of phi in y-dir
-  arr_t & psi3 = scalar->psi2._array_p; // derivative of phi in z-dir
+  arr_t & psi2 = scalar->psi2._array_p; // derivative of phi in y-dir
+  arr_t & psi3 = scalar->psi3._array_p; // derivative of phi in z-dir
 
   arr_t & Pi = scalar->Pi._array_p; // time-derivative of field phi
 
@@ -238,7 +238,7 @@ void scalar_ic_set_multigrid(BSSN * bssn, Scalar * scalar)
       #pragma omp parallel for default(shared) private(i,j,k)
       LOOP3(i,j,k)
       {
-        // some simusoid modes
+        // some sinusoidal modes
         phi[INDEX(i,j,k)] += delta*(
                 cos(2.0*PI*((real_t) n/NX)*i + x_phase )
                  + cos(2.0*PI*((real_t) n/NY)*j + y_phase )
