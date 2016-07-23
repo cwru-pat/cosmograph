@@ -7,14 +7,9 @@
 #ifndef COSMO_STATIC_ICS
 #define COSMO_STATIC_ICS
 
-#include "../cosmo_includes.h"
-#include "../cosmo_types.h"
-#include "../cosmo_globals.h"
-
 #include "../bssn/bssn.h"
-#include "../ICs/ICs.h"
-#include "../IO/IOData.h"
-#include "../utils/Fourier.h"
+#include "../../IO/IOData.h"
+#include "../../utils/Fourier.h"
 #include "static.h"
 
 namespace cosmo

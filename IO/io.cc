@@ -1,4 +1,3 @@
-  
 #include "io.h"
 #include <hdf5.h>
 #include <zlib.h>

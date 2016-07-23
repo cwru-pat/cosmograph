@@ -1,4 +1,6 @@
 #include "static.h"
+#include "../../cosmo_includes.h"
+#include "../../cosmo_globals.h"
 
 namespace cosmo
 {

@@ -2,7 +2,7 @@
 #define COSMO_PARTICLE_SIM_H
 
 #include "sim.h"
-#include "../particles/particles.h"
+#include "../components/particles/particles.h"
 
 
 namespace cosmo

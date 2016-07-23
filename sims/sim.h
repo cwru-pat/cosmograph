@@ -8,7 +8,7 @@
 #include "../utils/FRW.h"
 
 #include "../IO/io.h"
-#include "../bssn/bssn.h"
+#include "../components/bssn/bssn.h"
 
 
 namespace cosmo

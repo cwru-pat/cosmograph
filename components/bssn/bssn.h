@@ -1,16 +1,12 @@
 #ifndef COSMO_BSSN
 #define COSMO_BSSN
 
-#include "../cosmo_includes.h"
-#include "../cosmo_types.h"
-#include "../cosmo_globals.h"
-
+#include "../../cosmo_includes.h"
+#include "../../cosmo_types.h"
 #include "bssn_data.h"
 #include "bssn_macros.h"
-
-#include "../utils/math.h"
-#include "../utils/Array.h"
-#include "../utils/FRW.h"
+#include "../../utils/Array.h"
+#include "../../utils/FRW.h"
 
 #if USE_COSMOTRACE
 #include "../cosmotrace/raytrace.h"

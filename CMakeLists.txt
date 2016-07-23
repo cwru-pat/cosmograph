@@ -35,8 +35,11 @@ include(cmake/fftw.cmake)
 # HDF5 libraries
 include(cmake/hdf5.cmake)
 
-file(GLOB COSMO_SOURCES *.cc bssn/*.cc particles/*.cc
-  scalar/*.cc IO/*.cc utils/*.cc static/*.cc sims/*.cc ICs/*.cc)
+unset(COSMO_SOURCES CACHE)
+file(GLOB COSMO_SOURCES *.cc IO/*.cc utils/*.cc
+  components/static/*.cc components/particles/*.cc
+  components/scalar/*.cc components/bssn/*.cc
+  sims/*.cc ICs/*.cc)
 
 add_executable(cosmo ${COSMO_SOURCES} ${MULTIGRID_SOURCES})
 target_link_libraries(cosmo m rt z ${HDF5_LIBRARY} ${FFTW_LIBRARIES})

@@ -10,7 +10,7 @@
 #include "../utils/Fourier.h"
 
 #if USE_COSMOTRACE
-#include "../cosmotrace/raytrace.h"
+#include "../components/cosmotrace/raytrace.h"
 #endif
 
 namespace cosmo

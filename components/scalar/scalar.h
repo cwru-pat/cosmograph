@@ -1,14 +1,9 @@
 #ifndef COSMO_SCALAR
 #define COSMO_SCALAR
 
-#include "../cosmo_includes.h"
-#include "../cosmo_types.h"
-#include "../cosmo_globals.h"
-
+#include "../../cosmo_types.h"
 #include "../bssn/bssn.h"
-#include "../utils/math.h"
-#include "../utils/Array.h"
-#include "../utils/RK4Register.h"
+
 
 namespace cosmo
 {

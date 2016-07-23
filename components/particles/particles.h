@@ -1,15 +1,9 @@
 #ifndef COSMO_PARTICLES
 #define COSMO_PARTICLES
 
-#include "../cosmo_includes.h"
-#include "../cosmo_types.h"
-#include "../cosmo_globals.h"
-
-#include "../utils/math.h"
-#include "../utils/Timer.h"
-
+#include "../../cosmo_types.h"
+#include "../../cosmo_includes.h"
 #include "particles_data.h"
-#include "particles_macros.h"
 
 namespace cosmo
 {

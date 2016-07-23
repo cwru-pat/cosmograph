@@ -1,4 +1,8 @@
 #include "particles.h"
+#include "../../cosmo_globals.h"
+#include "particles_macros.h"
+#include "../../utils/math.h"
+#include "../../utils/Timer.h"
 
 namespace cosmo
 {

@@ -1,5 +1,5 @@
 #include "dust.h"
-#include "../static/static_ic.h"
+#include "../components/static/static_ic.h"
 
 namespace cosmo
 {

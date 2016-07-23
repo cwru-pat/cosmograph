@@ -1,14 +1,12 @@
 #include "scalar_ic.h"
-
-#include "../cosmo_includes.h"
-#include "../cosmo_types.h"
-#include "../cosmo_globals.h"
-
+#include "../../cosmo_includes.h"
+#include "../../cosmo_types.h"
+#include "../../cosmo_globals.h"
+#include "../../utils/Fourier.h"
+#include "../../utils/math.h"
 #if USE_MULTIGRID
 #include "../elliptic_solver/multigrid.h"
 #endif
-
-#include "../utils/Fourier.h"
 
 namespace cosmo
 {

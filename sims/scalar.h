@@ -6,7 +6,7 @@
 #define COSMO_SCALAR_SIM_H
 
 #include "sim.h"
-#include "../scalar/scalar.h"
+#include "../components/scalar/scalar.h"
 
 namespace cosmo
 {

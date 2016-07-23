@@ -2,7 +2,7 @@
 #define COSMO_DUST_SIM_H
 
 #include "sim.h"
-#include "../static/static.h"
+#include "../components/static/static.h"
 
 
 namespace cosmo

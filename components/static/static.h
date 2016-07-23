@@ -1,13 +1,10 @@
 #ifndef COSMO_STATIC
 #define COSMO_STATIC
 
-#include "../cosmo_macros.h"
-#include "../cosmo_includes.h"
-#include "../cosmo_types.h"
-#include "../cosmo_globals.h"
-
-#include "../utils/Array.h"
-#include "../utils/FRW.h"
+#include "../../cosmo_types.h"
+#include "../../cosmo_macros.h"
+#include "../../utils/Array.h"
+#include "../../utils/FRW.h"
 
 namespace cosmo
 {

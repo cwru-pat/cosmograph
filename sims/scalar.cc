@@ -1,5 +1,5 @@
 #include "scalar.h"
-#include "../scalar/scalar_ic.h"
+#include "../components/scalar/scalar_ic.h"
 
 namespace cosmo
 {

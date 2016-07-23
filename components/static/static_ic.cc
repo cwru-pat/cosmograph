@@ -1,8 +1,16 @@
 #include "static_ic.h"
+#include "../../cosmo_includes.h"
+#include "../../cosmo_types.h"
+#include "../../cosmo_globals.h"
+#include "../../ICs/ICs.h"
+#include "../../utils/math.h"
 
 namespace cosmo
 {
 
+/**
+ * @brief Gaussian random field ICs
+ */
 void dust_ic_set_random(BSSN * bssn, Static * dust, Fourier * fourier,
   IOData * iodata)
 {

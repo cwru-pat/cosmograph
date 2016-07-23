@@ -1,6 +1,6 @@
-[submodule "cosmotrace"]
-	path = cosmotrace
-	url = https://github.com/jbcm627/cosmotrace.git
-[submodule "elliptic_solver"]
-	path = elliptic_solver
+[submodule "components/elliptic_solver"]
+	path = components/elliptic_solver
 	url = https://github.com/jbcm627/elliptic_solver
+[submodule "components/cosmotrace"]
+	path = components/cosmotrace
+	url = https://github.com/jbcm627/cosmotrace

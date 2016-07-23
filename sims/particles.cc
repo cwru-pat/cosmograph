@@ -1,5 +1,6 @@
 #include "particles.h"
-#include "../static/static_ic.h"
+#include "../components/static/static_ic.h"
+#include "../ICs/ICs.h"
 
 namespace cosmo
 {

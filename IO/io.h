@@ -10,11 +10,11 @@
 #include "../utils/math.h"
 
 #if USE_COSMOTRACE
-#include "../cosmotrace/raytrace.h"
+#include "../components/cosmotrace/raytrace.h"
 #endif
 
-#include "../bssn/bssn.h"
-#include "../scalar/scalar.h"
+#include "../components/bssn/bssn.h"
+#include "../components/scalar/scalar.h"
 #include "IOData.h"
 
 namespace cosmo

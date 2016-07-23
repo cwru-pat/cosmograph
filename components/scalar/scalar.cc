@@ -1,4 +1,7 @@
 #include "scalar.h"
+#include "../../utils/math.h"
+#include "../../cosmo_includes.h"
+#include "../../cosmo_globals.h"
 
 namespace cosmo
 {

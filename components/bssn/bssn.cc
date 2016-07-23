@@ -1,4 +1,6 @@
 #include "bssn.h"
+#include "../../cosmo_globals.h"
+#include "../../utils/math.h"
 
 namespace cosmo
 {
