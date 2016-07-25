@@ -10,6 +10,7 @@ phi_0 = 0.0
 delta_phi = 0.01
 n_max = 1
 debug_multigrid = 0
+relaxation_precision = 1e-9
 
 ray_integrate = 0
 

@@ -220,7 +220,7 @@ void scalar_ic_set_multigrid(BSSN * bssn, Scalar * scalar)
   real_t n_max = std::stoi(_config["n_max"]);
   real_t phi_0 = std::stod(_config["phi_0"]);
   real_t delta = std::stod(_config["delta_phi"]);
-
+  
   // background value
   LOOP3(i,j,k)
     phi[INDEX(i,j,k)] = phi_0;
@@ -280,7 +280,7 @@ void scalar_ic_set_multigrid(BSSN * bssn, Scalar * scalar)
   }
 
   // solve for BSSN fields using multigrid class:
-  FASMultigrid multigrid (N, N*dx, 4);
+  FASMultigrid multigrid (N, N*dx, 4, std::stod(_config["relaxation_precision"]));
 
   idx_t u_exp[2] = { 1, 5 };
   multigrid.build_rho(2, u_exp);
