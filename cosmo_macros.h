@@ -132,11 +132,6 @@
   for(j=0; j<NY; ++j) \
     for(k=0; k<NZ; ++k)
 
-#define INTERNAL_LOOP3(i,j,k) \
-  for(i=1; i<NX-1; ++i) \
-    for(j=1; j<NY-1; ++j) \
-      for(k=1; k<NZ-1; ++k)
-
 #define DECLARE_REAL_T(name) real_t name
 
 // structure to store 27 immediately adjacent points
