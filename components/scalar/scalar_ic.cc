@@ -280,7 +280,7 @@ void scalar_ic_set_multigrid(BSSN * bssn, Scalar * scalar)
   }
 
   // solve for BSSN fields using multigrid class:
-  FASMultigrid multigrid (N, N*dx, 4, std::stod(_config["relaxation_precision"]));
+  FASMultigrid multigrid (N, N*dx, 4, std::stod(_config["relaxation_tolerance"]));
 
   idx_t u_exp[2] = { 1, 5 };
   multigrid.build_rho(2, u_exp);
@@ -317,7 +317,6 @@ void scalar_ic_set_multigrid(BSSN * bssn, Scalar * scalar)
   arr_t & phi_a = *bssn->fields["DIFFphi_a"];
 
   REAL_T * u = multigrid.getSolution();
-  
   #pragma omp parallel for
   LOOP3(i, j, k)
   {
