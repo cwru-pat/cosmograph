@@ -810,6 +810,20 @@ inline idx_t numNaNs(arr_t & field)
   return NaNs;
 }
 
+
+inline idx_t idx_t_mod(idx_t n, idx_t d)
+{
+  idx_t mod = n % d;
+  if(mod < 0)
+    mod += d;
+  return mod;
+}
+
+inline real_t real_t_mod(real_t n, real_t d)
+{
+  return n - d*std::floor(n/d);
+}
+
 }
 
 #endif

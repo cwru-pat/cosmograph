@@ -1,4 +1,4 @@
-steps = 10
+steps = 2000
 
 omp_num_threads = 4
 
@@ -15,7 +15,7 @@ dump_file = calculated
 
 IO_3D_grid_interval = 100
 IO_2D_grid_interval = 200
-IO_1D_grid_interval = 200
+IO_1D_grid_interval = 1
 
 IO_powerspec_interval = 2000
 IO_constraint_interval = 1

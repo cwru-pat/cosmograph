@@ -3,6 +3,7 @@
 #include "particles_macros.h"
 #include "../../utils/math.h"
 #include "../../utils/Timer.h"
+#include "../../IO/io.h"
 
 namespace cosmo
 {
@@ -71,6 +72,32 @@ void Particles::addParticle(Particle<real_t> particle)
 }
 
 /**
+ * @brief Compute non-integer index at a point.
+ */
+real_t Particles::getFractionalIndex(real_t x)
+{
+  return real_t_mod(x, N*dx)/dx;
+}
+
+/**
+ * @brief Returns the index "below" a point (floor of getFractionalIndex)
+ * 
+ * @return index associated with position
+ */
+idx_t Particles::getIndexBelow(real_t x)
+{
+  return (idx_t) getFractionalIndex(x); // floor to get 
+}
+
+/**
+ * @brief Returns the index nearest a point (rounds getFractionalIndex)
+ */
+idx_t Particles::getNearestIndex(real_t x)
+{
+  return (idx_t) ( getFractionalIndex(x) + 0.5 );
+}
+
+/**
  * @brief Sets a fractional distance between grid points
  * @details Stores the fractional distance between grid points of a given
  * point. Eg, for dx = 0.5, the value 1.23 is 46/100 the way between
@@ -85,32 +112,10 @@ void Particles::setX_d(real_t X[3], real_t x_d[3])
 {
   for(idx_t i=0; i<3; i++)
   {
-    if(X[i] < 0.0)
-    {
-      x_d[i] = 1.0 - std::fmod(-X[i], dx)/dx;
-    }
-    else
-    {
-      x_d[i] = std::fmod(X[i], dx)/dx;
-    }
+    real_t frac_idx = getFractionalIndex(X[i]);
+    real_t idx_below = (real_t) getIndexBelow(X[i]);
+    x_d[i] = frac_idx - idx_below;
   }
-}
-
-/**
- * @brief Returns the index nearest to a point
- * @details Returns the nearest index to a point in a particular dimension.
- * Assumes periodic boundary conditions.
- * 
- * @param X Point (3-vector) of interest.
- * @param dir dimension of interest (0=x, 1=y, 2=z)
- * @return index associated with position
- */
-idx_t Particles::getINDEX(real_t X[3], idx_t dir)
-{
-  if(X[dir] < 0)
-    return N - (-1*PARTICLES_ROUND(X[dir]/dx) % N);
-
-  return (PARTICLES_ROUND(X[dir]/dx) % N);
 }
 
 /**
@@ -223,9 +228,9 @@ ParticleMetricPrimitives<real_t> Particles::getInterpolatedPrimitivesIncomplete(
     for(idx_t j=0; j<2; j++)
       for(idx_t k=0; k<2; k++)
       {
-        idx_t x_idx = getINDEX(p->X, 0) + i;
-        idx_t y_idx = getINDEX(p->X, 1) + j;
-        idx_t z_idx = getINDEX(p->X, 2) + k;
+        idx_t x_idx = getIndexBelow(p->X[0]) + i;
+        idx_t y_idx = getIndexBelow(p->X[1]) + j;
+        idx_t z_idx = getIndexBelow(p->X[2]) + k;
         idx_t idx = INDEX(x_idx, y_idx, z_idx);
 
         ParticleMetricPrimitives<real_t> pp = {0};
@@ -266,11 +271,11 @@ ParticleMetricPrimitives<real_t> Particles::getInterpolatedPrimitives(Particle<r
 {
   arr_t & DIFFalpha_a = *bssn_fields["DIFFalpha_a"];
   
-  #if USE_BSSN_SHIFT
+# if USE_BSSN_SHIFT
     arr_t & beta1_a = *bssn_fields["beta1_a"];
     arr_t & beta2_a = *bssn_fields["beta2_a"];
     arr_t & beta3_a = *bssn_fields["beta3_a"];
-  #endif
+# endif
 
   arr_t & DIFFphi_a = *bssn_fields["DIFFphi_a"];
 
@@ -287,9 +292,9 @@ ParticleMetricPrimitives<real_t> Particles::getInterpolatedPrimitives(Particle<r
     for(idx_t j=0; j<2; j++)
       for(idx_t k=0; k<2; k++)
       {
-        idx_t x_idx = getINDEX(p->X, 0) + i;
-        idx_t y_idx = getINDEX(p->X, 1) + j;
-        idx_t z_idx = getINDEX(p->X, 2) + k;
+        idx_t x_idx = getIndexBelow(p->X[0]) + i;
+        idx_t y_idx = getIndexBelow(p->X[1]) + j;
+        idx_t z_idx = getIndexBelow(p->X[2]) + k;
         idx_t idx = INDEX(x_idx, y_idx, z_idx);
 
         ParticleMetricPrimitives<real_t> pp;
@@ -297,15 +302,15 @@ ParticleMetricPrimitives<real_t> Particles::getInterpolatedPrimitives(Particle<r
         pp.rootdetg = std::exp(6.0*DIFFphi_a[idx]);
         pp.alpha = DIFFalpha_a[idx];
 
-        #if USE_BSSN_SHIFT
+#       if USE_BSSN_SHIFT
           pp.beta[0] = beta1_a[idx];
           pp.beta[1] = beta2_a[idx];
           pp.beta[2] = beta3_a[idx];
-        #else
+#       else
           pp.beta[0] = 0;
           pp.beta[1] = 0;
           pp.beta[2] = 0;
-        #endif
+#       endif
 
         pp.gi[aIDX(1,1)] = std::exp(-4.0*DIFFphi_a[idx])*(1.0 + DIFFgamma22_a[idx] + DIFFgamma33_a[idx] - pw2(DIFFgamma23_a[idx]) + DIFFgamma22_a[idx]*DIFFgamma33_a[idx]);
         pp.gi[aIDX(2,2)] = std::exp(-4.0*DIFFphi_a[idx])*(1.0 + DIFFgamma11_a[idx] + DIFFgamma33_a[idx] - pw2(DIFFgamma13_a[idx]) + DIFFgamma11_a[idx]*DIFFgamma33_a[idx]);
@@ -318,15 +323,15 @@ ParticleMetricPrimitives<real_t> Particles::getInterpolatedPrimitives(Particle<r
         {
           pp.dalpha[a] = DER(DIFFalpha_a);
 
-          #if USE_BSSN_SHIFT
+#         if USE_BSSN_SHIFT
             pp.dbeta[a][0] = DER(beta1_a);
             pp.dbeta[a][1] = DER(beta2_a);
             pp.dbeta[a][2] = DER(beta3_a);
-          #else
+#         else
             pp.dbeta[a][0] = 0;
             pp.dbeta[a][1] = 0;
             pp.dbeta[a][2] = 0;
-          #endif
+#         endif
 
           pp.dgi[a][aIDX(1,1)] = -4.0*DER(DIFFphi_a)*pp.gi[aIDX(1,1)]
             + std::exp(-4.0*DIFFphi_a[idx])*(DER(DIFFgamma22_a) + DER(DIFFgamma33_a) - 2.0*DER(DIFFgamma23_a) + DER(DIFFgamma22_a)*DIFFgamma33_a[idx] + DIFFgamma22_a[idx]*DER(DIFFgamma33_a));
@@ -525,38 +530,66 @@ void Particles::addParticlesToBSSNSrc(
   PARTICLES_PARALLEL_LOOP(pr)
   {
     Particle<real_t> & p_a = pr->p_a;
-    // NGP interpolant
-    // Should come up with something better eventually
-    idx_t x_idx = getINDEX(p_a.X, 0);
-    idx_t y_idx = getINDEX(p_a.X, 1);
-    idx_t z_idx = getINDEX(p_a.X, 2);
-    idx_t idx = INDEX(x_idx, y_idx, z_idx);
-
     ParticleMetricPrimitives<real_t> pp_a = getInterpolatedPrimitivesIncomplete(& p_a, bssn_fields);
 
     real_t W = std::sqrt( 1.0 + 
         pp_a.gi[aIDX(1,1)]*p_a.U[0]*p_a.U[0] + pp_a.gi[aIDX(2,2)]*p_a.U[1]*p_a.U[1] + pp_a.gi[aIDX(3,3)]*p_a.U[2]*p_a.U[2]
         + 2.0*( pp_a.gi[aIDX(1,2)]*p_a.U[0]*p_a.U[1] + pp_a.gi[aIDX(1,3)]*p_a.U[0]*p_a.U[2] + pp_a.gi[aIDX(2,3)]*p_a.U[1]*p_a.U[2] )
       );
-
     real_t MnA = p_a.M / W / dx/dx/dx / pp_a.rootdetg;
 
-    // Eq . 5.226 in Baumgarte & Shapiro
-    // TODO: benchmark critical vs atomic
-    #pragma omp critical
-    {
-      DIFFr_a[idx] += MnA*W*W;
-      DIFFS_a[idx] += MnA*W*W - MnA;
-      S1_a[idx] += MnA*W*p_a.U[0];
-      S2_a[idx] += MnA*W*p_a.U[1];
-      S3_a[idx] += MnA*W*p_a.U[2];
-      STF11_a[idx] += MnA*p_a.U[0]*p_a.U[0];
-      STF12_a[idx] += MnA*p_a.U[0]*p_a.U[1];
-      STF13_a[idx] += MnA*p_a.U[0]*p_a.U[2];
-      STF22_a[idx] += MnA*p_a.U[1]*p_a.U[1];
-      STF23_a[idx] += MnA*p_a.U[1]*p_a.U[2];
-      STF33_a[idx] += MnA*p_a.U[2]*p_a.U[2];
-    }
+    // Eq . 5.226 in Baumgarte & Shapiro, using NGP or CIC
+    //<<< TODO: option to control this
+#   if false
+      // NGP interpolant
+      idx_t x_idx = getNearestIndex(p_a.X[0]);
+      idx_t y_idx = getNearestIndex(p_a.X[1]);
+      idx_t z_idx = getNearestIndex(p_a.X[2]);
+      idx_t idx = INDEX(x_idx, y_idx, z_idx);
+#     pragma omp critical
+      {
+        DIFFr_a[idx] += MnA*W*W;
+        DIFFS_a[idx] += MnA*W*W - MnA;
+        S1_a[idx] += MnA*W*p_a.U[0];
+        S2_a[idx] += MnA*W*p_a.U[1];
+        S3_a[idx] += MnA*W*p_a.U[2];
+        STF11_a[idx] += MnA*p_a.U[0]*p_a.U[0];
+        STF12_a[idx] += MnA*p_a.U[0]*p_a.U[1];
+        STF13_a[idx] += MnA*p_a.U[0]*p_a.U[2];
+        STF22_a[idx] += MnA*p_a.U[1]*p_a.U[1];
+        STF23_a[idx] += MnA*p_a.U[1]*p_a.U[2];
+        STF33_a[idx] += MnA*p_a.U[2]*p_a.U[2];
+      }
+#   else
+      // CIC / linear weighting interpolant
+      idx_t x_idx = getIndexBelow(p_a.X[0]);
+      idx_t y_idx = getIndexBelow(p_a.X[1]);
+      idx_t z_idx = getIndexBelow(p_a.X[2]);
+      real_t x_d[3] = {0};
+      setX_d(p_a.X, x_d);
+#     pragma omp critical
+      {
+        for(int x=0; x<2; ++x)
+          for(int y=0; y<2; ++y)
+            for(int z=0; z<2; ++z)
+            {
+              idx_t idx = INDEX(x_idx + x, y_idx + y, z_idx + z);
+              real_t cic_weight = (1-std::fabs(x-x_d[0]))*(1-std::fabs(y-x_d[1]))*(1-std::fabs(z-x_d[2]));
+              DIFFr_a[idx] += cic_weight*(MnA*W*W);
+              DIFFS_a[idx] += cic_weight*(MnA*W*W - MnA);
+              S1_a[idx] += cic_weight*(MnA*W*p_a.U[0]);
+              S2_a[idx] += cic_weight*(MnA*W*p_a.U[1]);
+              S3_a[idx] += cic_weight*(MnA*W*p_a.U[2]);
+              STF11_a[idx] += cic_weight*(MnA*p_a.U[0]*p_a.U[0]);
+              STF12_a[idx] += cic_weight*(MnA*p_a.U[0]*p_a.U[1]);
+              STF13_a[idx] += cic_weight*(MnA*p_a.U[0]*p_a.U[2]);
+              STF22_a[idx] += cic_weight*(MnA*p_a.U[1]*p_a.U[1]);
+              STF23_a[idx] += cic_weight*(MnA*p_a.U[1]*p_a.U[2]);
+              STF33_a[idx] += cic_weight*(MnA*p_a.U[2]*p_a.U[2]);
+            }
+      }
+#   endif
+
   }
 
   _timer["Particles::addToBSSNSrc"].stop();
