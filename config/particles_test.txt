@@ -1,4 +1,4 @@
-steps = 2000
+steps = 100
 
 omp_num_threads = 4
 
@@ -14,9 +14,9 @@ output_dir = particle_test
 dump_file = calculated
 
 IO_3D_grid_interval = 100
-IO_2D_grid_interval = 200
-IO_1D_grid_interval = 1
+IO_2D_grid_interval = 100
+IO_1D_grid_interval = 10
 
-IO_powerspec_interval = 2000
-IO_constraint_interval = 1
-IO_bssnstats_interval = 1
+IO_powerspec_interval = 100
+IO_constraint_interval = 10
+IO_bssnstats_interval = 10

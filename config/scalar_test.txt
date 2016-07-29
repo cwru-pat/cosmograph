@@ -1,11 +1,11 @@
-steps = 500
+steps = 100
 
-omp_num_threads = 2
+omp_num_threads = 4
 
 simulation_type = scalar
 scalar_ic_type = multigrid
 
-num_v_cycles = 15
+num_v_cycles = 10
 phi_0 = 0.0
 delta_phi = 0.01
 n_max = 1

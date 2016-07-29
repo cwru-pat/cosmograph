@@ -49,19 +49,41 @@ if [ $? -ne 0 ]; then
     echo "Error: make failed!"
     exit 1
 fi
+
 # Test runs
+
+echo ""
+echo "Running dust test"
+echo "-----------------"
 ./cosmo ../config/dust_test.txt
 if [ $? -ne 0 ]; then
     echo "Error: dust test run failed!"
     exit 1
 fi
+
+echo ""
+echo "Running dust+lambda test"
+echo "------------------------"
 ./cosmo ../config/lambda_test.txt
 if [ $? -ne 0 ]; then
     echo "Error: dust+lambda test run failed!"
     exit 1
 fi
+
+echo ""
+echo "Running particles test"
+echo "----------------------"
+./cosmo ../config/particles_test.txt
+if [ $? -ne 0 ]; then
+    echo "Error: particle run failed!"
+    exit 1
+fi
+
+echo ""
+echo "Running scalar test"
+echo "-------------------"
 ./cosmo ../config/scalar_test.txt
 if [ $? -ne 0 ]; then
-    echo "Error: run failed!"
+    echo "Error: scalar run failed!"
     exit 1
 fi
