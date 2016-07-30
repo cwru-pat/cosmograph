@@ -720,14 +720,14 @@ real_t BSSN::ev_DIFFphi(BSSNData *bd)
 real_t BSSN::ev_DIFFalpha(BSSNData *bd)
 {
 
-# if USE_HARMONIC_ALPHA_OFFSET
+# if USE_ANHARMONIC_ALPHA
     //<<< TODO: generalize K "offset" in harmonic gauge.
     // Ref. showing presence of offset:
     // http://relativity.livingreviews.org/open?pubNo=lrr-2012-9&amp;page=articlesu7.html
     // for FRW (+ perturbation) sims, having no offset leads to lapse blowing up?
     real_t K_FRW_0 = -3.0;
-    return -1.0*pw2(bd->alpha)*( bd->K - K_FRW_0 ) - KO_dissipation_Q(bd->i, bd->j, bd->k, DIFFalpha->_array_a);
-# endif
+    return 1.0*pw2(bd->alpha)*( bd->K - K_FRW_0 ) - KO_dissipation_Q(bd->i, bd->j, bd->k, DIFFalpha->_array_a);
+#endif
 
 # if USE_HARMONIC_ALPHA
     return -1.0*pw2(bd->alpha)*( bd->K ) - KO_dissipation_Q(bd->i, bd->j, bd->k, DIFFalpha->_array_a);

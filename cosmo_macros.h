@@ -39,9 +39,14 @@
   #define STENCIL_ORDER 8
 #endif
 
-// unfinished: #define USE_CONFORMAL_SYNC_ALPHA false
+// Not well-tested: #define USE_CONFORMAL_SYNC_ALPHA false
+// Other gauges? (incompatible with dust)
 #ifndef USE_HARMONIC_ALPHA 
-  #define USE_HARMONIC_ALPHA false // dust sims require sync. gauge
+  #define USE_HARMONIC_ALPHA false
+#endif
+#ifndef USE_ANHARMONIC_ALPHA
+  // d_t \alpha = - d_t \alpha_{Harmonic} (sign change; newtonian-ish?)
+  #define USE_ANHARMONIC_ALPHA false
 #endif
 
 // evolve shift as well? (if not, assumed to be zero)

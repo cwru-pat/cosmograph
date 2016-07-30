@@ -2,8 +2,9 @@
 # Build directory
 build/*
 
-# test config files
-config/*.test
+# test files
+*.test
+
 
 # Generated doxygen files
 docs/latex/*

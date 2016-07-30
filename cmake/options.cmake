@@ -46,6 +46,12 @@ if(DEFINED COSMO_USE_HARMONIC_ALPHA)
   message(STATUS "${Cyan}Setting USE_HARMONIC_ALPHA=${COSMO_USE_HARMONIC_ALPHA}.${ColorReset}")
 endif()
 
+# Use Anharmonic gauge? (Disallowed for dust sims)
+if(DEFINED COSMO_USE_ANHARMONIC_ALPHA)
+  add_definitions(-DUSE_ANHARMONIC_ALPHA=${COSMO_USE_ANHARMONIC_ALPHA})
+  message(STATUS "${Cyan}Setting USE_ANHARMONIC_ALPHA=${COSMO_USE_ANHARMONIC_ALPHA}.${ColorReset}")
+endif()
+
 # Use BSSN shift? Required for scalar and particle sims.
 if(DEFINED COSMO_USE_BSSN_SHIFT)
   add_definitions(-DUSE_BSSN_SHIFT=${COSMO_USE_BSSN_SHIFT})
