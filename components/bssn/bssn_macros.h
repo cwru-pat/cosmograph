@@ -91,7 +91,8 @@
   function(KDy);                            \
   function(KDz);                            \
   function(ricci);                          \
-  function(AijAij);
+  function(AijAij);                         \
+  function(K0);
 
 #define BSSN_APPLY_TO_IJ_PERMS(function) \
   function(1, 1);                        \

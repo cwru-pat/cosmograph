@@ -190,13 +190,13 @@ void CosmoSim::outputStateInformation()
   real_t H_calcs[7] = {0}, M_calcs[7] = {0};
   bssnSim->setHamiltonianConstraintCalcs(H_calcs, false);
   iodata->log(
-      "Final Max. Hamiltonian constraint violation: "
-      + stringify(H_calcs[2])
+      "Final Max. (Normed) Hamiltonian constraint violation: "
+      + stringify(H_calcs[2]) + " (" + stringify(H_calcs[6]) + ")"
     );
   bssnSim->setMomentumConstraintCalcs(M_calcs);
   iodata->log(
-      "Final Max. Momentum constraint violation: "
-      + stringify(M_calcs[2])
+      "Final Max. (Normed) Momentum constraint violation: "
+      + stringify(M_calcs[2]) + " (" + stringify(M_calcs[6]) + ")"
     );
 
 # if USE_COSMOTRACE

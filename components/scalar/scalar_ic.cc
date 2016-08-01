@@ -272,11 +272,13 @@ void scalar_ic_set_multigrid(BSSN * bssn, Scalar * scalar)
 
   arr_t & K_p = *bssn->fields["DIFFK_p"]; // extrinsic curvature
   arr_t & K_a = *bssn->fields["DIFFK_a"]; // extrinsic curvature
+  arr_t & K0 = *bssn->fields["K0_a"]; // initial extrinsic curvature
 
   #pragma omp parallel for default(shared) private(i,j,k)
   LOOP3(i,j,k)
   {
-    K_a[INDEX(i,j,k)] = K_p[INDEX(i,j,k)] = K_src;
+    idx_t idx = INDEX(i,j,k);
+    K0[idx] = K_a[idx] = K_p[idx] = K_src;
   }
 
   // solve for BSSN fields using multigrid class:
