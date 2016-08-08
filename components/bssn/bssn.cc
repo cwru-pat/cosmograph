@@ -737,6 +737,7 @@ real_t BSSN::ev_DIFFalpha(BSSNData *bd)
 
 # if USE_1PLUS_LOG_ALPHA
     return -2.0*bd->alpha*( bd->K - bd->K0 )
+      + bd->beta1 * bd->d1a + bd->beta2 * bd->d2a + bd->beta3 * bd->d3a 
       - KO_dissipation_Q(bd->i, bd->j, bd->k, DIFFalpha->_array_a);
 # endif
 
