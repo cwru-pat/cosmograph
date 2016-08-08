@@ -284,19 +284,31 @@ void scalar_ic_set_multigrid(BSSN * bssn, Scalar * scalar)
   // solve for BSSN fields using multigrid class:
   real_t relaxation_tolerance = std::stod(_config["relaxation_tolerance"]);
   FASMultigrid multigrid (N, N*dx, 4, relaxation_tolerance);
+  std::cout<<"K_0 equals "<<K_src<<", H_0 is: "<<-K_src/3.0<<" and k/H_0 is:"<<2.0*PI/(N*dx)/(-K_src/3.0)<<"\n";
 
   idx_t u_exp[2] = { 1, 5 };
   multigrid.build_rho(2, u_exp);
+  real_t avg1 = 0.0, avg5 = 0.0;
   LOOP3(i, j, k)
   {
     real_t value = PI*(
         pw2(psi1[INDEX(i,j,k)]) + pw2(psi2[INDEX(i,j,k)]) + pw2(psi3[INDEX(i,j,k)])
       );
+    avg1 += value;
     multigrid.setPolySrcAtPt(i, j, k, 0, value);
 
     value = 2.0* PI*scalar->V(phi[INDEX(i,j,k)]) - K_a[INDEX(i,j,k)]*K_a[INDEX(i,j,k)]/12.0;
     multigrid.setPolySrcAtPt(i, j, k, 1, value);
+    avg5 += value;
   }
+  avg1 = avg1/N/N/N;
+  avg5 = avg5/N/N/N;
+  multigrid.initializeRhoHeirarchy();
+  std::cout<<"The average value of coefficient of the first order term is: "<<avg1<<"\n";
+  std::cout<<"The average value of coefficient of the fifth order term is: "<<avg5<<"\n";
+  std::cout<<"The suggested initial value of multigrid solver is: "<<std::pow(-avg1/avg5,1.0/4.0)<<"\n";
+  std::cout<<"The estimated value of gradiant energy/poential is:"<<-avg5/PI/2.0/scalar->V(1)<<"\n";
+  std::cout<<"The ratio of H_LEN_FRAC/H_0^-1 is: "<<dx*N/(3.0/K_src)<<"\n"; 
   multigrid.initializeRhoHeirarchy();
 
   if(std::stoi(_config["debug_multigrid"]))
