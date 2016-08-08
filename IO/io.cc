@@ -108,6 +108,8 @@ void io_bssn_fields_snapshot(IOData *iodata, idx_t step,
     io_dump_3dslice(iodata, *bssn_fields["DIFFK_a"],   "3D_DIFFK."   + step_str);
     io_dump_3dslice(iodata, *bssn_fields["ricci_a"],   "3D_ricci."   + step_str);
     io_dump_3dslice(iodata, *bssn_fields["DIFFr_a"],   "3D_DIFFr."   + step_str);
+    io_dump_3dslice(iodata, *bssn_fields["beta1_a"],   "3D_beta1."   + step_str);
+    io_dump_3dslice(iodata, *bssn_fields["DIFFalpha_a"],   "3D_DIFFalpha."   + step_str);
   }
   
   if( step % std::stoi(_config["IO_2D_grid_interval"]) == 0 )

@@ -29,6 +29,20 @@
   #define BSSN_APPLY_TO_SHIFT_ARGS(function, ...)
 #endif
 
+#if USE_GAMMA_DRIVER
+  #define BSSN_APPLY_TO_AUX_B(function) \
+    function(auxB1); \
+    function(auxB2); \
+    function(auxB3);
+  #define BSSN_APPLY_TO_AUX_B_ARGS(function, ...) \
+    function(auxB1, __VA_ARGS__); \
+    function(auxB2, __VA_ARGS__); \
+    function(auxB3, __VA_ARGS__);
+#else
+  #define BSSN_APPLY_TO_AUX_B(function)
+  #define BSSN_APPLY_TO_AUX_B_ARGS(function, ...)
+#endif
+
 #define BSSN_APPLY_TO_FIELDS_ARGS(function, ...)   \
   function(DIFFgamma11, __VA_ARGS__);              \
   function(DIFFgamma12, __VA_ARGS__);              \
@@ -49,7 +63,8 @@
   function(Gamma3, __VA_ARGS__);                   \
   function(DIFFalpha, __VA_ARGS__);                \
   Z4c_APPLY_TO_FIELDS_ARGS(function, __VA_ARGS__)  \
-  BSSN_APPLY_TO_SHIFT_ARGS(function, __VA_ARGS__)
+  BSSN_APPLY_TO_SHIFT_ARGS(function, __VA_ARGS__)  \
+  BSSN_APPLY_TO_AUX_B_ARGS(function, __VA_ARGS__)
 
 #define BSSN_APPLY_TO_FIELDS(function) \
   function(DIFFgamma11);               \
@@ -71,7 +86,8 @@
   function(Gamma3);                    \
   function(DIFFalpha);                 \
   Z4c_APPLY_TO_FIELDS(function)        \
-  BSSN_APPLY_TO_SHIFT(function)
+  BSSN_APPLY_TO_SHIFT(function)        \
+  BSSN_APPLY_TO_AUX_B(function)
 
 #define BSSN_APPLY_TO_SOURCES(function) \
   function(DIFFr);                      \

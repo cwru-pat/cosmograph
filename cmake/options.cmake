@@ -46,6 +46,18 @@ if(DEFINED COSMO_USE_HARMONIC_ALPHA)
   message(STATUS "${Cyan}Setting USE_HARMONIC_ALPHA=${COSMO_USE_HARMONIC_ALPHA}.${ColorReset}")
 endif()
 
+# Use 1+log gaue? 
+if(DEFINED COSMO_USE_1PLUS_LOG_ALPHA)
+  add_definitions(-DUSE_1PLUS_LOG_ALPHA=${COSMO_USE_1PLUS_LOG_ALPHA})
+  message(STATUS "${Cyan}Setting USE_1PLUS_LOG_ALPHA=${COSMO_USE_1PLUS_LOG_ALPHA}.${ColorReset}")
+endif()
+
+# Use Gamma Driver shift??
+if(DEFINED COSMO_USE_GAMMA_DRIVER)
+  add_definitions(-DUSE_GAMMA_DRIVER=${COSMO_USE_GAMMA_DRIVER})
+  message(STATUS "${Cyan}Setting USE_GAMMA_DRIVER=${COSMO_USE_GAMMA_DRIVER}.${ColorReset}")
+endif()
+
 # Use Anharmonic gauge? (Disallowed for dust sims)
 if(DEFINED COSMO_USE_ANHARMONIC_ALPHA)
   add_definitions(-DUSE_ANHARMONIC_ALPHA=${COSMO_USE_ANHARMONIC_ALPHA})

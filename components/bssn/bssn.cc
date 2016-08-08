@@ -305,7 +305,7 @@ void BSSN::set_bd_values(idx_t i, idx_t j, idx_t k, BSSNData *bd)
   bd->r        =   bd->DIFFr + bd->rho_FRW;
   bd->S        =   bd->DIFFS + bd->S_FRW;
   bd->alpha    =   bd->DIFFalpha + 1.0;
-
+  
   // pre-compute re-used quantities
   // gammas & derivs first
   calculate_Acont(bd);
@@ -735,6 +735,11 @@ real_t BSSN::ev_DIFFalpha(BSSNData *bd)
       - KO_dissipation_Q(bd->i, bd->j, bd->k, DIFFalpha->_array_a);
 # endif
 
+# if USE_1PLUS_LOG_ALPHA
+    return -2.0*bd->alpha*( bd->K - bd->K0 )
+      - KO_dissipation_Q(bd->i, bd->j, bd->k, DIFFalpha->_array_a);
+# endif
+
 # if USE_CONFORMAL_SYNC_ALPHA
     return -1.0/3.0*bd->alpha*bd->K_FRW;
 # endif
@@ -757,20 +762,46 @@ real_t BSSN::ev_theta(BSSNData *bd)
 #if USE_BSSN_SHIFT
 real_t BSSN::ev_beta1(BSSNData *bd)
 {
+#if USE_GAMMA_DRIVER
+  return bd->auxB1 * GD_C;
+#endif
   return 0.0;
 }
 
 real_t BSSN::ev_beta2(BSSNData *bd)
 {
+#if USE_GAMMA_DRIVER
+  return bd->auxB2 * GD_C;
+#endif
   return 0.0;
 }
 
 real_t BSSN::ev_beta3(BSSNData *bd)
 {
+#if USE_GAMMA_DRIVER
+  return bd->auxB3 * GD_C;
+#endif
   return 0.0;
 }
 #endif
 
+#if USE_GAMMA_DRIVER
+real_t BSSN::ev_auxB1(BSSNData *bd)
+{
+  return ev_Gamma1(bd) - GD_ETA * bd->auxB1;
+}
+
+real_t BSSN::ev_auxB2(BSSNData *bd)
+{
+  return ev_Gamma2(bd) - GD_ETA * bd->auxB2;
+}
+
+real_t BSSN::ev_auxB3(BSSNData *bd)
+{
+  return ev_Gamma3(bd) - GD_ETA * bd->auxB3;
+}
+  
+#endif
 
 /*
 ******************************************************************************

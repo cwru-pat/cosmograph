@@ -114,6 +114,12 @@ public:
       real_t ev_beta3(BSSNData *bd);
     #endif
 
+    #if USE_GAMMA_DRIVER
+      real_t ev_auxB1(BSSNData *bd);
+      real_t ev_auxB2(BSSNData *bd);
+      real_t ev_auxB3(BSSNData *bd);
+    #endif
+
   /* constraint violation calculations */
     void setHamiltonianConstraintCalcs(real_t H_values[7], bool reset_bd);
     real_t hamiltonianConstraintCalc(idx_t idx);
