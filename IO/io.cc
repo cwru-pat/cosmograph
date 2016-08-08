@@ -108,8 +108,10 @@ void io_bssn_fields_snapshot(IOData *iodata, idx_t step,
     io_dump_3dslice(iodata, *bssn_fields["DIFFK_a"],   "3D_DIFFK."   + step_str);
     io_dump_3dslice(iodata, *bssn_fields["ricci_a"],   "3D_ricci."   + step_str);
     io_dump_3dslice(iodata, *bssn_fields["DIFFr_a"],   "3D_DIFFr."   + step_str);
-    io_dump_3dslice(iodata, *bssn_fields["beta1_a"],   "3D_beta1."   + step_str);
     io_dump_3dslice(iodata, *bssn_fields["DIFFalpha_a"],   "3D_DIFFalpha."   + step_str);
+#if USE_BSSN_SHIFT
+    io_dump_3dslice(iodata, *bssn_fields["beta1_a"],   "3D_beta1."   + step_str);
+#endif
   }
   
   if( step % std::stoi(_config["IO_2D_grid_interval"]) == 0 )
@@ -118,6 +120,7 @@ void io_bssn_fields_snapshot(IOData *iodata, idx_t step,
     io_dump_2dslice(iodata, *bssn_fields["DIFFK_a"],   "2D_DIFFK."   + step_str);
     io_dump_2dslice(iodata, *bssn_fields["ricci_a"],   "2D_ricci."   + step_str);
     io_dump_2dslice(iodata, *bssn_fields["DIFFr_a"],   "2D_DIFFr."   + step_str);
+    io_dump_2dslice(iodata, *bssn_fields["DIFFalpha_a"],   "2D_DIFFalpha."   + step_str);
   }
   
   if( step % std::stoi(_config["IO_1D_grid_interval"]) == 0 )
@@ -127,6 +130,7 @@ void io_bssn_fields_snapshot(IOData *iodata, idx_t step,
     io_dump_strip(iodata, *bssn_fields["DIFFK_a"],       "1D_DIFFK",   1, 0, 0);
     io_dump_strip(iodata, *bssn_fields["ricci_a"],       "1D_ricci",   1, 0, 0);
     io_dump_strip(iodata, *bssn_fields["DIFFr_a"],       "1D_DIFFr",   1, 0, 0);
+    io_dump_strip(iodata, *bssn_fields["DIFFalpha_a"],       "1D_DIFFalpha",   1, 0, 0);
   }
 }
 
