@@ -278,7 +278,7 @@ real_t Scalar::dV(real_t phi_in)
 real_t Scalar::V(real_t phi_in)
 {
   // TODO: discuss how to set this better
-  return 0.000005;
+  return 0.0003;
   return 1.0;
 }
 
