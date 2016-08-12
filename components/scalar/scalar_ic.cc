@@ -100,8 +100,8 @@ void scalar_ic_set_semianalytic_test(BSSN * bssn, Scalar * scalar)
 
   arr_t & phi = scalar->phi._array_p; // field
   arr_t & psi1 = scalar->psi1._array_p; // derivative of phi in x-dir
-  arr_t & psi2 = scalar->psi3._array_p; // derivative of phi in y-dir
-  arr_t & psi3 = scalar->psi2._array_p; // derivative of phi in z-dir
+  arr_t & psi2 = scalar->psi2._array_p; // derivative of phi in y-dir
+  arr_t & psi3 = scalar->psi3._array_p; // derivative of phi in z-dir
 
   arr_t & Pi = scalar->Pi._array_p; // time-derivative of field phi
   
@@ -332,7 +332,7 @@ void scalar_ic_set_multigrid(BSSN * bssn, Scalar * scalar)
   arr_t & phi_a = *bssn->fields["DIFFphi_a"];
 
   REAL_T * u = multigrid.getSolution();
-  #pragma omp parallel for
+#pragma omp parallel for private(j, k)
   LOOP3(i, j, k)
   {
     phi_p[INDEX(i,j,k)] = (real_t) std::log(std::abs(u[INDEX(i,j,k)]));
