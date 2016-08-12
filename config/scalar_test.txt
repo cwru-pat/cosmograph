@@ -7,7 +7,7 @@ scalar_ic_type = multigrid
 
 num_v_cycles = 15
 phi_0 = 0.0
-delta_phi = 0.01
+delta_phi = 0.22
 n_max = 1
 debug_multigrid = 0
 relaxation_tolerance = 1e-9

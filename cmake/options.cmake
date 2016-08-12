@@ -58,6 +58,18 @@ if(DEFINED COSMO_USE_GAMMA_DRIVER)
   message(STATUS "${Cyan}Setting USE_GAMMA_DRIVER=${COSMO_USE_GAMMA_DRIVER}.${ColorReset}")
 endif()
 
+# Parameter of Gamma Driver??
+if(DEFINED COSMO_GD_C)
+  add_definitions(-DGD_C=${COSMO_GD_C})
+  message(STATUS "${Cyan}Setting GD_C=${COSMO_GD_C}.${ColorReset}")
+endif()
+
+if(DEFINED COSMO_GD_ETA)
+  add_definitions(-DGD_ETA=${COSMO_GD_ETA})
+  message(STATUS "${Cyan}Setting GD_ETA=${COSMO_GD_ETA}.${ColorReset}")
+endif()
+
+
 # Use Anharmonic gauge? (Disallowed for dust sims)
 if(DEFINED COSMO_USE_ANHARMONIC_ALPHA)
   add_definitions(-DUSE_ANHARMONIC_ALPHA=${COSMO_USE_ANHARMONIC_ALPHA})
