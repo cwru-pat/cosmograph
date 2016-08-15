@@ -30,7 +30,7 @@ sudo apt-get install git cmake libhdf5-dev fftw3-dev libzip-dev g++
 ### Running tests
 
 In order to make sure the code is working, you can try running the provided
-tests script. This script is run by [travis-ci](https://travis-ci.com/jbcm627/cosmograph)
+tests script. This script is run by [travis-ci](https://travis-ci.com/cwru-pat/cosmograph)
 as well, in an effort to detect problems introduced by changes to the code.
 Once you have cloned the code and submodules, you can run:
 
@@ -94,4 +94,7 @@ doxygen docs/Doxyfile
 ```
 from the main directory. Additional documentation and information may be
 available in the `docs` directory, but this is not guaranteed to be
-up-to-date.
+up-to-date. 'Collaboration diagrams' can also be generated for the code
+by doxygen provided the `graphviz` library is available. To install this
+on Ubuntu systems, a command like `sudo apt-get install graphviz` should
+work.

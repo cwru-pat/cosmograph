@@ -1,10 +1,9 @@
 # HDF5 libraries
-find_library(HDF5_LIBRARY
-     NAMES hdf5 libhdf5
-     PATHS /home/jbm120/hdf5/build/lib /usr/lib)
-set(HDF5_LIBRARIES "${HDF5_LIBRARY}")
-message(STATUS " HDF5_LIBRARY: ${HDF5_LIBRARY}")
+find_package(HDF5)
 
-if(EXISTS /home/jbm120/hdf5/build/include)
-  include_directories(/home/jbm120/hdf5/build/include)
+if(!${HDF5_FOUND})
+  message(FATAL_ERROR "${Red}The HDF5 libraries were not found. Please make sure you have HDF5 installed/loaded, and can be found in, eg, CPLUS_INCLUDE_PATH and LD_LIBRARY_PATH.${ColorReset}")
+else()
+  message(STATUS " HDF5_C_LIBRARIES: ${HDF5_C_LIBRARIES}")
+  # message(STATUS " HDF5_CXX_LIBRARIES: ${HDF5_CXX_LIBRARIES}") # c lib used.
 endif()
