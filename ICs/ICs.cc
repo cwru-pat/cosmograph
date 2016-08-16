@@ -159,8 +159,6 @@ void init_ray_vector(std::vector<RayTrace<real_t, idx_t> *> * rays, idx_t n_rays
     // rays distributed (uniformly) around a sphere
     real_t theta = 2.0*PI*dist(gen);
     real_t U = 2.0*dist(gen) - 1.0;
-    // sphere radius R = L/2
-    real_t R = N*dx/2.0;
     // inside some over/underdensity (hopefully)
     real_t X0, Y0, Z0;
     if(i<n_rays/3)
@@ -187,13 +185,13 @@ void init_ray_vector(std::vector<RayTrace<real_t, idx_t> *> * rays, idx_t n_rays
     rd.x[2] = Z0;
     // velocity directed inwards
     // normalization of V is enforced by raytrace class
-    rd.V[0] = -1.0*std::sqrt(1.0-U*U)*std::cos(theta);
-    rd.V[1] = -1.0*std::sqrt(1.0-U*U)*std::sin(theta);
-    rd.V[2] = -1.0*U;
+    rd.V[0] = 1.0*std::sqrt(1.0-U*U)*std::cos(theta);
+    rd.V[1] = 1.0*std::sqrt(1.0-U*U)*std::sin(theta);
+    rd.V[2] = 1.0*U;
 
     // energy, angle in arb. units
     rd.E = 1.0;
-    rd.Phi = 1.0;
+    rd.Phi = -1.0;
 
     RayTrace<real_t, idx_t> * ray;
     ray = new RayTrace<real_t, idx_t> (-std::fabs(dt), dx, rd);

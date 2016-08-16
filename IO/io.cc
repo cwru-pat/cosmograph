@@ -362,8 +362,6 @@ void io_dump_3dslice(IOData *iodata, arr_t & field, std::string filename)
 
   hid_t       file, space, dset, dcpl;  /* Handles */
   herr_t      status;
-  htri_t      avail;
-  H5Z_filter_t  filter_type;
   hsize_t     dims[3] = {(hsize_t) NX, (hsize_t) NY, (hsize_t) NZ},
               maxdims[3] = {H5S_UNLIMITED, H5S_UNLIMITED, H5S_UNLIMITED},
               chunk[3] = {6, 6, 6};
@@ -400,8 +398,6 @@ void io_dump_2dslice(IOData *iodata, arr_t & field, std::string filename)
 
   hid_t       file, space, dset, dcpl;  /* Handles */
   herr_t      status;
-  htri_t      avail;
-  H5Z_filter_t  filter_type;
   hsize_t     dims[2] = {(hsize_t) NY, (hsize_t) NZ},
               maxdims[2] = {H5S_UNLIMITED, H5S_UNLIMITED},
               chunk[2] = {6, 6};
@@ -545,8 +541,6 @@ void io_dump_2d_array(IOData *iodata, real_t * array, idx_t n_x, idx_t n_y,
 
   hid_t       file, space, dset, dcpl;  /* Handles */
   herr_t      status;
-  htri_t      avail;
-  H5Z_filter_t  filter_type;
   hsize_t     dims[2] = {(hsize_t) n_x, (hsize_t) n_y},
               maxdims[2] = {H5S_UNLIMITED, H5S_UNLIMITED},
               chunk[2] = {6, 6};
