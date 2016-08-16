@@ -1,6 +1,6 @@
 # CosmoGRaPH Code
 
-[![Build Status](https://travis-ci.com/jbcm627/cosmograph.svg?token=j5zJrjKFZL3UXL3HwPp6&branch=master)](https://travis-ci.com/jbcm627/cosmograph)
+[![Build Status](https://travis-ci.com/cwru-pat/cosmograph.svg?token=j5zJrjKFZL3UXL3HwPp6&branch=master)](https://travis-ci.com/cwru-pat/cosmograph)
 
 ## Cosmological General Relativity And (Perfect fluid | Particle) Hydrodynamics Code
 
@@ -23,8 +23,12 @@ sudo apt-get install git cmake libhdf5-dev fftw3-dev libzip-dev g++
 
 ### Obtaining up the code
  
- - 1) Clone the code: `git clone https://github.com/jbcm627/cosmograph`
+ - 1) Clone the code: `git clone https://github.com/cwru-pat/cosmograph`
  - 2) Change into the cloned repository directory: `cd cosmograph`
+
+Optionally clone submodules. The code should compile and run without the
+submodules, however some functionality may not exist.
+
  - 3) Initialize submodules: `git submodule update --init --recursive`
 
 ### Running tests
@@ -51,7 +55,7 @@ make
 ```
 
 To the extent different compile-time options are available, they are
-enumerated in a [cmake file](https://github.com/jbcm627/cosmograph/blob/master/cmake/options.cmake).
+enumerated in a [cmake file](https://github.com/cwru-pat/cosmograph/blob/master/cmake/options.cmake).
 You can add these by supplying an appropriate argument to cmake. For
 example, to change the resolution to `N=32`, the cmake command will be
 
