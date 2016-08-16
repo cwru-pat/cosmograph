@@ -53,6 +53,15 @@ fi
 # Test runs
 
 echo ""
+echo "Running stability test"
+echo "----------------------"
+./cosmo ../config/stability_test.txt
+if [ $? -ne 0 ]; then
+    echo "Error: stability run failed!"
+    exit 1
+fi
+
+echo ""
 echo "Running dust test"
 echo "-----------------"
 ./cosmo ../config/dust_test.txt
