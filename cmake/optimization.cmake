@@ -30,7 +30,7 @@ if(COSMO_PROFILE)
 endif()
 
 
-set(WARNINGS          "-pedantic -Wall -Wno-unused-variable -Wno-unused-function")
+set(WARNINGS          "-pedantic -Wall")
 set(CMAKE_CXX_FLAGS   "${CC_OPTS} ${OPT_LEVEL} ${WARNINGS} ${PROFILING}")
 set(CMAKE_EXE_LINKER_FLAGS  "${PROFILING}")
 

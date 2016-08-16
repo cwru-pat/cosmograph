@@ -159,8 +159,6 @@ void init_ray_vector(std::vector<RayTrace<real_t, idx_t> *> * rays, idx_t n_rays
     // rays distributed (uniformly) around a sphere
     real_t theta = 2.0*PI*dist(gen);
     real_t U = 2.0*dist(gen) - 1.0;
-    // sphere radius R = L/2
-    real_t R = N*dx/2.0;
     // inside some over/underdensity (hopefully)
     real_t X0, Y0, Z0;
     if(i<n_rays/3)

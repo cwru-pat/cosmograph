@@ -497,10 +497,6 @@ void BSSN::calculate_conformal_christoffels(BSSNData *bd)
 
 void BSSN::calculateDDphi(BSSNData *bd)
 {
-  idx_t i = bd->i;
-  idx_t j = bd->j;
-  idx_t k = bd->k;
-
   // double covariant derivatives, using unitary metric
   bd->D1D1phi = bd->d1d1phi - (bd->G111*bd->d1phi + bd->G211*bd->d2phi + bd->G311*bd->d3phi);
   bd->D2D2phi = bd->d2d2phi - (bd->G122*bd->d1phi + bd->G222*bd->d2phi + bd->G322*bd->d3phi);
@@ -919,8 +915,6 @@ void BSSN::setMomentumConstraintCalcs(real_t M_values[7])
 # pragma omp parallel for default(shared) private(i, j, k) reduction(+:mean_M,mean_M_scale,mean_M_scaled)
   LOOP3(i,j,k)
   {
-    idx_t idx = NP_INDEX(i,j,k);
-
     BSSNData bd = {0};
     set_bd_values(i, j, k, &bd); // sets AijAij and Ricci too
 
@@ -959,8 +953,6 @@ void BSSN::setMomentumConstraintCalcs(real_t M_values[7])
 # pragma omp parallel for default(shared) private(i, j, k) reduction(+:stdev_M,stdev_M_scaled)
   LOOP3(i,j,k)
   {
-    idx_t idx = NP_INDEX(i,j,k);
-
     BSSNData bd = {0};
     set_bd_values(i, j, k, &bd); // sets AijAij and Ricci too
 

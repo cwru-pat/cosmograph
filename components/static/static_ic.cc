@@ -19,7 +19,6 @@ void dust_ic_set_random(BSSN * bssn, Static * dust, Fourier * fourier,
   arr_t & DIFFr_a = *bssn->fields["DIFFr_a"];
   arr_t & DIFFphi_p = *bssn->fields["DIFFphi_p"];
   arr_t & DIFFphi_a = *bssn->fields["DIFFphi_a"];
-  arr_t & DIFFphi_c = *bssn->fields["DIFFphi_c"];
   arr_t & DIFFphi_f = *bssn->fields["DIFFphi_f"];
 
   arr_t & DIFFD_a = *dust->fields["DIFFD_a"];
