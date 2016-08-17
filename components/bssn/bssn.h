@@ -68,6 +68,7 @@ public:
       #endif
       #if USE_BSSN_SHIFT
         void calculate_dbeta(BSSNData *bd);
+	void calculate_dexpN(BSSNData *bd);
       #endif
 
     /* Calculate "dependent" quantities (depend on previously calc'd vals) */
@@ -112,6 +113,7 @@ public:
       real_t ev_beta1(BSSNData *bd);
       real_t ev_beta2(BSSNData *bd);
       real_t ev_beta3(BSSNData *bd);
+      real_t ev_expN(BSSNData *bd);
     #endif
 
     #if USE_GAMMA_DRIVER

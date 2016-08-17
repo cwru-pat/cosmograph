@@ -318,6 +318,7 @@ void BSSN::set_bd_values(idx_t i, idx_t j, idx_t k, BSSNData *bd)
 # endif
 # if USE_BSSN_SHIFT
     calculate_dbeta(bd);
+    calculate_dexpN(bd);
 # endif
 
   // Christoffels depend on metric & derivs.
@@ -330,7 +331,6 @@ void BSSN::set_bd_values(idx_t i, idx_t j, idx_t k, BSSNData *bd)
 
   // H depends on AijAij and ricci arrays
   bd->H = hamiltonianConstraintCalc(bd->idx);
-  //  std::cout<<bd->phi<<"!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
 }
 
 
@@ -469,6 +469,12 @@ void BSSN::calculate_dbeta(BSSNData *bd)
   bd->d3beta1 = derivative(bd->i, bd->j, bd->k, 3, beta1->_array_a);
   bd->d3beta2 = derivative(bd->i, bd->j, bd->k, 3, beta2->_array_a);
   bd->d3beta3 = derivative(bd->i, bd->j, bd->k, 3, beta3->_array_a);
+}
+void BSSN::calculate_dexpN(BSSNData *bd)
+{
+  bd->d1expN = derivative(bd->i, bd->j, bd->k, 1, expN->_array_a);
+  bd->d2expN = derivative(bd->i, bd->j, bd->k, 2, expN->_array_a);
+  bd->d3expN = derivative(bd->i, bd->j, bd->k, 3, expN->_array_a);
 }
 #endif
 
@@ -737,7 +743,7 @@ real_t BSSN::ev_DIFFalpha(BSSNData *bd)
 # endif
 
 # if USE_1PLUS_LOG_ALPHA
-    return -2.0*bd->alpha*( bd->K - bd->K0 )
+    return -2.0*bd->alpha*( bd->K  ) * GD_C
   # if USE_BSSN_SHIFT
       + bd->beta1 * bd->d1a + bd->beta2 * bd->d2a + bd->beta3 * bd->d3a
   #endif
@@ -763,7 +769,7 @@ real_t BSSN::ev_theta(BSSNData *bd)
     0.5*bd->alpha*(
       bd->ricci + 2.0/3.0*pw2(bd->K + 2.0*bd->theta) - bd->AijAij - 16.0*PI*( bd->r )
     )
-    - bd->alpha*Z4c_K1_DAM/PING_AMPLITUDE*(2.0 + Z4c_K2_DAMPING_AMPLITUDE)*bd->theta
+    - bd->alpha*Z4c_K1_DAMPING_AMPLITUDE*(2.0 + Z4c_K2_DAMPING_AMPLITUDE)*bd->theta
   ) - KO_dissipation_Q(bd->i, bd->j, bd->k, theta->_array_a);
 }
 #endif
@@ -772,7 +778,7 @@ real_t BSSN::ev_theta(BSSNData *bd)
 real_t BSSN::ev_beta1(BSSNData *bd)
 {
 #if USE_GAMMA_DRIVER
-  return bd->auxB1 * GD_C;
+  return bd->auxB1;
 #endif
 #if USE_DAMPED_WAVE
   return bd->beta1 * bd->d1beta1 + bd->beta2 * bd->d2beta1 + bd->beta3 * bd->d3beta1
@@ -789,7 +795,7 @@ real_t BSSN::ev_beta1(BSSNData *bd)
 real_t BSSN::ev_beta2(BSSNData *bd)
 {
 #if USE_GAMMA_DRIVER
-  return bd->auxB2 * GD_C;
+  return bd->auxB2;
 #endif
 #if USE_DAMPED_WAVE
   return bd->beta1 * bd->d1beta2 + bd->beta2 * bd->d2beta2 + bd->beta3 * bd->d3beta2
@@ -807,7 +813,7 @@ real_t BSSN::ev_beta2(BSSNData *bd)
 real_t BSSN::ev_beta3(BSSNData *bd)
 {
 #if USE_GAMMA_DRIVER
-  return bd->auxB3 * GD_C;
+  return bd->auxB3 ;
 #endif
 #if USE_DAMPED_WAVE
   return bd->beta1 * bd->d1beta3 + bd->beta2 * bd->d2beta3 + bd->beta3 * bd->d3beta3
@@ -821,22 +827,28 @@ real_t BSSN::ev_beta3(BSSNData *bd)
 
   return 0.0;
 }
+
+real_t BSSN::ev_expN(BSSNData *bd)
+{
+  return bd->beta1 * bd->d1expN + bd->beta2 * bd->d2expN + bd->beta3 * bd->d3expN
+    -bd->alpha * bd->K/3.0;
+}
 #endif
 
 #if USE_GAMMA_DRIVER
 real_t BSSN::ev_auxB1(BSSNData *bd)
 {
-  return ev_Gamma1(bd) - GD_ETA * bd->auxB1;
+  return 0.75*ev_Gamma1(bd) - GD_ETA * bd->auxB1;
 }
 
 real_t BSSN::ev_auxB2(BSSNData *bd)
 {
-  return ev_Gamma2(bd) - GD_ETA * bd->auxB2;
+  return 0.75*ev_Gamma2(bd) - GD_ETA * bd->auxB2;
 }
 
 real_t BSSN::ev_auxB3(BSSNData *bd)
 {
-  return ev_Gamma3(bd) - GD_ETA * bd->auxB3;
+  return 0.75*ev_Gamma3(bd) - GD_ETA * bd->auxB3;
 }
   
 #endif

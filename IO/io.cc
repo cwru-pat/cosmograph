@@ -250,6 +250,10 @@ void io_bssn_dump_statistics(IOData *iodata, idx_t step,
   DETAILS(DIFFr)
   // ricci output
   DETAILS(ricci)
+  // average expantion output
+#if USE_BSSN_SHIFT
+  DETAILS(expN)
+#endif
   // average volume
   sprintf(data, "%.15g\t", (double) volume_average(*bssn_fields["DIFFphi_a"], phi_FRW));
   gzwrite(datafile, data, strlen(data));
