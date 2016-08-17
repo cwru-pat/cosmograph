@@ -330,6 +330,7 @@ void BSSN::set_bd_values(idx_t i, idx_t j, idx_t k, BSSNData *bd)
 
   // H depends on AijAij and ricci arrays
   bd->H = hamiltonianConstraintCalc(bd->idx);
+  //  std::cout<<bd->phi<<"!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
 }
 
 
@@ -743,6 +744,11 @@ real_t BSSN::ev_DIFFalpha(BSSNData *bd)
       - KO_dissipation_Q(bd->i, bd->j, bd->k, DIFFalpha->_array_a);
 # endif
 
+# if USE_DAMPED_WAVE_ALPHA
+    return pw2(bd->alpha) * (DW_MU_L * (12.0 * bd->phi * DW_P - log(bd->alpha)) - bd->K)
+      + bd->beta1 * bd->d1a + bd->beta2 * bd->d2a + bd->beta3 * bd->d3a;
+# endif
+    
 # if USE_CONFORMAL_SYNC_ALPHA
     return -1.0/3.0*bd->alpha*bd->K_FRW;
 # endif
@@ -757,7 +763,7 @@ real_t BSSN::ev_theta(BSSNData *bd)
     0.5*bd->alpha*(
       bd->ricci + 2.0/3.0*pw2(bd->K + 2.0*bd->theta) - bd->AijAij - 16.0*PI*( bd->r )
     )
-    - bd->alpha*Z4c_K1_DAMPING_AMPLITUDE*(2.0 + Z4c_K2_DAMPING_AMPLITUDE)*bd->theta
+    - bd->alpha*Z4c_K1_DAM/PING_AMPLITUDE*(2.0 + Z4c_K2_DAMPING_AMPLITUDE)*bd->theta
   ) - KO_dissipation_Q(bd->i, bd->j, bd->k, theta->_array_a);
 }
 #endif
@@ -768,6 +774,15 @@ real_t BSSN::ev_beta1(BSSNData *bd)
 #if USE_GAMMA_DRIVER
   return bd->auxB1 * GD_C;
 #endif
+#if USE_DAMPED_WAVE
+  return bd->beta1 * bd->d1beta1 + bd->beta2 * bd->d2beta1 + bd->beta3 * bd->d3beta1
+    - DW_MU_S * bd->alpha * bd->beta1
+    + bd->alpha * ( -DW_MU_L * (12.0 * bd->phi * DW_P - log(bd->alpha)) * bd->beta1
+		    + exp(-4.0 * bd->phi)*(- bd->gammai11 * bd->d1a - bd->gammai12 * bd->d2a - bd->gammai13 * bd->d3a
+		    + bd->alpha  *
+		    (bd->Gamma1
+		     -2.0 * (bd->gammai11 * bd->d1phi + bd->gammai12 * bd->d2phi + bd->gammai13 * bd->d3phi) )));
+#endif
   return 0.0;
 }
 
@@ -776,6 +791,16 @@ real_t BSSN::ev_beta2(BSSNData *bd)
 #if USE_GAMMA_DRIVER
   return bd->auxB2 * GD_C;
 #endif
+#if USE_DAMPED_WAVE
+  return bd->beta1 * bd->d1beta2 + bd->beta2 * bd->d2beta2 + bd->beta3 * bd->d3beta2
+    - DW_MU_S * bd->alpha * bd->beta2
+    + bd->alpha * ( -DW_MU_L * (12.0 * bd->phi * DW_P - log(bd->alpha)) * bd->beta2
+		    + exp(-4.0 * bd->phi)*(- bd->gammai21 * bd->d1a - bd->gammai22 * bd->d2a - bd->gammai23 * bd->d3a
+		    + bd->alpha  *
+		    (bd->Gamma2
+		     -2.0 * (bd->gammai21 * bd->d1phi + bd->gammai22 * bd->d2phi + bd->gammai23 * bd->d3phi) )));
+#endif
+
   return 0.0;
 }
 
@@ -784,6 +809,16 @@ real_t BSSN::ev_beta3(BSSNData *bd)
 #if USE_GAMMA_DRIVER
   return bd->auxB3 * GD_C;
 #endif
+#if USE_DAMPED_WAVE
+  return bd->beta1 * bd->d1beta3 + bd->beta2 * bd->d2beta3 + bd->beta3 * bd->d3beta3
+    - DW_MU_S * bd->alpha * bd->beta3
+    + bd->alpha * ( -DW_MU_L * (12.0 * bd->phi * DW_P - log(bd->alpha)) * bd->beta3
+		    + exp(-4.0 * bd->phi)*(- bd->gammai31 * bd->d1a - bd->gammai32 * bd->d2a - bd->gammai33 * bd->d3a
+		    + bd->alpha  *
+		    (bd->Gamma3
+		     -2.0 * (bd->gammai31 * bd->d1phi + bd->gammai32 * bd->d2phi + bd->gammai33 * bd->d3phi) )));
+#endif
+
   return 0.0;
 }
 #endif

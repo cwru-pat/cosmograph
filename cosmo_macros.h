@@ -70,6 +70,24 @@
   #define GD_ETA 0.1
 #endif
 
+
+//using Gamma-driver gauge (must turn on bssn_shift as well)
+#ifndef USE_DAMPED_WAVE_ALPHA
+  #define USE_DAMPED_WAVE_ALPHA false
+#endif
+#ifndef USE_DAMPED_WAVE
+  #define USE_DAMPED_WAVE false
+#endif
+#ifndef DW_MU_L
+  #define DW_MU_L 1.0
+#endif
+#ifndef DW_MU_S
+  #define DW_MU_S 1.0
+#endif
+#ifndef DW_P
+  #define DW_P 0.5
+#endif
+
 // normalize conformal metric and time-derivative
 #ifndef NORMALIZE_GAMMAIJ_AIJ
   #define NORMALIZE_GAMMAIJ_AIJ true
