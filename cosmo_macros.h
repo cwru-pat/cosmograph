@@ -120,6 +120,14 @@
   #define USE_COSMOTRACE true
 #endif
 
+//Potential types
+#ifndef USE_COSMO_CONST_POTENTIAL
+  #define USE_COSMO_CONST_POTENTIAL true
+  #ifndef COSMO_CONST
+    #define COSMO_CONST 0.0003
+  #endif
+#endif
+
 /*****************************************/
 /* Additional variable/macro definitions */
 /*****************************************/

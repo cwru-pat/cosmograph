@@ -42,6 +42,11 @@ void log_defines(IOData *iodata)
   std::string stencil_order = STRINGIFY(STENCIL_ORDER_FUNCTION(Odx));
   iodata->log( "  STENCIL_ORDER = " + stencil_order);
   iodata->log( "  USE_HARMONIC_ALPHA = " + stringify(USE_HARMONIC_ALPHA) );
+  iodata->log( "  USE_1PLUS_LOG_ALPHA = " + stringify(USE_1PLUS_LOG_ALPHA) );
+  iodata->log( "  USE_DAMPED_WAVE_ALPHA = " + stringify(USE_DAMPED_WAVE_ALPHA) );
+  iodata->log( "  USE_DAMPED_WAVE = " + stringify(USE_DAMPED_WAVE) );
+  iodata->log( "  USE_GAMMA_DRIVER = " + stringify(USE_GAMMA_DRIVER) );
+  iodata->log( "  USE_COSMO_CONST_POTENTIAL = " + stringify(USE_COSMO_CONST_POTENTIAL) );
   iodata->log( "  USE_BSSN_SHIFT = " + stringify(USE_BSSN_SHIFT) );
 }
 

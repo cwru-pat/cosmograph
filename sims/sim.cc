@@ -198,8 +198,10 @@ void CosmoSim::outputStateInformation()
       "Final Max. (Normed) Momentum constraint violation: "
       + stringify(M_calcs[2]) + " (" + stringify(M_calcs[6]) + ")"
     );
+#if USE_BSSN_SHIFT
   iodata->log("Final expantion is: " + stringify(exp(conformal_average(*bssnSim->fields["expN_a"], *bssnSim->fields["DIFFphi_a"], bssnSim->frw->get_phi() ) ))); 
-
+#endif
+  
 # if USE_COSMOTRACE
   if(ray_integrate)
   {

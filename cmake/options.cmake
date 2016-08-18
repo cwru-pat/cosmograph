@@ -127,6 +127,17 @@ if(DEFINED COSMO_EXCLUDE_SECOND_ORDER_FRW)
   message(STATUS "${Cyan}Setting EXCLUDE_SECOND_ORDER_FRW=${COSMO_EXCLUDE_SECOND_ORDER_FRW}.${ColorReset}")
 endif()
 
+#set potential type
+if(DEFINED COSMO_USE_COSMO_CONST_POTENTIAL)
+  add_definitions(-DUSE_COSMO_CONST_POTENTIAL=${COSMO_USE_COSMO_CONST_POTENTIAL})
+  message(STATUS "${Cyan}Setting USE_COSMO_CONST_POTENTIAL=${COSMO_USE_COSMO_CONST_POTENTIAL}.${ColorReset}")
+endif()
+
+if(DEFINED COSMO_COSMO_CONST)
+  add_definitions(-DCOSMO_CONST=${COSMO_COSMO_CONST})
+  message(STATUS "${Cyan}Setting COSMO_CONST=${COSMO_COSMO_CONST}.${ColorReset}")
+endif()
+
 # Remove these from cache
 unset(COSMO_N CACHE)
 unset(COSMO_NX CACHE)
