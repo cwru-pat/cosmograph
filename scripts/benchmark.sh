@@ -10,10 +10,13 @@ cd ..
 mkdir -p build
 cd build
 
-SCALING_TEST_TYPE="strong"
-MAX_CORES=8
-MIN_CORES=1
-RES=16
+MIN_THREADS=1
+MAX_THREADS=4
+
+MIN_RES=8
+MAX_RES=128
+
+sed -i -E 's/steps = [0-9]+/steps = 5/g' ../config/stability_test.txt
 
 # read in options
 for i in "$@"
@@ -21,26 +24,26 @@ do
   case $i in
       -h|--help)
       printf "Usage: ./benchmark.sh\n"
-      printf "         [(-t|--type)=(strong|weak)]\n"
-      printf "         [(-m|--min-cores)=1]\n"
-      printf "         [(-M|--max-cores)=8]\n"
-      printf "         [(-s|--problem-resolution)=16]\n"
+      printf "         [(-t|--min-threads)=1]\n"
+      printf "         [(-T|--max-threads)=8]\n"
+      printf "         [(-r|--min-resolution)=16]\n"
+      printf "         [(-R|--max-resolution)=128]\n"
       exit 0
       ;;
-      -t=*|--type=*)
-      SCALING_TEST_TYPE="${i#*=}"
+      -t=*|--min-threads=*)
+      MIN_THREADS="${i#*=}"
       shift # past argument=value
       ;;
-      -m=*|--min-cores=*)
-      MIN_CORES="${i#*=}"
+      -T=*|--max-threads=*)
+      MAX_THREADS="${i#*=}"
       shift # past argument=value
       ;;
-      -M=*|--max-cores=*)
-      MAX_CORES="${i#*=}"
+      -r=*|--min-resolution=*)
+      MIN_RES="${i#*=}"
       shift # past argument=value
       ;;
-      -s=*|--problem-resolution=*)
-      RES="${i#*=}"
+      -R=*|--max-resolution=*)
+      MAX_RES="${i#*=}"
       shift # past argument=value
       ;;
       *)
@@ -51,10 +54,8 @@ do
 done
 
 printf "Running benchmark for\n"
-printf "  Res = $RES\n"
-printf "  MIN_CORES = $MIN_CORES\n"
-printf "  MAX_CORES = $MAX_CORES\n"
-printf "  SCALING_TEST_TYPE = $SCALING_TEST_TYPE\n"
+printf "  MIN_THREADS = $MIN_THREADS, MAX_THREADS = $MAX_THREADS\n"
+printf "  MIN_RES = $MIN_RES, MAX_RES = $MAX_RES\n"
 read -r -t 10 -p "Continue? Will automatically proceed in 10 seconds... [Y/n]: " response
 response=${response,,}    # tolower
 if ! [[ $response =~ ^(|y|yes)$ ]] ; then
@@ -64,31 +65,18 @@ fi
 printf "Running...\n"
 printf "\n"
 
-
-## Strong scaling runs
-if [ "${SCALING_TEST_TYPE}" == "strong" ] ; then
-  COMPILE_RESULT=$(cmake -DCOSMO_N=$RES .. && make -j4)
-  sed -i -E 's/omp_num_threads = [0-9]+/omp_num_threads = 1/g' ../config/stability_test.txt
-  COUNTER=$MIN_CORES
-  while [ "${COUNTER}" -le "${MAX_CORES}" ]; do
-    sed -i -E "s/omp_num_threads = [0-9]+/omp_num_threads = ${COUNTER}/g" ../config/stability_test.txt  
+RES=$MIN_RES
+while [ "${RES}" -le "${MAX_RES}" ]; do
+  THREADS=$MIN_THREADS
+  while [ "${THREADS}" -le "${MAX_THREADS}" ]; do
+    COMPILE_RESULT=$(cmake -DCOSMO_N=$RES .. && make -j$MAX_THREADS)
+    sed -i -E "s/omp_num_threads = [0-9]+/omp_num_threads = ${THREADS}/g" ../config/stability_test.txt  
     RK_LOOP_TIME=$(./cosmo ../config/stability_test.txt | grep RK_steps)
-    echo RK_steps for $COUNTER threads: $RK_LOOP_TIME
-    ((COUNTER=$COUNTER*2))
+    echo "RK_steps for $THREADS threads, N = $RES:  $RK_LOOP_TIME"
+    ((THREADS=$THREADS*2))
   done
-  sed -i -E 's/omp_num_threads = [0-9]+/omp_num_threads = 4/g' ../config/stability_test.txt
-fi
+  ((RES=$RES*2))
+done
 
-## Weak scaling runs
-if [ "${SCALING_TEST_TYPE}" == "weak" ] ; then
-  COUNTER=$MIN_CORES
-  while [ "${COUNTER}" -le $MAX_CORES ]; do
-    NZ=$(($COUNTER*$RES))
-    COMPILE_RESULT=$(cmake -DCOSMO_N=16 -DCOSMO_NZ=$NZ .. && make -j4)
-    sed -i -E "s/omp_num_threads = [0-9]+/omp_num_threads = ${COUNTER}/g" ../config/stability_test.txt  
-    RK_LOOP_TIME=$(./cosmo ../config/stability_test.txt | grep RK_steps)
-    echo RK_steps for $COUNTER threads: $RK_LOOP_TIME
-    ((COUNTER=$COUNTER*2))
-  done
-  sed -i -E 's/omp_num_threads = [0-9]+/omp_num_threads = 4/g' ../config/stability_test.txt
-fi
+sed -i -E 's/omp_num_threads = [0-9]+/omp_num_threads = 4/g' ../config/stability_test.txt
+sed -i -E 's/steps = [0-9]+/steps = 100/g' ../config/stability_test.txt
