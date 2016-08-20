@@ -68,8 +68,8 @@ printf "\n"
 RES=$MIN_RES
 while [ "${RES}" -le "${MAX_RES}" ]; do
   THREADS=$MIN_THREADS
+  COMPILE_RESULT=$(cmake -DCOSMO_N=$RES .. && make -j$MAX_THREADS)
   while [ "${THREADS}" -le "${MAX_THREADS}" ]; do
-    COMPILE_RESULT=$(cmake -DCOSMO_N=$RES .. && make -j$MAX_THREADS)
     sed -i -E "s/omp_num_threads = [0-9]+/omp_num_threads = ${THREADS}/g" ../config/stability_test.txt  
     RK_LOOP_TIME=$(./cosmo ../config/stability_test.txt | grep RK_steps)
     echo "RK_steps for $THREADS threads, N = $RES:  $RK_LOOP_TIME"

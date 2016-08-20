@@ -1,0 +1,21 @@
+Running ../../scripts/benchmark.sh  on soliton
+Running benchmark for
+  MIN_THREADS = 1, MAX_THREADS = 4
+  MIN_RES = 8, MAX_RES = 128
+Running...
+
+RK_steps for 1 threads, N = 8:    RK_steps: 0.067718s
+RK_steps for 2 threads, N = 8:    RK_steps: 0.036229s
+RK_steps for 4 threads, N = 8:    RK_steps: 0.019830s
+RK_steps for 1 threads, N = 16:    RK_steps: 0.618260s
+RK_steps for 2 threads, N = 16:    RK_steps: 0.310386s
+RK_steps for 4 threads, N = 16:    RK_steps: 0.158391s
+RK_steps for 1 threads, N = 32:    RK_steps: 5.263425s
+RK_steps for 2 threads, N = 32:    RK_steps: 2.753155s
+RK_steps for 4 threads, N = 32:    RK_steps: 1.470407s
+RK_steps for 1 threads, N = 64:    RK_steps: 46.069544s
+RK_steps for 2 threads, N = 64:    RK_steps: 23.509872s
+RK_steps for 4 threads, N = 64:    RK_steps: 12.797656s
+RK_steps for 1 threads, N = 128:    RK_steps: 361.990494s
+RK_steps for 2 threads, N = 128:    RK_steps: 185.270729s
+RK_steps for 4 threads, N = 128:    RK_steps: 107.707307s
