@@ -7,5 +7,4 @@ else()
   message(STATUS " HDF5_C_LIBRARIES: ${HDF5_C_LIBRARIES}")
   message(STATUS " HDF5_INCLUDE_DIRS: ${HDF5_INCLUDE_DIRS}")
   include_directories("${HDF5_INCLUDE_DIRS}")
-  # message(STATUS " HDF5_CXX_LIBRARIES: ${HDF5_CXX_LIBRARIES}") # c lib used.
 endif()
