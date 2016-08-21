@@ -5,11 +5,6 @@ build/*
 # test files
 *.test
 
-
-# Generated doxygen files
-docs/latex/*
-docs/html/*
-
 # Compiled Object files
 *.slo
 *.lo

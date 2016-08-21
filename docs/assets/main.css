@@ -1,0 +1,27 @@
+
+.jumbotron
+{
+  background-image: url('univ_bg.jpg');
+  -webkit-background-size: cover;
+  -moz-background-size: cover;
+  -o-background-size: cover;
+  background-size: cover;
+}
+
+.jumbotron h1
+{
+  color: #FFF;
+  text-shadow: 0 0 7px #333;
+}
+
+.jumbotron p
+{
+  color: #CCC;
+  text-shadow: 0 0 7px #333;
+}
+
+.jumbotron p a
+{
+  text-shadow: none;
+}
+
