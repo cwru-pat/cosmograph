@@ -6,6 +6,8 @@
 
 *But we'll see about the "particle" part.*
 
+Some additional information can be found on the github pages [CosmoGRaPH](https://cwru-pat.github.io/cosmograph) page.
+
 ### Software dependencies
 
  - git

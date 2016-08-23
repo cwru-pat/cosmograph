@@ -1,0 +1,41 @@
+Running ../../scripts/benchmark.sh -T=64 on gabrielle
+Running benchmark for
+  MIN_THREADS = 1, MAX_THREADS = 64
+  MIN_RES = 8, MAX_RES = 128
+Running...
+
+RK_steps for 1 threads, N = 8:    RK_steps: 0.081878s
+RK_steps for 2 threads, N = 8:    RK_steps: 0.044011s
+RK_steps for 4 threads, N = 8:    RK_steps: 0.024040s
+RK_steps for 8 threads, N = 8:    RK_steps: 0.015882s
+RK_steps for 16 threads, N = 8:    RK_steps: 0.018015s
+RK_steps for 32 threads, N = 8:    RK_steps: 0.025322s
+RK_steps for 64 threads, N = 8:    RK_steps: 0.035211s
+RK_steps for 1 threads, N = 16:    RK_steps: 0.737565s
+RK_steps for 2 threads, N = 16:    RK_steps: 0.375823s
+RK_steps for 4 threads, N = 16:    RK_steps: 0.191579s
+RK_steps for 8 threads, N = 16:    RK_steps: 0.101401s
+RK_steps for 16 threads, N = 16:    RK_steps: 0.060245s
+RK_steps for 32 threads, N = 16:    RK_steps: 0.068647s
+RK_steps for 64 threads, N = 16:    RK_steps: 0.077843s
+RK_steps for 1 threads, N = 32:    RK_steps: 6.628723s
+RK_steps for 2 threads, N = 32:    RK_steps: 3.401609s
+RK_steps for 4 threads, N = 32:    RK_steps: 1.687742s
+RK_steps for 8 threads, N = 32:    RK_steps: 0.877407s
+RK_steps for 16 threads, N = 32:    RK_steps: 0.477659s
+RK_steps for 32 threads, N = 32:    RK_steps: 0.252726s
+RK_steps for 64 threads, N = 32:    RK_steps: 0.703078s
+RK_steps for 1 threads, N = 64:    RK_steps: 58.437894s
+RK_steps for 2 threads, N = 64:    RK_steps: 29.114579s
+RK_steps for 4 threads, N = 64:    RK_steps: 14.956263s
+RK_steps for 8 threads, N = 64:    RK_steps: 7.704899s
+RK_steps for 16 threads, N = 64:    RK_steps: 3.982396s
+RK_steps for 32 threads, N = 64:    RK_steps: 2.418131s
+RK_steps for 64 threads, N = 64:    RK_steps: 7.389742s
+RK_steps for 1 threads, N = 128:    RK_steps: 591.654508s
+RK_steps for 2 threads, N = 128:    RK_steps: 302.155284s
+RK_steps for 4 threads, N = 128:    RK_steps: 154.785482s
+RK_steps for 8 threads, N = 128:    RK_steps: 81.186299s
+RK_steps for 16 threads, N = 128:    RK_steps: 42.868735s
+RK_steps for 32 threads, N = 128:    RK_steps: 24.405001s
+RK_steps for 64 threads, N = 128:    RK_steps: 23.983092s
