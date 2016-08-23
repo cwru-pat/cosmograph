@@ -1,0 +1,36 @@
+Running ../../scripts/benchmark.sh -T=32 on r729.pvt.bridges.psc.edu
+Running benchmark for
+  MIN_THREADS = 1, MAX_THREADS = 32
+  MIN_RES = 8, MAX_RES = 128
+Running...
+
+RK_steps for 1 threads, N = 8:    RK_steps: 0.050518s
+RK_steps for 2 threads, N = 8:    RK_steps: 0.040401s
+RK_steps for 4 threads, N = 8:    RK_steps: 0.026179s
+RK_steps for 8 threads, N = 8:    RK_steps: 0.018911s
+RK_steps for 16 threads, N = 8:    RK_steps: 0.019689s
+RK_steps for 32 threads, N = 8:    RK_steps: 0.086190s
+RK_steps for 1 threads, N = 16:    RK_steps: 0.309202s
+RK_steps for 2 threads, N = 16:    RK_steps: 0.165617s
+RK_steps for 4 threads, N = 16:    RK_steps: 0.103468s
+RK_steps for 8 threads, N = 16:    RK_steps: 0.064126s
+RK_steps for 16 threads, N = 16:    RK_steps: 0.042367s
+RK_steps for 32 threads, N = 16:    RK_steps: 0.112423s
+RK_steps for 1 threads, N = 32:    RK_steps: 2.613929s
+RK_steps for 2 threads, N = 32:    RK_steps: 1.366914s
+RK_steps for 4 threads, N = 32:    RK_steps: 0.701712s
+RK_steps for 8 threads, N = 32:    RK_steps: 0.365992s
+RK_steps for 16 threads, N = 32:    RK_steps: 0.208456s
+RK_steps for 32 threads, N = 32:    RK_steps: 0.252230s
+RK_steps for 1 threads, N = 64:    RK_steps: 23.572697s
+RK_steps for 2 threads, N = 64:    RK_steps: 11.629700s
+RK_steps for 4 threads, N = 64:    RK_steps: 5.710733s
+RK_steps for 8 threads, N = 64:    RK_steps: 3.016266s
+RK_steps for 16 threads, N = 64:    RK_steps: 1.636883s
+RK_steps for 32 threads, N = 64:    RK_steps: 1.944198s
+RK_steps for 1 threads, N = 128:    RK_steps: 198.319273s
+RK_steps for 2 threads, N = 128:    RK_steps: 111.171633s
+RK_steps for 4 threads, N = 128:    RK_steps: 56.254189s
+RK_steps for 8 threads, N = 128:    RK_steps: 29.556844s
+RK_steps for 16 threads, N = 128:    RK_steps: 15.229665s
+RK_steps for 32 threads, N = 128:    RK_steps: 12.108334s
