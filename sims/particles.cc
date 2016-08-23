@@ -42,7 +42,6 @@ void ParticleSim::setICs()
   arr_t & DIFFr = *bssnSim->fields["DIFFr_a"];
   arr_t & DIFFphi_p = *bssnSim->fields["DIFFphi_p"];
   arr_t & DIFFphi_a = *bssnSim->fields["DIFFphi_a"];
-  arr_t & DIFFphi_c = *bssnSim->fields["DIFFphi_c"];
   arr_t & DIFFphi_f = *bssnSim->fields["DIFFphi_f"];
   iodata->log( "Generating ICs with peak at k = " + stringify(icd.peak_k) );
   iodata->log( "Generating ICs with peak amp. = " + stringify(icd.peak_amplitude) );

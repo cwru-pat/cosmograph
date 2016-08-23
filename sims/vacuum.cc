@@ -1,4 +1,5 @@
 #include "vacuum.h"
+#include "../components/bssn/bssn_ic.h"
 
 namespace cosmo
 {
@@ -25,9 +26,25 @@ void VacuumSim::setICs()
   _timer["ICs"].start();
   iodata->log("Setting initial conditions (ICs).");
 
-  // meh
-  // TODO: Set vacuum ICs (eg, AwA test)
+  iodata->log("Setting initial conditions (ICs).");
 
+  if(_config["ic_type"] == "stability")
+  {
+    bssn_ic_awa_stability(bssnSim);
+  }
+  else if(_config["ic_type"] == "linear_wave")
+  {
+    bssn_ic_awa_linear_wave(bssnSim);
+  }
+  else if(_config["ic_type"] == "linear_wave_desitter")
+  {
+    bssn_ic_awa_linear_wave_desitter(bssnSim);
+  }
+  else
+  {
+    iodata->log("IC type not recognized!");
+    throw -1;
+  }
   iodata->log("Finished setting ICs.");
   _timer["ICs"].stop();
 }

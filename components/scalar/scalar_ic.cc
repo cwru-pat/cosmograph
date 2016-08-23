@@ -20,7 +20,6 @@ void scalar_ic_set_wave(BSSN * bssn, Scalar * scalar)
 {
   // BSSN is already initialized to flat, just initialize scalar fields
   arr_t & phi = scalar->phi._array_p; // gaussian 
-  arr_t & Pi = scalar->Pi._array_p; // Pi = 0
   arr_t & psi1 = scalar->psi1._array_p; // derivative of phi in x-dir
   arr_t & psi2 = scalar->psi3._array_p; // derivative of phi in y-dir
   arr_t & psi3 = scalar->psi2._array_p; // derivative of phi in z-dir
@@ -33,8 +32,6 @@ void scalar_ic_set_wave(BSSN * bssn, Scalar * scalar)
   // gaussian parameters
   real_t amplitude = 1.0e-10;
   real_t sigx = (real_t) NX / 10.0;
-  real_t sigy = (real_t) NY / 10.0;
-  real_t sigz = (real_t) NZ / 10.0;
 
   #pragma omp parallel for default(shared) private(i,j,k)
   LOOP3(i,j,k)
@@ -102,15 +99,9 @@ void scalar_ic_set_semianalytic_test(BSSN * bssn, Scalar * scalar)
   arr_t & psi1 = scalar->psi1._array_p; // derivative of phi in x-dir
   arr_t & psi2 = scalar->psi2._array_p; // derivative of phi in y-dir
   arr_t & psi3 = scalar->psi3._array_p; // derivative of phi in z-dir
-
-  arr_t & Pi = scalar->Pi._array_p; // time-derivative of field phi
   
   arr_t & K_p = *bssn->fields["DIFFK_p"]; // extrinsic curvature
   arr_t & K_a = *bssn->fields["DIFFK_a"]; // extrinsic curvature
-
-  real_t n_max = std::stoi(_config["n_max"]);
-  real_t phi_0 = std::stod(_config["phi_0"]);
-  real_t delta = std::stod(_config["delta_phi"]);
 
   #pragma omp parallel for default(shared) private(i,j,k)
   LOOP3(i,j,k)
@@ -208,8 +199,6 @@ void scalar_ic_set_multigrid(BSSN * bssn, Scalar * scalar)
   arr_t & psi1 = scalar->psi1._array_p; // derivative of phi in x-dir
   arr_t & psi2 = scalar->psi2._array_p; // derivative of phi in y-dir
   arr_t & psi3 = scalar->psi3._array_p; // derivative of phi in z-dir
-
-  arr_t & Pi = scalar->Pi._array_p; // time-derivative of field phi
 
   std::random_device rd;
   std::mt19937 gen(7.0 /*rd()*/);

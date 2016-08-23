@@ -27,7 +27,7 @@ for i in "$@"
 do
   case $i in
       -h|--help)
-      printf "Usage: ./deploy_runs\n"
+      printf "Usage: ./deploy_runs.sh\n"
       printf "         [-C|--cluster-run] [(-N|--resolution-N)=16]\n"
       printf "         [-L|--use-lambda] [-f|--linearize-frw]\n"
       printf "         [-s|--linearize-small] [-d|--dry-run]\n"

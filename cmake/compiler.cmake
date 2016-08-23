@@ -1,5 +1,6 @@
-
 # Make sure compiler supports c++11 standards
+
+message(STATUS "If the c++ compiler appears to be incorrect, please set the CXX environment variable, or use the -DCMAKE_CXX_COMPILER=<compiler> flag for cmake.")
 
 include(CheckCXXCompilerFlag)
 CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)

@@ -1,0 +1,36 @@
+Running ../../scripts/benchmark.sh -T=32 on comp171t
+Running benchmark for
+  MIN_THREADS = 1, MAX_THREADS = 32
+  MIN_RES = 8, MAX_RES = 128
+Running...
+
+RK_steps for 1 threads, N = 8:    RK_steps: 0.091091s
+RK_steps for 2 threads, N = 8:    RK_steps: 0.052899s
+RK_steps for 4 threads, N = 8:    RK_steps: 0.032586s
+RK_steps for 8 threads, N = 8:    RK_steps: 0.022167s
+RK_steps for 16 threads, N = 8:    RK_steps: 0.024099s
+RK_steps for 32 threads, N = 8:    RK_steps: 0.119834s
+RK_steps for 1 threads, N = 16:    RK_steps: 0.720155s
+RK_steps for 2 threads, N = 16:    RK_steps: 0.418969s
+RK_steps for 4 threads, N = 16:    RK_steps: 0.208837s
+RK_steps for 8 threads, N = 16:    RK_steps: 0.108439s
+RK_steps for 16 threads, N = 16:    RK_steps: 0.062907s
+RK_steps for 32 threads, N = 16:    RK_steps: 0.210486s
+RK_steps for 1 threads, N = 32:    RK_steps: 3.158652s
+RK_steps for 2 threads, N = 32:    RK_steps: 3.332326s
+RK_steps for 4 threads, N = 32:    RK_steps: 1.240717s
+RK_steps for 8 threads, N = 32:    RK_steps: 0.627472s
+RK_steps for 16 threads, N = 32:    RK_steps: 0.483806s
+RK_steps for 32 threads, N = 32:    RK_steps: 0.841679s
+RK_steps for 1 threads, N = 64:    RK_steps: 26.922404s
+RK_steps for 2 threads, N = 64:    RK_steps: 13.573410s
+RK_steps for 4 threads, N = 64:    RK_steps: 8.111643s
+RK_steps for 8 threads, N = 64:    RK_steps: 6.199376s
+RK_steps for 16 threads, N = 64:    RK_steps: 2.215130s
+RK_steps for 32 threads, N = 64:    RK_steps: 4.391654s
+RK_steps for 1 threads, N = 128:    RK_steps: 247.652167s
+RK_steps for 2 threads, N = 128:    RK_steps: 136.598372s
+RK_steps for 4 threads, N = 128:    RK_steps: 65.549237s
+RK_steps for 8 threads, N = 128:    RK_steps: 35.162293s
+RK_steps for 16 threads, N = 128:    RK_steps: 21.355075s
+RK_steps for 32 threads, N = 128:    RK_steps: 24.174481s
