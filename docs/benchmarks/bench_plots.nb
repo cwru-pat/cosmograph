@@ -1,0 +1,129 @@
+(* Content-type: application/vnd.wolfram.mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Mathematica 10.2' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       158,          7]
+NotebookDataLength[      4371,        120]
+NotebookOptionsPosition[      4092,        106]
+NotebookOutlinePosition[      4434,        121]
+CellTagsIndexPosition[      4391,        118]
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"SetDirectory", "[", 
+   RowBox[{"NotebookDirectory", "[", "]"}], "]"}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{"files", "=", 
+  RowBox[{"FileNames", "[", "\"\<*.txt\>\"", "]"}]}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"filestrs", "=", 
+   RowBox[{"Import", "/@", "files"}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"lines", "=", 
+   RowBox[{
+    RowBox[{
+     RowBox[{"StringCases", "[", 
+      RowBox[{"#", ",", 
+       RowBox[{"RegularExpression", "[", "\"\<RK_steps.*\\n\>\"", "]"}]}], 
+      "]"}], "&"}], "/@", "filestrs"}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"numbers", "=", 
+   RowBox[{"Map", "[", 
+    RowBox[{
+     RowBox[{
+      RowBox[{"ToExpression", "/@", 
+       RowBox[{"StringCases", "[", 
+        RowBox[{"#", ",", 
+         RowBox[{"RegularExpression", "[", "\"\<[0-9.]+\>\"", "]"}]}], 
+        "]"}]}], "&"}], ",", "lines", ",", 
+     RowBox[{"{", "2", "}"}]}], "]"}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"lognumbers", "=", 
+   RowBox[{"Map", "[", 
+    RowBox[{
+     RowBox[{
+      RowBox[{"{", 
+       RowBox[{
+        RowBox[{"Log", "[", 
+         RowBox[{"2", ",", 
+          RowBox[{
+          "#", "\[LeftDoubleBracket]", "1", "\[RightDoubleBracket]"}]}], 
+         "]"}], ",", 
+        RowBox[{"Log", "[", 
+         RowBox[{"2", ",", 
+          RowBox[{
+          "#", "\[LeftDoubleBracket]", "2", "\[RightDoubleBracket]"}]}], 
+         "]"}], ",", 
+        RowBox[{"Log", "[", 
+         RowBox[{
+          RowBox[{"#", "\[LeftDoubleBracket]", "3", "\[RightDoubleBracket]"}],
+           "/", 
+          SuperscriptBox[
+           RowBox[{
+           "#", "\[LeftDoubleBracket]", "2", "\[RightDoubleBracket]"}], 
+           "3"]}], "]"}]}], "}"}], "&"}], ",", "numbers", ",", 
+     RowBox[{"{", "2", "}"}]}], "]"}]}], ";"}]}], "Input",
+ CellChangeTimes->{{3.680902725099777*^9, 3.6809027687835407`*^9}, {
+   3.680903179867157*^9, 3.6809031809961863`*^9}, {3.6809032829703617`*^9, 
+   3.6809032898115873`*^9}, {3.680903332841357*^9, 3.680903428569457*^9}, {
+   3.6809034755596495`*^9, 3.6809034889498396`*^9}, {3.680903560492182*^9, 
+   3.680903561462064*^9}, {3.680903763978304*^9, 3.680903775747017*^9}, {
+   3.6809041587761106`*^9, 3.6809041597265477`*^9}, {3.6809045077927933`*^9, 
+   3.680904717833046*^9}, {3.680904752157285*^9, 3.6809047554592905`*^9}, 
+   3.6809050780658092`*^9, {3.680905144025564*^9, 3.6809051457221065`*^9}, {
+   3.680906550161502*^9, 3.680906552431569*^9}}],
+
+Cell[BoxData[
+ RowBox[{"ListPlot3D", "[", 
+  RowBox[{"lognumbers", ",", 
+   RowBox[{"PlotRange", "\[Rule]", "All"}], ",", 
+   RowBox[{"AxesLabel", "\[Rule]", 
+    RowBox[{"{", 
+     RowBox[{
+     "\"\<\!\(\*SubscriptBox[\(log\), \(2\)]\) # Threads\>\"", ",", 
+      "\"\<\!\(\*SubscriptBox[\(log\), \(2\)]\) N\>\"", ",", 
+      "\"\<Log[time/\!\(\*SuperscriptBox[\(N\), \(3\)]\)]\>\""}], "}"}]}], 
+   ",", 
+   RowBox[{"PlotLegends", "\[Rule]", "files"}], ",", 
+   RowBox[{"ImageSize", "\[Rule]", "Large"}]}], "]"}]], "Input",
+ CellChangeTimes->{{3.6809031935776386`*^9, 3.6809032071555843`*^9}, {
+   3.680903303110697*^9, 3.6809033046931353`*^9}, {3.680903579930874*^9, 
+   3.680903680145897*^9}, {3.680903745973914*^9, 3.680903746268181*^9}, {
+   3.6809038077098856`*^9, 3.6809039226698475`*^9}, {3.6809039704933805`*^9, 
+   3.680903986666847*^9}, {3.680904017304736*^9, 3.6809040444517837`*^9}, 
+   3.6809048578681054`*^9, {3.6809051067919693`*^9, 3.6809051941978807`*^9}, {
+   3.680905357014387*^9, 3.680905382833545*^9}}]
+},
+WindowSize->{1584, 827},
+WindowMargins->{{-8, Automatic}, {Automatic, 0}},
+FrontEndVersion->"10.2 for Microsoft Windows (64-bit) (July 29, 2015)",
+StyleDefinitions->"Default.nb"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[558, 20, 2502, 63, 134, "Input"],
+Cell[3063, 85, 1025, 19, 33, "Input"]
+}
+]
+*)
+
+(* End of internal cache information *)
