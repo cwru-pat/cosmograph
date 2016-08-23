@@ -36,12 +36,12 @@ void ScalarSim::setICs()
   }
   else if(_config["scalar_ic_type"] == "semianalytic_test")
   {
-    scalar_ic_set_semianalytic_test(bssnSim, scalarSim);
+    scalar_ic_set_semianalytic_test(bssnSim, scalarSim, iodata);
   }
   else if(_config["scalar_ic_type"] == "multigrid")
   {
 #   if USE_MULTIGRID
-    scalar_ic_set_multigrid(bssnSim, scalarSim);
+    scalar_ic_set_multigrid(bssnSim, scalarSim, iodata);
 #   else
     iodata->log("Error: Multigrid solver was not compiled.");
     throw -1;    
@@ -86,7 +86,7 @@ void ScalarSim::runScalarStep()
   _timer["RK_steps"].start();
 
     // First RK step
-    #pragma omp parallel for default(shared) private(i, j, k, b_data)
+    #pragma omp parallel for  firstprivate(j, k, b_data)
     LOOP3(i,j,k)
     {
       bssnSim->RKEvolvePt(i, j, k, &b_data);
@@ -98,11 +98,11 @@ void ScalarSim::runScalarStep()
     // Second RK step
     bssnSim->clearSrc();
     scalarSim->addBSSNSource(bssnSim);
-    #pragma omp parallel for default(shared) private(i, j, k, b_data)
+    #pragma omp parallel for firstprivate(j, k, b_data)
     LOOP3(i,j,k)
     {
       bssnSim->RKEvolvePt(i, j, k, &b_data);
-      scalarSim->RKEvolvePt(&b_data);
+      scalarSim->RKEvolvePt(&b_data);  
     }
     bssnSim->K2Finalize();
     scalarSim->K2Finalize();
@@ -110,7 +110,7 @@ void ScalarSim::runScalarStep()
     // Third RK step
     bssnSim->clearSrc();
     scalarSim->addBSSNSource(bssnSim);
-    #pragma omp parallel for default(shared) private(i, j, k, b_data)
+    #pragma omp parallel for  firstprivate(j, k, b_data)
     LOOP3(i,j,k)
     {
       bssnSim->RKEvolvePt(i, j, k, &b_data);
@@ -122,7 +122,7 @@ void ScalarSim::runScalarStep()
     // Fourth RK step
     bssnSim->clearSrc();
     scalarSim->addBSSNSource(bssnSim);
-    #pragma omp parallel for default(shared) private(i, j, k, b_data)
+    #pragma omp parallel for firstprivate(j, k, b_data)
     LOOP3(i,j,k)
     {
       bssnSim->RKEvolvePt(i, j, k, &b_data);

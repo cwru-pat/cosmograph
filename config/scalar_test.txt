@@ -5,9 +5,9 @@ omp_num_threads = 4
 simulation_type = scalar
 scalar_ic_type = multigrid
 
-num_v_cycles = 10
+num_v_cycles = 15
 phi_0 = 0.0
-delta_phi = 0.01
+delta_phi = 0.22
 n_max = 1
 debug_multigrid = 0
 relaxation_tolerance = 1e-9
@@ -17,11 +17,11 @@ ray_integrate = 0
 output_dir = scalar_test
 dump_file = calculated
 
-IO_3D_grid_interval = 100
-IO_2D_grid_interval = 100
+IO_3D_grid_interval = 10
+IO_2D_grid_interval = 10
 IO_1D_grid_interval = 10
 
-IO_powerspec_interval = 100
+IO_powerspec_interval = 10
 IO_constraint_interval = 10
 IO_bssnstats_interval = 10
 

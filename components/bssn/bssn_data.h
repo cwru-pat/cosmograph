@@ -259,6 +259,11 @@ typedef struct {
     real_t beta3; ///< shift, \f$\beta^3\f$
   #endif
 
+  #if USE_BSSN_SHIFT
+  real_t d1expN,
+         d2expN,
+         d3expN;
+  #endif
   // Reference FRW quantities
   real_t phi_FRW; ///< Reference FRW variable, \f$\phi_{FRW}\f$
   real_t K_FRW; ///< Reference FRW variable, \f$K_{FRW}\f$

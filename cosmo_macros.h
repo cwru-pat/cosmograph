@@ -49,9 +49,43 @@
   #define USE_ANHARMONIC_ALPHA false
 #endif
 
+//whether use 1+log alpha
+#ifndef USE_1PLUS_LOG_ALPHA
+  #define USE_1PLUS_LOG_ALPHA false
+#endif
+
 // evolve shift as well? (if not, assumed to be zero)
 #ifndef USE_BSSN_SHIFT
   #define USE_BSSN_SHIFT false
+#endif
+
+//using Gamma-driver gauge (must turn on bssn_shift as well)
+#ifndef USE_GAMMA_DRIVER
+  #define USE_GAMMA_DRIVER false
+#endif
+#ifndef GD_C
+  #define GD_C 0.75
+#endif
+#ifndef GD_ETA
+  #define GD_ETA 0.1
+#endif
+
+
+//using Gamma-driver gauge (must turn on bssn_shift as well)
+#ifndef USE_DAMPED_WAVE_ALPHA
+  #define USE_DAMPED_WAVE_ALPHA false
+#endif
+#ifndef USE_DAMPED_WAVE
+  #define USE_DAMPED_WAVE false
+#endif
+#ifndef DW_MU_L
+  #define DW_MU_L 1.0
+#endif
+#ifndef DW_MU_S
+  #define DW_MU_S 1.0
+#endif
+#ifndef DW_P
+  #define DW_P 0.5
 #endif
 
 // normalize conformal metric and time-derivative
@@ -84,6 +118,14 @@
 #endif
 #ifndef USE_COSMOTRACE
   #define USE_COSMOTRACE true
+#endif
+
+//Potential types
+#ifndef USE_COSMO_CONST_POTENTIAL
+  #define USE_COSMO_CONST_POTENTIAL true
+  #ifndef COSMO_CONST
+    #define COSMO_CONST 0.0003
+  #endif
 #endif
 
 /*****************************************/

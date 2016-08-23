@@ -305,7 +305,7 @@ void BSSN::set_bd_values(idx_t i, idx_t j, idx_t k, BSSNData *bd)
   bd->r        =   bd->DIFFr + bd->rho_FRW;
   bd->S        =   bd->DIFFS + bd->S_FRW;
   bd->alpha    =   bd->DIFFalpha + 1.0;
-
+  
   // pre-compute re-used quantities
   // gammas & derivs first
   calculate_Acont(bd);
@@ -318,6 +318,7 @@ void BSSN::set_bd_values(idx_t i, idx_t j, idx_t k, BSSNData *bd)
 # endif
 # if USE_BSSN_SHIFT
     calculate_dbeta(bd);
+    calculate_dexpN(bd);
 # endif
 
   // Christoffels depend on metric & derivs.
@@ -468,6 +469,12 @@ void BSSN::calculate_dbeta(BSSNData *bd)
   bd->d3beta1 = derivative(bd->i, bd->j, bd->k, 3, beta1->_array_a);
   bd->d3beta2 = derivative(bd->i, bd->j, bd->k, 3, beta2->_array_a);
   bd->d3beta3 = derivative(bd->i, bd->j, bd->k, 3, beta3->_array_a);
+}
+void BSSN::calculate_dexpN(BSSNData *bd)
+{
+  bd->d1expN = derivative(bd->i, bd->j, bd->k, 1, expN->_array_a);
+  bd->d2expN = derivative(bd->i, bd->j, bd->k, 2, expN->_array_a);
+  bd->d3expN = derivative(bd->i, bd->j, bd->k, 3, expN->_array_a);
 }
 #endif
 
@@ -731,6 +738,19 @@ real_t BSSN::ev_DIFFalpha(BSSNData *bd)
       - KO_dissipation_Q(bd->i, bd->j, bd->k, DIFFalpha->_array_a);
 # endif
 
+# if USE_1PLUS_LOG_ALPHA
+    return -2.0*bd->alpha*( bd->K  ) * GD_C
+  # if USE_BSSN_SHIFT
+      + bd->beta1 * bd->d1a + bd->beta2 * bd->d2a + bd->beta3 * bd->d3a
+  #endif
+      - KO_dissipation_Q(bd->i, bd->j, bd->k, DIFFalpha->_array_a);
+# endif
+
+# if USE_DAMPED_WAVE_ALPHA
+    return pw2(bd->alpha) * (DW_MU_L * (12.0 * bd->phi * DW_P - log(bd->alpha)) - bd->K)
+      + bd->beta1 * bd->d1a + bd->beta2 * bd->d2a + bd->beta3 * bd->d3a;
+# endif
+    
 # if USE_CONFORMAL_SYNC_ALPHA
     return -1.0/3.0*bd->alpha*bd->K_FRW;
 # endif
@@ -753,20 +773,81 @@ real_t BSSN::ev_theta(BSSNData *bd)
 #if USE_BSSN_SHIFT
 real_t BSSN::ev_beta1(BSSNData *bd)
 {
+#if USE_GAMMA_DRIVER
+  return bd->auxB1;
+#endif
+#if USE_DAMPED_WAVE
+  return bd->beta1 * bd->d1beta1 + bd->beta2 * bd->d2beta1 + bd->beta3 * bd->d3beta1
+    - DW_MU_S * bd->alpha * bd->beta1
+    + bd->alpha * ( -DW_MU_L * (12.0 * bd->phi * DW_P - log(bd->alpha)) * bd->beta1
+		    + exp(-4.0 * bd->phi)*(- bd->gammai11 * bd->d1a - bd->gammai12 * bd->d2a - bd->gammai13 * bd->d3a
+		    + bd->alpha  *
+		    (bd->Gamma1
+		     -2.0 * (bd->gammai11 * bd->d1phi + bd->gammai12 * bd->d2phi + bd->gammai13 * bd->d3phi) )));
+#endif
   return 0.0;
 }
 
 real_t BSSN::ev_beta2(BSSNData *bd)
 {
+#if USE_GAMMA_DRIVER
+  return bd->auxB2;
+#endif
+#if USE_DAMPED_WAVE
+  return bd->beta1 * bd->d1beta2 + bd->beta2 * bd->d2beta2 + bd->beta3 * bd->d3beta2
+    - DW_MU_S * bd->alpha * bd->beta2
+    + bd->alpha * ( -DW_MU_L * (12.0 * bd->phi * DW_P - log(bd->alpha)) * bd->beta2
+		    + exp(-4.0 * bd->phi)*(- bd->gammai21 * bd->d1a - bd->gammai22 * bd->d2a - bd->gammai23 * bd->d3a
+		    + bd->alpha  *
+		    (bd->Gamma2
+		     -2.0 * (bd->gammai21 * bd->d1phi + bd->gammai22 * bd->d2phi + bd->gammai23 * bd->d3phi) )));
+#endif
+
   return 0.0;
 }
 
 real_t BSSN::ev_beta3(BSSNData *bd)
 {
+#if USE_GAMMA_DRIVER
+  return bd->auxB3 ;
+#endif
+#if USE_DAMPED_WAVE
+  return bd->beta1 * bd->d1beta3 + bd->beta2 * bd->d2beta3 + bd->beta3 * bd->d3beta3
+    - DW_MU_S * bd->alpha * bd->beta3
+    + bd->alpha * ( -DW_MU_L * (12.0 * bd->phi * DW_P - log(bd->alpha)) * bd->beta3
+		    + exp(-4.0 * bd->phi)*(- bd->gammai31 * bd->d1a - bd->gammai32 * bd->d2a - bd->gammai33 * bd->d3a
+		    + bd->alpha  *
+		    (bd->Gamma3
+		     -2.0 * (bd->gammai31 * bd->d1phi + bd->gammai32 * bd->d2phi + bd->gammai33 * bd->d3phi) )));
+#endif
+
   return 0.0;
+}
+
+real_t BSSN::ev_expN(BSSNData *bd)
+{
+  return bd->beta1 * bd->d1expN + bd->beta2 * bd->d2expN + bd->beta3 * bd->d3expN
+    -bd->alpha * bd->K/3.0;
 }
 #endif
 
+#if USE_GAMMA_DRIVER
+real_t BSSN::ev_auxB1(BSSNData *bd)
+{
+  return 0.75*ev_Gamma1(bd) - GD_ETA * bd->auxB1;
+}
+
+real_t BSSN::ev_auxB2(BSSNData *bd)
+{
+  return 0.75*ev_Gamma2(bd) - GD_ETA * bd->auxB2;
+}
+
+real_t BSSN::ev_auxB3(BSSNData *bd)
+{
+  return 0.75*ev_Gamma3(bd) - GD_ETA * bd->auxB3;
+}
+  
+#endif
 
 /*
 ******************************************************************************

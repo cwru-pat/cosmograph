@@ -46,6 +46,57 @@ if(DEFINED COSMO_USE_HARMONIC_ALPHA)
   message(STATUS "${Cyan}Setting USE_HARMONIC_ALPHA=${COSMO_USE_HARMONIC_ALPHA}.${ColorReset}")
 endif()
 
+# Use 1+log gaue? 
+if(DEFINED COSMO_USE_1PLUS_LOG_ALPHA)
+  add_definitions(-DUSE_1PLUS_LOG_ALPHA=${COSMO_USE_1PLUS_LOG_ALPHA})
+  message(STATUS "${Cyan}Setting USE_1PLUS_LOG_ALPHA=${COSMO_USE_1PLUS_LOG_ALPHA}.${ColorReset}")
+endif()
+
+# Use Gamma Driver shift??
+if(DEFINED COSMO_USE_GAMMA_DRIVER)
+  add_definitions(-DUSE_GAMMA_DRIVER=${COSMO_USE_GAMMA_DRIVER})
+  message(STATUS "${Cyan}Setting USE_GAMMA_DRIVER=${COSMO_USE_GAMMA_DRIVER}.${ColorReset}")
+endif()
+
+# Parameter of Gamma Driver??
+if(DEFINED COSMO_GD_C)
+  add_definitions(-DGD_C=${COSMO_GD_C})
+  message(STATUS "${Cyan}Setting GD_C=${COSMO_GD_C}.${ColorReset}")
+endif()
+
+# Use Damped-wave gauge?
+if(DEFINED COSMO_USE_DAMPED_WAVE)
+  add_definitions(-DUSE_DAMPED_WAVE=${COSMO_USE_DAMPED_WAVE})
+  message(STATUS "${Cyan}Setting USE_DAMPED_WAVE=${COSMO_USE_DAMPED_WAVE}.${ColorReset}")
+endif()
+
+if(DEFINED COSMO_USE_DAMPED_WAVE_ALPHA)
+  add_definitions(-DUSE_DAMPED_WAVE_ALPHA=${COSMO_USE_DAMPED_WAVE_ALPHA})
+  message(STATUS "${Cyan}Setting USE_DAMPED_WAVE_ALPHA=${COSMO_USE_DAMPED_WAVE_ALPHA}.${ColorReset}")
+endif()
+
+# Parameters of Damped-wave gauge?
+if(DEFINED COSMO_DW_MU_L)
+  add_definitions(-DDW_MU_L=${COSMO_DW_MU_L})
+  message(STATUS "${Cyan}Setting DW_MU_L=${COSMO_DW_MU_L}.${ColorReset}")
+endif()
+
+if(DEFINED COSMO_DW_MU_S)
+  add_definitions(-DDW_MU_S=${COSMO_DW_MU_S})
+  message(STATUS "${Cyan}Setting DW_MU_S=${COSMO_DW_MU_S}.${ColorReset}")
+endif()
+
+if(DEFINED COSMO_DW_P)
+  add_definitions(-DDW_P=${COSMO_DW_P})
+  message(STATUS "${Cyan}Setting DW_P=${COSMO_DW_P}.${ColorReset}")
+endif()
+
+if(DEFINED COSMO_GD_ETA)
+  add_definitions(-DGD_ETA=${COSMO_GD_ETA})
+  message(STATUS "${Cyan}Setting GD_ETA=${COSMO_GD_ETA}.${ColorReset}")
+endif()
+
+
 # Use Anharmonic gauge? (Disallowed for dust sims)
 if(DEFINED COSMO_USE_ANHARMONIC_ALPHA)
   add_definitions(-DUSE_ANHARMONIC_ALPHA=${COSMO_USE_ANHARMONIC_ALPHA})
@@ -76,6 +127,17 @@ if(DEFINED COSMO_EXCLUDE_SECOND_ORDER_FRW)
   message(STATUS "${Cyan}Setting EXCLUDE_SECOND_ORDER_FRW=${COSMO_EXCLUDE_SECOND_ORDER_FRW}.${ColorReset}")
 endif()
 
+#set potential type
+if(DEFINED COSMO_USE_COSMO_CONST_POTENTIAL)
+  add_definitions(-DUSE_COSMO_CONST_POTENTIAL=${COSMO_USE_COSMO_CONST_POTENTIAL})
+  message(STATUS "${Cyan}Setting USE_COSMO_CONST_POTENTIAL=${COSMO_USE_COSMO_CONST_POTENTIAL}.${ColorReset}")
+endif()
+
+if(DEFINED COSMO_COSMO_CONST)
+  add_definitions(-DCOSMO_CONST=${COSMO_COSMO_CONST})
+  message(STATUS "${Cyan}Setting COSMO_CONST=${COSMO_COSMO_CONST}.${ColorReset}")
+endif()
+
 # Remove these from cache
 unset(COSMO_N CACHE)
 unset(COSMO_NX CACHE)
@@ -85,7 +147,18 @@ unset(COSMO_H_LEN_FRAC CACHE)
 unset(COSMO_USE_REFERENCE_FRW CACHE)
 unset(COSMO_STENCIL_ORDER CACHE)
 unset(COSMO_USE_HARMONIC_ALPHA CACHE)
+unset(COSMO_USE_1PLUS_LOG_ALPHA)
+unset(COSMO_USE_GAMMA_DRIVER)
+unset(COSMO_GD_C)
+unset(COSMO_USE_DAMPED_WAVE)
+unset(COSMO_USE_DAMPED_WAVE_ALPHA)
+unset(COSMO_DW_MU_L)
+unset(COSMO_DW_MU_S)
+unset(COSMO_DW_P)
+unset(COSMO_GD_ETA)
 unset(COSMO_USE_BSSN_SHIFT CACHE)
 unset(COSMO_NORMALIZE_GAMMAIJ_AIJ CACHE)
 unset(COSMO_EXCLUDE_SECOND_ORDER_SMALL CACHE)
 unset(COSMO_EXCLUDE_SECOND_ORDER_FRW CACHE)
+unset(COSMO_USE_COSMO_CONST_POTENTIAL)
+unset(COSMO_COSMO_CONST)

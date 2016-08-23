@@ -42,6 +42,11 @@ void log_defines(IOData *iodata)
   std::string stencil_order = STRINGIFY(STENCIL_ORDER_FUNCTION(Odx));
   iodata->log( "  STENCIL_ORDER = " + stencil_order);
   iodata->log( "  USE_HARMONIC_ALPHA = " + stringify(USE_HARMONIC_ALPHA) );
+  iodata->log( "  USE_1PLUS_LOG_ALPHA = " + stringify(USE_1PLUS_LOG_ALPHA) );
+  iodata->log( "  USE_DAMPED_WAVE_ALPHA = " + stringify(USE_DAMPED_WAVE_ALPHA) );
+  iodata->log( "  USE_DAMPED_WAVE = " + stringify(USE_DAMPED_WAVE) );
+  iodata->log( "  USE_GAMMA_DRIVER = " + stringify(USE_GAMMA_DRIVER) );
+  iodata->log( "  USE_COSMO_CONST_POTENTIAL = " + stringify(USE_COSMO_CONST_POTENTIAL) );
   iodata->log( "  USE_BSSN_SHIFT = " + stringify(USE_BSSN_SHIFT) );
 }
 
@@ -108,6 +113,10 @@ void io_bssn_fields_snapshot(IOData *iodata, idx_t step,
     io_dump_3dslice(iodata, *bssn_fields["DIFFK_a"],   "3D_DIFFK."   + step_str);
     io_dump_3dslice(iodata, *bssn_fields["ricci_a"],   "3D_ricci."   + step_str);
     io_dump_3dslice(iodata, *bssn_fields["DIFFr_a"],   "3D_DIFFr."   + step_str);
+    io_dump_3dslice(iodata, *bssn_fields["DIFFalpha_a"],   "3D_DIFFalpha."   + step_str);
+#if USE_BSSN_SHIFT
+    io_dump_3dslice(iodata, *bssn_fields["beta1_a"],   "3D_beta1."   + step_str);
+#endif
   }
   
   if( step % std::stoi(_config["IO_2D_grid_interval"]) == 0 )
@@ -116,6 +125,7 @@ void io_bssn_fields_snapshot(IOData *iodata, idx_t step,
     io_dump_2dslice(iodata, *bssn_fields["DIFFK_a"],   "2D_DIFFK."   + step_str);
     io_dump_2dslice(iodata, *bssn_fields["ricci_a"],   "2D_ricci."   + step_str);
     io_dump_2dslice(iodata, *bssn_fields["DIFFr_a"],   "2D_DIFFr."   + step_str);
+    io_dump_2dslice(iodata, *bssn_fields["DIFFalpha_a"],   "2D_DIFFalpha."   + step_str);
   }
   
   if( step % std::stoi(_config["IO_1D_grid_interval"]) == 0 )
@@ -125,6 +135,7 @@ void io_bssn_fields_snapshot(IOData *iodata, idx_t step,
     io_dump_strip(iodata, *bssn_fields["DIFFK_a"],       "1D_DIFFK",   1, 0, 0);
     io_dump_strip(iodata, *bssn_fields["ricci_a"],       "1D_ricci",   1, 0, 0);
     io_dump_strip(iodata, *bssn_fields["DIFFr_a"],       "1D_DIFFr",   1, 0, 0);
+    io_dump_strip(iodata, *bssn_fields["DIFFalpha_a"],       "1D_DIFFalpha",   1, 0, 0);
   }
 }
 
@@ -244,6 +255,10 @@ void io_bssn_dump_statistics(IOData *iodata, idx_t step,
   DETAILS(DIFFr)
   // ricci output
   DETAILS(ricci)
+  // average expantion output
+#if USE_BSSN_SHIFT
+  DETAILS(expN)
+#endif
   // average volume
   sprintf(data, "%.15g\t", (double) volume_average(*bssn_fields["DIFFphi_a"], phi_FRW));
   gzwrite(datafile, data, strlen(data));
