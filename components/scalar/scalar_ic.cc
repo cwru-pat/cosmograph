@@ -13,13 +13,13 @@ namespace cosmo
 
 /**
  * @brief Initialize a small-amplitude wave on a flat metric
- *  (use a stationary gaussian wave packet for now)
+ *  (use a stationary Gaussian wave packet for now)
  *  NB: nonzero constraint violation
  */
 void scalar_ic_set_wave(BSSN * bssn, Scalar * scalar)
 {
   // BSSN is already initialized to flat, just initialize scalar fields
-  arr_t & phi = scalar->phi._array_p; // gaussian 
+  arr_t & phi = scalar->phi._array_p; // Gaussian 
   arr_t & psi1 = scalar->psi1._array_p; // derivative of phi in x-dir
   arr_t & psi2 = scalar->psi3._array_p; // derivative of phi in y-dir
   arr_t & psi3 = scalar->psi2._array_p; // derivative of phi in z-dir
@@ -29,7 +29,7 @@ void scalar_ic_set_wave(BSSN * bssn, Scalar * scalar)
 
   // iterators
   idx_t i, j, k;
-  // gaussian parameters
+  // Gaussian parameters
   real_t amplitude = 1.0e-10;
   real_t sigx = (real_t) NX / 10.0;
 
@@ -80,14 +80,15 @@ void scalar_ic_set_Lambda(BSSN * bssn, Scalar * scalar)
  * @brief semi-analytic test initial conditions: a sinusoidal fluctuation in a
  * particular direction & corresponding metric
  */
-void scalar_ic_set_semianalytic_test(BSSN * bssn, Scalar * scalar)
+void scalar_ic_set_semianalytic_test(BSSN * bssn, Scalar * scalar,
+  IOData * iodata)
 {
   idx_t i, j, k;
 
   arr_t & phi_p = *bssn->fields["DIFFphi_p"];
   arr_t & phi_a = *bssn->fields["DIFFphi_a"];
 
-  //chosing the analytic solution first
+  // choosing the analytic solution first
   #pragma omp parallel for
   LOOP3(i, j, k)
   {
@@ -135,7 +136,7 @@ void scalar_ic_set_semianalytic_test(BSSN * bssn, Scalar * scalar)
             +pw2(4.0 * PI) * 0.01  *  std::sin(4.0 * PI *( (real_t)i / NX - 0.125) ) ) );
   }
 
-  std::cout << "Difference between exact lap and discrete lap is: "<<lap_dif<<"\n";
+  iodata->log("The difference between exact lap and discrete lap is: " + stringify(lap_dif));
   Fourier * fourier;
   fourier = new Fourier();
 
@@ -170,10 +171,10 @@ void scalar_ic_set_semianalytic_test(BSSN * bssn, Scalar * scalar)
 
   for(i = 0; i < NX; i++)
   {
-    max_deviation = std::max(max_deviation,std::fabs( derivative(i,0,0,1,phi) - der_bak[i]));
+    max_deviation = std::max(max_deviation, std::fabs( derivative(i,0,0,1,phi) - der_bak[i]));
   }
-  std::cout<<"The maximum deviation for solving scalar field under analytic solution of phi under odx8 is: "<<max_deviation;
-  std::cout<<"\n";
+  iodata->log("The maximum deviation of the numerical and analytic solution of phi using odx"
+    + stringify(STENCIL_ORDER) + " stencils is: " + stringify(max_deviation));
 
   // initialize psi according to values in phi
   #pragma omp parallel for default(shared) private(i,j,k)
@@ -190,7 +191,7 @@ void scalar_ic_set_semianalytic_test(BSSN * bssn, Scalar * scalar)
  * @brief Use the multigrid solver to solve for metric factors given
  * a particular scalar field implementation.
  */
-void scalar_ic_set_multigrid(BSSN * bssn, Scalar * scalar)
+void scalar_ic_set_multigrid(BSSN * bssn, Scalar * scalar, IOData * iodata)
 {
   idx_t i, j, k;
 
@@ -273,7 +274,10 @@ void scalar_ic_set_multigrid(BSSN * bssn, Scalar * scalar)
   // solve for BSSN fields using multigrid class:
   real_t relaxation_tolerance = std::stod(_config["relaxation_tolerance"]);
   FASMultigrid multigrid (N, N*dx, 4, relaxation_tolerance);
-  std::cout<<"K_0 equals "<<K_src<<", H_0 is: "<<-K_src/3.0<<" and k/H_0 is:"<<2.0*PI/(N*dx)/(-K_src/3.0)<<"\n";
+  iodata->log("K_0 = " + stringify(K_src) + ", H_0 = "
+      + stringify(-K_src/3.0) + ", and k/H_0 = "
+      + stringify(2.0*PI/(N*dx)/(-K_src/3.0))
+    );
 
   idx_t u_exp[2] = { 1, 5 };
   multigrid.build_rho(2, u_exp);
@@ -293,11 +297,11 @@ void scalar_ic_set_multigrid(BSSN * bssn, Scalar * scalar)
   avg1 = avg1/N/N/N;
   avg5 = avg5/N/N/N;
   multigrid.initializeRhoHeirarchy();
-  std::cout<<"The average value of coefficient of the first order term is: "<<avg1<<"\n";
-  std::cout<<"The average value of coefficient of the fifth order term is: "<<avg5<<"\n";
-  std::cout<<"The suggested initial value of multigrid solver is: "<<std::pow(-avg1/avg5,1.0/4.0)<<"\n";
-  std::cout<<"The estimated value of gradiant energy/poential is:"<<-avg5/PI/2.0/scalar->V(1)<<"\n";
-  std::cout<<"The ratio of H_LEN_FRAC/H_0^-1 is: "<<dx*N/(3.0/K_src)<<"\n"; 
+  iodata->log("The average value of coefficient of the first order term is: " + stringify(avg1));
+  iodata->log("The average value of coefficient of the fifth order term is: " + stringify(avg5));
+  iodata->log("The suggested initial value of multigrid solver is: " + stringify(std::pow(-avg1/avg5,1.0/4.0)));
+  iodata->log("The estimated value of gradient energy/potential is:" + stringify(-avg5/PI/2.0/scalar->V(1)));
+  iodata->log("The ratio of H_LEN_FRAC/H_0^-1 is: " + stringify(dx*N/(3.0/K_src)));
   multigrid.initializeRhoHeirarchy();
 
   if(std::stoi(_config["debug_multigrid"]))
@@ -321,7 +325,7 @@ void scalar_ic_set_multigrid(BSSN * bssn, Scalar * scalar)
   arr_t & phi_a = *bssn->fields["DIFFphi_a"];
 
   REAL_T * u = multigrid.getSolution();
-#pragma omp parallel for private(j, k)
+# pragma omp parallel for private(j, k)
   LOOP3(i, j, k)
   {
     phi_p[INDEX(i,j,k)] = (real_t) std::log(std::abs(u[INDEX(i,j,k)]));

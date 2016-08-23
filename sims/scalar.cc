@@ -36,12 +36,12 @@ void ScalarSim::setICs()
   }
   else if(_config["scalar_ic_type"] == "semianalytic_test")
   {
-    scalar_ic_set_semianalytic_test(bssnSim, scalarSim);
+    scalar_ic_set_semianalytic_test(bssnSim, scalarSim, iodata);
   }
   else if(_config["scalar_ic_type"] == "multigrid")
   {
 #   if USE_MULTIGRID
-    scalar_ic_set_multigrid(bssnSim, scalarSim);
+    scalar_ic_set_multigrid(bssnSim, scalarSim, iodata);
 #   else
     iodata->log("Error: Multigrid solver was not compiled.");
     throw -1;    
