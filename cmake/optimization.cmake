@@ -11,7 +11,15 @@ if(COSMO_DEBUG)
   set(CC_OPTS       "")
 else()
   set(PROFILING     "")
-  set(OPT_LEVEL     "-O3 -ffast-math -flto")
+  set(OPT_LEVEL     "-O3")
+  # try to use some GNU compiler special options
+  if(CMAKE_COMPILER_IS_GNUCXX)
+    set(OPT_LEVEL     "${OPT_LEVEL} -ffast-math -flto")
+  endif()
+  # try to use some Intel compiler special options
+  if (${CMAKE_CXX_COMPILER} MATCHES "icpc.*$") 
+    set(OPT_LEVEL     "${OPT_LEVEL} -fast")
+  endif ()
   set(CC_OPTS       "-march=native")
 endif()
 
