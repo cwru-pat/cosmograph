@@ -5,7 +5,7 @@
 #include "../../utils/Fourier.h"
 #include "../../utils/math.h"
 #if USE_MULTIGRID
-#include "../elliptic_solver/multigrid.h"
+#include "../elliptic_solver/full_multigrid.h"
 #endif
 
 namespace cosmo
@@ -273,14 +273,63 @@ void scalar_ic_set_multigrid(BSSN * bssn, Scalar * scalar, IOData * iodata)
 
   // solve for BSSN fields using multigrid class:
   real_t relaxation_tolerance = std::stod(_config["relaxation_tolerance"]);
-  FASMultigrid multigrid (N, N*dx, 4, relaxation_tolerance);
+
   iodata->log("K_0 = " + stringify(K_src) + ", H_0 = "
       + stringify(-K_src/3.0) + ", and k/H_0 = "
       + stringify(2.0*PI/(N*dx)/(-K_src/3.0))
     );
 
-  idx_t u_exp[2] = { 1, 5 };
-  multigrid.build_rho(2, u_exp);
+   // solve for BSSN fields using multigrid class:
+
+  std::cout<<"K_0 equals "<<K_src<<", H_0 is: "<<-K_src/3.0<<" and k/H_0 is:"<<2.0*PI/(N*dx)/(-K_src/3.0)<<"\n";
+
+  idx_t molecule_n[] = {3};
+  idx_t eqn_n = 1;
+  arr_t & phi_p = *bssn->fields["DIFFphi_p"];
+  arr_t & phi_a = *bssn->fields["DIFFphi_a"];
+
+  arr_t * phi_ini = & phi_p;
+
+
+  
+  FASMultigrid multigrid(phi_ini, 1, molecule_n, 4, 5, relaxation_tolerance);
+
+  
+  
+  atom atom_tmp = {0};
+
+
+  //initializing equations
+  multigrid.eqns[0][0].init(1);
+  multigrid.eqns[0][1].init(2);
+  multigrid.eqns[0][2].init(2);
+  
+  //adding terms to eqn
+  //add first laplacian term
+  atom_tmp.type = 11;
+  atom_tmp.u_id = 0;
+  multigrid.eqns[0][0].add_atom(atom_tmp);
+
+  //add second term
+  atom_tmp.type = 0;
+  multigrid.eqns[0][1].add_atom(atom_tmp);
+  
+  atom_tmp.type = 1;
+  atom_tmp.u_id = 0;
+  atom_tmp.value = 1;
+  multigrid.eqns[0][1].add_atom(atom_tmp);
+
+  //add third term
+  atom_tmp.type = 0;
+  multigrid.eqns[0][2].add_atom(atom_tmp);
+
+  atom_tmp.type = 1;
+  atom_tmp.u_id = 0;
+  atom_tmp.value = 5;
+  multigrid.eqns[0][2].add_atom(atom_tmp);
+
+  
+  
   real_t avg1 = 0.0, avg5 = 0.0;
   LOOP3(i, j, k)
   {
@@ -288,12 +337,14 @@ void scalar_ic_set_multigrid(BSSN * bssn, Scalar * scalar, IOData * iodata)
         pw2(psi1[INDEX(i,j,k)]) + pw2(psi2[INDEX(i,j,k)]) + pw2(psi3[INDEX(i,j,k)])
       );
     avg1 += value;
-    multigrid.setPolySrcAtPt(i, j, k, 0, value);
+    multigrid.setPolySrcAtPt(0, 1, i, j, k, value); //set value for term 1
 
     value = 2.0* PI*scalar->V(phi[INDEX(i,j,k)]) - K_a[INDEX(i,j,k)]*K_a[INDEX(i,j,k)]/12.0;
-    multigrid.setPolySrcAtPt(i, j, k, 1, value);
+    multigrid.setPolySrcAtPt(0, 2, i, j, k, value); //set value for term 2
     avg5 += value;
+
   }
+  
   avg1 = avg1/N/N/N;
   avg5 = avg5/N/N/N;
   multigrid.initializeRhoHeirarchy();
@@ -302,36 +353,18 @@ void scalar_ic_set_multigrid(BSSN * bssn, Scalar * scalar, IOData * iodata)
   iodata->log("The suggested initial value of multigrid solver is: " + stringify(std::pow(-avg1/avg5,1.0/4.0)));
   iodata->log("The estimated value of gradient energy/potential is:" + stringify(-avg5/PI/2.0/scalar->V(1)));
   iodata->log("The ratio of H_LEN_FRAC/H_0^-1 is: " + stringify(dx*N/(3.0/K_src)));
-  multigrid.initializeRhoHeirarchy();
 
-  if(std::stoi(_config["debug_multigrid"]))
-  {
-    multigrid.printSourceStrip(0, 5);
-    multigrid.printSourceStrip(1, 5);
-  }
-
-  // set initial guess and solve using 3 V-cycles
-  multigrid.setTrialSolution(0);
-  multigrid.VCycles(std::stoi(_config["num_v_cycles"]));
-
-  if(std::stoi(_config["debug_multigrid"]))
-  {
-    multigrid.printSolutionStrip(1);
-    multigrid.printSolutionStrip(5);
-  }
-
-  // set bssn phi using multigrid solution
-  arr_t & phi_p = *bssn->fields["DIFFphi_p"];
-  arr_t & phi_a = *bssn->fields["DIFFphi_a"];
-
-  REAL_T * u = multigrid.getSolution();
-# pragma omp parallel for private(j, k)
   LOOP3(i, j, k)
   {
-    phi_p[INDEX(i,j,k)] = (real_t) std::log(std::abs(u[INDEX(i,j,k)]));
-    phi_a[INDEX(i,j,k)] = (real_t) std::log(std::abs(u[INDEX(i,j,k)]));
+    idx_t idx = INDEX(i,j,k);
+    phi_ini[0][idx] = 2;
   }
 
+  multigrid.VCycles(std::stoi(_config["num_v_cycles"]));
+
+  phi_a = phi_p;
+  
+  
   return;
 }
 #endif // if USE_MULTIGRID
