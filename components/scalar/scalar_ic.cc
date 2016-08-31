@@ -284,7 +284,6 @@ void scalar_ic_set_multigrid(BSSN * bssn, Scalar * scalar, IOData * iodata)
   std::cout<<"K_0 equals "<<K_src<<", H_0 is: "<<-K_src/3.0<<" and k/H_0 is:"<<2.0*PI/(N*dx)/(-K_src/3.0)<<"\n";
 
   idx_t molecule_n[] = {3};
-  idx_t eqn_n = 1;
   arr_t & phi_p = *bssn->fields["DIFFphi_p"];
   arr_t & phi_a = *bssn->fields["DIFFphi_a"];
 

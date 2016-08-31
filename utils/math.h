@@ -831,8 +831,8 @@ inline real_t real_t_mod(real_t n, real_t d)
 
 inline real_t KO_dissipation_Q(idx_t i, idx_t j, idx_t k, idx_t nx, idx_t ny, idx_t nz, arr_t & field)
 {
-  real_t dx = H_LEN_FRAC / nx;
   #if STENCIL_ORDER == 2
+    real_t dx = H_LEN_FRAC / nx;
     real_t stencil = (
         1.0*field[INDEX(i-2,j,k,nx,ny,nz)] + 1.0*field[H_INDEX(i,j-2,k,nx,ny,nz)] + 1.0*field[H_INDEX(i,j,k-2,nx,ny,nz)]
       - 4.0*field[H_INDEX(i-1,j,k,nx,ny,nz)] - 4.0*field[H_INDEX(i,j-1,k,nx,ny,nz)] - 4.0*field[H_INDEX(i,j,k-1,nx,ny,nz)]
