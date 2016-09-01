@@ -76,6 +76,8 @@ void scalar_ic_set_Lambda(BSSN * bssn, Scalar * scalar)
   }
 }
 
+  
+  
 /**
  * @brief semi-analytic test initial conditions: a sinusoidal fluctuation in a
  * particular direction & corresponding metric
@@ -186,6 +188,141 @@ void scalar_ic_set_semianalytic_test(BSSN * bssn, Scalar * scalar,
   }
 }
 
+void scalar_ic_set_Bowen_York(BSSN * bssn, Scalar * scalar, IOData * iodata)
+{
+  idx_t i, j, k;
+  arr_t * X = new arr_t [3]; //creating 3 variables which can be converted to A^{ij}
+  //
+  for(i=0; i < 3; i++)
+    X[i].init(NX, NY, NZ);
+
+  idx_t molecule_n[3] = {4, 4, 4}; //three terms for each equation
+
+  real_t relaxation_tolerance = std::stod(_config["relaxation_tolerance"]);
+  
+  FASMultigrid multigrid(X, 3, molecule_n, 4, 5, relaxation_tolerance);
+  
+  atom atom_tmp = {0};
+
+  multigrid.eqns[0][0].init(1);
+  multigrid.eqns[0][1].init(2);
+  multigrid.eqns[0][2].init(1);
+  multigrid.eqns[0][3].init(1);
+
+  multigrid.eqns[1][0].init(1);
+  multigrid.eqns[1][1].init(2);
+  multigrid.eqns[1][2].init(1);
+  multigrid.eqns[1][3].init(1);
+
+  multigrid.eqns[2][0].init(1);
+  multigrid.eqns[2][1].init(2);
+  multigrid.eqns[2][2].init(1);
+  multigrid.eqns[2][3].init(1);
+
+  //adding terms to eqn 1
+  atom_tmp.type = 11;
+  atom_tmp.u_id = 0;
+  multigrid.eqns[0][0].add_atom(atom_tmp);
+
+  atom_tmp.type = 0;
+  multigrid.eqns[0][1].add_atom(atom_tmp);
+
+  atom_tmp.type = 5;
+  atom_tmp.u_id = 0;
+  multigrid.eqns[0][1].add_atom(atom_tmp);
+
+  atom_tmp.type = 8;
+  atom_tmp.u_id = 1;
+  multigrid.eqns[0][2].add_atom(atom_tmp);
+
+  atom_tmp.type = 9;
+  atom_tmp.u_id = 2;
+  multigrid.eqns[0][3].add_atom(atom_tmp);
+
+  //adding terms to eqn 2
+  atom_tmp.type = 11;
+  atom_tmp.u_id = 1;
+  multigrid.eqns[1][0].add_atom(atom_tmp);
+
+  atom_tmp.type = 0;
+  multigrid.eqns[1][1].add_atom(atom_tmp);
+
+  atom_tmp.type = 8;
+  atom_tmp.u_id = 0;
+  multigrid.eqns[1][1].add_atom(atom_tmp);
+
+  atom_tmp.type = 6;
+  atom_tmp.u_id = 1;
+  multigrid.eqns[1][2].add_atom(atom_tmp);
+
+  atom_tmp.type = 10;
+  atom_tmp.u_id = 2;
+  multigrid.eqns[1][3].add_atom(atom_tmp);
+ 
+  //adding terms to eqn 3
+  atom_tmp.type = 11;
+  atom_tmp.u_id = 2;
+  multigrid.eqns[2][0].add_atom(atom_tmp);
+
+  atom_tmp.type = 0;
+  multigrid.eqns[2][1].add_atom(atom_tmp);
+
+  atom_tmp.type = 9;
+  atom_tmp.u_id = 0;
+  multigrid.eqns[2][1].add_atom(atom_tmp);
+
+  atom_tmp.type = 10;
+  atom_tmp.u_id = 1;
+  multigrid.eqns[2][2].add_atom(atom_tmp);
+
+  atom_tmp.type = 7;
+  atom_tmp.u_id = 2;
+  multigrid.eqns[2][3].add_atom(atom_tmp);
+ 
+  //finishing adding atoms to each term!!!!!!!!!!!!!!!
+
+  std::random_device rd;
+  std::mt19937 gen(7.0 /*rd()*/);
+  std::uniform_real_distribution<real_t> dist(0, 2.0*PI);
+
+  
+  LOOP3(i,j,k)
+  {
+    multigrid.setPolySrcAtPt(0, 1, i, j, k, 1.0/3.0);
+    multigrid.setPolySrcAtPt(1, 1, i, j, k, 1.0/3.0);
+    multigrid.setPolySrcAtPt(2, 1, i, j, k, 1.0/3.0);
+
+    idx_t idx = INDEX(i, j, k);
+    idx_t n = 1;
+    real_t x_phase = dist(gen),
+             y_phase = dist(gen),
+             z_phase = dist(gen);
+    X[0][idx] = 1 + 0.01 * (
+                cos(2.0*PI*((real_t) n/NX)*i + x_phase )
+                 + cos(2.0*PI*((real_t) n/NY)*j + y_phase )
+		+ cos(2.0*PI*((real_t) n/NZ)*k + z_phase ));
+
+    x_phase = dist(gen);
+    y_phase = dist(gen);
+    z_phase = dist(gen);
+
+    X[1][idx] = 1 + 0.01 * (
+                cos(2.0*PI*((real_t) n/NX)*i + x_phase )
+                 + cos(2.0*PI*((real_t) n/NY)*j + y_phase )
+		+ cos(2.0*PI*((real_t) n/NZ)*k + z_phase ));
+
+    x_phase = dist(gen);
+    y_phase = dist(gen);
+    z_phase = dist(gen);
+    X[2][idx] = 1 + 0.01 * (
+                cos(2.0*PI*((real_t) n/NX)*i + x_phase )
+                 + cos(2.0*PI*((real_t) n/NY)*j + y_phase )
+		+ cos(2.0*PI*((real_t) n/NZ)*k + z_phase ));
+  }
+
+    multigrid.VCycles(std::stoi(_config["num_v_cycles"]));
+}
+  
 #if USE_MULTIGRID
 /**
  * @brief Use the multigrid solver to solve for metric factors given
@@ -281,8 +418,7 @@ void scalar_ic_set_multigrid(BSSN * bssn, Scalar * scalar, IOData * iodata)
 
    // solve for BSSN fields using multigrid class:
 
-  std::cout<<"K_0 equals "<<K_src<<", H_0 is: "<<-K_src/3.0<<" and k/H_0 is:"<<2.0*PI/(N*dx)/(-K_src/3.0)<<"\n";
-
+  
   idx_t molecule_n[] = {3};
   arr_t & phi_p = *bssn->fields["DIFFphi_p"];
   arr_t & phi_a = *bssn->fields["DIFFphi_a"];
