@@ -1,6 +1,6 @@
 steps = 1000
 
-omp_num_threads = 4
+omp_num_threads = 16
 
 simulation_type = vacuum
 ic_type = stability

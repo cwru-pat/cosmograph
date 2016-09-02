@@ -65,6 +65,10 @@ void bssn_ic_awa_stability(BSSN * bssn)
   }
 }
 
+/**
+ * @brief Initialize with a "linear" wave propagating in the x-direction.
+ * @details AwA test.
+ */
 void bssn_ic_awa_linear_wave(BSSN * bssn)
 {
   idx_t i, j, k;
@@ -85,6 +89,11 @@ void bssn_ic_awa_linear_wave(BSSN * bssn)
   }
 }
 
+/**
+ * @brief Initialize with a "linear" wave propagating in the x-direction,
+ * on top of a deSitter spacetime.
+ * @details Solution should behave, at linear order, as a damped wave equation.
+ */
 void bssn_ic_awa_linear_wave_desitter(BSSN * bssn)
 {
   bssn_ic_awa_linear_wave(bssn);
@@ -106,22 +115,7 @@ void bssn_ic_awa_linear_wave_desitter(BSSN * bssn)
 
 void bssn_ic_awa_gauge_wave(BSSN * bssn)
 {
-  idx_t i, j, k;
-
-  arr_t & DIFFgamma22_p = *bssn->fields["DIFFgamma22_p"];
-  arr_t & DIFFgamma33_p = *bssn->fields["DIFFgamma33_p"];
-
-  arr_t & A22_p = *bssn->fields["A22_p"];
-  arr_t & A33_p = *bssn->fields["A33_p"];
-
-  LOOP3(i,j,k)
-  {
-    DIFFgamma22_p[NP_INDEX(i,j,k)] = 1.0e-8*sin( 2.0*PI*((real_t) i)*dx );
-    DIFFgamma33_p[NP_INDEX(i,j,k)] = -1.0e-8*sin( 2.0*PI*((real_t) i)*dx );
-
-    A22_p[NP_INDEX(i,j,k)] = PI*1.0e-8*cos( 2.0*PI*((real_t) i)*dx );
-    A33_p[NP_INDEX(i,j,k)] = -PI*1.0e-8*cos( 2.0*PI*((real_t) i)*dx );
-  }
+  // TODO
 }
 
 

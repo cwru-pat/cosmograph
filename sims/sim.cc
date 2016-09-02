@@ -187,13 +187,14 @@ void CosmoSim::outputStateInformation()
       ) + " | " + stringify(
         max(*bssnSim->fields["DIFFK_a"]) + bssnSim->frw->get_K()
       ));
-  real_t H_calcs[7] = {0}, M_calcs[7] = {0};
-  bssnSim->setHamiltonianConstraintCalcs(H_calcs, false);
+  real_t H_calcs[7] = {0}, M_calcs[7] = {0}, G_calcs[7] = {0},
+         A_calcs[7] = {0}, S_calcs[7] = {0};
+  bssnSim->setConstraintCalcs(H_calcs, M_calcs, G_calcs,
+                              A_calcs, S_calcs);
   iodata->log(
       "Final Max. (Normed) Hamiltonian constraint violation: "
       + stringify(H_calcs[2]) + " (" + stringify(H_calcs[6]) + ")"
     );
-  bssnSim->setMomentumConstraintCalcs(M_calcs);
   iodata->log(
       "Final Max. (Normed) Momentum constraint violation: "
       + stringify(M_calcs[2]) + " (" + stringify(M_calcs[6]) + ")"

@@ -184,20 +184,37 @@ void io_bssn_constraint_violation(IOData *iodata, idx_t step, BSSN * bssnSim)
   bool output_this_step = (0 == step % std::stoi(_config("IO_constraint_interval", "1")));
   if( output_step && output_this_step )
   {
-    real_t H_calcs[7] = {0}, M_calcs[7] = {0};
+    real_t H_calcs[7] = {0}, M_calcs[7] = {0}, G_calcs[7] = {0},
+           A_calcs[7] = {0}, S_calcs[7] = {0};
 
     // Constraint Violation Calculations
-    bssnSim->setHamiltonianConstraintCalcs(H_calcs, false);
+    bssnSim->setConstraintCalcs(H_calcs, M_calcs, G_calcs,
+                                A_calcs, S_calcs);
+
     io_dump_value(iodata, H_calcs[4], "H_violations", "\t"); // mean(H/[H])
     io_dump_value(iodata, H_calcs[5], "H_violations", "\t"); // stdev(H/[H])
     io_dump_value(iodata, H_calcs[6], "H_violations", "\t"); // max(H/[H])
     io_dump_value(iodata, H_calcs[2], "H_violations", "\n"); // max(H)
 
-    bssnSim->setMomentumConstraintCalcs(M_calcs);
     io_dump_value(iodata, M_calcs[4], "M_violations", "\t"); // mean(M/[M])
     io_dump_value(iodata, M_calcs[5], "M_violations", "\t"); // stdev(M/[M])
     io_dump_value(iodata, M_calcs[6], "M_violations", "\t"); // max(M/[M])
     io_dump_value(iodata, M_calcs[2], "M_violations", "\n"); // max(M)
+
+    io_dump_value(iodata, G_calcs[4], "G_violations", "\t"); // mean(G/[G])
+    io_dump_value(iodata, G_calcs[5], "G_violations", "\t"); // stdev(G/[G])
+    io_dump_value(iodata, G_calcs[6], "G_violations", "\t"); // max(G/[G])
+    io_dump_value(iodata, G_calcs[2], "G_violations", "\n"); // max(G)
+
+    io_dump_value(iodata, A_calcs[4], "A_violations", "\t"); // mean(A/[A])
+    io_dump_value(iodata, A_calcs[5], "A_violations", "\t"); // stdev(A/[A])
+    io_dump_value(iodata, A_calcs[6], "A_violations", "\t"); // max(A/[A])
+    io_dump_value(iodata, A_calcs[2], "A_violations", "\n"); // max(A)
+
+    io_dump_value(iodata, S_calcs[4], "S_violations", "\t"); // mean(S/[S])
+    io_dump_value(iodata, S_calcs[5], "S_violations", "\t"); // stdev(S/[S])
+    io_dump_value(iodata, S_calcs[6], "S_violations", "\t"); // max(S/[S])
+    io_dump_value(iodata, S_calcs[2], "S_violations", "\n"); // max(S)
   }
 }
 
@@ -206,15 +223,17 @@ void io_bssn_constraint_violation(IOData *iodata, idx_t step, BSSN * bssnSim)
  */
 void io_print_constraint_violation(IOData *iodata, BSSN * bssnSim)
 {
-  real_t H_calcs[7] = {0}, M_calcs[7] = {0};
+  real_t H_calcs[7] = {0}, M_calcs[7] = {0}, G_calcs[7] = {0},
+         A_calcs[7] = {0}, S_calcs[7] = {0};
+  bssnSim->setConstraintCalcs(H_calcs, M_calcs, G_calcs,
+                              A_calcs, S_calcs);
+
   iodata->log( "\nConstraint Violation: " );
 
   // Constraint Violation Calculations
-  bssnSim->setHamiltonianConstraintCalcs(H_calcs, false);
   iodata->log( "Max |H/[H]|: " + stringify(H_calcs[6]) );
   iodata->log( "Max |H|: " + stringify(H_calcs[2]) );
 
-  bssnSim->setMomentumConstraintCalcs(M_calcs);
   iodata->log( "Max |M/[M]|: " + stringify(M_calcs[6]) );
   iodata->log( "Max |M|: " + stringify(M_calcs[2]) );
 }
