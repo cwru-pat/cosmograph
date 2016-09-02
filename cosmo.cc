@@ -24,17 +24,6 @@ ConfigParser _config;
 
 int main(int argc, char **argv)
 {
-  // If not compiled in, set dt, dx
-  // TODO: set other things (and check for performance hits)
-  //       set these in config file?
-  //       big performance hit setting N dynamically, should deal with BCs separately.
-  #ifndef dx
-    dx = H_LEN_FRAC/(1.0*N);
-  #endif
-  #ifndef dt
-    dt = 0.1*dx;
-  #endif
-
   // read in config file
   if(argc != 2)
   {
@@ -43,6 +32,14 @@ int main(int argc, char **argv)
   }
   // TODO: eliminate global _config; feed directly into constructor.
   _config.parse(argv[1]);
+
+  // If not compiled in, set dt, dx
+  // TODO: set other things (and check for performance hits)
+  //       set these in config file?
+  //       big performance hit setting N dynamically, should deal with BCs separately.
+  
+  dx = stold(_config( "dx", stringify(H_LEN_FRAC/(1.0*N)) ));
+  dt = stold(_config( "dt_frac", "0.1" ))*dx;
 
   // number of threads
   omp_set_num_threads(stoi(_config["omp_num_threads"]));

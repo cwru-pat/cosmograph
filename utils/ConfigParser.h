@@ -16,6 +16,7 @@ public:
   std::string getFileName();
 
   std::string operator[](std::string param);
+  std::string operator()(std::string param, std::string default_val);
 
 private:
   std::map<std::string, std::string> config;

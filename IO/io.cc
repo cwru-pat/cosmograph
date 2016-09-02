@@ -107,35 +107,53 @@ void io_bssn_fields_snapshot(IOData *iodata, idx_t step,
   map_t & bssn_fields)
 {
   std::string step_str = std::to_string(step);
-  if( step % std::stoi(_config["IO_3D_grid_interval"]) == 0 )
+  bool output_step = false;
+  bool output_this_step = false;
+
+  output_step = ( std::stoi(_config("IO_3D_grid_interval", "0")) > 0 );
+  output_this_step = ( 0 == step % std::stoi(_config("IO_3D_grid_interval", "1")) );
+  if( output_step && output_this_step )
   {
-    io_dump_3dslice(iodata, *bssn_fields["DIFFphi_a"], "3D_DIFFphi." + step_str);
-    io_dump_3dslice(iodata, *bssn_fields["DIFFK_a"],   "3D_DIFFK."   + step_str);
-    io_dump_3dslice(iodata, *bssn_fields["ricci_a"],   "3D_ricci."   + step_str);
-    io_dump_3dslice(iodata, *bssn_fields["DIFFr_a"],   "3D_DIFFr."   + step_str);
-    io_dump_3dslice(iodata, *bssn_fields["DIFFalpha_a"],   "3D_DIFFalpha."   + step_str);
-#if USE_BSSN_SHIFT
-    io_dump_3dslice(iodata, *bssn_fields["beta1_a"],   "3D_beta1."   + step_str);
-#endif
+    for ( const auto &field_reg : bssn_fields ) {
+      // look for names of the form: "IO_3D_field_r"
+      if( std::stoi(_config( "IO_3D_" + field_reg.first , "0")) )
+      {
+        io_dump_3dslice(iodata, *bssn_fields[field_reg.first],
+          "3D_" + (field_reg.first) + step_str);
+      }
+    }
   }
   
-  if( step % std::stoi(_config["IO_2D_grid_interval"]) == 0 )
+  output_step = ( std::stoi(_config("IO_2D_grid_interval", "0")) > 0 );
+  output_this_step = ( 0 == step % std::stoi(_config("IO_2D_grid_interval", "1")) );
+  if( output_step && output_this_step )
   {
-    io_dump_2dslice(iodata, *bssn_fields["DIFFphi_a"], "2D_DIFFphi." + step_str);
-    io_dump_2dslice(iodata, *bssn_fields["DIFFK_a"],   "2D_DIFFK."   + step_str);
-    io_dump_2dslice(iodata, *bssn_fields["ricci_a"],   "2D_ricci."   + step_str);
-    io_dump_2dslice(iodata, *bssn_fields["DIFFr_a"],   "2D_DIFFr."   + step_str);
-    io_dump_2dslice(iodata, *bssn_fields["DIFFalpha_a"],   "2D_DIFFalpha."   + step_str);
+    for ( const auto &field_reg : bssn_fields ) {
+      // look for names of the form: "IO_2D_field_r"
+      if( std::stoi(_config( "IO_2D_" + field_reg.first , "0")) )
+      {
+        io_dump_2dslice(iodata, *bssn_fields[field_reg.first],
+          "2D_" + (field_reg.first) + step_str);
+      }
+    }
   }
   
-  if( step % std::stoi(_config["IO_1D_grid_interval"]) == 0 )
+  output_step = ( std::stoi(_config("IO_1D_grid_interval", "0")) > 0 );
+  output_this_step = ( 0 == step % std::stoi(_config("IO_1D_grid_interval", "1")) );
+  if( output_step && output_this_step )
   {
-    io_dump_strip(iodata, *bssn_fields["DIFFgamma11_a"], "1D_DIFFgamma11", 1, 0, 0);
-    io_dump_strip(iodata, *bssn_fields["DIFFphi_a"],     "1D_DIFFphi", 1, 0, 0);
-    io_dump_strip(iodata, *bssn_fields["DIFFK_a"],       "1D_DIFFK",   1, 0, 0);
-    io_dump_strip(iodata, *bssn_fields["ricci_a"],       "1D_ricci",   1, 0, 0);
-    io_dump_strip(iodata, *bssn_fields["DIFFr_a"],       "1D_DIFFr",   1, 0, 0);
-    io_dump_strip(iodata, *bssn_fields["DIFFalpha_a"],       "1D_DIFFalpha",   1, 0, 0);
+    for ( const auto &field_reg : bssn_fields ) {
+      // look for names of the form: "IO_2D_field_r"
+      if( std::stoi(_config( "IO_1D_" + field_reg.first , "0")) )
+      {
+        io_dump_strip(iodata, *bssn_fields[field_reg.first],
+          "1D_" + (field_reg.first),
+          std::stoi(_config( "IO_1D_" + field_reg.first + "_axis" , "1")),
+          std::stoi(_config( "IO_1D_" + field_reg.first + "_xoffset" , "0")),
+          std::stoi(_config( "IO_1D_" + field_reg.first + "_yoffset" , "0"))
+        );
+      }
+    }
   }
 }
 
@@ -148,7 +166,9 @@ void io_bssn_fields_snapshot(IOData *iodata, idx_t step,
 void io_bssn_fields_powerdump(IOData *iodata, idx_t step,
   map_t & bssn_fields, Fourier *fourier)
 {
-  if( step % std::stoi(_config["IO_powerspec_interval"]) == 0 )
+  bool output_step = ( std::stoi(_config("IO_powerspec_interval", "0")) > 0 );
+  bool output_this_step = (0 == step % std::stoi(_config("IO_powerspec_interval", "1")));
+  if( output_step && output_this_step )
   {
     fourier->powerDump(bssn_fields["DIFFphi_a"]->_array, iodata);
     fourier->powerDump(bssn_fields["DIFFr_a"]->_array, iodata);
@@ -160,7 +180,9 @@ void io_bssn_fields_powerdump(IOData *iodata, idx_t step,
  */
 void io_bssn_constraint_violation(IOData *iodata, idx_t step, BSSN * bssnSim)
 {
-  if( step % std::stoi(_config["IO_constraint_interval"]) == 0 )
+  bool output_step = ( std::stoi(_config("IO_constraint_interval", "0")) > 0 );
+  bool output_this_step = (0 == step % std::stoi(_config("IO_constraint_interval", "1")));
+  if( output_step && output_this_step )
   {
     real_t H_calcs[7] = {0}, M_calcs[7] = {0};
 
@@ -180,7 +202,7 @@ void io_bssn_constraint_violation(IOData *iodata, idx_t step, BSSN * bssnSim)
 }
 
 /**
- * @brief Print constraint violation (useful for debugging?)
+ * @brief Print constraint violation (useful for debugging)
  */
 void io_print_constraint_violation(IOData *iodata, BSSN * bssnSim)
 {

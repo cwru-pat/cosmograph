@@ -19,7 +19,7 @@ CosmoSim::CosmoSim()
 
 # if USE_COSMOTRACE
   // integrating any light rays?
-  if( stoi(_config["ray_integrate"]) == 1 )
+  if( stoi(_config("ray_integrate", "0")) )
   {
     ray_integrate = true;
     ray_flip_step = stoi(_config["ray_flip_step"]);
