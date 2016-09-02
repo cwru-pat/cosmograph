@@ -107,35 +107,53 @@ void io_bssn_fields_snapshot(IOData *iodata, idx_t step,
   map_t & bssn_fields)
 {
   std::string step_str = std::to_string(step);
-  if( step % std::stoi(_config["IO_3D_grid_interval"]) == 0 )
+  bool output_step = false;
+  bool output_this_step = false;
+
+  output_step = ( std::stoi(_config("IO_3D_grid_interval", "0")) > 0 );
+  output_this_step = ( 0 == step % std::stoi(_config("IO_3D_grid_interval", "1")) );
+  if( output_step && output_this_step )
   {
-    io_dump_3dslice(iodata, *bssn_fields["DIFFphi_a"], "3D_DIFFphi." + step_str);
-    io_dump_3dslice(iodata, *bssn_fields["DIFFK_a"],   "3D_DIFFK."   + step_str);
-    io_dump_3dslice(iodata, *bssn_fields["ricci_a"],   "3D_ricci."   + step_str);
-    io_dump_3dslice(iodata, *bssn_fields["DIFFr_a"],   "3D_DIFFr."   + step_str);
-    io_dump_3dslice(iodata, *bssn_fields["DIFFalpha_a"],   "3D_DIFFalpha."   + step_str);
-#if USE_BSSN_SHIFT
-    io_dump_3dslice(iodata, *bssn_fields["beta1_a"],   "3D_beta1."   + step_str);
-#endif
+    for ( const auto &field_reg : bssn_fields ) {
+      // look for names of the form: "IO_3D_field_r"
+      if( std::stoi(_config( "IO_3D_" + field_reg.first , "0")) )
+      {
+        io_dump_3dslice(iodata, *bssn_fields[field_reg.first],
+          "3D_" + (field_reg.first) + step_str);
+      }
+    }
   }
   
-  if( step % std::stoi(_config["IO_2D_grid_interval"]) == 0 )
+  output_step = ( std::stoi(_config("IO_2D_grid_interval", "0")) > 0 );
+  output_this_step = ( 0 == step % std::stoi(_config("IO_2D_grid_interval", "1")) );
+  if( output_step && output_this_step )
   {
-    io_dump_2dslice(iodata, *bssn_fields["DIFFphi_a"], "2D_DIFFphi." + step_str);
-    io_dump_2dslice(iodata, *bssn_fields["DIFFK_a"],   "2D_DIFFK."   + step_str);
-    io_dump_2dslice(iodata, *bssn_fields["ricci_a"],   "2D_ricci."   + step_str);
-    io_dump_2dslice(iodata, *bssn_fields["DIFFr_a"],   "2D_DIFFr."   + step_str);
-    io_dump_2dslice(iodata, *bssn_fields["DIFFalpha_a"],   "2D_DIFFalpha."   + step_str);
+    for ( const auto &field_reg : bssn_fields ) {
+      // look for names of the form: "IO_2D_field_r"
+      if( std::stoi(_config( "IO_2D_" + field_reg.first , "0")) )
+      {
+        io_dump_2dslice(iodata, *bssn_fields[field_reg.first],
+          "2D_" + (field_reg.first) + step_str);
+      }
+    }
   }
   
-  if( step % std::stoi(_config["IO_1D_grid_interval"]) == 0 )
+  output_step = ( std::stoi(_config("IO_1D_grid_interval", "0")) > 0 );
+  output_this_step = ( 0 == step % std::stoi(_config("IO_1D_grid_interval", "1")) );
+  if( output_step && output_this_step )
   {
-    io_dump_strip(iodata, *bssn_fields["DIFFgamma11_a"], "1D_DIFFgamma11", 1, 0, 0);
-    io_dump_strip(iodata, *bssn_fields["DIFFphi_a"],     "1D_DIFFphi", 1, 0, 0);
-    io_dump_strip(iodata, *bssn_fields["DIFFK_a"],       "1D_DIFFK",   1, 0, 0);
-    io_dump_strip(iodata, *bssn_fields["ricci_a"],       "1D_ricci",   1, 0, 0);
-    io_dump_strip(iodata, *bssn_fields["DIFFr_a"],       "1D_DIFFr",   1, 0, 0);
-    io_dump_strip(iodata, *bssn_fields["DIFFalpha_a"],       "1D_DIFFalpha",   1, 0, 0);
+    for ( const auto &field_reg : bssn_fields ) {
+      // look for names of the form: "IO_2D_field_r"
+      if( std::stoi(_config( "IO_1D_" + field_reg.first , "0")) )
+      {
+        io_dump_strip(iodata, *bssn_fields[field_reg.first],
+          "1D_" + (field_reg.first),
+          std::stoi(_config( "IO_1D_" + field_reg.first + "_axis" , "1")),
+          std::stoi(_config( "IO_1D_" + field_reg.first + "_xoffset" , "0")),
+          std::stoi(_config( "IO_1D_" + field_reg.first + "_yoffset" , "0"))
+        );
+      }
+    }
   }
 }
 
@@ -148,7 +166,9 @@ void io_bssn_fields_snapshot(IOData *iodata, idx_t step,
 void io_bssn_fields_powerdump(IOData *iodata, idx_t step,
   map_t & bssn_fields, Fourier *fourier)
 {
-  if( step % std::stoi(_config["IO_powerspec_interval"]) == 0 )
+  bool output_step = ( std::stoi(_config("IO_powerspec_interval", "0")) > 0 );
+  bool output_this_step = (0 == step % std::stoi(_config("IO_powerspec_interval", "1")));
+  if( output_step && output_this_step )
   {
     fourier->powerDump(bssn_fields["DIFFphi_a"]->_array, iodata);
     fourier->powerDump(bssn_fields["DIFFr_a"]->_array, iodata);
@@ -160,39 +180,60 @@ void io_bssn_fields_powerdump(IOData *iodata, idx_t step,
  */
 void io_bssn_constraint_violation(IOData *iodata, idx_t step, BSSN * bssnSim)
 {
-  if( step % std::stoi(_config["IO_constraint_interval"]) == 0 )
+  bool output_step = ( std::stoi(_config("IO_constraint_interval", "0")) > 0 );
+  bool output_this_step = (0 == step % std::stoi(_config("IO_constraint_interval", "1")));
+  if( output_step && output_this_step )
   {
-    real_t H_calcs[7] = {0}, M_calcs[7] = {0};
+    real_t H_calcs[7] = {0}, M_calcs[7] = {0}, G_calcs[7] = {0},
+           A_calcs[7] = {0}, S_calcs[7] = {0};
 
     // Constraint Violation Calculations
-    bssnSim->setHamiltonianConstraintCalcs(H_calcs, false);
+    bssnSim->setConstraintCalcs(H_calcs, M_calcs, G_calcs,
+                                A_calcs, S_calcs);
+
     io_dump_value(iodata, H_calcs[4], "H_violations", "\t"); // mean(H/[H])
     io_dump_value(iodata, H_calcs[5], "H_violations", "\t"); // stdev(H/[H])
     io_dump_value(iodata, H_calcs[6], "H_violations", "\t"); // max(H/[H])
     io_dump_value(iodata, H_calcs[2], "H_violations", "\n"); // max(H)
 
-    bssnSim->setMomentumConstraintCalcs(M_calcs);
     io_dump_value(iodata, M_calcs[4], "M_violations", "\t"); // mean(M/[M])
     io_dump_value(iodata, M_calcs[5], "M_violations", "\t"); // stdev(M/[M])
     io_dump_value(iodata, M_calcs[6], "M_violations", "\t"); // max(M/[M])
     io_dump_value(iodata, M_calcs[2], "M_violations", "\n"); // max(M)
+
+    io_dump_value(iodata, G_calcs[4], "G_violations", "\t"); // mean(G/[G])
+    io_dump_value(iodata, G_calcs[5], "G_violations", "\t"); // stdev(G/[G])
+    io_dump_value(iodata, G_calcs[6], "G_violations", "\t"); // max(G/[G])
+    io_dump_value(iodata, G_calcs[2], "G_violations", "\n"); // max(G)
+
+    io_dump_value(iodata, A_calcs[4], "A_violations", "\t"); // mean(A/[A])
+    io_dump_value(iodata, A_calcs[5], "A_violations", "\t"); // stdev(A/[A])
+    io_dump_value(iodata, A_calcs[6], "A_violations", "\t"); // max(A/[A])
+    io_dump_value(iodata, A_calcs[2], "A_violations", "\n"); // max(A)
+
+    io_dump_value(iodata, S_calcs[4], "S_violations", "\t"); // mean(S/[S])
+    io_dump_value(iodata, S_calcs[5], "S_violations", "\t"); // stdev(S/[S])
+    io_dump_value(iodata, S_calcs[6], "S_violations", "\t"); // max(S/[S])
+    io_dump_value(iodata, S_calcs[2], "S_violations", "\n"); // max(S)
   }
 }
 
 /**
- * @brief Print constraint violation (useful for debugging?)
+ * @brief Print constraint violation (useful for debugging)
  */
 void io_print_constraint_violation(IOData *iodata, BSSN * bssnSim)
 {
-  real_t H_calcs[7] = {0}, M_calcs[7] = {0};
+  real_t H_calcs[7] = {0}, M_calcs[7] = {0}, G_calcs[7] = {0},
+         A_calcs[7] = {0}, S_calcs[7] = {0};
+  bssnSim->setConstraintCalcs(H_calcs, M_calcs, G_calcs,
+                              A_calcs, S_calcs);
+
   iodata->log( "\nConstraint Violation: " );
 
   // Constraint Violation Calculations
-  bssnSim->setHamiltonianConstraintCalcs(H_calcs, false);
   iodata->log( "Max |H/[H]|: " + stringify(H_calcs[6]) );
   iodata->log( "Max |H|: " + stringify(H_calcs[2]) );
 
-  bssnSim->setMomentumConstraintCalcs(M_calcs);
   iodata->log( "Max |M/[M]|: " + stringify(M_calcs[6]) );
   iodata->log( "Max |M|: " + stringify(M_calcs[2]) );
 }

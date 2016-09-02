@@ -55,7 +55,7 @@ fi
 echo ""
 echo "Running stability test"
 echo "----------------------"
-./cosmo ../config/stability_test.txt
+./cosmo ../config/AwA/stability_test_r1.txt
 if [ $? -ne 0 ]; then
     echo "Error: stability run failed!"
     exit 1
