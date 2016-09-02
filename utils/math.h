@@ -941,7 +941,7 @@ arr_t & field)
       break;
     case 3:
       return (
-	      - 1.0/60.0*field[H_INDEX(i,j,k-3,nx,ny,nz)]
+              - 1.0/60.0*field[H_INDEX(i,j,k-3,nx,ny,nz)]
         + 3.0/20.0*field[H_INDEX(i,j,k-2,nx,ny,nz)]
         - 3.0/4.0*field[H_INDEX(i,j,k-1,nx,ny,nz)]
         + 3.0/4.0*field[H_INDEX(i,j,k+1,nx,ny,nz)]
@@ -977,8 +977,8 @@ inline real_t derivative_Odx8(idx_t i, idx_t j, idx_t k,idx_t nx, idx_t ny, idx_
       break;
     case 3:
       return (
-	      ( 1.0/280.0*field[H_INDEX(i,j,k-4,nx,ny,nz)] - 1.0/280.0*field[H_INDEX(i,j,k+4,nx,ny,nz)] )
-	      - ( 4.0/105.0*field[H_INDEX(i,j,k-3,nx,ny,nz)] - 4.0/105.0*field[H_INDEX(i,j,k+3,nx,ny,nz)] )
+              ( 1.0/280.0*field[H_INDEX(i,j,k-4,nx,ny,nz)] - 1.0/280.0*field[H_INDEX(i,j,k+4,nx,ny,nz)] )
+              - ( 4.0/105.0*field[H_INDEX(i,j,k-3,nx,ny,nz)] - 4.0/105.0*field[H_INDEX(i,j,k+3,nx,ny,nz)] )
         + ( 1.0/5.0*field[H_INDEX(i,j,k-2,nx,ny,nz)] - 1.0/5.0*field[H_INDEX(i,j,k+2,nx,ny,nz)] )
         - ( 4.0/5.0*field[H_INDEX(i,j,k-1,nx,ny,nz)] - 4.0/5.0*field[H_INDEX(i,j,k+1,nx,ny,nz)] )
       )/dz;
@@ -1087,8 +1087,8 @@ inline real_t mixed_derivative_stencil_Odx6(idx_t i, idx_t j, idx_t k, idx_t nx,
         - field[H_INDEX(i+2,j,k-2,nx,ny,nz)] + field[H_INDEX(i+2,j,k+2,nx,ny,nz)]
         + field[H_INDEX(i-2,j,k-2,nx,ny,nz)] - field[H_INDEX(i-2,j,k+2,nx,ny,nz)]
       ) + (
-	   - field[H_INDEX(i+3,j,k-3,nx,ny,nz)] + field[H_INDEX(i+3,j,k+3,nx,ny,nz)]
-	   + field[H_INDEX(i-3,j,k-3,nx,ny,nz)] - field[H_INDEX(i-3,j,k+3,nx,ny,nz)]
+           - field[H_INDEX(i+3,j,k-3,nx,ny,nz)] + field[H_INDEX(i+3,j,k+3,nx,ny,nz)]
+           + field[H_INDEX(i-3,j,k-3,nx,ny,nz)] - field[H_INDEX(i-3,j,k+3,nx,ny,nz)]
       )
     )/360.0/dx/dz;
   }
@@ -1102,8 +1102,8 @@ inline real_t mixed_derivative_stencil_Odx6(idx_t i, idx_t j, idx_t k, idx_t nx,
         - field[H_INDEX(i,j+2,k-2,nx,ny,nz)] + field[H_INDEX(i,j+2,k+2,nx,ny,nz)]
         + field[H_INDEX(i,j-2,k-2,nx,ny,nz)] - field[H_INDEX(i,j-2,k+2,nx,ny,nz)]
       ) + (
-	   - field[H_INDEX(i,j+3,k-3,nx,ny,nz)] + field[H_INDEX(i,j+3,k+3,nx,ny,nz)]
-	   + field[H_INDEX(i,j-3,k-3,nx,ny,nz)] - field[H_INDEX(i,j-3,k+3,nx,ny,nz)]
+           - field[H_INDEX(i,j+3,k-3,nx,ny,nz)] + field[H_INDEX(i,j+3,k+3,nx,ny,nz)]
+           + field[H_INDEX(i,j-3,k-3,nx,ny,nz)] - field[H_INDEX(i,j-3,k+3,nx,ny,nz)]
       )
     )/360.0/dy/dz;
   }
@@ -1340,6 +1340,9 @@ inline real_t double_derivative_stencil_Odx8(idx_t i, idx_t j, idx_t k, idx_t nx
  * @param i x-index
  * @param j x-index
  * @param k x-index
+ * @param nx x-grid number
+ * @param ny y-grid number
+ * @param nz z-grid number
  * @param d direction of derivative
  * @param field field to differentiate
  * @return derivative
@@ -1357,6 +1360,9 @@ inline real_t derivative(idx_t i, idx_t j, idx_t k, idx_t nx, idx_t ny, idx_t nz
  * @param i x-index
  * @param j x-index
  * @param k x-index
+ * @param nx x-grid number
+ * @param ny y-grid number
+ * @param nz z-grid number
  * @param d1 direction of derivative in one direction
  * @param d2 direction of derivative in another direction
  * @param field field to differentiate
@@ -1374,6 +1380,9 @@ inline real_t mixed_derivative_stencil(idx_t i, idx_t j, idx_t k, idx_t nx, idx_
  * @param i x-index
  * @param j x-index
  * @param k x-index
+ * @param nx x-grid number
+ * @param ny y-grid number
+ * @param nz z-grid number
  * @param d direction of 2nd order derivative to compute
  * @param field field to differentiate
  * @return derivative
@@ -1390,6 +1399,9 @@ inline real_t double_derivative_stencil(idx_t i, idx_t j, idx_t k, idx_t nx, idx
  * @param i x-index
  * @param j x-index
  * @param k x-index
+ * @param nx x-grid number
+ * @param ny y-grid number
+ * @param nz z-grid number
  * @param d1 direction of first derivative
  * @param d2 direction of second derivative
  * @param field field to differentiate
@@ -1417,6 +1429,9 @@ inline real_t double_derivative(idx_t i, idx_t j, idx_t k, idx_t nx, idx_t ny, i
  * @param i x-index
  * @param j x-index
  * @param k x-index
+ * @param nx x-grid number
+ * @param ny y-grid number
+ * @param nz z-grid number
  * @return laplacian
  */
 inline real_t laplacian(idx_t i, idx_t j, idx_t k, idx_t nx, idx_t ny, idx_t nz, arr_t & field)

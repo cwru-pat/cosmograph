@@ -492,12 +492,18 @@ void scalar_ic_set_multigrid(BSSN * bssn, Scalar * scalar, IOData * iodata)
   LOOP3(i, j, k)
   {
     idx_t idx = INDEX(i,j,k);
-    phi_ini[0][idx] = 2;
+    phi_ini[0][idx] = std::pow(-avg1/avg5,1.0/4.0);
   }
 
   multigrid.VCycles(std::stoi(_config["num_v_cycles"]));
 
-  phi_a = phi_p;
+  LOOP3(i,j,k)
+  {
+    idx_t idx = INDEX(i, j, k);
+    phi_p[idx] = std::log(fabs(phi_p[idx]));
+    phi_a[idx] = phi_p[idx];
+  }
+  
   
   
   return;
