@@ -47,6 +47,11 @@ std::string ConfigParser::getFileName()
   return fileName;
 }
 
+/**
+ * @brief      Get value of required parameter
+ *
+ * @param[in]  param  parameter name string
+ */
 std::string ConfigParser::operator[](std::string param)
 {
   if( config.find(param) == config.end() )
@@ -55,6 +60,23 @@ std::string ConfigParser::operator[](std::string param)
       << "` is required, but was not set!"
       << " Please set this in the configuration file, " << fileName << ".\n";
     throw -1;
+  }
+
+  return config[param];
+}
+
+/**
+ * @brief      Get value of parameter; use default if not set
+ *             
+ * @param param  parameter name string
+ * @param default_val  default_val to use if param was not set
+ */
+std::string ConfigParser::operator()(std::string param,
+  std::string default_val)
+{
+  if( config.find(param) == config.end() )
+  {
+    return default_val;
   }
 
   return config[param];

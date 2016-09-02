@@ -1,0 +1,12 @@
+steps = 1000
+
+omp_num_threads = 16
+
+simulation_type = vacuum
+ic_type = stability
+
+output_dir = stability_test
+dump_file = calculated
+
+IO_constraint_interval = 10
+IO_bssnstats_interval = 10

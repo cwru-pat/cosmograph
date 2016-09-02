@@ -380,48 +380,6 @@
 #define BSSN_DT_GAMMAI_SHIFT(I) 0.0
 #endif
 
-// Momentum constraint with index lowered using the conformal metric:
-// M_I == \bar{gamma}_{IJ} M^J
-#define BSSN_MI(I) exp(6.0*bd->phi)*( \
-    - 2.0/3.0*bd->d##I##K \
-    /* Note: S_I was lowered with the full metric, not conformal. */ \
-    - 8*PI*(bd->S##I) \
-    - 2.0/3.0*2.0*bd->d##I##theta \
-    + 6.0*( \
-      bd->gammai11*bd->A1##I*bd->d1phi + bd->gammai21*bd->A2##I*bd->d1phi + bd->gammai31*bd->A3##I*bd->d1phi \
-      + bd->gammai12*bd->A1##I*bd->d2phi + bd->gammai22*bd->A2##I*bd->d2phi + bd->gammai32*bd->A3##I*bd->d2phi \
-      + bd->gammai13*bd->A1##I*bd->d3phi + bd->gammai23*bd->A2##I*bd->d3phi + bd->gammai33*bd->A3##I*bd->d3phi \
-    ) + ( \
-      /* (gamma^jk D_j A_ki) */ \
-      bd->gammai11*derivative(bd->i, bd->j, bd->k, 1, A1##I->_array_a) + bd->gammai12*derivative(bd->i, bd->j, bd->k, 2, A1##I->_array_a) + bd->gammai13*derivative(bd->i, bd->j, bd->k, 3, A1##I->_array_a) \
-      + bd->gammai21*derivative(bd->i, bd->j, bd->k, 1, A2##I->_array_a) + bd->gammai22*derivative(bd->i, bd->j, bd->k, 2, A2##I->_array_a) + bd->gammai23*derivative(bd->i, bd->j, bd->k, 3, A2##I->_array_a) \
-      + bd->gammai31*derivative(bd->i, bd->j, bd->k, 1, A3##I->_array_a) + bd->gammai32*derivative(bd->i, bd->j, bd->k, 2, A3##I->_array_a) + bd->gammai33*derivative(bd->i, bd->j, bd->k, 3, A3##I->_array_a) \
-      - bd->Gamma1*bd->A1##I - bd->Gamma2*bd->A2##I - bd->Gamma3*bd->A3##I \
-      - bd->GL11##I*bd->Acont11 - bd->GL21##I*bd->Acont21 - bd->GL31##I*bd->Acont31 \
-      - bd->GL12##I*bd->Acont12 - bd->GL22##I*bd->Acont22 - bd->GL32##I*bd->Acont32 \
-      - bd->GL13##I*bd->Acont13 - bd->GL23##I*bd->Acont23 - bd->GL33##I*bd->Acont33 \
-    ) \
-  )
-
-#define BSSN_MI_SCALE(I) exp(6.0*bd->phi)*( \
-    fabs(2.0/3.0*derivative(bd->i, bd->j, bd->k, I, DIFFK->_array_a)) \
-    + fabs(8*PI*(bd->S##I)) \
-    + 6.0*fabs( \
-      bd->gammai11*bd->A1##I*bd->d1phi + bd->gammai21*bd->A2##I*bd->d1phi + bd->gammai31*bd->A3##I*bd->d1phi \
-      + bd->gammai12*bd->A1##I*bd->d2phi + bd->gammai22*bd->A2##I*bd->d2phi + bd->gammai32*bd->A3##I*bd->d2phi \
-      + bd->gammai13*bd->A1##I*bd->d3phi + bd->gammai23*bd->A2##I*bd->d3phi + bd->gammai33*bd->A3##I*bd->d3phi \
-    ) + fabs( \
-      /* (gamma^jk D_j A_ki) */ \
-      bd->gammai11*derivative(bd->i, bd->j, bd->k, 1, A1##I->_array_a) + bd->gammai12*derivative(bd->i, bd->j, bd->k, 2, A1##I->_array_a) + bd->gammai13*derivative(bd->i, bd->j, bd->k, 3, A1##I->_array_a) \
-      + bd->gammai21*derivative(bd->i, bd->j, bd->k, 1, A2##I->_array_a) + bd->gammai22*derivative(bd->i, bd->j, bd->k, 2, A2##I->_array_a) + bd->gammai23*derivative(bd->i, bd->j, bd->k, 3, A2##I->_array_a) \
-      + bd->gammai31*derivative(bd->i, bd->j, bd->k, 1, A3##I->_array_a) + bd->gammai32*derivative(bd->i, bd->j, bd->k, 2, A3##I->_array_a) + bd->gammai33*derivative(bd->i, bd->j, bd->k, 3, A3##I->_array_a) \
-      - bd->Gamma1*bd->A1##I - bd->Gamma2*bd->A2##I - bd->Gamma3*bd->A3##I \
-      - bd->GL11##I*bd->Acont11 - bd->GL21##I*bd->Acont21 - bd->GL31##I*bd->Acont31 \
-      - bd->GL12##I*bd->Acont12 - bd->GL22##I*bd->Acont22 - bd->GL32##I*bd->Acont32 \
-      - bd->GL13##I*bd->Acont13 - bd->GL23##I*bd->Acont23 - bd->GL33##I*bd->Acont33 \
-    ) \
-  )
-
 /*
  * Full metric calcs
  */
@@ -515,6 +473,109 @@
       + bd->gamma##I##K*bd->d##J##phi \
       - bd->gamma##J##K*bd->d##I##phi \
   ) )
+
+/*
+ * Constraint calculation macros
+ */
+
+// Momentum constraint with index lowered using the conformal metric:
+// M_I == \bar{gamma}_{IJ} M^J
+#define BSSN_MI(I) exp(6.0*bd->phi)*( \
+    - 2.0/3.0*bd->d##I##K \
+    /* Note: S_I was lowered with the full metric, not conformal. */ \
+    - 8*PI*(bd->S##I) \
+    - 2.0/3.0*2.0*bd->d##I##theta \
+    + 6.0*( \
+      bd->gammai11*bd->A1##I*bd->d1phi + bd->gammai21*bd->A2##I*bd->d1phi + bd->gammai31*bd->A3##I*bd->d1phi \
+      + bd->gammai12*bd->A1##I*bd->d2phi + bd->gammai22*bd->A2##I*bd->d2phi + bd->gammai32*bd->A3##I*bd->d2phi \
+      + bd->gammai13*bd->A1##I*bd->d3phi + bd->gammai23*bd->A2##I*bd->d3phi + bd->gammai33*bd->A3##I*bd->d3phi \
+    ) + ( \
+      /* (gamma^jk D_j A_ki) */ \
+      bd->gammai11*derivative(bd->i, bd->j, bd->k, 1, A1##I->_array_a) + bd->gammai12*derivative(bd->i, bd->j, bd->k, 2, A1##I->_array_a) + bd->gammai13*derivative(bd->i, bd->j, bd->k, 3, A1##I->_array_a) \
+      + bd->gammai21*derivative(bd->i, bd->j, bd->k, 1, A2##I->_array_a) + bd->gammai22*derivative(bd->i, bd->j, bd->k, 2, A2##I->_array_a) + bd->gammai23*derivative(bd->i, bd->j, bd->k, 3, A2##I->_array_a) \
+      + bd->gammai31*derivative(bd->i, bd->j, bd->k, 1, A3##I->_array_a) + bd->gammai32*derivative(bd->i, bd->j, bd->k, 2, A3##I->_array_a) + bd->gammai33*derivative(bd->i, bd->j, bd->k, 3, A3##I->_array_a) \
+      - bd->Gamma1*bd->A1##I - bd->Gamma2*bd->A2##I - bd->Gamma3*bd->A3##I \
+      - bd->GL11##I*bd->Acont11 - bd->GL21##I*bd->Acont21 - bd->GL31##I*bd->Acont31 \
+      - bd->GL12##I*bd->Acont12 - bd->GL22##I*bd->Acont22 - bd->GL32##I*bd->Acont32 \
+      - bd->GL13##I*bd->Acont13 - bd->GL23##I*bd->Acont23 - bd->GL33##I*bd->Acont33 \
+    ) \
+  )
+
+#define BSSN_MI_SCALE(I) exp(6.0*bd->phi)*( \
+    fabs(2.0/3.0*derivative(bd->i, bd->j, bd->k, I, DIFFK->_array_a)) \
+    + fabs(8*PI*(bd->S##I)) \
+    + 6.0*fabs( \
+      bd->gammai11*bd->A1##I*bd->d1phi + bd->gammai21*bd->A2##I*bd->d1phi + bd->gammai31*bd->A3##I*bd->d1phi \
+      + bd->gammai12*bd->A1##I*bd->d2phi + bd->gammai22*bd->A2##I*bd->d2phi + bd->gammai32*bd->A3##I*bd->d2phi \
+      + bd->gammai13*bd->A1##I*bd->d3phi + bd->gammai23*bd->A2##I*bd->d3phi + bd->gammai33*bd->A3##I*bd->d3phi \
+    ) + fabs( \
+      /* (gamma^jk D_j A_ki) */ \
+      bd->gammai11*derivative(bd->i, bd->j, bd->k, 1, A1##I->_array_a) + bd->gammai12*derivative(bd->i, bd->j, bd->k, 2, A1##I->_array_a) + bd->gammai13*derivative(bd->i, bd->j, bd->k, 3, A1##I->_array_a) \
+      + bd->gammai21*derivative(bd->i, bd->j, bd->k, 1, A2##I->_array_a) + bd->gammai22*derivative(bd->i, bd->j, bd->k, 2, A2##I->_array_a) + bd->gammai23*derivative(bd->i, bd->j, bd->k, 3, A2##I->_array_a) \
+      + bd->gammai31*derivative(bd->i, bd->j, bd->k, 1, A3##I->_array_a) + bd->gammai32*derivative(bd->i, bd->j, bd->k, 2, A3##I->_array_a) + bd->gammai33*derivative(bd->i, bd->j, bd->k, 3, A3##I->_array_a) \
+      - bd->Gamma1*bd->A1##I - bd->Gamma2*bd->A2##I - bd->Gamma3*bd->A3##I \
+      - bd->GL11##I*bd->Acont11 - bd->GL21##I*bd->Acont21 - bd->GL31##I*bd->Acont31 \
+      - bd->GL12##I*bd->Acont12 - bd->GL22##I*bd->Acont22 - bd->GL32##I*bd->Acont32 \
+      - bd->GL13##I*bd->Acont13 - bd->GL23##I*bd->Acont23 - bd->GL33##I*bd->Acont33 \
+    ) \
+  )
+
+#define BSSN_GI_CALC(I) \
+  bd->Gamma##I - bd->gammai11*bd->G##I##11 - bd->gammai22*bd->G##I##22 - bd->gammai33*bd->G##I##33 \
+   - 2.0*(bd->gammai12*bd->G##I##12 + bd->gammai13*bd->G##I##13 + bd->gammai23*bd->G##I##23);
+
+#define BSSN_GI_SCALE(I) \
+  fabs(bd->Gamma##I) + fabs(bd->gammai11*bd->G##I##11 - bd->gammai22*bd->G##I##22 - bd->gammai33*bd->G##I##33 \
+   - 2.0*(bd->gammai12*bd->G##I##12 + bd->gammai13*bd->G##I##13 + bd->gammai23*bd->G##I##23));
+
+
+#define BSSN_NORMALIZE_STDEV(C) \
+  stdev_##C = sqrt(stdev_##C/(POINTS-1.0)); \
+  stdev_##C##_scaled = sqrt(stdev_##C##_scaled/(POINTS-1.0));
+
+#define BSSN_NORMALIZE_MEAN(C) \
+  mean_##C /= POINTS; \
+  mean_##C##_scaled /= POINTS;
+
+#define BSSN_INITIALIZE_CONSTRAINT_STAT_VARS(C) \
+  real_t mean_##C = 0.0, stdev_##C = 0.0, max_##C = 0.0; \
+  real_t mean_##C##_scale = 0.0; \
+  real_t mean_##C##_scaled = 0.0, stdev_##C##_scaled = 0.0,\
+         max_##C##_scaled = 0.0;
+
+#define BSSN_STORE_CONSTRAINT_STAT_VARS(C) \
+  C##_values[0] = mean_##C; \
+  C##_values[1] = stdev_##C; \
+  C##_values[2] = max_##C; \
+  C##_values[3] = mean_##C##_scale; \
+  C##_values[4] = mean_##C##_scaled; \
+  C##_values[5] = stdev_##C##_scaled; \
+  C##_values[6] = max_##C##_scaled;
+
+#define BSSN_COMPUTE_CONSTRAINT_STAT_VARS(C, calcfn, scalefn) \
+  real_t C##_val = calcfn(&bd); \
+  real_t C##_scale = scalefn(&bd); \
+  real_t C##_scaled = C##_val/C##_scale;
+
+#define BSSN_COMPUTE_CONSTRAINT_STAT_VARS_VEC(C, calcfn, scalefn) \
+  real_t C##_val = sqrt( pw2(calcfn(&bd, 1)) + pw2(calcfn(&bd, 2)) + pw2(calcfn(&bd, 3)) ); \
+  real_t C##_scale = sqrt( pw2(scalefn(&bd, 1)) + pw2(scalefn(&bd, 2)) + pw2(scalefn(&bd, 3)) ); \
+  real_t C##_scaled = C##_val/C##_scale;
+
+#define BSSN_COMPUTE_CONSTRAINT_MEAN_VARS(C) \
+  mean_##C += C##_val; \
+  mean_##C##_scale += C##_scale; \
+  mean_##C##_scaled += C##_scaled;
+
+#define BSSN_COMPUTE_CONSTRAINT_STDEV_VARS(C) \
+  stdev_##C += pw2(C##_val - mean_##C); \
+  stdev_##C##_scaled += pw2(C##_scaled - mean_##C##_scaled);
+
+#define BSSN_COMPUTE_CONSTRAINT_MAXES(C) \
+  if(fabs(C##_val) > max_##C) \
+    max_##C = fabs(C##_val); \
+  if(fabs(C##_scaled) > max_##C##_scaled) \
+    max_##C##_scaled = fabs(C##_scaled);
 
 /*
  * Enforce standard ordering of indexes for tensor components

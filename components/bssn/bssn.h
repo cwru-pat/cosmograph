@@ -123,15 +123,23 @@ public:
     #endif
 
   /* constraint violation calculations */
-    void setHamiltonianConstraintCalcs(real_t H_values[7], bool reset_bd);
-    real_t hamiltonianConstraintCalc(idx_t idx);
-    real_t hamiltonianConstraintScale(idx_t idx);
+    void setConstraintCalcs(real_t H_values[7], real_t M_values[7],
+      real_t G_values[7], real_t A_values[7], real_t S_values[7]);
 
-    void setMomentumConstraintCalcs(real_t M_values[7]);
+    real_t hamiltonianConstraintCalc(BSSNData *bd);
+    real_t hamiltonianConstraintScale(BSSNData *bd);
+
     real_t momentumConstraintCalc(BSSNData *bd, idx_t d);
     real_t momentumConstraintScale(BSSNData *bd, idx_t d);
 
-    real_t metricConstraintTotalMag();
+    real_t christoffelConstraintCalc(BSSNData *bd, idx_t d);
+    real_t christoffelConstraintScale(BSSNData *bd, idx_t d);
+
+    real_t AijTFConstraintCalc(BSSNData *bd);
+    real_t AijTFConstraintScale(BSSNData *bd);
+
+    real_t unitDetConstraintCalc(BSSNData *bd);
+    real_t unitDetConstraintScale(BSSNData *bd);
 
 # if USE_COSMOTRACE
   /* Raytracing functionality */

@@ -65,6 +65,10 @@ void bssn_ic_awa_stability(BSSN * bssn)
   }
 }
 
+/**
+ * @brief Initialize with a "linear" wave propagating in the x-direction.
+ * @details AwA test.
+ */
 void bssn_ic_awa_linear_wave(BSSN * bssn)
 {
   idx_t i, j, k;
@@ -85,6 +89,11 @@ void bssn_ic_awa_linear_wave(BSSN * bssn)
   }
 }
 
+/**
+ * @brief Initialize with a "linear" wave propagating in the x-direction,
+ * on top of a deSitter spacetime.
+ * @details Solution should behave, at linear order, as a damped wave equation.
+ */
 void bssn_ic_awa_linear_wave_desitter(BSSN * bssn)
 {
   bssn_ic_awa_linear_wave(bssn);
@@ -103,5 +112,11 @@ void bssn_ic_awa_linear_wave_desitter(BSSN * bssn)
     K_p[NP_INDEX(i,j,k)] = -sqrt(24.0*PI*rho);
   }
 }
+
+void bssn_ic_awa_gauge_wave(BSSN * bssn)
+{
+  // TODO
+}
+
 
 } // namespace cosmo

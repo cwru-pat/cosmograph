@@ -48,7 +48,12 @@ class CosmoArray
 
       pts = nx*ny*nz;
 
-      _array = new RT[pts];
+      int status = posix_memalign((void **) &_array, 64, pts * sizeof(RT));
+      if(status != 0)
+      {
+        throw -1;
+      }
+
       #pragma omp parallel for
       for(IT i=0; i<pts; ++i)
       {
