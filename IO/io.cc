@@ -249,8 +249,9 @@ void io_print_constraint_violation(IOData *iodata, BSSN * bssnSim)
 void io_bssn_dump_statistics(IOData *iodata, idx_t step,
   map_t & bssn_fields, FRW<real_t> *frw)
 {
-  /* no output if not @ correct interval */
-  if( step % std::stoi(_config["IO_bssnstats_interval"]) != 0 )
+  bool output_step = ( std::stoi(_config("IO_bssnstats_interval", "0")) > 0 );
+  bool output_this_step = (0 == step % std::stoi(_config("IO_bssnstats_interval", "1")));
+  if( !output_step || !output_this_step )
     return;
 
   std::string filename = _config["dump_file"];
@@ -385,19 +386,28 @@ void io_raytrace_dump(IOData *iodata, idx_t step,
 void io_scalar_snapshot(IOData *iodata, idx_t step, Scalar * scalar)
 {
   std::string step_str = std::to_string(step);
-  if( step % std::stoi(_config["IO_3D_grid_interval"]) == 0 )
+  bool output_step = false;
+  bool output_this_step = false;
+
+  output_step = ( std::stoi(_config("IO_3D_grid_interval", "0")) > 0 );
+  output_this_step = ( 0 == step % std::stoi(_config("IO_3D_grid_interval", "1")) );
+  if( output_step && output_this_step )
   {
     io_dump_3dslice(iodata, scalar->phi._array_a, "3D_scalar_phi." + step_str);
     io_dump_3dslice(iodata, scalar->Pi._array_a, "3D_scalar_Pi." + step_str);
   }
   
-  if( step % std::stoi(_config["IO_2D_grid_interval"]) == 0 )
+  output_step = ( std::stoi(_config("IO_2D_grid_interval", "0")) > 0 );
+  output_this_step = ( 0 == step % std::stoi(_config("IO_2D_grid_interval", "1")) );
+  if( output_step && output_this_step )
   {
     io_dump_2dslice(iodata, scalar->phi._array_a, "2D_scalar_phi." + step_str);
     io_dump_2dslice(iodata, scalar->Pi._array_a, "2D_scalar_Pi." + step_str);
   }
   
-  if( step % std::stoi(_config["IO_1D_grid_interval"]) == 0 )
+  output_step = ( std::stoi(_config("IO_1D_grid_interval", "0")) > 0 );
+  output_this_step = ( 0 == step % std::stoi(_config("IO_1D_grid_interval", "1")) );
+  if( output_step && output_this_step )
   {
     io_dump_strip(iodata, scalar->phi._array_a, "1D_scalar_phi", 1, NY/2, NZ/2);
     io_dump_strip(iodata, scalar->Pi._array_a, "1D_scalar_Pi", 1, NY/2, NZ/2);

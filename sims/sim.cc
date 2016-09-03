@@ -57,7 +57,7 @@ void CosmoSim::simInit()
   // initialize raytracing if needed
   if(ray_integrate)
   {
-    if(USE_HARMONIC_ALPHA) {
+    if(USE_HARMONIC_ALPHA) { // TODO: fix
       iodata->log("Error - not using synchronous gauge! You must use it for raytracing sims.");
       iodata->log("Please change this setting in cosmo_macros.h and recompile.");
       throw -1;

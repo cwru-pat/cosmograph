@@ -23,9 +23,10 @@ bssn_func_t bssn_gauge_get_lapse_fn(std::string gauge)
   std::map<std::string, bssn_func_t> lapse_functions;
   lapse_functions["static"] = bssn_gauge_static;
   lapse_functions["harmonic"] = bssn_gauge_alpha_harmonic;
-  lapse_functions["anharmonic"] = bssn_gauge_alpha_anharmonic;
   lapse_functions["1pluslog"] = bssn_gauge_alpha_1pluslog;
   lapse_functions["dampedwave"] = bssn_gauge_alpha_dampedwave;
+  // TODO: gauges need more work:
+  lapse_functions["anharmonic"] = bssn_gauge_alpha_anharmonic;
   lapse_functions["conformalsync"] = bssn_gauge_alpha_conformalsync;
 
   if( lapse_functions.find(gauge) == lapse_functions.end() )
@@ -50,11 +51,8 @@ bssn_func_t bssn_gauge_get_shift_fn(std::string gauge, int i)
   if(gauge == "") return bssn_gauge_static;
   // No map here; only a couple possible shift functions for now
 
-  if(!USE_BSSN_SHIFT)
-  {
-    std::cerr << "Unable to use shift, code was not compiled with shift option.";
-    throw -1;
-  }
+
+# if USE_BSSN_SHIFT
 
   if(gauge == "gammadriver")
   {
@@ -80,6 +78,12 @@ bssn_func_t bssn_gauge_get_shift_fn(std::string gauge, int i)
   // no gauge found?
   std::cerr << "Shift gauge `" << gauge << "` not found!";
   throw -1;
+
+# else // from if USE_BSSN_SHIFT
+  std::cerr << "Unable to use shift, code was not compiled with shift option.";
+  throw -1;
+# endif
+
 }
 
 /**
@@ -111,11 +115,8 @@ real_t bssn_gauge_alpha_anharmonic(BSSNData *bd)
 
 real_t bssn_gauge_alpha_1pluslog(BSSNData *bd)
 {
-# if USE_BSSN_SHIFT
   return -2.0*bd->alpha*( bd->K  )*GD_C
       + bd->beta1*bd->d1a + bd->beta2*bd->d2a + bd->beta3*bd->d3a;
-# endif
-  return -2.0*bd->alpha*( bd->K  )*GD_C;
 }
 
 real_t bssn_gauge_alpha_dampedwave(BSSNData *bd)
@@ -132,7 +133,7 @@ real_t bssn_gauge_alpha_conformalsync(BSSNData *bd)
 
 /** Shift gauge functions **/
 
-
+#if USE_BSSN_SHIFT
 #if USE_GAMMA_DRIVER
 real_t bssn_gauge_beta1_gammadriver(BSSNData *bd)
 {
@@ -187,6 +188,6 @@ real_t bssn_gauge_beta3_dampedwave(BSSNData *bd)
         )
       );
 }
-
+#endif
 
 } // namespace cosmo
