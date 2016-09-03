@@ -38,7 +38,6 @@ void bssn_ic_awa_stability(BSSN * bssn)
   arr_t & Gamma1_p = *bssn->fields["Gamma1_p"];
   arr_t & Gamma2_p = *bssn->fields["Gamma2_p"];
   arr_t & Gamma3_p = *bssn->fields["Gamma3_p"];
-  arr_t & DIFFalpha_p = *bssn->fields["DIFFalpha_p"];
 
   LOOP3(i, j, k)
   {
@@ -61,7 +60,6 @@ void bssn_ic_awa_stability(BSSN * bssn)
     Gamma1_p[idx]  = dist(gen);
     Gamma2_p[idx]  = dist(gen);
     Gamma3_p[idx]  = dist(gen);
-    DIFFalpha_p[idx]  = dist(gen);
   }
 }
 
