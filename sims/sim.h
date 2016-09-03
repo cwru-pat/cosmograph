@@ -53,7 +53,7 @@ public:
 # if USE_COSMOTRACE
   void runRayTraceStep();
   void outputRayTraceStep();
-#endif
+# endif
 
   void prepBSSNOutput();
   void outputStateInformation();

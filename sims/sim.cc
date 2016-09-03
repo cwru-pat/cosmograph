@@ -1,6 +1,7 @@
 #include "sim.h"
 #include "../ICs/ICs.h"
 #include "../cosmo_globals.h"
+#include "../components/bssn/bssn_gauge_fns.h"
 
 namespace cosmo
 {
@@ -45,7 +46,7 @@ CosmoSim::~CosmoSim()
 void CosmoSim::simInit()
 {
   // Always use GR fields
-  bssnSim = new BSSN();
+  bssnSim = new BSSN(_config("lapse", ""), _config("shift", ""));
 
   // FFT helper
   fourier = new Fourier();

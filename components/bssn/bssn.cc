@@ -10,8 +10,18 @@ namespace cosmo
  * @details Allocate memory for fields, add fields to map,
  * create reference FRW integrator, and call BSSN::init.
  */
-BSSN::BSSN()
+BSSN::BSSN(std::string lapse_fn, std::string shift_fn)
 {
+  setLapseEvFn(bssn_gauge_get_lapse_fn(lapse_fn));
+# if USE_BSSN_SHIFT
+  setBeta1EvFn(bssn_gauge_get_shift_fn(shift_fn, 1));
+  setBeta2EvFn(bssn_gauge_get_shift_fn(shift_fn, 2));
+  setBeta3EvFn(bssn_gauge_get_shift_fn(shift_fn, 3));
+# endif
+
+  // FRW reference integrator
+  frw = new FRW<real_t> (0.0, 0.0);
+
   // BSSN fields
   BSSN_APPLY_TO_FIELDS(RK4_ARRAY_ALLOC)
   BSSN_APPLY_TO_FIELDS(RK4_ARRAY_ADDMAP)
@@ -23,9 +33,6 @@ BSSN::BSSN()
   // any additional arrays for calcuated quantities
   BSSN_APPLY_TO_GEN1_EXTRAS(GEN1_ARRAY_ALLOC)
   BSSN_APPLY_TO_GEN1_EXTRAS(GEN1_ARRAY_ADDMAP)
-
-  // FRW reference integrator
-  frw = new FRW<real_t> (0.0, 0.0);
 
   init();
 }
@@ -722,40 +729,8 @@ real_t BSSN::ev_DIFFphi(BSSNData *bd)
 
 real_t BSSN::ev_DIFFalpha(BSSNData *bd)
 {
-
-# if USE_ANHARMONIC_ALPHA
-    //<<< TODO: generalize K "offset" in harmonic gauge.
-    // Ref. showing presence of offset:
-    // http://relativity.livingreviews.org/open?pubNo=lrr-2012-9&amp;page=articlesu7.html
-    // for FRW (+ perturbation) sims, having no offset leads to lapse blowing up?
-    real_t K_FRW_0 = -3.0;
-    return 1.0*pw2(bd->alpha)*( bd->K - K_FRW_0 )
-      - KO_dissipation_Q(bd->i, bd->j, bd->k, DIFFalpha->_array_a);
-#endif
-
-# if USE_HARMONIC_ALPHA
-    return -1.0*pw2(bd->alpha)*( bd->K - bd->K0 ) // TODO: Generalize K0
-      - KO_dissipation_Q(bd->i, bd->j, bd->k, DIFFalpha->_array_a);
-# endif
-
-# if USE_1PLUS_LOG_ALPHA
-    return -2.0*bd->alpha*( bd->K  ) * GD_C
-  # if USE_BSSN_SHIFT
-      + bd->beta1 * bd->d1a + bd->beta2 * bd->d2a + bd->beta3 * bd->d3a
-  #endif
-      - KO_dissipation_Q(bd->i, bd->j, bd->k, DIFFalpha->_array_a);
-# endif
-
-# if USE_DAMPED_WAVE_ALPHA
-    return pw2(bd->alpha) * (DW_MU_L * (12.0 * bd->phi * DW_P - log(bd->alpha)) - bd->K)
-      + bd->beta1 * bd->d1a + bd->beta2 * bd->d2a + bd->beta3 * bd->d3a;
-# endif
-    
-# if USE_CONFORMAL_SYNC_ALPHA
-    return -1.0/3.0*bd->alpha*bd->K_FRW;
-# endif
-
-  return 0.0;
+  return (*ev_DIFFalpha_ptr)(bd)
+    - KO_dissipation_Q(bd->i, bd->j, bd->k, DIFFalpha->_array_a);
 }
 
 #if USE_Z4c_DAMPING
@@ -773,55 +748,17 @@ real_t BSSN::ev_theta(BSSNData *bd)
 #if USE_BSSN_SHIFT
 real_t BSSN::ev_beta1(BSSNData *bd)
 {
-#if USE_GAMMA_DRIVER
-  return bd->auxB1;
-#endif
-#if USE_DAMPED_WAVE
-  return bd->beta1 * bd->d1beta1 + bd->beta2 * bd->d2beta1 + bd->beta3 * bd->d3beta1
-    - DW_MU_S * bd->alpha * bd->beta1
-    + bd->alpha * ( -DW_MU_L * (12.0 * bd->phi * DW_P - log(bd->alpha)) * bd->beta1
-		    + exp(-4.0 * bd->phi)*(- bd->gammai11 * bd->d1a - bd->gammai12 * bd->d2a - bd->gammai13 * bd->d3a
-		    + bd->alpha  *
-		    (bd->Gamma1
-		     -2.0 * (bd->gammai11 * bd->d1phi + bd->gammai12 * bd->d2phi + bd->gammai13 * bd->d3phi) )));
-#endif
-  return 0.0;
+  return (*ev_beta1_ptr)(bd);
 }
 
 real_t BSSN::ev_beta2(BSSNData *bd)
 {
-#if USE_GAMMA_DRIVER
-  return bd->auxB2;
-#endif
-#if USE_DAMPED_WAVE
-  return bd->beta1 * bd->d1beta2 + bd->beta2 * bd->d2beta2 + bd->beta3 * bd->d3beta2
-    - DW_MU_S * bd->alpha * bd->beta2
-    + bd->alpha * ( -DW_MU_L * (12.0 * bd->phi * DW_P - log(bd->alpha)) * bd->beta2
-		    + exp(-4.0 * bd->phi)*(- bd->gammai21 * bd->d1a - bd->gammai22 * bd->d2a - bd->gammai23 * bd->d3a
-		    + bd->alpha  *
-		    (bd->Gamma2
-		     -2.0 * (bd->gammai21 * bd->d1phi + bd->gammai22 * bd->d2phi + bd->gammai23 * bd->d3phi) )));
-#endif
-
-  return 0.0;
+  return (*ev_beta2_ptr)(bd);
 }
 
 real_t BSSN::ev_beta3(BSSNData *bd)
 {
-#if USE_GAMMA_DRIVER
-  return bd->auxB3 ;
-#endif
-#if USE_DAMPED_WAVE
-  return bd->beta1 * bd->d1beta3 + bd->beta2 * bd->d2beta3 + bd->beta3 * bd->d3beta3
-    - DW_MU_S * bd->alpha * bd->beta3
-    + bd->alpha * ( -DW_MU_L * (12.0 * bd->phi * DW_P - log(bd->alpha)) * bd->beta3
-		    + exp(-4.0 * bd->phi)*(- bd->gammai31 * bd->d1a - bd->gammai32 * bd->d2a - bd->gammai33 * bd->d3a
-		    + bd->alpha  *
-		    (bd->Gamma3
-		     -2.0 * (bd->gammai31 * bd->d1phi + bd->gammai32 * bd->d2phi + bd->gammai33 * bd->d3phi) )));
-#endif
-
-  return 0.0;
+  return (*ev_beta3_ptr)(bd);
 }
 
 real_t BSSN::ev_expN(BSSNData *bd)

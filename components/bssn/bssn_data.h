@@ -2,6 +2,7 @@
 #define COSMO_BSSN_DATA
 
 #include "../../cosmo_macros.h"
+#include "../../cosmo_types.h"
 #include "bssn_macros.h"
 
 namespace cosmo

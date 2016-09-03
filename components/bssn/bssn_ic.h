@@ -4,8 +4,8 @@
  * class.
  */
 
-#ifndef COSMO_SCALAR_ICS
-#define COSMO_SCALAR_ICS
+#ifndef COSMO_BSSN_ICS
+#define COSMO_BSSN_ICS
 
 #include "bssn.h"
 

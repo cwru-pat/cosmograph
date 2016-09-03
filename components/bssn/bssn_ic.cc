@@ -113,7 +113,7 @@ void bssn_ic_awa_linear_wave_desitter(BSSN * bssn)
 
 void bssn_ic_awa_gauge_wave(BSSN * bssn)
 {
-  // TODO
+
 }
 
 
