@@ -40,6 +40,10 @@ void VacuumSim::setICs()
   {
     bssn_ic_awa_linear_wave_desitter(bssnSim);
   }
+  else if(_config["ic_type"] == "gauge_wave")
+  {
+    bssn_ic_awa_gauge_wave(bssnSim);
+  }
   else
   {
     iodata->log("IC type not recognized!");

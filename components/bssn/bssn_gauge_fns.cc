@@ -28,6 +28,7 @@ bssn_func_t bssn_gauge_get_lapse_fn(std::string gauge)
   // TODO: gauges need more work:
   lapse_functions["anharmonic"] = bssn_gauge_alpha_anharmonic;
   lapse_functions["conformalsync"] = bssn_gauge_alpha_conformalsync;
+  lapse_functions["AwA_gaugewave"] = bssn_gauge_alpha_AwA_gaugewave;
 
   if( lapse_functions.find(gauge) == lapse_functions.end() )
   {
@@ -130,6 +131,10 @@ real_t bssn_gauge_alpha_conformalsync(BSSNData *bd)
   return -1.0/3.0*bd->alpha*bd->K_FRW;
 }
 
+real_t bssn_gauge_alpha_AwA_gaugewave(BSSNData *bd)
+{
+  return -1.0*bd->DIFFK;
+}
 
 /** Shift gauge functions **/
 
