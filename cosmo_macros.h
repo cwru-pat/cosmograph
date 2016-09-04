@@ -39,21 +39,6 @@
   #define STENCIL_ORDER 8
 #endif
 
-// Not well-tested: #define USE_CONFORMAL_SYNC_ALPHA false
-// Other gauges? (incompatible with dust)
-#ifndef USE_HARMONIC_ALPHA 
-  #define USE_HARMONIC_ALPHA false
-#endif
-#ifndef USE_ANHARMONIC_ALPHA
-  // d_t \alpha = - d_t \alpha_{Harmonic} (sign change; newtonian-ish?)
-  #define USE_ANHARMONIC_ALPHA false
-#endif
-
-//whether use 1+log alpha
-#ifndef USE_1PLUS_LOG_ALPHA
-  #define USE_1PLUS_LOG_ALPHA false
-#endif
-
 // evolve shift as well? (if not, assumed to be zero)
 #ifndef USE_BSSN_SHIFT
   #define USE_BSSN_SHIFT false
@@ -94,9 +79,6 @@
 #endif
 
 // Numerical Error Damping strength parameters
-#ifndef KO_ETA
-  #define KO_ETA 1.0
-#endif
 #ifndef BS_H_DAMPING_AMPLITUDE
   #define BS_H_DAMPING_AMPLITUDE 1.0
 #endif

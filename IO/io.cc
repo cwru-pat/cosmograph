@@ -33,7 +33,6 @@ void log_defines(IOData *iodata)
   iodata->log( "  H_LEN_FRAC = " + stringify(H_LEN_FRAC) );
   iodata->log( "  USE_REFERENCE_FRW = " + stringify(USE_REFERENCE_FRW) );
   iodata->log( "  NORMALIZE_GAMMAIJ_AIJ = " + stringify(NORMALIZE_GAMMAIJ_AIJ) );
-  iodata->log( "  KO_ETA = " + stringify(KO_ETA) );
   iodata->log( "  BS_H_DAMPING_AMPLITUDE = " + stringify(BS_H_DAMPING_AMPLITUDE) );
   iodata->log( "  JM_K_DAMPING_AMPLITUDE = " + stringify(JM_K_DAMPING_AMPLITUDE) );
   iodata->log( "  USE_Z4c_DAMPING = " + stringify(USE_Z4c_DAMPING) );
@@ -41,10 +40,6 @@ void log_defines(IOData *iodata)
   iodata->log( "  Z4c_K2_DAMPING_AMPLITUDE = " + stringify(Z4c_K2_DAMPING_AMPLITUDE) );
   std::string stencil_order = STRINGIFY(STENCIL_ORDER_FUNCTION(Odx));
   iodata->log( "  STENCIL_ORDER = " + stencil_order);
-  iodata->log( "  USE_HARMONIC_ALPHA = " + stringify(USE_HARMONIC_ALPHA) );
-  iodata->log( "  USE_1PLUS_LOG_ALPHA = " + stringify(USE_1PLUS_LOG_ALPHA) );
-  iodata->log( "  USE_DAMPED_WAVE_ALPHA = " + stringify(USE_DAMPED_WAVE_ALPHA) );
-  iodata->log( "  USE_DAMPED_WAVE = " + stringify(USE_DAMPED_WAVE) );
   iodata->log( "  USE_GAMMA_DRIVER = " + stringify(USE_GAMMA_DRIVER) );
   iodata->log( "  USE_COSMO_CONST_POTENTIAL = " + stringify(USE_COSMO_CONST_POTENTIAL) );
   iodata->log( "  USE_BSSN_SHIFT = " + stringify(USE_BSSN_SHIFT) );

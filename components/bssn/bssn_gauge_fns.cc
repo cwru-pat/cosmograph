@@ -133,7 +133,7 @@ real_t bssn_gauge_alpha_conformalsync(BSSNData *bd)
 
 real_t bssn_gauge_alpha_AwA_gaugewave(BSSNData *bd)
 {
-  return -1.0*bd->DIFFK;
+  return -1.0*pw2(bd->alpha)*bd->DIFFK;
 }
 
 /** Shift gauge functions **/

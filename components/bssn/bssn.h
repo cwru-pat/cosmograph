@@ -33,6 +33,8 @@ class BSSN
   bssn_func_t ev_beta3_ptr;
 # endif
 
+  real_t KO_damping_coefficient;
+
 public:
   map_t fields; ///< Public map from names to internal arrays
 
@@ -45,6 +47,7 @@ public:
   void init();
 
   void setDt(real_t dt);
+  void setKODampingCoefficient(real_t KO_damping_coefficient_in);
   void setLapseEvFn(bssn_func_t diff_alpha_func)
   {
     ev_DIFFalpha_ptr = diff_alpha_func;
