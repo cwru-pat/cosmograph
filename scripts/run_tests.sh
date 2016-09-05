@@ -39,7 +39,7 @@ rm a.out
 mkdir -p ../build
 cd ../build
 # Run a 16^3 test
-cmake -DCMAKE_CXX_COMPILER=g++ ..
+cmake ..
 if [ $? -ne 0 ]; then
     echo "Error: cmake failed!"
     exit 1
@@ -55,7 +55,7 @@ fi
 echo ""
 echo "Running stability test"
 echo "----------------------"
-./cosmo ../config/AwA/stability_test_r1.txt
+./cosmo ../config/tests/vacuum_test.txt
 if [ $? -ne 0 ]; then
     echo "Error: stability run failed!"
     exit 1
@@ -64,7 +64,7 @@ fi
 echo ""
 echo "Running dust test"
 echo "-----------------"
-./cosmo ../config/dust_test.txt
+./cosmo ../config/tests/dust_ray_test.txt
 if [ $? -ne 0 ]; then
     echo "Error: dust test run failed!"
     exit 1
@@ -73,7 +73,7 @@ fi
 echo ""
 echo "Running dust+lambda test"
 echo "------------------------"
-./cosmo ../config/lambda_test.txt
+./cosmo ../config/tests/lambda_test.txt
 if [ $? -ne 0 ]; then
     echo "Error: dust+lambda test run failed!"
     exit 1
@@ -82,7 +82,7 @@ fi
 echo ""
 echo "Running particles test"
 echo "----------------------"
-./cosmo ../config/particles_test.txt
+./cosmo ../config/tests/particles_test.txt
 if [ $? -ne 0 ]; then
     echo "Error: particle run failed!"
     exit 1
@@ -91,8 +91,52 @@ fi
 echo ""
 echo "Running scalar test"
 echo "-------------------"
-./cosmo ../config/scalar_test.txt
+./cosmo ../config/tests/scalar_multigrid_test.txt
 if [ $? -ne 0 ]; then
     echo "Error: scalar run failed!"
     exit 1
 fi
+
+
+
+echo ""
+echo "Compiling with shift & gamma driver support"
+echo "-------------------------------------------"
+cmake -DCOSMO_USE_GAMMA_DRIVER=1 -DCOSMO_USE_BSSN_SHIFT=1 ..
+if [ $? -ne 0 ]; then
+    echo "Error: cmake failed!"
+    exit 1
+fi
+make -j16
+if [ $? -ne 0 ]; then
+    echo "Error: make failed!"
+    exit 1
+fi
+
+echo ""
+echo "Running harmonic gauge & gamma driver test"
+echo "------------------------------------------"
+./cosmo ../config/tests/gauges/scalar_harmonic_gammadriver_test.txt
+if [ $? -ne 0 ]; then
+    echo "Error: scalar run failed!"
+    exit 1
+fi
+
+echo ""
+echo "Running 1+log gauge & gamma driver test"
+echo "---------------------------------------"
+./cosmo ../config/tests/gauges/scalar_1pluslog_gammadriver_test.txt
+if [ $? -ne 0 ]; then
+    echo "Error: scalar run failed!"
+    exit 1
+fi
+
+echo ""
+echo "Running damped wave gauge test"
+echo "------------------------------"
+./cosmo ../config/tests/gauges/scalar_dampedwave_test.txt
+if [ $? -ne 0 ]; then
+    echo "Error: scalar run failed!"
+    exit 1
+fi
+

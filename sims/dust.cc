@@ -7,7 +7,8 @@ namespace cosmo
 DustSim::DustSim()
 {
   // just check to make sure we can use this class.
-  if(USE_HARMONIC_ALPHA) {
+  if(_config("lapse", "") != "" && _config("lapse", "") != "static")
+  {
     iodata->log("Error - not using synchronous gauge! You must use it for dust sims.");
     iodata->log("Please change this setting in cosmo_macros.h and recompile.");
     throw -1;

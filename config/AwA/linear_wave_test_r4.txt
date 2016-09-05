@@ -1,8 +1,6 @@
 steps = 800000
 dt_frac = 0.25
 
-omp_num_threads = 4
-
 simulation_type = vacuum
 ic_type = linear_wave
 

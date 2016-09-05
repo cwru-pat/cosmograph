@@ -41,8 +41,10 @@ int main(int argc, char **argv)
   dx = stold(_config( "dx", stringify(H_LEN_FRAC/(1.0*N)) ));
   dt = stold(_config( "dt_frac", "0.1" ))*dx;
 
-  // number of threads
-  omp_set_num_threads(stoi(_config["omp_num_threads"]));
+  // Set number of threads if specified
+  int num_threads = stoi(_config("omp_num_threads", "0"));
+  if(num_threads > 0)
+    omp_set_num_threads(num_threads);
 
   // Create simulation according to simulation_type
   CosmoSim * cosmoSim;

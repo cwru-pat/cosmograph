@@ -1,0 +1,9 @@
+steps = 5
+
+omp_num_threads = 1
+
+simulation_type = vacuum
+ic_type = linear_wave
+
+output_dir = benchmark_run
+dump_file = calculated

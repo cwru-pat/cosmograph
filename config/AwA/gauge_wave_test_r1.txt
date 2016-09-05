@@ -1,0 +1,20 @@
+steps = 10000
+dt_frac = 0.25
+
+KO_damping_coefficient = 1.0
+
+lapse = AwA_gaugewave
+
+simulation_type = vacuum
+ic_type = gauge_wave
+
+output_dir = gauge_wave_test_r1
+dump_file = calculated
+
+IO_1D_grid_interval = 10
+IO_1D_DIFFalpha_a = 1
+IO_1D_DIFFK_a = 1
+IO_1D_DIFFgamma11_a = 1
+
+IO_constraint_interval = 1
+IO_bssnstats_interval = 1

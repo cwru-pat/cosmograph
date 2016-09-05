@@ -16,7 +16,7 @@ MAX_THREADS=4
 MIN_RES=8
 MAX_RES=128
 
-sed -i -E 's/steps = [0-9]+/steps = 5/g' ../config/stability_test.txt
+cp ../config/benchmark.txt ../config/benchmark.txt.test
 
 # read in options
 for i in "$@"
@@ -70,13 +70,12 @@ while [ "${RES}" -le "${MAX_RES}" ]; do
   THREADS=$MIN_THREADS
   COMPILE_RESULT=$(cmake -DCOSMO_N=$RES .. && make -j$MAX_THREADS)
   while [ "${THREADS}" -le "${MAX_THREADS}" ]; do
-    sed -i -E "s/omp_num_threads = [0-9]+/omp_num_threads = ${THREADS}/g" ../config/stability_test.txt  
-    RK_LOOP_TIME=$(./cosmo ../config/stability_test.txt | grep RK_steps)
+    sed -i -E "s/omp_num_threads = [0-9]+/omp_num_threads = ${THREADS}/g" ../config/benchmark.txt.test
+    RK_LOOP_TIME=$(./cosmo ../config/benchmark.txt.test | grep RK_steps)
     echo "RK_steps for $THREADS threads, N = $RES:  $RK_LOOP_TIME"
     ((THREADS=$THREADS*2))
   done
   ((RES=$RES*2))
 done
 
-sed -i -E 's/omp_num_threads = [0-9]+/omp_num_threads = 4/g' ../config/stability_test.txt
-sed -i -E 's/steps = [0-9]+/steps = 100/g' ../config/stability_test.txt
+rm ../config/benchmark.txt.test

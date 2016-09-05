@@ -12,10 +12,6 @@ void ScalarSim::init()
   simInit();
 
   iodata->log("Running 'scalar' type simulation.");
-  if(!USE_HARMONIC_ALPHA) {
-    iodata->log("Warning - not using harmonic gauge! You may want to use it.");
-  }
-
   scalarSim = new Scalar();
 
   _timer["init"].stop();
