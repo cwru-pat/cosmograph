@@ -332,9 +332,9 @@ void scalar_ic_set_full_equations(BSSN * bssn, Scalar * scalar, IOData * iodata)
       atom_tmp.type = i+1;
       atom_tmp.u_id = j;
       if(i == j)
-	multigrid.eqns[0][3*(i-1)+j].init(3, 0.5 - 1.0/6.0);
+        multigrid.eqns[0][3*(i-1)+j].init(3, 0.5 - 1.0/6.0);
       else
-	multigrid.eqns[0][3*(i-1)+j].init(3, 0.25);
+        multigrid.eqns[0][3*(i-1)+j].init(3, 0.25);
       multigrid.eqns[0][3*(i-1)+j].add_atom(atom_tmp);
 
       multigrid.eqns[0][3*(i-1)+j].add_atom(atom_tmp);
@@ -605,54 +605,54 @@ void scalar_ic_set_Bowen_York(BSSN * bssn, Scalar * scalar, IOData * iodata)
   multigrid.eqns[2][3].init(1, 1.0/3.0);
 
   //adding terms to eqn 1
-  atom_tmp.type = 11;
+  atom_tmp.type = multigrid.atom_type::lap;
   atom_tmp.u_id = 0;
   multigrid.eqns[0][0].add_atom(atom_tmp);
 
-  atom_tmp.type = 5;
+  atom_tmp.type = multigrid.atom_type::der11;
   atom_tmp.u_id = 0;
   multigrid.eqns[0][1].add_atom(atom_tmp);
 
-  atom_tmp.type = 8;
+  atom_tmp.type = multigrid.atom_type::der12;
   atom_tmp.u_id = 1;
   multigrid.eqns[0][2].add_atom(atom_tmp);
 
-  atom_tmp.type = 9;
+  atom_tmp.type = multigrid.atom_type::der13;
   atom_tmp.u_id = 2;
   multigrid.eqns[0][3].add_atom(atom_tmp);
 
   //adding terms to eqn 2
-  atom_tmp.type = 11;
+  atom_tmp.type = multigrid.atom_type::lap;
   atom_tmp.u_id = 1;
   multigrid.eqns[1][0].add_atom(atom_tmp);
 
 
-  atom_tmp.type = 8;
+  atom_tmp.type = multigrid.atom_type::der12;
   atom_tmp.u_id = 0;
   multigrid.eqns[1][1].add_atom(atom_tmp);
 
-  atom_tmp.type = 6;
+  atom_tmp.type = multigrid.atom_type::der22;
   atom_tmp.u_id = 1;
   multigrid.eqns[1][2].add_atom(atom_tmp);
 
-  atom_tmp.type = 10;
+  atom_tmp.type = multigrid.atom_type::der23;
   atom_tmp.u_id = 2;
   multigrid.eqns[1][3].add_atom(atom_tmp);
  
   //adding terms to eqn 3
-  atom_tmp.type = 11;
+  atom_tmp.type = multigrid.atom_type::lap;
   atom_tmp.u_id = 2;
   multigrid.eqns[2][0].add_atom(atom_tmp);
 
-  atom_tmp.type = 9;
+  atom_tmp.type = multigrid.atom_type::der13;
   atom_tmp.u_id = 0;
   multigrid.eqns[2][1].add_atom(atom_tmp);
 
-  atom_tmp.type = 10;
+  atom_tmp.type = multigrid.atom_type::der23;
   atom_tmp.u_id = 1;
   multigrid.eqns[2][2].add_atom(atom_tmp);
 
-  atom_tmp.type = 7;
+  atom_tmp.type = multigrid.atom_type::der33;
   atom_tmp.u_id = 2;
   multigrid.eqns[2][3].add_atom(atom_tmp);
  
@@ -674,7 +674,7 @@ void scalar_ic_set_Bowen_York(BSSN * bssn, Scalar * scalar, IOData * iodata)
     X[0][idx] = 1 + 0.01 * (
                 cos(2.0*PI*((real_t) n/NX)*i + x_phase )
                  + cos(2.0*PI*((real_t) n/NY)*j + y_phase )
-		+ cos(2.0*PI*((real_t) n/NZ)*k + z_phase ));
+                + cos(2.0*PI*((real_t) n/NZ)*k + z_phase ));
 
     x_phase = dist(gen);
     y_phase = dist(gen);
@@ -683,7 +683,7 @@ void scalar_ic_set_Bowen_York(BSSN * bssn, Scalar * scalar, IOData * iodata)
     X[1][idx] = 1 + 0.01 * (
                 cos(2.0*PI*((real_t) n/NX)*i + x_phase )
                  + cos(2.0*PI*((real_t) n/NY)*j + y_phase )
-		+ cos(2.0*PI*((real_t) n/NZ)*k + z_phase ));
+                + cos(2.0*PI*((real_t) n/NZ)*k + z_phase ));
 
     x_phase = dist(gen);
     y_phase = dist(gen);
@@ -691,7 +691,7 @@ void scalar_ic_set_Bowen_York(BSSN * bssn, Scalar * scalar, IOData * iodata)
     X[2][idx] = 1 + 0.01 * (
                 cos(2.0*PI*((real_t) n/NX)*i + x_phase )
                  + cos(2.0*PI*((real_t) n/NY)*j + y_phase )
-		+ cos(2.0*PI*((real_t) n/NZ)*k + z_phase ));
+                + cos(2.0*PI*((real_t) n/NZ)*k + z_phase ));
   }
 
     multigrid.VCycles(std::stoi(_config["num_v_cycles"]));
@@ -815,24 +815,24 @@ void scalar_ic_set_multigrid(BSSN * bssn, Scalar * scalar, IOData * iodata)
   
   //adding terms to eqn
   //add first laplacian term
-  atom_tmp.type = 11;
+  atom_tmp.type = multigrid.atom_type::lap;
   atom_tmp.u_id = 0;
   multigrid.eqns[0][0].add_atom(atom_tmp);
 
   //add second term
-  atom_tmp.type = 0;
+  atom_tmp.type = multigrid.atom_type::const_f;
   multigrid.eqns[0][1].add_atom(atom_tmp);
   
-  atom_tmp.type = 1;
+  atom_tmp.type = multigrid.atom_type::poly;
   atom_tmp.u_id = 0;
   atom_tmp.value = 1;
   multigrid.eqns[0][1].add_atom(atom_tmp);
 
   //add third term
-  atom_tmp.type = 0;
+  atom_tmp.type = multigrid.atom_type::const_f;
   multigrid.eqns[0][2].add_atom(atom_tmp);
 
-  atom_tmp.type = 1;
+  atom_tmp.type = multigrid.atom_type::poly;
   atom_tmp.u_id = 0;
   atom_tmp.value = 5;
   multigrid.eqns[0][2].add_atom(atom_tmp);

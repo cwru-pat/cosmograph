@@ -86,7 +86,7 @@ class CosmoArray
       {
         #pragma omp critical
         if(_array[i] < min_res)
-	  min_res = _array[i];
+          min_res = _array[i];
       }
       return min_res;
     }
@@ -99,8 +99,8 @@ class CosmoArray
       {
         #pragma omp critical
         {
-	  if(_array[i] > max_res)
-	    max_res = _array[i];
+          if(_array[i] > max_res)
+            max_res = _array[i];
         }
       }
 

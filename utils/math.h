@@ -1459,9 +1459,9 @@ inline real_t double_derivative(idx_t i, idx_t j, idx_t k, idx_t nx, idx_t ny, i
 inline real_t laplacian(idx_t i, idx_t j, idx_t k, idx_t nx, idx_t ny, idx_t nz, arr_t & field)
 {
   return (
-	  double_derivative(i, j, k, nx, ny, nz, 1, 1, field)
-	  + double_derivative(i, j, k, nx, ny, nz, 2, 2, field)
-	  + double_derivative(i, j, k, nx, ny, nz, 3, 3, field)
+          double_derivative(i, j, k, nx, ny, nz, 1, 1, field)
+          + double_derivative(i, j, k, nx, ny, nz, 2, 2, field)
+          + double_derivative(i, j, k, nx, ny, nz, 3, 3, field)
   );
 }
 
