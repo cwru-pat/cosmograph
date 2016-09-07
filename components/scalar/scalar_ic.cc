@@ -188,6 +188,390 @@ void scalar_ic_set_semianalytic_test(BSSN * bssn, Scalar * scalar,
   }
 }
 
+void scalar_ic_set_full_equations(BSSN * bssn, Scalar * scalar, IOData * iodata)
+{
+  idx_t i, j, k;
+
+    // Choose a configuration for the scalar fields first:
+  arr_t & phi = scalar->phi._array_p; // field
+  arr_t & psi1 = scalar->psi1._array_p; // derivative of phi in x-dir
+  arr_t & psi2 = scalar->psi2._array_p; // derivative of phi in y-dir
+  arr_t & psi3 = scalar->psi3._array_p; // derivative of phi in z-dir
+
+  arr_t & Pi = scalar->Pi._array_p;
+
+  real_t dt_phi = 0.1;
+  
+  std::random_device rd;
+  std::mt19937 gen(7.0 /*rd()*/);
+  std::uniform_real_distribution<real_t> dist(0, 2.0*PI);
+
+  // cutoff @ "ic_spec_cut"; maybe initialize this field
+  // according to some power spectrum?
+  real_t n_max = std::stoi(_config["n_max"]);
+  real_t phi_0 = std::stod(_config["phi_0"]);
+  real_t delta = std::stod(_config["delta_phi"]);
+  
+  // background value
+  LOOP3(i,j,k)
+    phi[INDEX(i,j,k)] = phi_0;
+
+  // sum over different modes
+  for(int n = -n_max; n <= n_max; ++n)
+  {
+    if(n != 0)
+    {
+      // random phases
+      real_t x_phase = dist(gen),
+             y_phase = dist(gen),
+             z_phase = dist(gen);
+
+      #pragma omp parallel for default(shared) private(i,j,k)
+      LOOP3(i,j,k)
+      {
+        // some sinusoidal modes
+        phi[INDEX(i,j,k)] += delta*(
+                cos(2.0*PI*((real_t) n/NX)*i + x_phase )
+                 + cos(2.0*PI*((real_t) n/NY)*j + y_phase )
+                 + cos(2.0*PI*((real_t) n/NZ)*k + z_phase )
+            );
+      }
+    }
+  }
+
+  // initialize psi according to values in phi
+  #pragma omp parallel for default(shared) private(i,j,k)
+  LOOP3(i,j,k)
+  {
+    psi1[INDEX(i,j,k)] = derivative(i, j, k, 1, phi);
+    psi2[INDEX(i,j,k)] = derivative(i, j, k, 2, phi);
+    psi3[INDEX(i,j,k)] = derivative(i, j, k, 3, phi);
+    Pi[INDEX(i,j,k)] = -dt_phi;
+  }
+
+  // PI is zero for now
+
+  // compute background/average K
+  real_t K_src = 0;
+  LOOP3(i, j, k)
+  {
+    K_src += 3.0*scalar->V(phi[INDEX(i,j,k)])
+      +3.0/2.0*(
+        pw2(psi1[INDEX(i,j,k)]) + pw2(psi2[INDEX(i,j,k)]) + pw2(psi3[INDEX(i,j,k)])
+      );
+  }
+  K_src = -std::sqrt(K_src/NX/NY/NZ);
+
+  arr_t & K_p = *bssn->fields["DIFFK_p"]; // extrinsic curvature
+  arr_t & K_a = *bssn->fields["DIFFK_a"]; // extrinsic curvature
+  arr_t & K0 = *bssn->fields["K0_a"]; // initial extrinsic curvature
+
+  arr_t & phi_p = *bssn->fields["DIFFphi_p"];
+  arr_t & phi_a = *bssn->fields["DIFFphi_a"];
+
+
+  arr_t & A11_p = *bssn->fields["A11_p"];
+  arr_t & A11_a = *bssn->fields["A11_a"];
+
+  arr_t & A12_p = *bssn->fields["A12_p"];
+  arr_t & A12_a = *bssn->fields["A12_a"];
+
+  arr_t & A13_p = *bssn->fields["A13_p"];
+  arr_t & A13_a = *bssn->fields["A13_a"];
+
+  arr_t & A22_p = *bssn->fields["A22_p"];
+  arr_t & A22_a = *bssn->fields["A22_a"];
+
+  arr_t & A23_p = *bssn->fields["A23_p"];
+  arr_t & A23_a = *bssn->fields["A23_a"];
+
+  arr_t & A33_p = *bssn->fields["A33_p"];
+  arr_t & A33_a = *bssn->fields["A33_a"];
+  
+  #pragma omp parallel for default(shared) private(i,j,k)
+  LOOP3(i,j,k)
+  {
+    idx_t idx = INDEX(i,j,k);
+    K0[idx] = K_a[idx] = K_p[idx] = K_src;
+  }
+
+
+  
+  arr_t * X = new arr_t [4];
+
+  for(i = 1; i < 4; i++)
+    X[i].init(NX, NY, NZ);
+
+  X[0].nx = phi_p.nx;
+  X[0].ny = phi_p.ny;
+  X[0].nz = phi_p.nz;
+  X[0].pts = phi_p.pts;
+  X[0]._array = phi_p._array;
+  
+  idx_t molecule_n[4] = {18, 5, 5, 5};
+
+  real_t relaxation_tolerance = std::stod(_config["relaxation_tolerance"]);
+
+  atom atom_tmp = {0};
+
+  FASMultigrid multigrid(X, 4, molecule_n, 4, 5, relaxation_tolerance);
+
+  /*Starting adding all the terms in equations*******************************/
+  
+  multigrid.eqns[0][0].init(1, 1);
+  //adding laplacian term
+  atom_tmp.type = 11;
+  atom_tmp.u_id = 0;
+  multigrid.eqns[0][0].add_atom(atom_tmp);
+
+  //adding \Psi^-7 term
+  for(i = 1; i <= 3; i++)
+    for(j = 1; j <= 3; j++)
+    {
+      atom_tmp.type = i+1;
+      atom_tmp.u_id = j;
+      if(i == j)
+	multigrid.eqns[0][3*(i-1)+j].init(3, 0.5 - 1.0/6.0);
+      else
+	multigrid.eqns[0][3*(i-1)+j].init(3, 0.25);
+      multigrid.eqns[0][3*(i-1)+j].add_atom(atom_tmp);
+
+      multigrid.eqns[0][3*(i-1)+j].add_atom(atom_tmp);
+
+      atom_tmp.type = 1;
+      atom_tmp.u_id = 0;
+      atom_tmp.value = -7;
+      multigrid.eqns[0][3*(i-1)+j].add_atom(atom_tmp);
+    }
+  for(i = 1; i <= 3; i++)
+    for(j = i+1; j <= 3; j++)
+    {
+      atom_tmp.type = i+1;
+      atom_tmp.u_id = j;
+      multigrid.eqns[0][(9 + i+j - 2)].init(3, 0.5);
+      multigrid.eqns[0][(9 + i+j - 2)].add_atom(atom_tmp);
+      
+      atom_tmp.type = j+1;
+      atom_tmp.u_id = i;
+      multigrid.eqns[0][(9 + i+j - 2)].add_atom(atom_tmp);
+
+      atom_tmp.type = 1;
+      atom_tmp.u_id = 0;
+      atom_tmp.value = -7;
+      multigrid.eqns[0][(9 + i+j - 2)].add_atom(atom_tmp);
+    }
+
+  for(i = 1; i <= 3; i++)
+    for(j = i+1; j <= 3; j++)
+    {
+      multigrid.eqns[0][(12 + i+j - 2)].init(3, -1.0/3.0);
+      atom_tmp.type = i+1;
+      atom_tmp.u_id = i;
+      multigrid.eqns[0][(12+i+j-2)].add_atom(atom_tmp);
+
+      atom_tmp.type = j+1;
+      atom_tmp.u_id = j;
+      multigrid.eqns[0][(12+i+j-2)].add_atom(atom_tmp);
+
+      atom_tmp.type = 1;
+      atom_tmp.u_id = 0;
+      atom_tmp.value = -7;
+      multigrid.eqns[0][(12 + i+j - 2)].add_atom(atom_tmp);
+    }
+
+  
+  multigrid.eqns[0][16].init(2, 1.0);
+  multigrid.eqns[0][17].init(2, 1.0);
+
+  atom_tmp.type = 0;
+  multigrid.eqns[0][16].add_atom(atom_tmp);
+  multigrid.eqns[0][17].add_atom(atom_tmp);
+  
+  atom_tmp.type = 1;
+  atom_tmp.u_id = 0;
+  atom_tmp.value = 5;
+  multigrid.eqns[0][16].add_atom(atom_tmp);
+
+  atom_tmp.value = 1;
+  multigrid.eqns[0][17].add_atom(atom_tmp);
+  
+
+  
+  
+  
+
+  real_t avg1 = 0.0, avg5 = 0.0;
+  LOOP3(i, j, k)
+  {
+    real_t value = PI*(
+        pw2(psi1[INDEX(i,j,k)]) + pw2(psi2[INDEX(i,j,k)]) + pw2(psi3[INDEX(i,j,k)])
+      );
+    avg1 += value;
+    multigrid.setPolySrcAtPt(0, 17, i, j, k, value); //set value for term 1
+
+    value = 2.0* PI*scalar->V(phi[INDEX(i,j,k)]) - K_a[INDEX(i,j,k)]*K_a[INDEX(i,j,k)]/12.0 + PI * dt_phi * dt_phi;
+    multigrid.setPolySrcAtPt(0, 16, i, j, k, value); //set value for term 2
+    avg5 += value;
+  }
+  avg1 = avg1/N/N/N;
+  avg5 = avg5/N/N/N;
+
+  /*Finishing adding Hamiltonian constraint**************************************************/
+
+  multigrid.eqns[1][0].init(1, 1.0);
+  multigrid.eqns[1][1].init(1, 1.0/3.0);
+  multigrid.eqns[1][2].init(1, 1.0/3.0);
+  multigrid.eqns[1][3].init(1, 1.0/3.0);
+  multigrid.eqns[1][4].init(2, 1.0);
+
+  multigrid.eqns[2][0].init(1, 1.0);
+  multigrid.eqns[2][1].init(1, 1.0/3.0);
+  multigrid.eqns[2][2].init(1, 1.0/3.0);
+  multigrid.eqns[2][3].init(1, 1.0/3.0);
+  multigrid.eqns[2][4].init(2, 1.0);
+
+  multigrid.eqns[3][0].init(1, 1.0);
+  multigrid.eqns[3][1].init(1, 1.0/3.0);
+  multigrid.eqns[3][2].init(1, 1.0/3.0);
+  multigrid.eqns[3][3].init(1, 1.0/3.0);
+  multigrid.eqns[3][4].init(2, 1.0);
+
+  //adding terms to eqn 1
+  atom_tmp.type = 11;
+  atom_tmp.u_id = 1;
+  multigrid.eqns[1][0].add_atom(atom_tmp);
+
+  atom_tmp.type = 5;
+  atom_tmp.u_id = 1;
+  multigrid.eqns[1][1].add_atom(atom_tmp);
+
+  atom_tmp.type = 8;
+  atom_tmp.u_id = 2;
+  multigrid.eqns[1][2].add_atom(atom_tmp);
+
+  atom_tmp.type = 9;
+  atom_tmp.u_id = 3;
+  multigrid.eqns[1][3].add_atom(atom_tmp);
+
+  atom_tmp.type = 0;
+  multigrid.eqns[1][4].add_atom(atom_tmp);
+  atom_tmp.type = 1;
+  atom_tmp.u_id = 0;
+  atom_tmp.value = 6;
+  multigrid.eqns[1][4].add_atom(atom_tmp);
+
+  
+  //adding terms to eqn 2
+  atom_tmp.type = 11;
+  atom_tmp.u_id = 2;
+  multigrid.eqns[2][0].add_atom(atom_tmp);
+
+
+  atom_tmp.type = 8;
+  atom_tmp.u_id = 1;
+  multigrid.eqns[2][1].add_atom(atom_tmp);
+
+  atom_tmp.type = 6;
+  atom_tmp.u_id = 2;
+  multigrid.eqns[2][2].add_atom(atom_tmp);
+
+  atom_tmp.type = 10;
+  atom_tmp.u_id = 3;
+  multigrid.eqns[2][3].add_atom(atom_tmp);
+
+  atom_tmp.type = 0;
+  multigrid.eqns[2][4].add_atom(atom_tmp);
+  atom_tmp.type = 1;
+  atom_tmp.u_id = 0;
+  atom_tmp.value = 6;
+  multigrid.eqns[2][4].add_atom(atom_tmp);
+ 
+  //adding terms to eqn 3
+  atom_tmp.type = 11;
+  atom_tmp.u_id = 3;
+  multigrid.eqns[3][0].add_atom(atom_tmp);
+
+  atom_tmp.type = 9;
+  atom_tmp.u_id = 1;
+  multigrid.eqns[3][1].add_atom(atom_tmp);
+
+  atom_tmp.type = 10;
+  atom_tmp.u_id = 2;
+  multigrid.eqns[3][2].add_atom(atom_tmp);
+
+  atom_tmp.type = 7;
+  atom_tmp.u_id = 3;
+  multigrid.eqns[3][3].add_atom(atom_tmp);
+
+  atom_tmp.type = 0;
+  multigrid.eqns[3][4].add_atom(atom_tmp);
+  atom_tmp.type = 1;
+  atom_tmp.u_id = 0;
+  atom_tmp.value = 6;
+  multigrid.eqns[3][4].add_atom(atom_tmp);
+
+  LOOP3(i,j,k)
+  {
+    idx_t idx = INDEX(i,j,k);
+    real_t value = 8.0 * PI * psi1[idx] * dt_phi;
+    multigrid.setPolySrcAtPt(1, 4, i, j, k, value);
+    value = 8.0 * PI * psi2[idx] * dt_phi;
+    multigrid.setPolySrcAtPt(2, 4, i, j, k, value);
+    value = 8.0 * PI * psi3[idx] * dt_phi;
+    multigrid.setPolySrcAtPt(3, 4, i, j, k, value);
+  }
+
+  //finishing adding atoms to each term!!!!!!!!!!!!!!!
+
+  multigrid.initializeRhoHeirarchy();
+
+
+  
+  iodata->log("The average value of coefficient of the first order term is: " + stringify(avg1));
+  iodata->log("The average value of coefficient of the fifth order term is: " + stringify(avg5));
+  iodata->log("The suggested initial value of multigrid solver is: " + stringify(std::pow(-avg1/avg5,1.0/4.0)));
+  iodata->log("The estimated value of gradient energy/potential is:" + stringify(-avg5/PI/2.0/scalar->V(1)));
+  iodata->log("The ratio of H_LEN_FRAC/H_0^-1 is: " + stringify(dx*N/(3.0/K_src)));
+
+  
+  LOOP3(i, j, k)
+  {
+    idx_t idx = INDEX(i,j,k);
+    X[0][idx] = std::pow(-avg1/avg5,1.0/4.0);
+    X[1][idx] = X[2][idx] = X[3][idx] = 0.0;
+  }
+  //  std::cout<<std::max(psi2.max(),psi3.max())<<"\n";
+  multigrid.VCycles(std::stoi(_config["num_v_cycles"]));
+
+  LOOP3(i,j,k)
+  {
+    idx_t idx = INDEX(i, j, k);
+
+    real_t temp = 0.0;
+
+    for(idx_t kk = 1; kk <=3; kk++)
+      temp += derivative(i, j, k, kk, X[kk]);
+    
+    A11_p[idx] = A11_a[idx] = std::pow(phi_p[idx], -6.0) * (derivative(i, j, k, 1, X[1]) + derivative(i, j, k, 1, X[1]) - 2.0 * temp / 3.0);
+
+    A12_p[idx] = A12_a[idx] = std::pow(phi_p[idx], -6.0) * (derivative(i, j, k, 1, X[2]) + derivative(i, j, k, 2, X[1]));
+
+    A13_p[idx] = A13_a[idx] = std::pow(phi_p[idx], -6.0) * (derivative(i, j, k, 1, X[3]) + derivative(i, j, k, 3, X[1]));
+
+    A22_p[idx] = A22_a[idx] = std::pow(phi_p[idx], -6.0) * (derivative(i, j, k, 2, X[2]) + derivative(i, j, k, 2, X[2]) - 2.0 * temp / 3.0);
+    
+    A23_p[idx] = A23_a[idx] = std::pow(phi_p[idx], -6.0) * (derivative(i, j, k, 2, X[3]) + derivative(i, j, k, 3, X[2]));
+
+    A33_p[idx] = A33_a[idx] = std::pow(phi_p[idx], -6.0) * (derivative(i, j, k, 3, X[3]) + derivative(i, j, k, 3, X[3]) - 2.0 * temp / 3.0);
+
+    
+    phi_p[idx] = std::log(fabs(phi_p[idx]));
+    phi_a[idx] = phi_p[idx];
+  }
+  
+}
+  
+  
 void scalar_ic_set_Bowen_York(BSSN * bssn, Scalar * scalar, IOData * iodata)
 {
   idx_t i, j, k;
@@ -204,28 +588,25 @@ void scalar_ic_set_Bowen_York(BSSN * bssn, Scalar * scalar, IOData * iodata)
   
   atom atom_tmp = {0};
 
-  multigrid.eqns[0][0].init(1);
-  multigrid.eqns[0][1].init(2);
-  multigrid.eqns[0][2].init(1);
-  multigrid.eqns[0][3].init(1);
+  multigrid.eqns[0][0].init(1, 1.0);
+  multigrid.eqns[0][1].init(1, 1.0/3.0);
+  multigrid.eqns[0][2].init(1, 1.0/3.0);
+  multigrid.eqns[0][3].init(1, 1.0/3.0);
 
-  multigrid.eqns[1][0].init(1);
-  multigrid.eqns[1][1].init(2);
-  multigrid.eqns[1][2].init(1);
-  multigrid.eqns[1][3].init(1);
+  multigrid.eqns[1][0].init(1, 1.0);
+  multigrid.eqns[1][1].init(1, 1.0/3.0);
+  multigrid.eqns[1][2].init(1, 1.0/3.0);
+  multigrid.eqns[1][3].init(1, 1.0/3.0);
 
-  multigrid.eqns[2][0].init(1);
-  multigrid.eqns[2][1].init(2);
-  multigrid.eqns[2][2].init(1);
-  multigrid.eqns[2][3].init(1);
+  multigrid.eqns[2][0].init(1, 1.0);
+  multigrid.eqns[2][1].init(1, 1.0/3.0);
+  multigrid.eqns[2][2].init(1, 1.0/3.0);
+  multigrid.eqns[2][3].init(1, 1.0/3.0);
 
   //adding terms to eqn 1
   atom_tmp.type = 11;
   atom_tmp.u_id = 0;
   multigrid.eqns[0][0].add_atom(atom_tmp);
-
-  atom_tmp.type = 0;
-  multigrid.eqns[0][1].add_atom(atom_tmp);
 
   atom_tmp.type = 5;
   atom_tmp.u_id = 0;
@@ -244,8 +625,6 @@ void scalar_ic_set_Bowen_York(BSSN * bssn, Scalar * scalar, IOData * iodata)
   atom_tmp.u_id = 1;
   multigrid.eqns[1][0].add_atom(atom_tmp);
 
-  atom_tmp.type = 0;
-  multigrid.eqns[1][1].add_atom(atom_tmp);
 
   atom_tmp.type = 8;
   atom_tmp.u_id = 0;
@@ -263,9 +642,6 @@ void scalar_ic_set_Bowen_York(BSSN * bssn, Scalar * scalar, IOData * iodata)
   atom_tmp.type = 11;
   atom_tmp.u_id = 2;
   multigrid.eqns[2][0].add_atom(atom_tmp);
-
-  atom_tmp.type = 0;
-  multigrid.eqns[2][1].add_atom(atom_tmp);
 
   atom_tmp.type = 9;
   atom_tmp.u_id = 0;
@@ -288,9 +664,6 @@ void scalar_ic_set_Bowen_York(BSSN * bssn, Scalar * scalar, IOData * iodata)
   
   LOOP3(i,j,k)
   {
-    multigrid.setPolySrcAtPt(0, 1, i, j, k, 1.0/3.0);
-    multigrid.setPolySrcAtPt(1, 1, i, j, k, 1.0/3.0);
-    multigrid.setPolySrcAtPt(2, 1, i, j, k, 1.0/3.0);
 
     idx_t idx = INDEX(i, j, k);
     idx_t n = 1;
@@ -435,9 +808,9 @@ void scalar_ic_set_multigrid(BSSN * bssn, Scalar * scalar, IOData * iodata)
 
 
   //initializing equations
-  multigrid.eqns[0][0].init(1);
-  multigrid.eqns[0][1].init(2);
-  multigrid.eqns[0][2].init(2);
+  multigrid.eqns[0][0].init(1, 1);
+  multigrid.eqns[0][1].init(2, 1);
+  multigrid.eqns[0][2].init(2, 1);
   
   //adding terms to eqn
   //add first laplacian term
