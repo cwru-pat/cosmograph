@@ -1,0 +1,12 @@
+steps = 5
+
+lapse = harmonic
+shift = gammadriver
+
+simulation_type = scalar
+scalar_ic_type = semianalytic_test
+
+ray_integrate = 0
+
+output_dir = scalar_harmonic_gammadriver_test
+dump_file = calculated

@@ -24,21 +24,26 @@ void VacuumSim::init()
 void VacuumSim::setICs()
 {
   _timer["ICs"].start();
-  iodata->log("Setting initial conditions (ICs).");
-
-  iodata->log("Setting initial conditions (ICs).");
 
   if(_config["ic_type"] == "stability")
   {
+    iodata->log("Setting stability initial conditions.");
     bssn_ic_awa_stability(bssnSim);
   }
   else if(_config["ic_type"] == "linear_wave")
   {
+    iodata->log("Setting linear wave initial conditions.");
     bssn_ic_awa_linear_wave(bssnSim);
   }
   else if(_config["ic_type"] == "linear_wave_desitter")
   {
+    iodata->log("Setting linear wave + desitter initial conditions.");
     bssn_ic_awa_linear_wave_desitter(bssnSim);
+  }
+  else if(_config["ic_type"] == "gauge_wave")
+  {
+    iodata->log("Setting gauge wave initial conditions.");
+    bssn_ic_awa_gauge_wave(bssnSim);
   }
   else
   {

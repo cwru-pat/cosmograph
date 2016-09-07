@@ -4,8 +4,8 @@
  * class.
  */
 
-#ifndef COSMO_SCALAR_ICS
-#define COSMO_SCALAR_ICS
+#ifndef COSMO_BSSN_ICS
+#define COSMO_BSSN_ICS
 
 #include "bssn.h"
 
@@ -15,6 +15,7 @@ namespace cosmo
 void bssn_ic_awa_stability(BSSN * bssn);
 void bssn_ic_awa_linear_wave(BSSN * bssn);
 void bssn_ic_awa_linear_wave_desitter(BSSN * bssn);
+void bssn_ic_awa_gauge_wave(BSSN * bssn);
 
 }
 

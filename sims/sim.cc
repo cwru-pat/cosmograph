@@ -1,6 +1,7 @@
 #include "sim.h"
 #include "../ICs/ICs.h"
 #include "../cosmo_globals.h"
+#include "../components/bssn/bssn_gauge_fns.h"
 
 namespace cosmo
 {
@@ -45,7 +46,9 @@ CosmoSim::~CosmoSim()
 void CosmoSim::simInit()
 {
   // Always use GR fields
-  bssnSim = new BSSN();
+  bssnSim = new BSSN(_config("lapse", ""), _config("shift", ""));
+  bssnSim->setKODampingCoefficient(
+    std::stod(_config("KO_damping_coefficient", "0.0")) );
 
   // FFT helper
   fourier = new Fourier();
@@ -56,7 +59,8 @@ void CosmoSim::simInit()
   // initialize raytracing if needed
   if(ray_integrate)
   {
-    if(USE_HARMONIC_ALPHA) {
+    if(_config("lapse", "") != "" && _config("lapse", "") != "static")
+    {
       iodata->log("Error - not using synchronous gauge! You must use it for raytracing sims.");
       iodata->log("Please change this setting in cosmo_macros.h and recompile.");
       throw -1;

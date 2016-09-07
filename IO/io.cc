@@ -33,7 +33,6 @@ void log_defines(IOData *iodata)
   iodata->log( "  H_LEN_FRAC = " + stringify(H_LEN_FRAC) );
   iodata->log( "  USE_REFERENCE_FRW = " + stringify(USE_REFERENCE_FRW) );
   iodata->log( "  NORMALIZE_GAMMAIJ_AIJ = " + stringify(NORMALIZE_GAMMAIJ_AIJ) );
-  iodata->log( "  KO_ETA = " + stringify(KO_ETA) );
   iodata->log( "  BS_H_DAMPING_AMPLITUDE = " + stringify(BS_H_DAMPING_AMPLITUDE) );
   iodata->log( "  JM_K_DAMPING_AMPLITUDE = " + stringify(JM_K_DAMPING_AMPLITUDE) );
   iodata->log( "  USE_Z4c_DAMPING = " + stringify(USE_Z4c_DAMPING) );
@@ -41,10 +40,6 @@ void log_defines(IOData *iodata)
   iodata->log( "  Z4c_K2_DAMPING_AMPLITUDE = " + stringify(Z4c_K2_DAMPING_AMPLITUDE) );
   std::string stencil_order = STRINGIFY(STENCIL_ORDER_FUNCTION(Odx));
   iodata->log( "  STENCIL_ORDER = " + stencil_order);
-  iodata->log( "  USE_HARMONIC_ALPHA = " + stringify(USE_HARMONIC_ALPHA) );
-  iodata->log( "  USE_1PLUS_LOG_ALPHA = " + stringify(USE_1PLUS_LOG_ALPHA) );
-  iodata->log( "  USE_DAMPED_WAVE_ALPHA = " + stringify(USE_DAMPED_WAVE_ALPHA) );
-  iodata->log( "  USE_DAMPED_WAVE = " + stringify(USE_DAMPED_WAVE) );
   iodata->log( "  USE_GAMMA_DRIVER = " + stringify(USE_GAMMA_DRIVER) );
   iodata->log( "  USE_COSMO_CONST_POTENTIAL = " + stringify(USE_COSMO_CONST_POTENTIAL) );
   iodata->log( "  USE_BSSN_SHIFT = " + stringify(USE_BSSN_SHIFT) );
@@ -249,8 +244,9 @@ void io_print_constraint_violation(IOData *iodata, BSSN * bssnSim)
 void io_bssn_dump_statistics(IOData *iodata, idx_t step,
   map_t & bssn_fields, FRW<real_t> *frw)
 {
-  /* no output if not @ correct interval */
-  if( step % std::stoi(_config["IO_bssnstats_interval"]) != 0 )
+  bool output_step = ( std::stoi(_config("IO_bssnstats_interval", "0")) > 0 );
+  bool output_this_step = (0 == step % std::stoi(_config("IO_bssnstats_interval", "1")));
+  if( !output_step || !output_this_step )
     return;
 
   std::string filename = _config["dump_file"];
@@ -385,19 +381,28 @@ void io_raytrace_dump(IOData *iodata, idx_t step,
 void io_scalar_snapshot(IOData *iodata, idx_t step, Scalar * scalar)
 {
   std::string step_str = std::to_string(step);
-  if( step % std::stoi(_config["IO_3D_grid_interval"]) == 0 )
+  bool output_step = false;
+  bool output_this_step = false;
+
+  output_step = ( std::stoi(_config("IO_3D_grid_interval", "0")) > 0 );
+  output_this_step = ( 0 == step % std::stoi(_config("IO_3D_grid_interval", "1")) );
+  if( output_step && output_this_step )
   {
     io_dump_3dslice(iodata, scalar->phi._array_a, "3D_scalar_phi." + step_str);
     io_dump_3dslice(iodata, scalar->Pi._array_a, "3D_scalar_Pi." + step_str);
   }
   
-  if( step % std::stoi(_config["IO_2D_grid_interval"]) == 0 )
+  output_step = ( std::stoi(_config("IO_2D_grid_interval", "0")) > 0 );
+  output_this_step = ( 0 == step % std::stoi(_config("IO_2D_grid_interval", "1")) );
+  if( output_step && output_this_step )
   {
     io_dump_2dslice(iodata, scalar->phi._array_a, "2D_scalar_phi." + step_str);
     io_dump_2dslice(iodata, scalar->Pi._array_a, "2D_scalar_Pi." + step_str);
   }
   
-  if( step % std::stoi(_config["IO_1D_grid_interval"]) == 0 )
+  output_step = ( std::stoi(_config("IO_1D_grid_interval", "0")) > 0 );
+  output_this_step = ( 0 == step % std::stoi(_config("IO_1D_grid_interval", "1")) );
+  if( output_step && output_this_step )
   {
     io_dump_strip(iodata, scalar->phi._array_a, "1D_scalar_phi", 1, NY/2, NZ/2);
     io_dump_strip(iodata, scalar->Pi._array_a, "1D_scalar_Pi", 1, NY/2, NZ/2);

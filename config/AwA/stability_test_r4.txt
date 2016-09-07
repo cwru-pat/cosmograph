@@ -1,11 +1,9 @@
-steps = 4000
-
-omp_num_threads = 4
+steps = 20000
 
 simulation_type = vacuum
 ic_type = stability
 
-output_dir = stability_test
+output_dir = stability_test_r4
 dump_file = calculated
 
 IO_constraint_interval = 40

@@ -16,10 +16,16 @@ namespace cosmo
  * accuracy a = 2r - 2
  * r = (a + 2)/2
  * for a = 2, r = 2
- * Q = (-1)^r * (dx)^(2r-1) D_+^r D_- ^r / 2^(2r)
+ * Q = (-1)^r * (dx)^(2r-1) D_+^r D_-^r / 2^(2r)
  *   = dx^3 / 2^6 D_+^2 D_-^2
  *   = dx^3 / 64 * [stencil: 1, -4, 6, -4, 1]
- * TODO: higher order?
+ * 
+ * for a = 8, r = 5
+ * Q = (-1)^r * (dx)^(2r-1) D_+^r D_-^r / 2^(2r)
+ *   = -dx^9 / 1024 * D_+^5 D_-^5
+ *   = -dx^9 / 1024 * [stencil: 1, -10, 45, -120, 210, -252, 210, -120, 45, -10, 1]
+ *   
+ * TODO: other orders?
  * 
  * @param i gridpoint in x-dir
  * @param j gridpoint in y-dir
@@ -27,26 +33,42 @@ namespace cosmo
  * @param field releavnt field
  * @return dissipation factor
  */
-inline real_t KO_dissipation_Q(idx_t i, idx_t j, idx_t k, arr_t & field)
+inline real_t KO_dissipation_Q(idx_t i, idx_t j, idx_t k, arr_t & field, real_t ko_coeff)
 {
-  #if STENCIL_ORDER == 2
+  if(ko_coeff == 0)
+    return 0;
+
+# if STENCIL_ORDER == 2
     real_t stencil = (
         1.0*field[INDEX(i-2,j,k)] + 1.0*field[INDEX(i,j-2,k)] + 1.0*field[INDEX(i,j,k-2)]
       - 4.0*field[INDEX(i-1,j,k)] - 4.0*field[INDEX(i,j-1,k)] - 4.0*field[INDEX(i,j,k-1)]
       + 6.0*field[INDEX(i  ,j,k)] + 6.0*field[INDEX(i,j  ,k)] + 6.0*field[INDEX(i,j,k  )]
       - 4.0*field[INDEX(i+1,j,k)] - 4.0*field[INDEX(i,j+1,k)] - 4.0*field[INDEX(i,j,k+1)]
       + 1.0*field[INDEX(i+2,j,k)] + 1.0*field[INDEX(i,j+2,k)] + 1.0*field[INDEX(i,j,k+2)]
-    )/dx/dx;
-    real_t dissipation = KO_ETA*pow(dx, 3.0)/64.0*stencil;
+    )/pow(dx, 4.0);
+    real_t dissipation = ko_coeff*pow(dx, 3.0)/64.0*stencil;
     return dissipation;
-  #else
-    return 0.0;
-  #endif
+# endif
 
-  // for a = 6, r = 4
-  // Q = (dx)^(7) D_+^4 D_- ^4 / 2^(8)
-  //   = (dx)^(7)/256 * [stencil: ]
-  // ...
+# if STENCIL_ORDER == 8
+    real_t stencil = (
+          1.0*field[INDEX(i-5,j,k)] +   1.0*field[INDEX(i,j-5,k)] +   1.0*field[INDEX(i,j,k-5)]
+      -  10.0*field[INDEX(i-4,j,k)] -  10.0*field[INDEX(i,j-4,k)] -  10.0*field[INDEX(i,j,k-4)]
+      +  45.0*field[INDEX(i-3,j,k)] +  45.0*field[INDEX(i,j-3,k)] +  45.0*field[INDEX(i,j,k-3)]
+      - 120.0*field[INDEX(i-2,j,k)] - 120.0*field[INDEX(i,j-2,k)] - 120.0*field[INDEX(i,j,k-2)]
+      + 210.0*field[INDEX(i-1,j,k)] + 210.0*field[INDEX(i,j-1,k)] + 210.0*field[INDEX(i,j,k-1)]
+      - 252.0*field[INDEX(i  ,j,k)] - 252.0*field[INDEX(i,j  ,k)] - 252.0*field[INDEX(i,j,k  )]
+      + 210.0*field[INDEX(i+1,j,k)] + 210.0*field[INDEX(i,j+1,k)] + 210.0*field[INDEX(i,j,k+1)]
+      - 120.0*field[INDEX(i+2,j,k)] - 120.0*field[INDEX(i,j+2,k)] - 120.0*field[INDEX(i,j,k+2)]
+      +  45.0*field[INDEX(i+3,j,k)] +  45.0*field[INDEX(i,j+3,k)] +  45.0*field[INDEX(i,j,k+3)]
+      -  10.0*field[INDEX(i+4,j,k)] -  10.0*field[INDEX(i,j+4,k)] -  10.0*field[INDEX(i,j,k+4)]
+      +   1.0*field[INDEX(i+5,j,k)] +   1.0*field[INDEX(i,j+5,k)] +   1.0*field[INDEX(i,j,k+5)]
+    )/pow(dx, 10.0);
+    real_t dissipation = -ko_coeff*pow(dx, 9.0)/1024.0*stencil;
+    return dissipation;
+# endif
+
+  return 0.0;
 }
 
 inline real_t derivative_Odx2(idx_t i, idx_t j, idx_t k, int d,

@@ -1,7 +1,5 @@
 steps = 100
 
-omp_num_threads = 4
-
 simulation_type = dust
 peak_amplitude_frac = 5.0
 rho_K_lambda_frac = 0.0
@@ -13,13 +11,17 @@ rays_num = 10
 ray_flip_step = 90
 IO_raytrace_interval = 1
 
-output_dir = dust_test
+output_dir = dust_ray_test
 dump_file = calculated
 
 IO_3D_grid_interval = 100
+IO_3D_DIFFphi_a = 1
 IO_2D_grid_interval = 100
+IO_2D_DIFFphi_a = 1
 IO_1D_grid_interval = 10
+IO_1D_DIFFphi_a = 1
 
 IO_powerspec_interval = 100
+
 IO_constraint_interval = 10
 IO_bssnstats_interval = 10
