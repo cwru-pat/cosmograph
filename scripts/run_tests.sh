@@ -7,26 +7,34 @@ cd "$(dirname "$0")"
 # And up a directory should be the main codebase.
 cd ..
 
+if [ -z "$CXX" ]; then
+    echo "C compiler used is g++"
+    CXX=g++
+else
+    echo "C compiler used is ${CXX}"
+fi
+$CXX --version
+
 ###
 # Tests in tests directory
 ###
 cd tests
-g++ --std=c++11 reference_frw.cc && ./a.out
+$CXX --std=c++11 reference_frw.cc && ./a.out
 if [ $? -ne 0 ]; then
     echo "Error: reference FRW integrator check failed!"
     exit 1
 fi
-g++ --std=c++11 timer.cc ../utils/Timer.cc -lrt -O0 && ./a.out
+$CXX --std=c++11 timer.cc ../utils/Timer.cc -lrt -O0 && ./a.out
 if [ $? -ne 0 ]; then
     echo "Error: timer class check failed!"
     exit 1
 fi
-g++ --std=c++11 array.cc -O0 && ./a.out
+$CXX --std=c++11 array.cc -O0 && ./a.out
 if [ $? -ne 0 ]; then
     echo "Error: array class check failed!"
     exit 1
 fi
-g++ --std=c++11 rk4.cc -O0 && ./a.out
+$CXX --std=c++11 rk4.cc -O0 && ./a.out
 if [ $? -ne 0 ]; then
     echo "Error: RK4 class check failed!"
     exit 1
@@ -44,7 +52,7 @@ if [ $? -ne 0 ]; then
     echo "Error: cmake failed!"
     exit 1
 fi
-make -j16
+make -j16 VERBOSE=1
 if [ $? -ne 0 ]; then
     echo "Error: make failed!"
     exit 1
@@ -107,7 +115,7 @@ if [ $? -ne 0 ]; then
     echo "Error: cmake failed!"
     exit 1
 fi
-make -j16
+make -j16 VERBOSE=1
 if [ $? -ne 0 ]; then
     echo "Error: make failed!"
     exit 1

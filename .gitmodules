@@ -4,3 +4,6 @@
 [submodule "components/cosmotrace"]
 	path = components/cosmotrace
 	url = https://github.com/jbcm627/cosmotrace
+[submodule "components/IO/HDFIO"]
+	path = components/IO/HDFIO
+	url = https://github.com/cwru-pat/HDFIO
