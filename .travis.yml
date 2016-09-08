@@ -1,6 +1,5 @@
 
 language: cpp
-sudo: required
 dist: trusty
 
 git:
@@ -22,7 +21,6 @@ addons:
 
 install:
  - pwd
- - sudo apt-get -qq update
  - echo -e "machine github.com login jbcm627-travis password Z8wrU3RuBRuM6steQE7e" >> ~/.netrc
  - git submodule update --init --recursive
  - gcc --version
