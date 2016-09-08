@@ -20,7 +20,7 @@ Some additional information can be found on the github pages [CosmoGRaPH](https:
 To install these on on linux (Ubuntu, Mint), run a command like:
 
 ```{r, engine='bash', compile}
-sudo apt-get install git cmake libhdf5-dev fftw3-dev libzip-dev g++
+sudo apt-get install git cmake libhdf5-serial-dev fftw3-dev libzip-dev g++
 ```
 
 ### Obtaining up the code

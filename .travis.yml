@@ -16,7 +16,7 @@ addons:
     # install toolchains
     - gcc-5
     - g++-5
-    - libhdf5-dev
+    - libhdf5-serial-dev
     - libfftw3-dev
     - libzip-dev
 
