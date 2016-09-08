@@ -61,6 +61,52 @@ class CosmoArray
       }
     }
 
+    RT sum()
+    {
+      RT res = 0.0;
+      #pragma omp parallel for reduction(+:res)
+      for(IT i=0; i<pts; ++i)
+      {
+        res += _array[i];
+      }
+      return res;
+
+    }
+    
+    RT avg()
+    {
+      return sum() / (RT)pts;
+    }
+
+    RT min()
+    {
+      RT min_res = 1e100;
+      #pragma omp parallel for 
+      for(IT i = 0; i<pts; i++)
+      {
+        #pragma omp critical
+        if(_array[i] < min_res)
+          min_res = _array[i];
+      }
+      return min_res;
+    }
+
+    RT max()
+    {
+      RT max_res = -1e100;
+      #pragma omp parallel for
+      for(IT i = 0; i<pts; i++)
+      {
+        #pragma omp critical
+        {
+          if(_array[i] > max_res)
+            max_res = _array[i];
+        }
+      }
+
+      return max_res;
+
+    }
     IT idx(IT i_in, IT j_in, IT k_in)
     {
       IT i=i_in, j=j_in, k=k_in;

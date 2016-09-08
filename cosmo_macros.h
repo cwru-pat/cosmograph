@@ -146,6 +146,9 @@
 // non-periodic indexing of flux arrays; indexes cell boundaries with 'd' = 1,2,3
 #define F_NP_INDEX(i,j,k,d) ( (NZ)*(NY)*(i)*3 + (NZ)*(j)*3 + (k)*3 + (d+2)%3 )
 
+// index with designated grid number
+#define H_INDEX(i,j,k,nx,ny,nz) (((i+nx)%(nx))*(ny)*(nz) + ((j+ny)%(ny))*(nz) + (k+(nz))%(nz))
+
 // map spatial (i,j) to array index
 #define aIDX(i,j) ( i <= j  ? (7-i)*i/2 - 4 + j : (7-j)*j/2 - 4 + i )
 // map spatial (i) to array index

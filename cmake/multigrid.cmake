@@ -1,5 +1,5 @@
-unset(../components/elliptic_solver/multigrid.h CACHE)
-if(EXISTS ../components/elliptic_solver/multigrid.h)
+unset(../components/elliptic_solver/full_multigrid.h CACHE)
+if(EXISTS ../components/elliptic_solver/full_multigrid.h)
   add_definitions(-DUSE_MULTIGRID=1)
 else()
   add_definitions(-DUSE_MULTIGRID=0)
@@ -7,4 +7,4 @@ else()
 endif()
 
 unset(MULTIGRID_SOURCES CACHE)
-file(GLOB MULTIGRID_SOURCES components/elliptic_solver/multigrid.cpp)
+file(GLOB MULTIGRID_SOURCES components/elliptic_solver/full_multigrid.cpp)
