@@ -23,10 +23,11 @@ install:
  - pwd
  - echo -e "machine github.com login jbcm627-travis password Z8wrU3RuBRuM6steQE7e" >> ~/.netrc
  - git submodule update --init --recursive
- - gcc --version
- - g++ --version
+ - gcc-5 --version
+ - g++-5 --version
 
 before_script:
  - export OMP_NUM_THREADS=4
+ - export CXX=g++-5
 
 script: scripts/run_tests.sh
