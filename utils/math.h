@@ -846,6 +846,602 @@ inline real_t real_t_mod(real_t n, real_t d)
   return n - d*std::floor(n/d);
 }
 
+
+
+
+/******************************************************************************************/
+
+
+inline real_t derivative_Odx2(idx_t i, idx_t j, idx_t k, idx_t nx, idx_t ny, idx_t nz, int d, arr_t & field)
+{
+  real_t dx = H_LEN_FRAC / nx, dy = H_LEN_FRAC / ny, dz = H_LEN_FRAC / nz;
+  switch (d) {
+    case 1:
+      return ((
+        - 1.0/2.0*field[H_INDEX(i-1,j,k,nx,ny,nz)]
+        + 1.0/2.0*field[H_INDEX(i+1,j,k,nx,ny,nz)]
+      )/dx);
+      break;
+    case 2:
+      return ((
+        - 1.0/2.0*field[H_INDEX(i,j-1,k,nx,ny,nz)]
+        + 1.0/2.0*field[H_INDEX(i,j+1,k,nx,ny,nz)]
+      )/dy);
+      break;
+    case 3:
+      return ((
+        - 1.0/2.0*field[H_INDEX(i,j,k-1,nx,ny,nz)]
+        + 1.0/2.0*field[H_INDEX(i,j,k+1,nx,ny,nz)]
+      )/dz);
+      break;
+  }
+
+  /* XXX */
+  return 0;
 }
 
+inline real_t derivative_Odx4(idx_t i, idx_t j, idx_t k, idx_t nx, idx_t ny, idx_t nz, int d, arr_t & field)
+{
+  real_t dx = H_LEN_FRAC / nx, dy = H_LEN_FRAC / ny, dz = H_LEN_FRAC / dz;
+  switch (d) {
+    case 1:
+      return (
+        + 1.0/12.0*field[H_INDEX(i-2,j,k,nx,ny,nz)]
+        - 2.0/3.0*field[H_INDEX(i-1,j,k,nx,ny,nz)]
+        + 2.0/3.0*field[H_INDEX(i+1,j,k,nx,ny,nz)]
+        - 1.0/12.0*field[H_INDEX(i+2,j,k,nx,ny,nz)]
+      )/dx;
+      break;
+    case 2:
+      return (
+        + 1.0/12.0*field[H_INDEX(i,j-2,k,nx,ny,nz)]
+        - 2.0/3.0*field[H_INDEX(i,j-1,k,nx,ny,nz)]
+        + 2.0/3.0*field[H_INDEX(i,j+1,k,nx,ny,nz)]
+        - 1.0/12.0*field[H_INDEX(i,j+2,k,nx,ny,nz)]
+      )/dy;
+      break;
+    case 3:
+      return (
+        + 1.0/12.0*field[H_INDEX(i,j,k-2,nx,ny,nz)]
+        - 2.0/3.0*field[H_INDEX(i,j,k-1,nx,ny,nz)]
+        + 2.0/3.0*field[H_INDEX(i,j,k+1,nx,ny,nz)]
+        - 1.0/12.0*field[H_INDEX(i,j,k+2,nx,ny,nz)]
+      )/dz;
+      break;
+  }
+
+  /* XXX */
+  return 0;
+}
+
+inline real_t derivative_Odx6(idx_t i, idx_t j, idx_t k,idx_t nx, idx_t ny, idx_t nz, int d,
+arr_t & field)
+{
+  real_t dx = H_LEN_FRAC / nx, dy = H_LEN_FRAC / ny, dz = H_LEN_FRAC / nz;
+  switch (d) {
+    case 1:
+      return (
+        - 1.0/60.0*field[H_INDEX(i-3,j,k,nx,ny,nz)]
+        + 3.0/20.0*field[H_INDEX(i-2,j,k,nx,ny,nz)]
+        - 3.0/4.0*field[H_INDEX(i-1,j,k,nx,ny,nz)]
+        + 3.0/4.0*field[H_INDEX(i+1,j,k,nx,ny,nz)]
+        - 3.0/20.0*field[H_INDEX(i+2,j,k,nx,ny,nz)]
+        + 1.0/60.0*field[H_INDEX(i+3,j,k,nx,ny,nz)]
+      )/dx;
+      break;
+    case 2:
+      return (
+        - 1.0/60.0*field[H_INDEX(i,j-3,k,nx,ny,nz)]
+        + 3.0/20.0*field[H_INDEX(i,j-2,k,nx,ny,nz)]
+        - 3.0/4.0*field[H_INDEX(i,j-1,k,nx,ny,nz)]
+        + 3.0/4.0*field[H_INDEX(i,j+1,k,nx,ny,nz)]
+        - 3.0/20.0*field[H_INDEX(i,j+2,k,nx,ny,nz)]
+        + 1.0/60.0*field[H_INDEX(i,j+3,k,nx,ny,nz)]
+      )/dy;
+      break;
+    case 3:
+      return (
+              - 1.0/60.0*field[H_INDEX(i,j,k-3,nx,ny,nz)]
+        + 3.0/20.0*field[H_INDEX(i,j,k-2,nx,ny,nz)]
+        - 3.0/4.0*field[H_INDEX(i,j,k-1,nx,ny,nz)]
+        + 3.0/4.0*field[H_INDEX(i,j,k+1,nx,ny,nz)]
+        - 3.0/20.0*field[H_INDEX(i,j,k+2,nx,ny,nz)]
+        + 1.0/60.0*field[H_INDEX(i,j,k+3,nx,ny,nz)]
+      )/dz;
+      break;
+  }
+
+  /* XXX */
+  return 0;
+}
+
+inline real_t derivative_Odx8(idx_t i, idx_t j, idx_t k,idx_t nx, idx_t ny, idx_t nz, int d,arr_t & field)
+{
+  real_t dx = H_LEN_FRAC / nx, dy = H_LEN_FRAC / ny, dz = H_LEN_FRAC / nz;
+  switch (d) {
+    case 1:
+      return (
+        ( 1.0/280.0*field[H_INDEX(i-4,j,k,nx,ny,nz)] - 1.0/280.0*field[H_INDEX(i+4,j,k,nx,ny,nz)] )
+        - ( 4.0/105.0*field[H_INDEX(i-3,j,k,nx,ny,nz)] - 4.0/105.0*field[H_INDEX(i+3,j,k,nx,ny,nz)] )
+        + ( 1.0/5.0*field[H_INDEX(i-2,j,k,nx,ny,nz)] - 1.0/5.0*field[H_INDEX(i+2,j,k,nx,ny,nz)] )
+        - ( 4.0/5.0*field[H_INDEX(i-1,j,k,nx,ny,nz)] - 4.0/5.0*field[H_INDEX(i+1,j,k,nx,ny,nz)] )
+      )/dx;
+      break;
+    case 2:
+      return (
+        ( 1.0/280.0*field[H_INDEX(i,j-4,k,nx,ny,nz)] - 1.0/280.0*field[H_INDEX(i,j+4,k,nx,ny,nz)] )
+        - ( 4.0/105.0*field[H_INDEX(i,j-3,k,nx,ny,nz)] - 4.0/105.0*field[H_INDEX(i,j+3,k,nx,ny,nz)] )
+        + ( 1.0/5.0*field[H_INDEX(i,j-2,k,nx,ny,nz)] - 1.0/5.0*field[H_INDEX(i,j+2,k,nx,ny,nz)] )
+        - ( 4.0/5.0*field[H_INDEX(i,j-1,k,nx,ny,nz)] - 4.0/5.0*field[H_INDEX(i,j+1,k,nx,ny,nz)] )
+      )/dy;
+      break;
+    case 3:
+      return (
+              ( 1.0/280.0*field[H_INDEX(i,j,k-4,nx,ny,nz)] - 1.0/280.0*field[H_INDEX(i,j,k+4,nx,ny,nz)] )
+              - ( 4.0/105.0*field[H_INDEX(i,j,k-3,nx,ny,nz)] - 4.0/105.0*field[H_INDEX(i,j,k+3,nx,ny,nz)] )
+        + ( 1.0/5.0*field[H_INDEX(i,j,k-2,nx,ny,nz)] - 1.0/5.0*field[H_INDEX(i,j,k+2,nx,ny,nz)] )
+        - ( 4.0/5.0*field[H_INDEX(i,j,k-1,nx,ny,nz)] - 4.0/5.0*field[H_INDEX(i,j,k+1,nx,ny,nz)] )
+      )/dz;
+      break;
+  }
+
+  /* XXX */
+  return 0;
+}
+
+inline real_t mixed_derivative_stencil_Odx2(idx_t i, idx_t j, idx_t k,idx_t nx, idx_t ny, idx_t nz,  int d1, int d2, arr_t & field)
+{
+  real_t dx = H_LEN_FRAC / nx, dy = H_LEN_FRAC / ny, dz = H_LEN_FRAC / nz;
+  if( (d1 == 1 && d2 == 2) || (d1 == 2 && d2 == 1) ) {
+    return (
+      - field[H_INDEX(i+1,j-1,k,nx,ny,nz)] + field[H_INDEX(i+1,j+1,k,nx,ny,nz)]
+      + field[H_INDEX(i-1,j-1,k,nx,ny,nz)] - field[H_INDEX(i-1,j+1,k,nx,ny,nz)]
+    )/4.0/dx/dy;
+  }
+
+  if( (d1 == 1 && d2 == 3) || (d1 == 3 && d2 == 1) ) {
+    return (
+      - field[H_INDEX(i+1,j,k-1,nx,ny,nz)] + field[H_INDEX(i+1,j,k+1,nx,ny,nz)]
+      + field[H_INDEX(i-1,j,k-1,nx,ny,nz)] - field[H_INDEX(i-1,j,k+1,nx,ny,nz)]
+    )/4.0/dx/dz;
+  }
+
+  if( (d1 == 3 && d2 == 2) || (d1 == 2 && d2 == 3) ) {
+    return (
+      - field[H_INDEX(i,j+1,k-1,nx,ny,nz)] + field[H_INDEX(i,j+1,k+1,nx,ny,nz)]
+      + field[H_INDEX(i,j-1,k-1,nx,ny,nz)] - field[H_INDEX(i,j-1,k+1,nx,ny,nz)]
+    )/4.0/dy/dz;
+  }
+
+  /* XXX */
+  return 0;
+}
+
+inline real_t mixed_derivative_stencil_Odx4(idx_t i, idx_t j, idx_t k,idx_t nx, idx_t ny, idx_t nz,  int d1, int d2, arr_t & field)
+{
+    real_t dx = H_LEN_FRAC / nx, dy = H_LEN_FRAC / ny, dz = H_LEN_FRAC / nz;
+  if( (d1 == 1 && d2 == 2) || (d1 == 2 && d2 == 1) ) {
+    return (
+      (
+        - field[H_INDEX(i+1,j-1,k,nx,ny,nz)] + field[H_INDEX(i+1,j+1,k,nx,ny,nz)]
+        + field[H_INDEX(i-1,j-1,k,nx,ny,nz)] - field[H_INDEX(i-1,j+1,k,nx,ny,nz)]
+      ) - 1.0/16.0*(
+        - field[H_INDEX(i+2,j-2,k,nx,ny,nz)] + field[H_INDEX(i+2,j+2,k,nx,ny,nz)]
+        + field[H_INDEX(i-2,j-2,k,nx,ny,nz)] - field[H_INDEX(i-2,j+2,k,nx,ny,nz)]
+      )
+    )/3.0/dx/dy;
+  }
+
+  if( (d1 == 1 && d2 == 3) || (d1 == 3 && d2 == 1) ) {
+    return (
+      (
+        - field[H_INDEX(i+1,j,k-1,nx,ny,nz)] + field[H_INDEX(i+1,j,k+1,nx,ny,nz)]
+        + field[H_INDEX(i-1,j,k-1,nx,ny,nz)] - field[H_INDEX(i-1,j,k+1,nx,ny,nz)]
+      ) - 1.0/16.0*(
+        - field[H_INDEX(i+2,j,k-2,nx,ny,nz)] + field[H_INDEX(i+2,j,k+2,nx,ny,nz)]
+        + field[H_INDEX(i-2,j,k-2,nx,ny,nz)] - field[H_INDEX(i-2,j,k+2,nx,ny,nz)]
+      )
+    )/3.0/dx/dz;
+  }
+
+  if( (d1 == 3 && d2 == 2) || (d1 == 2 && d2 == 3) ) {
+    return (
+      (
+        - field[H_INDEX(i,j+1,k-1,nx,ny,nz)] + field[H_INDEX(i,j+1,k+1,nx,ny,nz)]
+        + field[H_INDEX(i,j-1,k-1,nx,ny,nz)] - field[H_INDEX(i,j-1,k+1,nx,ny,nz)]
+      ) - 1.0/16.0*(
+        - field[H_INDEX(i,j+2,k-2,nx,ny,nz)] + field[H_INDEX(i,j+2,k+2,nx,ny,nz)]
+        + field[H_INDEX(i,j-2,k-2,nx,ny,nz)] - field[H_INDEX(i,j-2,k+2,nx,ny,nz)]
+      )
+    )/3.0/dy/dz;
+  }
+
+  /* XXX */
+  return 0;
+}
+
+inline real_t mixed_derivative_stencil_Odx6(idx_t i, idx_t j, idx_t k, idx_t nx, idx_t ny, idx_t nz, int d1, int d2, arr_t & field)
+{
+  real_t dx = H_LEN_FRAC / nx, dy = H_LEN_FRAC / ny, dz = H_LEN_FRAC / nz;  
+  if( (d1 == 1 && d2 == 2) || (d1 == 2 && d2 == 1) ) {
+    return (
+      135.0*(
+        - field[H_INDEX(i+1,j-1,k,nx,ny,nz)] + field[H_INDEX(i+1,j+1,k,nx,ny,nz)]
+        + field[H_INDEX(i-1,j-1,k,nx,ny,nz)] - field[H_INDEX(i-1,j+1,k,nx,ny,nz)]
+      ) - 27.0/2.0*(
+        - field[H_INDEX(i+2,j-2,k,nx,ny,nz)] + field[H_INDEX(i+2,j+2,k,nx,ny,nz)]
+        + field[H_INDEX(i-2,j-2,k,nx,ny,nz)] - field[H_INDEX(i-2,j+2,k,nx,ny,nz)]
+      ) + (
+        - field[H_INDEX(i+3,j-3,k,nx,ny,nz)] + field[H_INDEX(i+3,j+3,k,nx,ny,nz)]
+        + field[H_INDEX(i-3,j-3,k,nx,ny,nz)] - field[H_INDEX(i-3,j+3,k,nx,ny,nz)]
+      )
+    )/360.0/dx/dy;
+  }
+
+  if( (d1 == 1 && d2 == 3) || (d1 == 3 && d2 == 1) ) {
+    return (
+      135.0*(
+        - field[H_INDEX(i+1,j,k-1,nx,ny,nz)] + field[H_INDEX(i+1,j,k+1,nx,ny,nz)]
+        + field[H_INDEX(i-1,j,k-1,nx,ny,nz)] - field[H_INDEX(i-1,j,k+1,nx,ny,nz)]
+      ) - 27.0/2.0*(
+        - field[H_INDEX(i+2,j,k-2,nx,ny,nz)] + field[H_INDEX(i+2,j,k+2,nx,ny,nz)]
+        + field[H_INDEX(i-2,j,k-2,nx,ny,nz)] - field[H_INDEX(i-2,j,k+2,nx,ny,nz)]
+      ) + (
+           - field[H_INDEX(i+3,j,k-3,nx,ny,nz)] + field[H_INDEX(i+3,j,k+3,nx,ny,nz)]
+           + field[H_INDEX(i-3,j,k-3,nx,ny,nz)] - field[H_INDEX(i-3,j,k+3,nx,ny,nz)]
+      )
+    )/360.0/dx/dz;
+  }
+
+  if( (d1 == 3 && d2 == 2) || (d1 == 2 && d2 == 3) ) {
+    return (
+      135.0*(
+        - field[H_INDEX(i,j+1,k-1,nx,ny,nz)] + field[H_INDEX(i,j+1,k+1,nx,ny,nz)]
+        + field[H_INDEX(i,j-1,k-1,nx,ny,nz)] - field[H_INDEX(i,j-1,k+1,nx,ny,nz)]
+      ) - 27.0/2.0*(
+        - field[H_INDEX(i,j+2,k-2,nx,ny,nz)] + field[H_INDEX(i,j+2,k+2,nx,ny,nz)]
+        + field[H_INDEX(i,j-2,k-2,nx,ny,nz)] - field[H_INDEX(i,j-2,k+2,nx,ny,nz)]
+      ) + (
+           - field[H_INDEX(i,j+3,k-3,nx,ny,nz)] + field[H_INDEX(i,j+3,k+3,nx,ny,nz)]
+           + field[H_INDEX(i,j-3,k-3,nx,ny,nz)] - field[H_INDEX(i,j-3,k+3,nx,ny,nz)]
+      )
+    )/360.0/dy/dz;
+  }
+
+  /* XXX */
+  return 0;
+}
+
+inline real_t mixed_derivative_stencil_Odx8(idx_t i, idx_t j, idx_t k, idx_t nx, idx_t ny, idx_t nz, int d1, int d2, arr_t & field)
+{
+  real_t dx = H_LEN_FRAC / nx, dy = H_LEN_FRAC / ny, dz = H_LEN_FRAC / nz;  
+  if( (d1 == 1 && d2 == 2) || (d1 == 2 && d2 == 1) ) {
+    return (
+      2.0/5.0*(
+        - field[H_INDEX(i+1,j-1,k,nx,ny,nz)] + field[H_INDEX(i+1,j+1,k,nx,ny,nz)]
+        + field[H_INDEX(i-1,j-1,k,nx,ny,nz)] - field[H_INDEX(i-1,j+1,k,nx,ny,nz)]
+      ) - 1.0/20.0*(
+        - field[H_INDEX(i+2,j-2,k,nx,ny,nz)] + field[H_INDEX(i+2,j+2,k,nx,ny,nz)]
+        + field[H_INDEX(i-2,j-2,k,nx,ny,nz)] - field[H_INDEX(i-2,j+2,k,nx,ny,nz)]
+      ) + 2.0/315.0*(
+        - field[H_INDEX(i+3,j-3,k,nx,ny,nz)] + field[H_INDEX(i+3,j+3,k,nx,ny,nz)]
+        + field[H_INDEX(i-3,j-3,k,nx,ny,nz)] - field[H_INDEX(i-3,j+3,k,nx,ny,nz)]
+      ) - 1.0/2240.0*(
+        - field[H_INDEX(i+4,j-4,k,nx,ny,nz)] + field[H_INDEX(i+4,j+4,k,nx,ny,nz)]
+        + field[H_INDEX(i-4,j-4,k,nx,ny,nz)] - field[H_INDEX(i-4,j+4,k,nx,ny,nz)]
+      )
+    )/dx/dy;
+  }
+
+  if( (d1 == 1 && d2 == 3) || (d1 == 3 && d2 == 1) ) {
+    return (
+      2.0/5.0*(
+        - field[H_INDEX(i+1,j,k-1,nx,ny,nz)] + field[H_INDEX(i+1,j,k+1,nx,ny,nz)]
+        + field[H_INDEX(i-1,j,k-1,nx,ny,nz)] - field[H_INDEX(i-1,j,k+1,nx,ny,nz)]
+      ) - 1.0/20.0*(
+        - field[H_INDEX(i+2,j,k-2,nx,ny,nz)] + field[H_INDEX(i+2,j,k+2,nx,ny,nz)]
+        + field[H_INDEX(i-2,j,k-2,nx,ny,nz)] - field[H_INDEX(i-2,j,k+2,nx,ny,nz)]
+      ) + 2.0/315.0*(
+        - field[H_INDEX(i+3,j,k-3,nx,ny,nz)] + field[H_INDEX(i+3,j,k+3,nx,ny,nz)]
+        + field[H_INDEX(i-3,j,k-3,nx,ny,nz)] - field[H_INDEX(i-3,j,k+3,nx,ny,nz)]
+      ) - 1.0/2240.0*(
+        - field[H_INDEX(i+4,j,k-4,nx,ny,nz)] + field[H_INDEX(i+4,j,k+4,nx,ny,nz)]
+        + field[H_INDEX(i-4,j,k-4,nx,ny,nz)] - field[H_INDEX(i-4,j,k+4,nx,ny,nz)]
+      )
+    )/dx/dz;
+  }
+
+  if( (d1 == 3 && d2 == 2) || (d1 == 2 && d2 == 3) ) {
+    return (
+      2.0/5.0*(
+        - field[H_INDEX(i,j+1,k-1,nx,ny,nz)] + field[H_INDEX(i,j+1,k+1,nx,ny,nz)]
+        + field[H_INDEX(i,j-1,k-1,nx,ny,nz)] - field[H_INDEX(i,j-1,k+1,nx,ny,nz)]
+      ) - 1.0/20.0*(
+        - field[H_INDEX(i,j+2,k-2,nx,ny,nz)] + field[H_INDEX(i,j+2,k+2,nx,ny,nz)]
+        + field[H_INDEX(i,j-2,k-2,nx,ny,nz)] - field[H_INDEX(i,j-2,k+2,nx,ny,nz)]
+      ) + 2.0/315.0*(
+        - field[H_INDEX(i,j+3,k-3,nx,ny,nz)] + field[H_INDEX(i,j+3,k+3,nx,ny,nz)]
+        + field[H_INDEX(i,j-3,k-3,nx,ny,nz)] - field[H_INDEX(i,j-3,k+3,nx,ny,nz)]
+      ) - 1.0/2240.0*(
+        - field[H_INDEX(i,j+4,k-4,nx,ny,nz)] + field[H_INDEX(i,j+4,k+4,nx,ny,nz)]
+        + field[H_INDEX(i,j-4,k-4,nx,ny,nz)] - field[H_INDEX(i,j-4,k+4,nx,ny,nz)]
+      )
+    )/dy/dz;
+  }
+
+  /* XXX */
+  return 0;
+}
+
+inline real_t double_derivative_stencil_Odx2(idx_t i, idx_t j, idx_t k, idx_t nx, idx_t ny, idx_t nz, int d, arr_t & field)
+{
+  real_t dx = H_LEN_FRAC / nx, dy = H_LEN_FRAC / ny, dz = H_LEN_FRAC / nz;
+  switch (d) {
+    case 1:
+      return (
+          field[H_INDEX(i-1,j,k,nx,ny,nz)]
+          - 2.0*field[H_INDEX(i-0,j,k,nx,ny,nz)]
+          + field[H_INDEX(i+1,j,k,nx,ny,nz)]
+        )/dx/dx;
+      break;
+    case 2:
+      return (
+          field[H_INDEX(i,j-1,k,nx,ny,nz)]
+          - 2.0*field[H_INDEX(i,j-0,k,nx,ny,nz)]
+          + field[H_INDEX(i,j+1,k,nx,ny,nz)]
+        )/dy/dy;
+      break;
+    case 3:
+      return (
+          field[H_INDEX(i,j,k-1,nx,ny,nz)]
+          - 2.0*field[H_INDEX(i,j,k-0,nx,ny,nz)]
+          + field[H_INDEX(i,j,k+1,nx,ny,nz)]
+        )/dz/dz;
+      break;
+  }
+
+  /* XXX */
+  return 0;
+}
+
+inline real_t double_derivative_stencil_Odx4(idx_t i, idx_t j, idx_t k, idx_t nx, idx_t ny, idx_t nz, int d, arr_t & field)
+{
+  real_t dx = H_LEN_FRAC / nx, dy = H_LEN_FRAC / ny, dz = H_LEN_FRAC / nz;  
+  switch (d) {
+    case 1:
+      return (
+          - 1.0/12.0*field[H_INDEX(i-2,j,k,nx,ny,nz)]
+          + 4.0/3.0*field[H_INDEX(i-1,j,k,nx,ny,nz)]
+          - 5.0/2.0*field[H_INDEX(i-0,j,k,nx,ny,nz)]
+          + 4.0/3.0*field[H_INDEX(i+1,j,k,nx,ny,nz)]
+          - 1.0/12.0*field[H_INDEX(i+2,j,k,nx,ny,nz)]
+        )/dx/dx;
+      break;
+    case 2:
+      return (
+          - 1.0/12.0*field[H_INDEX(i,j-2,k,nx,ny,nz)]
+          + 4.0/3.0*field[H_INDEX(i,j-1,k,nx,ny,nz)]
+          - 5.0/2.0*field[H_INDEX(i,j-0,k,nx,ny,nz)]
+          + 4.0/3.0*field[H_INDEX(i,j+1,k,nx,ny,nz)]
+          - 1.0/12.0*field[H_INDEX(i,j+2,k,nx,ny,nz)]
+        )/dy/dy;
+      break;
+    case 3:
+      return (
+          - 1.0/12.0*field[H_INDEX(i,j,k-2,nx,ny,nz)]
+          + 4.0/3.0*field[H_INDEX(i,j,k-1,nx,ny,nz)]
+          - 5.0/2.0*field[H_INDEX(i,j,k-0,nx,ny,nz)]
+          + 4.0/3.0*field[H_INDEX(i,j,k+1,nx,ny,nz)]
+          - 1.0/12.0*field[H_INDEX(i,j,k+2,nx,ny,nz)]
+        )/dz/dz;
+      break;
+  }
+
+  /* XXX */
+  return 0;
+}
+
+inline real_t double_derivative_stencil_Odx6(idx_t i, idx_t j, idx_t k, idx_t nx, idx_t ny, idx_t nz, int d, arr_t & field)
+{
+  real_t dx = H_LEN_FRAC / nx, dy = H_LEN_FRAC / ny, dz = H_LEN_FRAC / nz;
+  switch (d) {
+    case 1:
+      return (
+          1.0/90.0*field[H_INDEX(i-3,j,k,nx,ny,nz)]
+          - 3.0/20.0*field[H_INDEX(i-2,j,k,nx,ny,nz)]
+          + 3.0/2.0*field[H_INDEX(i-1,j,k,nx,ny,nz)]
+          - 49.0/18.0*field[H_INDEX(i-0,j,k,nx,ny,nz)]
+          + 3.0/2.0*field[H_INDEX(i+1,j,k,nx,ny,nz)]
+          - 3.0/20.0*field[H_INDEX(i+2,j,k,nx,ny,nz)]
+          + 1.0/90.0*field[H_INDEX(i+3,j,k,nx,ny,nz)]
+        )/dx/dx;
+      break;
+    case 2:
+      return (
+          1.0/90.0*field[H_INDEX(i,j-3,k,nx,ny,nz)]
+          - 3.0/20.0*field[H_INDEX(i,j-2,k,nx,ny,nz)]
+          + 3.0/2.0*field[H_INDEX(i,j-1,k,nx,ny,nz)]
+          - 49.0/18.0*field[H_INDEX(i,j-0,k,nx,ny,nz)]
+          + 3.0/2.0*field[H_INDEX(i,j+1,k,nx,ny,nz)]
+          - 3.0/20.0*field[H_INDEX(i,j+2,k,nx,ny,nz)]
+          + 1.0/90.0*field[H_INDEX(i,j+3,k,nx,ny,nz)]
+        )/dy/dy;
+      break;
+    case 3:
+      return (
+          1.0/90.0*field[H_INDEX(i,j,k-3,nx,ny,nz)]
+          - 3.0/20.0*field[H_INDEX(i,j,k-2,nx,ny,nz)]
+          + 3.0/2.0*field[H_INDEX(i,j,k-1,nx,ny,nz)]
+          - 49.0/18.0*field[H_INDEX(i,j,k-0,nx,ny,nz)]
+          + 3.0/2.0*field[H_INDEX(i,j,k+1,nx,ny,nz)]
+          - 3.0/20.0*field[H_INDEX(i,j,k+2,nx,ny,nz)]
+          + 1.0/90.0*field[H_INDEX(i,j,k+3,nx,ny,nz)]
+        )/dz/dz;
+      break;
+  }
+
+  /* XXX */
+  return 0;
+}
+
+inline real_t double_derivative_stencil_Odx8(idx_t i, idx_t j, idx_t k, idx_t nx, idx_t ny, idx_t nz, int d, arr_t & field)
+{
+  real_t dx = H_LEN_FRAC / nx, dy = H_LEN_FRAC / ny, dz = H_LEN_FRAC / nz;
+  switch (d) {
+    case 1:
+      return (
+          - 1.0/560.0*field[H_INDEX(i-4,j,k,nx,ny,nz)]
+          + 8.0/315.0*field[H_INDEX(i-3,j,k,nx,ny,nz)]
+          - 1.0/5.0*field[H_INDEX(i-2,j,k,nx,ny,nz)]
+          + 8.0/5.0*field[H_INDEX(i-1,j,k,nx,ny,nz)]
+          - 205.0/72.0*field[H_INDEX(i-0,j,k,nx,ny,nz)]
+          + 8.0/5.0*field[H_INDEX(i+1,j,k,nx,ny,nz)]
+          - 1.0/5.0*field[H_INDEX(i+2,j,k,nx,ny,nz)]
+          + 8.0/315.0*field[H_INDEX(i+3,j,k,nx,ny,nz)]
+          - 1.0/560.0*field[H_INDEX(i+4,j,k,nx,ny,nz)]
+        )/dx/dx;
+      break;
+    case 2:
+      return (
+          - 1.0/560.0*field[H_INDEX(i,j-4,k,nx,ny,nz)]
+          + 8.0/315.0*field[H_INDEX(i,j-3,k,nx,ny,nz)]
+          - 1.0/5.0*field[H_INDEX(i,j-2,k,nx,ny,nz)]
+          + 8.0/5.0*field[H_INDEX(i,j-1,k,nx,ny,nz)]
+          - 205.0/72.0*field[H_INDEX(i,j-0,k,nx,ny,nz)]
+          + 8.0/5.0*field[H_INDEX(i,j+1,k,nx,ny,nz)]
+          - 1.0/5.0*field[H_INDEX(i,j+2,k,nx,ny,nz)]
+          + 8.0/315.0*field[H_INDEX(i,j+3,k,nx,ny,nz)]
+          - 1.0/560.0*field[H_INDEX(i,j+4,k,nx,ny,nz)]
+        )/dy/dy;
+      break;
+    case 3:
+      return (
+          - 1.0/560.0*field[H_INDEX(i,j,k-4,nx,ny,nz)]
+          + 8.0/315.0*field[H_INDEX(i,j,k-3,nx,ny,nz)]
+          - 1.0/5.0*field[H_INDEX(i,j,k-2,nx,ny,nz)]
+          + 8.0/5.0*field[H_INDEX(i,j,k-1,nx,ny,nz)]
+          - 205.0/72.0*field[H_INDEX(i,j,k-0,nx,ny,nz)]
+          + 8.0/5.0*field[H_INDEX(i,j,k+1,nx,ny,nz)]
+          - 1.0/5.0*field[H_INDEX(i,j,k+2,nx,ny,nz)]
+          + 8.0/315.0*field[H_INDEX(i,j,k+3,nx,ny,nz)]
+          - 1.0/560.0*field[H_INDEX(i,j,k+4,nx,ny,nz)]
+        )/dz/dz;
+      break;
+  }
+
+  /* XXX */
+  return 0;
+}
+
+/**
+ * @brief Compute a derivative using a stencil order defined by a
+ * preprocessor directive
+ * 
+ * @param i x-index
+ * @param j x-index
+ * @param k x-index
+ * @param nx x-grid number
+ * @param ny y-grid number
+ * @param nz z-grid number
+ * @param d direction of derivative
+ * @param field field to differentiate
+ * @return derivative
+ */
+inline real_t derivative(idx_t i, idx_t j, idx_t k, idx_t nx, idx_t ny, idx_t nz, int d,
+    arr_t & field)
+{
+  return STENCIL_ORDER_FUNCTION(derivative_Odx)(i, j, k, nx, ny, nz, d, field);
+}
+
+/**
+ * @brief Compute a mixed derivative using a stencil order defined by a
+ * preprocessor directive
+ * 
+ * @param i x-index
+ * @param j x-index
+ * @param k x-index
+ * @param nx x-grid number
+ * @param ny y-grid number
+ * @param nz z-grid number
+ * @param d1 direction of derivative in one direction
+ * @param d2 direction of derivative in another direction
+ * @param field field to differentiate
+ * @return derivative
+ */
+inline real_t mixed_derivative_stencil(idx_t i, idx_t j, idx_t k, idx_t nx, idx_t ny, idx_t nz, int d1, int d2, arr_t & field)
+{
+  return STENCIL_ORDER_FUNCTION(mixed_derivative_stencil_Odx)(i, j, k, nx, ny, nz, d1, d2, field);
+}
+
+/**
+ * @brief Compute a second-order derivative using a stencil order defined by a
+ * preprocessor directive
+ * 
+ * @param i x-index
+ * @param j x-index
+ * @param k x-index
+ * @param nx x-grid number
+ * @param ny y-grid number
+ * @param nz z-grid number
+ * @param d direction of 2nd order derivative to compute
+ * @param field field to differentiate
+ * @return derivative
+ */
+inline real_t double_derivative_stencil(idx_t i, idx_t j, idx_t k, idx_t nx, idx_t ny, idx_t nz, int d, arr_t & field)
+{
+  return STENCIL_ORDER_FUNCTION(double_derivative_stencil_Odx)(i, j, k, nx, ny, nz, d, field);
+}
+
+/**
+ * @brief A more generic function for 2nd derivs; calls
+ * either @double_derivative_stencil or @mixed_derivative_stencil
+ * 
+ * @param i x-index
+ * @param j x-index
+ * @param k x-index
+ * @param nx x-grid number
+ * @param ny y-grid number
+ * @param nz z-grid number
+ * @param d1 direction of first derivative
+ * @param d2 direction of second derivative
+ * @param field field to differentiate
+ * @return derivative
+ */
+inline real_t double_derivative(idx_t i, idx_t j, idx_t k, idx_t nx, idx_t ny, idx_t nz, int d1, int d2, arr_t & field)
+{
+  if(d1 == d2) {
+    return double_derivative_stencil(i, j, k, nx, ny, nz, d1, field);
+  } else {
+    return mixed_derivative_stencil(i, j, k, nx, ny, nz, d1, d2, field);
+  }
+
+  /* XXX */
+  return 0;
+}
+
+/**
+ * @brief Computes the laplacian of a field
+ * @details sums up double_derivatives
+ * 
+ * @brief A more generic function for 2nd derivs; calls
+ * either @double_derivative_stencil or @mixed_derivative_stencil
+ * 
+ * @param i x-index
+ * @param j x-index
+ * @param k x-index
+ * @param nx x-grid number
+ * @param ny y-grid number
+ * @param nz z-grid number
+ * @return laplacian
+ */
+inline real_t laplacian(idx_t i, idx_t j, idx_t k, idx_t nx, idx_t ny, idx_t nz, arr_t & field)
+{
+  return (
+          double_derivative(i, j, k, nx, ny, nz, 1, 1, field)
+          + double_derivative(i, j, k, nx, ny, nz, 2, 2, field)
+          + double_derivative(i, j, k, nx, ny, nz, 3, 3, field)
+  );
+}
+
+}
 #endif
