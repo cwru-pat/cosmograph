@@ -1,6 +1,5 @@
 
 language: cpp
-sudo: required
 dist: trusty
 
 git:
@@ -16,19 +15,19 @@ addons:
     # install toolchains
     - gcc-5
     - g++-5
-    - libhdf5-dev
+    - libhdf5-serial-dev
     - libfftw3-dev
     - libzip-dev
 
 install:
  - pwd
- - sudo apt-get -qq update
  - echo -e "machine github.com login jbcm627-travis password Z8wrU3RuBRuM6steQE7e" >> ~/.netrc
  - git submodule update --init --recursive
- - gcc --version
- - g++ --version
+ - gcc-5 --version
+ - g++-5 --version
 
 before_script:
  - export OMP_NUM_THREADS=4
+ - export CXX=g++-5
 
 script: scripts/run_tests.sh
