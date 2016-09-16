@@ -1,14 +1,15 @@
-steps = 1000
+steps = 100000
 dt_frac = 0.25
 
 KO_damping_coefficient = 1.0
 
-lapse = AwA_gaugewave
+lapse = AwA_shiftedwave
+shift = AwA_shiftedwave
 
 simulation_type = vacuum
-ic_type = gauge_wave
+ic_type = shifted_gauge_wave
 
-output_dir = gauge_wave_test_r1
+output_dir = shifted_gauge_wave_test_r1
 dump_file = calculated
 
 IO_1D_grid_interval = 10

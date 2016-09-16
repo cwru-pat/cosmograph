@@ -942,7 +942,7 @@ real_t BSSN::hamiltonianConstraintScale(BSSNData *bd)
 
 real_t BSSN::momentumConstraintCalc(BSSNData *bd, idx_t d)
 {
-  // needs bd vals and aijaij calc'd first
+  // needs bd vals calc'd first
   switch(d)
   {
     case 1:
@@ -960,7 +960,7 @@ real_t BSSN::momentumConstraintCalc(BSSNData *bd, idx_t d)
 
 real_t BSSN::momentumConstraintScale(BSSNData *bd, idx_t d)
 {
-  // needs bd vals and aijaij calc'd first
+  // needs bd vals calc'd first
   switch(d)
   {
     case 1:
@@ -982,15 +982,15 @@ real_t BSSN::momentumConstraintScale(BSSNData *bd, idx_t d)
  */
 real_t BSSN::christoffelConstraintCalc(BSSNData *bd, idx_t d)
 {
-  // needs bd vals and aijaij calc'd first
+  // needs bd vals calc'd first
   switch(d)
   {
     case 1:
-      return BSSN_GI_SCALE(1);
+      return BSSN_GI_CALC(1);
     case 2:
-      return BSSN_GI_SCALE(2);
+      return BSSN_GI_CALC(2);
     case 3:
-      return BSSN_GI_SCALE(3);
+      return BSSN_GI_CALC(3);
   }
 
   /* xxx */
@@ -1000,7 +1000,7 @@ real_t BSSN::christoffelConstraintCalc(BSSNData *bd, idx_t d)
 
 real_t BSSN::christoffelConstraintScale(BSSNData *bd, idx_t d)
 {
-  // needs bd vals and aijaij calc'd first
+  // needs bd vals calc'd first
   switch(d)
   {
     case 1:

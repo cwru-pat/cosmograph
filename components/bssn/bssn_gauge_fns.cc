@@ -25,10 +25,11 @@ bssn_func_t bssn_gauge_get_lapse_fn(std::string gauge)
   lapse_functions["harmonic"] = bssn_gauge_alpha_harmonic;
   lapse_functions["1pluslog"] = bssn_gauge_alpha_1pluslog;
   lapse_functions["dampedwave"] = bssn_gauge_alpha_dampedwave;
-  // TODO: gauges need more work:
+  // TODO: gauges need more work / testing:
   lapse_functions["anharmonic"] = bssn_gauge_alpha_anharmonic;
   lapse_functions["conformalsync"] = bssn_gauge_alpha_conformalsync;
   lapse_functions["AwA_gaugewave"] = bssn_gauge_alpha_AwA_gaugewave;
+  lapse_functions["AwA_shiftedwave"] = bssn_gauge_alpha_AwA_shiftedwave;
 
   if( lapse_functions.find(gauge) == lapse_functions.end() )
   {
@@ -52,8 +53,10 @@ bssn_func_t bssn_gauge_get_shift_fn(std::string gauge, int i)
   if(gauge == "") return bssn_gauge_static;
   // No map here; only a couple possible shift functions for now
 
-
-# if USE_BSSN_SHIFT
+# if ! USE_BSSN_SHIFT
+  std::cerr << "Unable to use shift, code was not compiled with shift option.";
+  throw -1;
+# endif
 
   if(gauge == "gammadriver")
   {
@@ -76,15 +79,16 @@ bssn_func_t bssn_gauge_get_shift_fn(std::string gauge, int i)
     if(i == 3) return bssn_gauge_beta3_dampedwave;
   }
 
+  if(gauge == "AwA_shiftedwave")
+  {
+    if(i == 1) return bssn_gauge_beta1_AwA_shiftedwave;
+    if(i == 2) return bssn_gauge_beta2_AwA_shiftedwave;
+    if(i == 3) return bssn_gauge_beta3_AwA_shiftedwave;
+  }
+
   // no gauge found?
-  std::cerr << "Shift gauge `" << gauge << "` not found!";
+  std::cerr << "Shift gauge `" << gauge << "` not found!" << std::endl;
   throw -1;
-
-# else // from if USE_BSSN_SHIFT
-  std::cerr << "Unable to use shift, code was not compiled with shift option.";
-  throw -1;
-# endif
-
 }
 
 /**
@@ -135,6 +139,12 @@ real_t bssn_gauge_alpha_AwA_gaugewave(BSSNData *bd)
 {
   return -1.0*pw2(bd->alpha)*bd->DIFFK;
 }
+
+real_t bssn_gauge_alpha_AwA_shiftedwave(BSSNData *bd)
+{
+  return -1.0*bd->DIFFK;
+}
+
 
 /** Shift gauge functions **/
 
@@ -193,6 +203,25 @@ real_t bssn_gauge_beta3_dampedwave(BSSNData *bd)
         )
       );
 }
+
+
+real_t bssn_gauge_beta1_AwA_shiftedwave(BSSNData *bd)
+{
+  return -2.0*bd->K*bd->alpha;
+}
+
+real_t bssn_gauge_beta2_AwA_shiftedwave(BSSNData *bd)
+{
+  return 0;
+}
+
+real_t bssn_gauge_beta3_AwA_shiftedwave(BSSNData *bd)
+{
+  return 0;
+}
+
+
+
 #endif
 
 } // namespace cosmo

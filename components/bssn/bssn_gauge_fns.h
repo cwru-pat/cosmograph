@@ -26,17 +26,19 @@ real_t bssn_gauge_alpha_dampedwave(BSSNData *bd);
 real_t bssn_gauge_alpha_conformalsync(BSSNData *bd);
 
 real_t bssn_gauge_alpha_AwA_gaugewave(BSSNData *bd);
+real_t bssn_gauge_alpha_AwA_shiftedwave(BSSNData *bd);
 
-#if USE_BSSN_SHIFT
-#if USE_GAMMA_DRIVER
 real_t bssn_gauge_beta1_gammadriver(BSSNData *bd);
 real_t bssn_gauge_beta2_gammadriver(BSSNData *bd);
 real_t bssn_gauge_beta3_gammadriver(BSSNData *bd);
-#endif
+
 real_t bssn_gauge_beta1_dampedwave(BSSNData *bd);
 real_t bssn_gauge_beta2_dampedwave(BSSNData *bd);
 real_t bssn_gauge_beta3_dampedwave(BSSNData *bd);
-#endif
+
+real_t bssn_gauge_beta1_AwA_shiftedwave(BSSNData *bd);
+real_t bssn_gauge_beta2_AwA_shiftedwave(BSSNData *bd);
+real_t bssn_gauge_beta3_AwA_shiftedwave(BSSNData *bd);
 
 }
 
