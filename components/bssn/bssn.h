@@ -30,6 +30,7 @@ class BSSN
   BSSNGaugeHandler * gaugeHandler;
 
   real_t KO_damping_coefficient;
+  real_t gd_eta;
 
 public:
   map_t fields; ///< Public map from names to internal arrays

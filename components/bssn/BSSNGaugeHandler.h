@@ -36,6 +36,7 @@ private:
   real_t HarmonicLapse(BSSNData *bd);
 
   // 1+log gauge slicing
+  real_t gd_c; ///< Tunable gauge parameter
   real_t OnePlusLogLapse(BSSNData *bd);
 
   // Untested/experimental lapses
@@ -49,7 +50,8 @@ private:
 
   // Damped wave gauge
   real_t dw_mu_l; ///< damped wave "mu_l" parameter
-  real_t dw_mu_s; ///< damped wave "mu_l" parameter
+  real_t dw_mu_s; ///< damped wave "mu_s" parameter
+  real_t dw_p; ///< damped wave "p" parameter
   real_t DampedWaveLapse(BSSNData *bd);
   real_t DampedWaveShift1(BSSNData *bd);
   real_t DampedWaveShift2(BSSNData *bd);
@@ -102,6 +104,8 @@ private:
     AwA_shift_dir = std::stoi((*config)("AwA_shift_dir", "1"));
     dw_mu_l = std::stod((*config)("dw_mu_l", "0.0"));
     dw_mu_s = std::stod((*config)("dw_mu_s", "0.0"));
+    dw_p = std::stod((*config)("dw_p", "0.0"));
+    gd_c = std::stod((*config)("gd_c", "0.0"));
   }
 
 public:

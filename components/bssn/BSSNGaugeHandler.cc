@@ -46,7 +46,7 @@ real_t BSSNGaugeHandler::AnharmonicLapse(BSSNData *bd)
  */
 real_t BSSNGaugeHandler::OnePlusLogLapse(BSSNData *bd)
 {
-  return -2.0*bd->alpha*( bd->K  )*GD_C
+  return -2.0*bd->alpha*( bd->K  )*gd_c
       + bd->beta1*bd->d1a + bd->beta2*bd->d2a + bd->beta3*bd->d3a;
 }
 
@@ -97,7 +97,7 @@ real_t BSSNGaugeHandler::GammaDriverShift3(BSSNData *bd)
  */
 real_t BSSNGaugeHandler::DampedWaveLapse(BSSNData *bd)
 {
-  return pw2(bd->alpha) * (dw_mu_l * (12.0 * bd->phi * DW_P - std::log(bd->alpha)) - bd->K)
+  return pw2(bd->alpha) * (dw_mu_l * (12.0 * bd->phi * dw_p - std::log(bd->alpha)) - bd->K)
     + bd->beta1 * bd->d1a + bd->beta2 * bd->d2a + bd->beta3 * bd->d3a;
 }
 
@@ -108,7 +108,7 @@ real_t BSSNGaugeHandler::DampedWaveShift1(BSSNData *bd)
 {
   return bd->beta1*bd->d1beta1 + bd->beta2*bd->d2beta1 + bd->beta3*bd->d3beta1
     - dw_mu_s*bd->alpha*bd->beta1
-    + bd->alpha * ( -dw_mu_l*(12.0*bd->phi*DW_P - std::log(bd->alpha))*bd->beta1
+    + bd->alpha * ( -dw_mu_l*(12.0*bd->phi*dw_p - std::log(bd->alpha))*bd->beta1
         + std::exp(-4.0*bd->phi)*(
           - bd->gammai11*bd->d1a - bd->gammai12*bd->d2a - bd->gammai13*bd->d3a
           + bd->alpha*(bd->Gamma1
@@ -125,7 +125,7 @@ real_t BSSNGaugeHandler::DampedWaveShift2(BSSNData *bd)
 {
   return bd->beta1*bd->d1beta2 + bd->beta2*bd->d2beta2 + bd->beta3*bd->d3beta2
     - dw_mu_s*bd->alpha*bd->beta2
-    + bd->alpha * ( -dw_mu_l*(12.0*bd->phi*DW_P - std::log(bd->alpha))*bd->beta2
+    + bd->alpha * ( -dw_mu_l*(12.0*bd->phi*dw_p - std::log(bd->alpha))*bd->beta2
         + std::exp(-4.0*bd->phi)*(
           - bd->gammai21*bd->d1a - bd->gammai22*bd->d2a - bd->gammai23*bd->d3a
           + bd->alpha*(bd->Gamma3
@@ -142,7 +142,7 @@ real_t BSSNGaugeHandler::DampedWaveShift3(BSSNData *bd)
 {
   return bd->beta1*bd->d1beta3 + bd->beta2*bd->d2beta3 + bd->beta3*bd->d3beta3
     - dw_mu_s*bd->alpha*bd->beta3
-    + bd->alpha * ( -dw_mu_l*(12.0*bd->phi*DW_P - std::log(bd->alpha))*bd->beta3
+    + bd->alpha * ( -dw_mu_l*(12.0*bd->phi*dw_p - std::log(bd->alpha))*bd->beta3
         + std::exp(-4.0*bd->phi)*(
           - bd->gammai31*bd->d1a - bd->gammai32*bd->d2a - bd->gammai33*bd->d3a
           + bd->alpha*(bd->Gamma3

@@ -48,23 +48,6 @@
 #ifndef USE_GAMMA_DRIVER
   #define USE_GAMMA_DRIVER false
 #endif
-#ifndef GD_C
-  #define GD_C 0.75
-#endif
-#ifndef GD_ETA
-  #define GD_ETA 0.1
-#endif
-
-// Damped-wave gauge settings (must turn on bssn_shift as well)
-#ifndef DW_MU_L
-  #define DW_MU_L 1.0
-#endif
-#ifndef DW_MU_S
-  #define DW_MU_S 1.0
-#endif
-#ifndef DW_P
-  #define DW_P 0.5
-#endif
 
 // normalize conformal metric and time-derivative
 #ifndef NORMALIZE_GAMMAIJ_AIJ

@@ -15,6 +15,7 @@ BSSN::BSSN(ConfigParser * config)
   gaugeHandler = new BSSNGaugeHandler(config);
 
   KO_damping_coefficient = std::stod((*config)("KO_damping_coefficient", "0.0"));
+  gd_eta = std::stod((*config)("gd_eta", "0.0"));
 
   // FRW reference integrator
   frw = new FRW<real_t> (0.0, 0.0);
@@ -782,19 +783,18 @@ real_t BSSN::ev_expN(BSSNData *bd)
 #if USE_GAMMA_DRIVER
 real_t BSSN::ev_auxB1(BSSNData *bd)
 {
-  return 0.75*ev_Gamma1(bd) - GD_ETA * bd->auxB1;
+  return 0.75*ev_Gamma1(bd) - gd_eta * bd->auxB1;
 }
 
 real_t BSSN::ev_auxB2(BSSNData *bd)
 {
-  return 0.75*ev_Gamma2(bd) - GD_ETA * bd->auxB2;
+  return 0.75*ev_Gamma2(bd) - gd_eta * bd->auxB2;
 }
 
 real_t BSSN::ev_auxB3(BSSNData *bd)
 {
-  return 0.75*ev_Gamma3(bd) - GD_ETA * bd->auxB3;
+  return 0.75*ev_Gamma3(bd) - gd_eta * bd->auxB3;
 }
-  
 #endif
 
 /*
