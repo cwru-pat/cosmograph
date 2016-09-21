@@ -1,7 +1,7 @@
 steps = 5
 
-lapse = dampedwave
-shift = dampedwave
+lapse = DampedWave
+shift = DampedWave
 
 simulation_type = scalar
 scalar_ic_type = semianalytic_test

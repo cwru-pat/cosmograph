@@ -10,16 +10,11 @@ namespace cosmo
  * @details Allocate memory for fields, add fields to map,
  * create reference FRW integrator, and call BSSN::init.
  */
-BSSN::BSSN(std::string lapse_fn, std::string shift_fn)
+BSSN::BSSN(ConfigParser * config)
 {
-  setLapseEvFn(bssn_gauge_get_lapse_fn(lapse_fn));
-# if USE_BSSN_SHIFT
-  setBeta1EvFn(bssn_gauge_get_shift_fn(shift_fn, 1));
-  setBeta2EvFn(bssn_gauge_get_shift_fn(shift_fn, 2));
-  setBeta3EvFn(bssn_gauge_get_shift_fn(shift_fn, 3));
-# endif
+  gaugeHandler = new BSSNGaugeHandler(config);
 
-  KO_damping_coefficient = 0.0;
+  KO_damping_coefficient = std::stod((*config)("KO_damping_coefficient", "0.0"));
 
   // FRW reference integrator
   frw = new FRW<real_t> (0.0, 0.0);
@@ -742,7 +737,7 @@ real_t BSSN::ev_DIFFphi(BSSNData *bd)
 
 real_t BSSN::ev_DIFFalpha(BSSNData *bd)
 {
-  return (*ev_DIFFalpha_ptr)(bd)
+  return gaugeHandler->ev_lapse(bd)
     - KO_dissipation_Q(bd->i, bd->j, bd->k, DIFFalpha->_array_a, KO_damping_coefficient);
 }
 
@@ -761,19 +756,19 @@ real_t BSSN::ev_theta(BSSNData *bd)
 #if USE_BSSN_SHIFT
 real_t BSSN::ev_beta1(BSSNData *bd)
 {
-  return (*ev_beta1_ptr)(bd)
+  return gaugeHandler->ev_shift1(bd)
     - KO_dissipation_Q(bd->i, bd->j, bd->k, beta1->_array_a, KO_damping_coefficient);
 }
 
 real_t BSSN::ev_beta2(BSSNData *bd)
 {
-  return (*ev_beta2_ptr)(bd)
+  return gaugeHandler->ev_shift2(bd)
     - KO_dissipation_Q(bd->i, bd->j, bd->k, beta2->_array_a, KO_damping_coefficient);
 }
 
 real_t BSSN::ev_beta3(BSSNData *bd)
 {
-  return (*ev_beta3_ptr)(bd)
+  return gaugeHandler->ev_shift3(bd)
     - KO_dissipation_Q(bd->i, bd->j, bd->k, beta3->_array_a, KO_damping_coefficient);
 }
 
