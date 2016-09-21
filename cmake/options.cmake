@@ -46,34 +46,6 @@ if(DEFINED COSMO_USE_GAMMA_DRIVER)
   message(STATUS "${Cyan}Setting USE_GAMMA_DRIVER=${COSMO_USE_GAMMA_DRIVER}.${ColorReset}")
 endif()
 
-# Parameter of Gamma Driver
-if(DEFINED COSMO_GD_C)
-  add_definitions(-DGD_C=${COSMO_GD_C})
-  message(STATUS "${Cyan}Setting GD_C=${COSMO_GD_C}.${ColorReset}")
-endif()
-
-# Parameters of Damped-wave gauge
-if(DEFINED COSMO_DW_MU_L)
-  add_definitions(-DDW_MU_L=${COSMO_DW_MU_L})
-  message(STATUS "${Cyan}Setting DW_MU_L=${COSMO_DW_MU_L}.${ColorReset}")
-endif()
-
-if(DEFINED COSMO_DW_MU_S)
-  add_definitions(-DDW_MU_S=${COSMO_DW_MU_S})
-  message(STATUS "${Cyan}Setting DW_MU_S=${COSMO_DW_MU_S}.${ColorReset}")
-endif()
-
-if(DEFINED COSMO_DW_P)
-  add_definitions(-DDW_P=${COSMO_DW_P})
-  message(STATUS "${Cyan}Setting DW_P=${COSMO_DW_P}.${ColorReset}")
-endif()
-
-if(DEFINED COSMO_GD_ETA)
-  add_definitions(-DGD_ETA=${COSMO_GD_ETA})
-  message(STATUS "${Cyan}Setting GD_ETA=${COSMO_GD_ETA}.${ColorReset}")
-endif()
-
-
 # Use BSSN shift? Required for scalar and particle sims.
 if(DEFINED COSMO_USE_BSSN_SHIFT)
   add_definitions(-DUSE_BSSN_SHIFT=${COSMO_USE_BSSN_SHIFT})

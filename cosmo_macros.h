@@ -44,33 +44,9 @@
   #define USE_BSSN_SHIFT false
 #endif
 
-//using Gamma-driver gauge (must turn on bssn_shift as well)
+// Gamma-driver gauge settings (must turn on bssn_shift as well)
 #ifndef USE_GAMMA_DRIVER
   #define USE_GAMMA_DRIVER false
-#endif
-#ifndef GD_C
-  #define GD_C 0.75
-#endif
-#ifndef GD_ETA
-  #define GD_ETA 0.1
-#endif
-
-
-//using Gamma-driver gauge (must turn on bssn_shift as well)
-#ifndef USE_DAMPED_WAVE_ALPHA
-  #define USE_DAMPED_WAVE_ALPHA false
-#endif
-#ifndef USE_DAMPED_WAVE
-  #define USE_DAMPED_WAVE false
-#endif
-#ifndef DW_MU_L
-  #define DW_MU_L 1.0
-#endif
-#ifndef DW_MU_S
-  #define DW_MU_S 1.0
-#endif
-#ifndef DW_P
-  #define DW_P 0.5
 #endif
 
 // normalize conformal metric and time-derivative
@@ -117,8 +93,8 @@
 // not really tested:
 #define USE_Z4c_DAMPING false
 #if USE_Z4c_DAMPING
-  #define Z4c_K1_DAMPING_AMPLITUDE 0.05
-  #define Z4c_K2_DAMPING_AMPLITUDE 0.0
+  #define Z4c_K1_DAMPING_AMPLITUDE 0.5
+  #define Z4c_K2_DAMPING_AMPLITUDE 0.1
 #else
   #define Z4c_K1_DAMPING_AMPLITUDE 0.0
   #define Z4c_K2_DAMPING_AMPLITUDE 0.0

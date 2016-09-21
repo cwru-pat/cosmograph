@@ -10,16 +10,12 @@ namespace cosmo
  * @details Allocate memory for fields, add fields to map,
  * create reference FRW integrator, and call BSSN::init.
  */
-BSSN::BSSN(std::string lapse_fn, std::string shift_fn)
+BSSN::BSSN(ConfigParser * config)
 {
-  setLapseEvFn(bssn_gauge_get_lapse_fn(lapse_fn));
-# if USE_BSSN_SHIFT
-  setBeta1EvFn(bssn_gauge_get_shift_fn(shift_fn, 1));
-  setBeta2EvFn(bssn_gauge_get_shift_fn(shift_fn, 2));
-  setBeta3EvFn(bssn_gauge_get_shift_fn(shift_fn, 3));
-# endif
+  gaugeHandler = new BSSNGaugeHandler(config);
 
-  KO_damping_coefficient = 0.0;
+  KO_damping_coefficient = std::stod((*config)("KO_damping_coefficient", "0.0"));
+  gd_eta = std::stod((*config)("gd_eta", "0.0"));
 
   // FRW reference integrator
   frw = new FRW<real_t> (0.0, 0.0);
@@ -742,7 +738,7 @@ real_t BSSN::ev_DIFFphi(BSSNData *bd)
 
 real_t BSSN::ev_DIFFalpha(BSSNData *bd)
 {
-  return (*ev_DIFFalpha_ptr)(bd)
+  return gaugeHandler->ev_lapse(bd)
     - KO_dissipation_Q(bd->i, bd->j, bd->k, DIFFalpha->_array_a, KO_damping_coefficient);
 }
 
@@ -761,19 +757,19 @@ real_t BSSN::ev_theta(BSSNData *bd)
 #if USE_BSSN_SHIFT
 real_t BSSN::ev_beta1(BSSNData *bd)
 {
-  return (*ev_beta1_ptr)(bd)
+  return gaugeHandler->ev_shift1(bd)
     - KO_dissipation_Q(bd->i, bd->j, bd->k, beta1->_array_a, KO_damping_coefficient);
 }
 
 real_t BSSN::ev_beta2(BSSNData *bd)
 {
-  return (*ev_beta2_ptr)(bd)
+  return gaugeHandler->ev_shift2(bd)
     - KO_dissipation_Q(bd->i, bd->j, bd->k, beta2->_array_a, KO_damping_coefficient);
 }
 
 real_t BSSN::ev_beta3(BSSNData *bd)
 {
-  return (*ev_beta3_ptr)(bd)
+  return gaugeHandler->ev_shift3(bd)
     - KO_dissipation_Q(bd->i, bd->j, bd->k, beta3->_array_a, KO_damping_coefficient);
 }
 
@@ -787,19 +783,18 @@ real_t BSSN::ev_expN(BSSNData *bd)
 #if USE_GAMMA_DRIVER
 real_t BSSN::ev_auxB1(BSSNData *bd)
 {
-  return 0.75*ev_Gamma1(bd) - GD_ETA * bd->auxB1;
+  return 0.75*ev_Gamma1(bd) - gd_eta * bd->auxB1;
 }
 
 real_t BSSN::ev_auxB2(BSSNData *bd)
 {
-  return 0.75*ev_Gamma2(bd) - GD_ETA * bd->auxB2;
+  return 0.75*ev_Gamma2(bd) - gd_eta * bd->auxB2;
 }
 
 real_t BSSN::ev_auxB3(BSSNData *bd)
 {
-  return 0.75*ev_Gamma3(bd) - GD_ETA * bd->auxB3;
+  return 0.75*ev_Gamma3(bd) - gd_eta * bd->auxB3;
 }
-  
 #endif
 
 /*
@@ -942,7 +937,7 @@ real_t BSSN::hamiltonianConstraintScale(BSSNData *bd)
 
 real_t BSSN::momentumConstraintCalc(BSSNData *bd, idx_t d)
 {
-  // needs bd vals and aijaij calc'd first
+  // needs bd vals calc'd first
   switch(d)
   {
     case 1:
@@ -960,7 +955,7 @@ real_t BSSN::momentumConstraintCalc(BSSNData *bd, idx_t d)
 
 real_t BSSN::momentumConstraintScale(BSSNData *bd, idx_t d)
 {
-  // needs bd vals and aijaij calc'd first
+  // needs bd vals calc'd first
   switch(d)
   {
     case 1:
@@ -982,15 +977,15 @@ real_t BSSN::momentumConstraintScale(BSSNData *bd, idx_t d)
  */
 real_t BSSN::christoffelConstraintCalc(BSSNData *bd, idx_t d)
 {
-  // needs bd vals and aijaij calc'd first
+  // needs bd vals calc'd first
   switch(d)
   {
     case 1:
-      return BSSN_GI_SCALE(1);
+      return BSSN_GI_CALC(1);
     case 2:
-      return BSSN_GI_SCALE(2);
+      return BSSN_GI_CALC(2);
     case 3:
-      return BSSN_GI_SCALE(3);
+      return BSSN_GI_CALC(3);
   }
 
   /* xxx */
@@ -1000,7 +995,7 @@ real_t BSSN::christoffelConstraintCalc(BSSNData *bd, idx_t d)
 
 real_t BSSN::christoffelConstraintScale(BSSNData *bd, idx_t d)
 {
-  // needs bd vals and aijaij calc'd first
+  // needs bd vals calc'd first
   switch(d)
   {
     case 1:

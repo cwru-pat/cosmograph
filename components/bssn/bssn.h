@@ -5,9 +5,10 @@
 #include "../../cosmo_types.h"
 #include "bssn_data.h"
 #include "bssn_macros.h"
-#include "bssn_gauge_fns.h"
+#include "BSSNGaugeHandler.h"
 #include "../../utils/Array.h"
 #include "../../utils/FRW.h"
+#include "../../utils/ConfigParser.h"
 
 #if USE_COSMOTRACE
 #include "../cosmotrace/raytrace.h"
@@ -26,14 +27,10 @@ class BSSN
   BSSN_APPLY_TO_SOURCES(GEN1_ARRAY_CREATE)
   BSSN_APPLY_TO_GEN1_EXTRAS(GEN1_ARRAY_CREATE)
 
-  bssn_func_t ev_DIFFalpha_ptr;
-# if USE_BSSN_SHIFT
-  bssn_func_t ev_beta1_ptr;
-  bssn_func_t ev_beta2_ptr;
-  bssn_func_t ev_beta3_ptr;
-# endif
+  BSSNGaugeHandler * gaugeHandler;
 
   real_t KO_damping_coefficient;
+  real_t gd_eta;
 
 public:
   map_t fields; ///< Public map from names to internal arrays
@@ -41,31 +38,13 @@ public:
   // Standard FRW spacetime integrator - for a reference metric
   FRW<real_t> * frw; ///< FRW reference metric instance
 
-  BSSN(std::string lapse_fn, std::string shift_fn);
+  BSSN(ConfigParser * config);
   ~BSSN();
 
   void init();
 
   void setDt(real_t dt);
   void setKODampingCoefficient(real_t KO_damping_coefficient_in);
-  void setLapseEvFn(bssn_func_t diff_alpha_func)
-  {
-    ev_DIFFalpha_ptr = diff_alpha_func;
-  }
-# if USE_BSSN_SHIFT
-  void setBeta1EvFn(bssn_func_t beta1_func)
-  {
-    ev_beta1_ptr = beta1_func;
-  }
-  void setBeta2EvFn(bssn_func_t beta2_func)
-  {
-    ev_beta2_ptr = beta2_func;
-  }
-  void setBeta3EvFn(bssn_func_t beta3_func)
-  {
-    ev_beta3_ptr = beta3_func;
-  }
-# endif
 
   /* RK integrator functions */
     void stepInit();

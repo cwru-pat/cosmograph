@@ -1,7 +1,7 @@
 steps = 5
 
-lapse = 1pluslog
-shift = gammadriver
+lapse = OnePlusLog
+shift = GammaDriver
 
 simulation_type = scalar
 scalar_ic_type = semianalytic_test

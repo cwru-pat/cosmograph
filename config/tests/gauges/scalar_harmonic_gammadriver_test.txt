@@ -1,7 +1,7 @@
 steps = 5
 
-lapse = harmonic
-shift = gammadriver
+lapse = Harmonic
+shift = GammaDriver
 
 simulation_type = scalar
 scalar_ic_type = semianalytic_test

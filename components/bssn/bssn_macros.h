@@ -520,6 +520,7 @@
     ) \
   )
 
+
 #define BSSN_GI_CALC(I) \
   bd->Gamma##I - bd->gammai11*bd->G##I##11 - bd->gammai22*bd->G##I##22 - bd->gammai33*bd->G##I##33 \
    - 2.0*(bd->gammai12*bd->G##I##12 + bd->gammai13*bd->G##I##13 + bd->gammai23*bd->G##I##23);
