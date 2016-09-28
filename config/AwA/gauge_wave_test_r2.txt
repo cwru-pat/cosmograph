@@ -3,7 +3,8 @@ dt_frac = 0.25
 
 KO_damping_coefficient = 1.0
 
-lapse = AwA_gaugewave
+lapse = AwAGaugeWave
+gauge_wave_dir = 1
 
 simulation_type = vacuum
 ic_type = gauge_wave

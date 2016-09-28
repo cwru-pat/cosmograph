@@ -364,7 +364,7 @@
     + bd->beta1*derivative(bd->i, bd->j, bd->k, 1, Gamma##I->_array_a) \
     + bd->beta2*derivative(bd->i, bd->j, bd->k, 2, Gamma##I->_array_a) \
     + bd->beta3*derivative(bd->i, bd->j, bd->k, 3, Gamma##I->_array_a) \
-    - bd->Gamma1*bd->d1beta##I + bd->Gamma2*bd->d2beta##I + bd->Gamma3*bd->d3beta##I \
+    - bd->Gamma1*bd->d1beta##I - bd->Gamma2*bd->d2beta##I - bd->Gamma3*bd->d3beta##I \
     + (2.0/3.0) * bd->Gamma##I * (bd->d1beta1 + bd->d2beta2 + bd->d3beta3) \
     + (1.0/3.0) * ( \
         bd->gammai##I##1*double_derivative(bd->i, bd->j, bd->k, 1, 1, beta1->_array_a) + bd->gammai##I##1*double_derivative(bd->i, bd->j, bd->k, 2, 1, beta2->_array_a) + bd->gammai##I##1*double_derivative(bd->i, bd->j, bd->k, 3, 1, beta3->_array_a) +  \

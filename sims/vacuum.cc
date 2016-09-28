@@ -49,7 +49,8 @@ void VacuumSim::setICs()
   else if(_config["ic_type"] == "shifted_gauge_wave")
   {
     iodata->log("Setting shifted gauge wave initial conditions.");
-    bssn_ic_awa_shifted_gauge_wave(bssnSim);
+    int dir = std::stoi(_config("gauge_wave_dir", "1"));
+    bssn_ic_awa_shifted_gauge_wave(bssnSim, dir);
   }
   else
   {

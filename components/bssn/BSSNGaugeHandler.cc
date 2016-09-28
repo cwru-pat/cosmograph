@@ -174,7 +174,7 @@ real_t BSSNGaugeHandler::AwAShiftedWaveLapse(BSSNData *bd)
  */
 real_t BSSNGaugeHandler::AwAShiftedWaveShift1(BSSNData *bd)
 {
-  if(AwA_shift_dir == 1) // x-direction
+  if(gauge_wave_dir == 1) // x-direction
     return -2.0*bd->K*bd->alpha;
 
   return 0;
@@ -185,7 +185,7 @@ real_t BSSNGaugeHandler::AwAShiftedWaveShift1(BSSNData *bd)
  */
 real_t BSSNGaugeHandler::AwAShiftedWaveShift2(BSSNData *bd)
 {
-  if(AwA_shift_dir == 2) // x-direction
+  if(gauge_wave_dir == 2) // x-direction
     return -2.0*bd->K*bd->alpha;
 
   return 0;
@@ -196,7 +196,7 @@ real_t BSSNGaugeHandler::AwAShiftedWaveShift2(BSSNData *bd)
  */
 real_t BSSNGaugeHandler::AwAShiftedWaveShift3(BSSNData *bd)
 {
-  if(AwA_shift_dir == 3) // x-direction
+  if(gauge_wave_dir == 3) // x-direction
     return -2.0*bd->K*bd->alpha;
 
   return 0;
