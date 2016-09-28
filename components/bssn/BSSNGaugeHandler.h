@@ -1,4 +1,5 @@
-/** @file BSSNGaugeHandler.h
+/**
+ * @file BSSNGaugeHandler.h
  * @brief Functions to determine gauge evolution for the BSSN class.
  * Functions are determined via a config setting in the CosmoSim class.
  */

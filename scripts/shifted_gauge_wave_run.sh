@@ -34,6 +34,4 @@ cmake -DCOSMO_N=100 -DCOSMO_NY=6 -DCOSMO_NZ=6 -DCOSMO_H_LEN_FRAC=1 -DCOSMO_USE_B
 cmake -DCOSMO_N=200 -DCOSMO_NY=6 -DCOSMO_NZ=6 -DCOSMO_H_LEN_FRAC=1 -DCOSMO_USE_BSSN_SHIFT=1 .. && make -j16
 ./cosmo ../config/AwA/shifted_gauge_wave_test_r4.txt
 
-
-
 sed -i -E "s/gauge_wave_dir = [0-9]+/gauge_wave_dir = 1/g" ../config/AwA/shifted_gauge_wave_test_r1.txt
