@@ -49,19 +49,6 @@
   #define USE_GAMMA_DRIVER false
 #endif
 
-// normalize conformal metric and time-derivative
-#ifndef NORMALIZE_GAMMAIJ_AIJ
-  #define NORMALIZE_GAMMAIJ_AIJ true
-#endif
-
-// Numerical Error Damping strength parameters
-#ifndef BS_H_DAMPING_AMPLITUDE
-  #define BS_H_DAMPING_AMPLITUDE 1.0
-#endif
-#ifndef JM_K_DAMPING_AMPLITUDE
-  #define JM_K_DAMPING_AMPLITUDE 0.0
-#endif
-
 // Optionally exclude some second-order terms
 #ifndef EXCLUDE_SECOND_ORDER_SMALL
   #define EXCLUDE_SECOND_ORDER_SMALL false
@@ -91,13 +78,15 @@
 /*****************************************/
 
 // not really tested:
-#define USE_Z4c_DAMPING false
+#ifndef USE_Z4c_DAMPING
+#  define USE_Z4c_DAMPING false
+#endif
 #if USE_Z4c_DAMPING
-  #define Z4c_K1_DAMPING_AMPLITUDE 0.5
-  #define Z4c_K2_DAMPING_AMPLITUDE 0.1
+#  define Z4c_K1_DAMPING_AMPLITUDE 0.5
+#  define Z4c_K2_DAMPING_AMPLITUDE 0.1
 #else
-  #define Z4c_K1_DAMPING_AMPLITUDE 0.0
-  #define Z4c_K2_DAMPING_AMPLITUDE 0.0
+#  define Z4c_K1_DAMPING_AMPLITUDE 0.0
+#  define Z4c_K2_DAMPING_AMPLITUDE 0.0
 #endif
 
 #define STENCIL_CONCATENATOR(function, order) function ## order

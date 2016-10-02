@@ -29,8 +29,11 @@ class BSSN
 
   BSSNGaugeHandler * gaugeHandler;
 
-  real_t KO_damping_coefficient;
-  real_t gd_eta;
+  real_t KO_damping_coefficient; ///< KO_dissipation coefficient amplitude (default 0)
+  real_t k_damping_amp; ///< Additional "K"-damping (default 0)
+  real_t a_adj_amp; ///< A-adjusted term amplitude (default 0)
+  real_t gd_eta; ///< Gamma driver "eta" parameter
+  int normalize_metric; ///< Normalize A_ij and \gamma_ij? Default: 1 (true)
 
 public:
   map_t fields; ///< Public map from names to internal arrays

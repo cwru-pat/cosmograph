@@ -11,14 +11,14 @@ namespace cosmo
  *
  * @param      bssn  BSSN instance
  */
-void bssn_ic_awa_stability(BSSN * bssn)
+void bssn_ic_awa_stability(BSSN * bssn, real_t A)
 {
   idx_t i, j, k;
 
   std::random_device rd;
   std::mt19937 gen(7.0 /*rd()*/);
   std::uniform_real_distribution<real_t> dist(
-      (-1.0e-10)*50/NX*50/NX, (1.0e-10)*50/NX*50/NX
+      -A*50/N*50/N, A*50/N*50/N
     );
 
   arr_t & DIFFgamma11_p = *bssn->fields["DIFFgamma11_p"];
@@ -69,9 +69,65 @@ void bssn_ic_awa_stability(BSSN * bssn)
  */
 void bssn_ic_awa_linear_wave(BSSN * bssn)
 {
+  bssn_ic_awa_linear_wave(bssn, 1.0e-8, 1);
+}
+
+/**
+ * @brief Initialize with a "linear" wave propagating in the x-direction.
+ * @details AwA test.
+ */
+void bssn_ic_awa_linear_wave(BSSN * bssn, real_t A, int dir)
+{
   idx_t i, j, k;
 
-  real_t A = 1.0e-8;
+  arr_t & DIFFgamma11_p = *bssn->fields["DIFFgamma11_p"];
+  arr_t & DIFFgamma22_p = *bssn->fields["DIFFgamma22_p"];
+  arr_t & DIFFgamma33_p = *bssn->fields["DIFFgamma33_p"];
+
+  arr_t & A11_p = *bssn->fields["A11_p"];
+  arr_t & A22_p = *bssn->fields["A22_p"];
+  arr_t & A33_p = *bssn->fields["A33_p"];
+
+  LOOP3(i,j,k)
+  {
+    // position of dir
+    real_t w = 0;
+    switch(dir)
+    {
+      case 1 :
+        w = ((real_t) i)*dx;
+        DIFFgamma22_p[NP_INDEX(i,j,k)] = A*sin( 2.0*PI*w );
+        DIFFgamma33_p[NP_INDEX(i,j,k)] = -A*sin( 2.0*PI*w );
+        A22_p[NP_INDEX(i,j,k)] = PI*A*cos( 2.0*PI*w );
+        A33_p[NP_INDEX(i,j,k)] = -PI*A*cos( 2.0*PI*w );
+        break;
+      case 2 :
+        w = ((real_t) j)*dx;
+        DIFFgamma11_p[NP_INDEX(i,j,k)] = A*sin( 2.0*PI*w );
+        DIFFgamma33_p[NP_INDEX(i,j,k)] = -A*sin( 2.0*PI*w );
+        A11_p[NP_INDEX(i,j,k)] = PI*A*cos( 2.0*PI*w );
+        A33_p[NP_INDEX(i,j,k)] = -PI*A*cos( 2.0*PI*w );
+        break;
+      case 3 :
+        w = ((real_t) k)*dx;
+        DIFFgamma11_p[NP_INDEX(i,j,k)] = A*sin( 2.0*PI*w );
+        DIFFgamma22_p[NP_INDEX(i,j,k)] = -A*sin( 2.0*PI*w );
+        A11_p[NP_INDEX(i,j,k)] = PI*A*cos( 2.0*PI*w );
+        A22_p[NP_INDEX(i,j,k)] = -PI*A*cos( 2.0*PI*w );
+        break;
+    }
+  }
+}
+
+/**
+ * @brief Initialize with a "linear" wave propagating in the x-direction.
+ * @details AwA test.
+ */
+void bssn_ic_awa_diagonal_linear_wave(BSSN * bssn)
+{
+  idx_t i, j, k;
+
+  real_t A = 1.0e-16;
 
   arr_t & DIFFgamma22_p = *bssn->fields["DIFFgamma22_p"];
   arr_t & DIFFgamma33_p = *bssn->fields["DIFFgamma33_p"];

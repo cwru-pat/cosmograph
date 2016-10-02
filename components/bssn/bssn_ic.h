@@ -12,8 +12,9 @@
 namespace cosmo
 {
 
-void bssn_ic_awa_stability(BSSN * bssn);
+void bssn_ic_awa_stability(BSSN * bssn, real_t A);
 void bssn_ic_awa_linear_wave(BSSN * bssn);
+void bssn_ic_awa_linear_wave(BSSN * bssn, real_t A, int dir);
 void bssn_ic_awa_linear_wave_desitter(BSSN * bssn);
 void bssn_ic_awa_gauge_wave(BSSN * bssn);
 void bssn_ic_awa_gauge_wave(BSSN * bssn, int dir);

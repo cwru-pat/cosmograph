@@ -32,9 +32,6 @@ void log_defines(IOData *iodata)
   iodata->log( "Other parameters:");
   iodata->log( "  H_LEN_FRAC = " + stringify(H_LEN_FRAC) );
   iodata->log( "  USE_REFERENCE_FRW = " + stringify(USE_REFERENCE_FRW) );
-  iodata->log( "  NORMALIZE_GAMMAIJ_AIJ = " + stringify(NORMALIZE_GAMMAIJ_AIJ) );
-  iodata->log( "  BS_H_DAMPING_AMPLITUDE = " + stringify(BS_H_DAMPING_AMPLITUDE) );
-  iodata->log( "  JM_K_DAMPING_AMPLITUDE = " + stringify(JM_K_DAMPING_AMPLITUDE) );
   iodata->log( "  USE_Z4c_DAMPING = " + stringify(USE_Z4c_DAMPING) );
   iodata->log( "  Z4c_K1_DAMPING_AMPLITUDE = " + stringify(Z4c_K1_DAMPING_AMPLITUDE) );
   iodata->log( "  Z4c_K2_DAMPING_AMPLITUDE = " + stringify(Z4c_K2_DAMPING_AMPLITUDE) );

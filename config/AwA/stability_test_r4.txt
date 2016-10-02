@@ -1,4 +1,6 @@
-steps = 20000
+steps = 100000
+
+lapse = OnePlusLog
 
 simulation_type = vacuum
 ic_type = stability

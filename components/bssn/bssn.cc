@@ -15,7 +15,10 @@ BSSN::BSSN(ConfigParser * config)
   gaugeHandler = new BSSNGaugeHandler(config);
 
   KO_damping_coefficient = std::stod((*config)("KO_damping_coefficient", "0.0"));
+  a_adj_amp = std::stod((*config)("a_adj_amp", "0.0"));
+  k_damping_amp = std::stod((*config)("k_damping_amp", "0.0"));
   gd_eta = std::stod((*config)("gd_eta", "0.0"));
+  normalize_metric = std::stoi((*config)("normalize_metric", "1"));
 
   // FRW reference integrator
   frw = new FRW<real_t> (0.0, 0.0);
@@ -160,9 +163,8 @@ void BSSN::stepInit()
 {
   BSSN_RK_INITIALIZE; // macro calls stepInit for all fields
 
-# if NORMALIZE_GAMMAIJ_AIJ
-    set_DIFFgamma_Aij_norm(); // norms _a register
-# endif
+  if(normalize_metric)
+    set_DIFFgamma_Aij_norm(); // norms metric in _a register
 }
 
 /**
@@ -681,19 +683,19 @@ Evolution equation calculations
 ******************************************************************************
 */
 
-real_t BSSN::ev_DIFFgamma11(BSSNData *bd) { return BSSN_DT_DIFFGAMMAIJ(1, 1) + 0.5*BS_H_DAMPING_AMPLITUDE*dt*bd->H*bd->DIFFgamma11 - KO_dissipation_Q(bd->i, bd->j, bd->k, DIFFgamma11->_array_a, KO_damping_coefficient); }
-real_t BSSN::ev_DIFFgamma12(BSSNData *bd) { return BSSN_DT_DIFFGAMMAIJ(1, 2) + 0.5*BS_H_DAMPING_AMPLITUDE*dt*bd->H*bd->DIFFgamma12 - KO_dissipation_Q(bd->i, bd->j, bd->k, DIFFgamma12->_array_a, KO_damping_coefficient); }
-real_t BSSN::ev_DIFFgamma13(BSSNData *bd) { return BSSN_DT_DIFFGAMMAIJ(1, 3) + 0.5*BS_H_DAMPING_AMPLITUDE*dt*bd->H*bd->DIFFgamma13 - KO_dissipation_Q(bd->i, bd->j, bd->k, DIFFgamma13->_array_a, KO_damping_coefficient); }
-real_t BSSN::ev_DIFFgamma22(BSSNData *bd) { return BSSN_DT_DIFFGAMMAIJ(2, 2) + 0.5*BS_H_DAMPING_AMPLITUDE*dt*bd->H*bd->DIFFgamma22 - KO_dissipation_Q(bd->i, bd->j, bd->k, DIFFgamma22->_array_a, KO_damping_coefficient); }
-real_t BSSN::ev_DIFFgamma23(BSSNData *bd) { return BSSN_DT_DIFFGAMMAIJ(2, 3) + 0.5*BS_H_DAMPING_AMPLITUDE*dt*bd->H*bd->DIFFgamma23 - KO_dissipation_Q(bd->i, bd->j, bd->k, DIFFgamma23->_array_a, KO_damping_coefficient); }
-real_t BSSN::ev_DIFFgamma33(BSSNData *bd) { return BSSN_DT_DIFFGAMMAIJ(3, 3) + 0.5*BS_H_DAMPING_AMPLITUDE*dt*bd->H*bd->DIFFgamma33 - KO_dissipation_Q(bd->i, bd->j, bd->k, DIFFgamma33->_array_a, KO_damping_coefficient); }
+real_t BSSN::ev_DIFFgamma11(BSSNData *bd) { return BSSN_DT_DIFFGAMMAIJ(1, 1) + 0.5*a_adj_amp*dt*bd->H*bd->DIFFgamma11 - KO_dissipation_Q(bd->i, bd->j, bd->k, DIFFgamma11->_array_a, KO_damping_coefficient); }
+real_t BSSN::ev_DIFFgamma12(BSSNData *bd) { return BSSN_DT_DIFFGAMMAIJ(1, 2) + 0.5*a_adj_amp*dt*bd->H*bd->DIFFgamma12 - KO_dissipation_Q(bd->i, bd->j, bd->k, DIFFgamma12->_array_a, KO_damping_coefficient); }
+real_t BSSN::ev_DIFFgamma13(BSSNData *bd) { return BSSN_DT_DIFFGAMMAIJ(1, 3) + 0.5*a_adj_amp*dt*bd->H*bd->DIFFgamma13 - KO_dissipation_Q(bd->i, bd->j, bd->k, DIFFgamma13->_array_a, KO_damping_coefficient); }
+real_t BSSN::ev_DIFFgamma22(BSSNData *bd) { return BSSN_DT_DIFFGAMMAIJ(2, 2) + 0.5*a_adj_amp*dt*bd->H*bd->DIFFgamma22 - KO_dissipation_Q(bd->i, bd->j, bd->k, DIFFgamma22->_array_a, KO_damping_coefficient); }
+real_t BSSN::ev_DIFFgamma23(BSSNData *bd) { return BSSN_DT_DIFFGAMMAIJ(2, 3) + 0.5*a_adj_amp*dt*bd->H*bd->DIFFgamma23 - KO_dissipation_Q(bd->i, bd->j, bd->k, DIFFgamma23->_array_a, KO_damping_coefficient); }
+real_t BSSN::ev_DIFFgamma33(BSSNData *bd) { return BSSN_DT_DIFFGAMMAIJ(3, 3) + 0.5*a_adj_amp*dt*bd->H*bd->DIFFgamma33 - KO_dissipation_Q(bd->i, bd->j, bd->k, DIFFgamma33->_array_a, KO_damping_coefficient); }
 
-real_t BSSN::ev_A11(BSSNData *bd) { return BSSN_DT_AIJ(1, 1) - 1.0*BS_H_DAMPING_AMPLITUDE*dt*bd->A11*bd->H - KO_dissipation_Q(bd->i, bd->j, bd->k, A11->_array_a, KO_damping_coefficient); }
-real_t BSSN::ev_A12(BSSNData *bd) { return BSSN_DT_AIJ(1, 2) - 1.0*BS_H_DAMPING_AMPLITUDE*dt*bd->A12*bd->H - KO_dissipation_Q(bd->i, bd->j, bd->k, A12->_array_a, KO_damping_coefficient); }
-real_t BSSN::ev_A13(BSSNData *bd) { return BSSN_DT_AIJ(1, 3) - 1.0*BS_H_DAMPING_AMPLITUDE*dt*bd->A13*bd->H - KO_dissipation_Q(bd->i, bd->j, bd->k, A13->_array_a, KO_damping_coefficient); }
-real_t BSSN::ev_A22(BSSNData *bd) { return BSSN_DT_AIJ(2, 2) - 1.0*BS_H_DAMPING_AMPLITUDE*dt*bd->A22*bd->H - KO_dissipation_Q(bd->i, bd->j, bd->k, A22->_array_a, KO_damping_coefficient); }
-real_t BSSN::ev_A23(BSSNData *bd) { return BSSN_DT_AIJ(2, 3) - 1.0*BS_H_DAMPING_AMPLITUDE*dt*bd->A23*bd->H - KO_dissipation_Q(bd->i, bd->j, bd->k, A23->_array_a, KO_damping_coefficient); }
-real_t BSSN::ev_A33(BSSNData *bd) { return BSSN_DT_AIJ(3, 3) - 1.0*BS_H_DAMPING_AMPLITUDE*dt*bd->A33*bd->H - KO_dissipation_Q(bd->i, bd->j, bd->k, A33->_array_a, KO_damping_coefficient); }
+real_t BSSN::ev_A11(BSSNData *bd) { return BSSN_DT_AIJ(1, 1) - 1.0*a_adj_amp*dt*bd->A11*bd->H - KO_dissipation_Q(bd->i, bd->j, bd->k, A11->_array_a, KO_damping_coefficient); }
+real_t BSSN::ev_A12(BSSNData *bd) { return BSSN_DT_AIJ(1, 2) - 1.0*a_adj_amp*dt*bd->A12*bd->H - KO_dissipation_Q(bd->i, bd->j, bd->k, A12->_array_a, KO_damping_coefficient); }
+real_t BSSN::ev_A13(BSSNData *bd) { return BSSN_DT_AIJ(1, 3) - 1.0*a_adj_amp*dt*bd->A13*bd->H - KO_dissipation_Q(bd->i, bd->j, bd->k, A13->_array_a, KO_damping_coefficient); }
+real_t BSSN::ev_A22(BSSNData *bd) { return BSSN_DT_AIJ(2, 2) - 1.0*a_adj_amp*dt*bd->A22*bd->H - KO_dissipation_Q(bd->i, bd->j, bd->k, A22->_array_a, KO_damping_coefficient); }
+real_t BSSN::ev_A23(BSSNData *bd) { return BSSN_DT_AIJ(2, 3) - 1.0*a_adj_amp*dt*bd->A23*bd->H - KO_dissipation_Q(bd->i, bd->j, bd->k, A23->_array_a, KO_damping_coefficient); }
+real_t BSSN::ev_A33(BSSNData *bd) { return BSSN_DT_AIJ(3, 3) - 1.0*a_adj_amp*dt*bd->A33*bd->H - KO_dissipation_Q(bd->i, bd->j, bd->k, A33->_array_a, KO_damping_coefficient); }
 
 real_t BSSN::ev_Gamma1(BSSNData *bd) { return BSSN_DT_GAMMAI(1) - KO_dissipation_Q(bd->i, bd->j, bd->k, Gamma1->_array_a, KO_damping_coefficient); }
 real_t BSSN::ev_Gamma2(BSSNData *bd) { return BSSN_DT_GAMMAI(2) - KO_dissipation_Q(bd->i, bd->j, bd->k, Gamma2->_array_a, KO_damping_coefficient); }
@@ -716,7 +718,7 @@ real_t BSSN::ev_DIFFK(BSSNData *bd)
     )
     + 4.0*PI*bd->alpha*(bd->DIFFr + bd->DIFFS)
     + bd->beta1*bd->d1K + bd->beta2*bd->d2K + bd->beta3*bd->d3K
-    - 1.0*JM_K_DAMPING_AMPLITUDE*bd->H*exp(-5.0*bd->phi)
+    - 1.0*k_damping_amp*bd->H*exp(-5.0*bd->phi)
     + Z4c_K1_DAMPING_AMPLITUDE*(1.0 - Z4c_K2_DAMPING_AMPLITUDE)*bd->theta
     - KO_dissipation_Q(bd->i, bd->j, bd->k, DIFFK->_array_a, KO_damping_coefficient)
   );
@@ -725,7 +727,7 @@ real_t BSSN::ev_DIFFK(BSSNData *bd)
 real_t BSSN::ev_DIFFphi(BSSNData *bd)
 {
   return (
-    0.1*BS_H_DAMPING_AMPLITUDE*dt*bd->H
+    0.1*a_adj_amp*dt*bd->H
     -1.0/6.0*(
       bd->alpha*(bd->DIFFK + 2.0*bd->theta)
       - bd->DIFFalpha*bd->K_FRW
