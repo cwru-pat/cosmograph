@@ -73,7 +73,7 @@ void bssn_ic_awa_linear_wave(BSSN * bssn)
 }
 
 /**
- * @brief Initialize with a "linear" wave propagating in the x-direction.
+ * @brief Initialize with a "linear" wave propagating in the 'dir'-direction.
  * @details AwA test.
  */
 void bssn_ic_awa_linear_wave(BSSN * bssn, real_t A, int dir)
@@ -125,24 +125,7 @@ void bssn_ic_awa_linear_wave(BSSN * bssn, real_t A, int dir)
  */
 void bssn_ic_awa_diagonal_linear_wave(BSSN * bssn)
 {
-  idx_t i, j, k;
-
-  real_t A = 1.0e-16;
-
-  arr_t & DIFFgamma22_p = *bssn->fields["DIFFgamma22_p"];
-  arr_t & DIFFgamma33_p = *bssn->fields["DIFFgamma33_p"];
-
-  arr_t & A22_p = *bssn->fields["A22_p"];
-  arr_t & A33_p = *bssn->fields["A33_p"];
-
-  LOOP3(i,j,k)
-  {
-    DIFFgamma22_p[NP_INDEX(i,j,k)] = A*sin( 2.0*PI*((real_t) i)*dx );
-    DIFFgamma33_p[NP_INDEX(i,j,k)] = -A*sin( 2.0*PI*((real_t) i)*dx );
-
-    A22_p[NP_INDEX(i,j,k)] = PI*A*cos( 2.0*PI*((real_t) i)*dx );
-    A33_p[NP_INDEX(i,j,k)] = -PI*A*cos( 2.0*PI*((real_t) i)*dx );
-  }
+  // TODO
 }
 
 /**
@@ -362,6 +345,5 @@ void bssn_ic_awa_shifted_gauge_wave(BSSN * bssn, int dir)
     }
   }
 }
-
 
 } // namespace cosmo

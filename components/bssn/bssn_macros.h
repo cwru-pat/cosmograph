@@ -112,9 +112,6 @@
   function(STF33);
 
 #define BSSN_APPLY_TO_GEN1_EXTRAS(function) \
-  function(KDx);                            \
-  function(KDy);                            \
-  function(KDz);                            \
   function(ricci);                          \
   function(AijAij);                         \
   function(K0);

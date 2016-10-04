@@ -1,17 +1,17 @@
-steps = 25000
-
-lapse = Harmonic
+steps = 5000
 
 KO_damping_coefficient = 0
 k_damping_amp = 0
 a_adj_amp = 0
 normalize_metric = 1
-noise_amp = 1.0e-10
 
-simulation_type = vacuum
-ic_type = stability
+simulation_type = dust
+peak_amplitude_frac = 500.0
+rho_K_lambda_frac = 0.0
+ic_spec_cut = 3
+IC_viol_amp = 0.0
 
-output_dir = stability_test_r1
+output_dir = long_dust_test
 dump_file = calculated
 
 IO_constraint_interval = 10

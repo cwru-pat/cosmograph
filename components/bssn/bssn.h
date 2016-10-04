@@ -91,7 +91,6 @@ public:
       void calculateDDalphaTF(BSSNData *bd);
 
     /* (optional) Calculations of additional quantities */
-      void set_KillingDelta(idx_t i, idx_t j, idx_t k, BSSNData *bd);
       void set_full_metric(BSSNData *bd);
       void set_full_metric_der(BSSNData *bd);
 

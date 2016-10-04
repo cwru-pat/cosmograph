@@ -160,9 +160,6 @@ void CosmoSim::prepBSSNOutput()
     // and potentially subsequent Killing calculations
     BSSNData b_data = {0}; // data structure associated with bssn sim
     bssnSim->set_bd_values(i, j, k, &b_data);
-
-    // Additionally set KD (killing vector "Delta" quantities)
-    bssnSim->set_KillingDelta(i, j, k, &b_data);
   }
 }
 

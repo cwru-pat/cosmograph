@@ -627,17 +627,6 @@ void BSSN::calculateRicciTF(BSSNData *bd)
 ******************************************************************************
 */
 
-void BSSN::set_KillingDelta(idx_t i, idx_t j, idx_t k, BSSNData *bd)
-{
-  idx_t idx = NP_INDEX(i,j,k);
-  // Delta_mu^mu = 2 Grad_mu K^mu_i   (in i direction)
-  //             = 2 _^(3)Gamma^j_ij
-  //             = 2 ( \bar{Gamma}^j_ij + 6 d_i \phi )
-  KDx_a[idx] = 2.0*( bd->G111 + bd->G221 + bd->G331 + 6.0*bd->d1phi );
-  KDy_a[idx] = 2.0*( bd->G112 + bd->G222 + bd->G332 + 6.0*bd->d2phi );
-  KDz_a[idx] = 2.0*( bd->G113 + bd->G223 + bd->G333 + 6.0*bd->d3phi );
-}
-
 void BSSN::set_full_metric(BSSNData *bd)
 {
   SET_M00();
@@ -717,6 +706,7 @@ real_t BSSN::ev_DIFFK(BSSNData *bd)
 #       endif
     )
     + 4.0*PI*bd->alpha*(bd->DIFFr + bd->DIFFS)
+    + 4.0*PI*bd->DIFFalpha*(bd->rho_FRW + bd->S_FRW)
     + bd->beta1*bd->d1K + bd->beta2*bd->d2K + bd->beta3*bd->d3K
     - 1.0*k_damping_amp*bd->H*exp(-5.0*bd->phi)
     + Z4c_K1_DAMPING_AMPLITUDE*(1.0 - Z4c_K2_DAMPING_AMPLITUDE)*bd->theta
@@ -730,7 +720,7 @@ real_t BSSN::ev_DIFFphi(BSSNData *bd)
     0.1*a_adj_amp*dt*bd->H
     -1.0/6.0*(
       bd->alpha*(bd->DIFFK + 2.0*bd->theta)
-      - bd->DIFFalpha*bd->K_FRW
+      + bd->DIFFalpha*bd->K_FRW
       - ( bd->d1beta1 + bd->d2beta2 + bd->d3beta3 )
     )
     + bd->beta1*bd->d1phi + bd->beta2*bd->d2phi + bd->beta3*bd->d3phi
@@ -752,6 +742,7 @@ real_t BSSN::ev_theta(BSSNData *bd)
       bd->ricci + 2.0/3.0*pw2(bd->K + 2.0*bd->theta) - bd->AijAij - 16.0*PI*( bd->r )
     )
     - bd->alpha*Z4c_K1_DAMPING_AMPLITUDE*(2.0 + Z4c_K2_DAMPING_AMPLITUDE)*bd->theta
+    + bd->beta1*bd->d1theta + bd->beta2*bd->d2theta + bd->beta2*bd->d2theta
   ) - KO_dissipation_Q(bd->i, bd->j, bd->k, theta->_array_a, KO_damping_coefficient);
 }
 #endif
