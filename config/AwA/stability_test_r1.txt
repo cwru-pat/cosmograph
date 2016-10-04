@@ -1,4 +1,12 @@
-steps = 5000
+steps = 25000
+
+lapse = Harmonic
+
+KO_damping_coefficient = 0
+k_damping_amp = 0
+a_adj_amp = 0
+normalize_metric = 1
+noise_amp = 1.0e-10
 
 simulation_type = vacuum
 ic_type = stability

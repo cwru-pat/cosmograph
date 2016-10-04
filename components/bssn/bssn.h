@@ -29,8 +29,11 @@ class BSSN
 
   BSSNGaugeHandler * gaugeHandler;
 
-  real_t KO_damping_coefficient;
-  real_t gd_eta;
+  real_t KO_damping_coefficient; ///< KO_dissipation coefficient amplitude (default 0)
+  real_t k_damping_amp; ///< Additional "K"-damping (default 0)
+  real_t a_adj_amp; ///< A-adjusted term amplitude (default 0)
+  real_t gd_eta; ///< Gamma driver "eta" parameter
+  int normalize_metric; ///< Normalize A_ij and \gamma_ij? Default: 1 (true)
 
 public:
   map_t fields; ///< Public map from names to internal arrays
@@ -88,7 +91,6 @@ public:
       void calculateDDalphaTF(BSSNData *bd);
 
     /* (optional) Calculations of additional quantities */
-      void set_KillingDelta(idx_t i, idx_t j, idx_t k, BSSNData *bd);
       void set_full_metric(BSSNData *bd);
       void set_full_metric_der(BSSNData *bd);
 

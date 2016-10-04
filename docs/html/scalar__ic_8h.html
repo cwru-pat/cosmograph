@@ -73,7 +73,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
      onmouseover="return searchBox.OnSearchSelectShow()"
      onmouseout="return searchBox.OnSearchSelectHide()"
      onkeydown="return searchBox.OnSearchSelectKey(event)">
-<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Files</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Functions</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Variables</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Pages</a></div>
+<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Files</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Functions</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Variables</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Typedefs</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(6)"><span class="SelectionMark">&#160;</span>Pages</a></div>
 
 <!-- iframe showing the search results (closed by default) -->
 <div id="MSearchResultsWindow">
@@ -99,12 +99,13 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a href="#details">More...</a></p>
 <div class="textblock"><code>#include &quot;../bssn/bssn.h&quot;</code><br />
 <code>#include &quot;scalar.h&quot;</code><br />
+<code>#include &quot;../../IO/io.h&quot;</code><br />
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for scalar_ic.h:</div>
 <div class="dyncontent">
 <div class="center"><img src="scalar__ic_8h__incl.png" border="0" usemap="#components_2scalar_2scalar__ic_8h" alt=""/></div>
 <map name="components_2scalar_2scalar__ic_8h" id="components_2scalar_2scalar__ic_8h">
-<area shape="rect" id="node2" href="bssn_8h_source.html" title="../bssn/bssn.h" alt="" coords="827,155,932,181"/><area shape="rect" id="node26" href="components_2scalar_2scalar_8h_source.html" title="scalar.h" alt="" coords="918,80,985,107"/><area shape="rect" id="node3" href="cosmo__includes_8h_source.html" title="../../cosmo_includes.h" alt="" coords="805,229,955,256"/><area shape="rect" id="node18" href="cosmo__types_8h_source.html" title="../../cosmo_types.h" alt="" coords="1541,229,1675,256"/><area shape="rect" id="node19" href="Array_8h_source.html" title="utils/Array.h" alt="" coords="1545,379,1636,405"/><area shape="rect" id="node22" href="bssn__data_8h_source.html" title="bssn_data.h" alt="" coords="185,229,279,256"/><area shape="rect" id="node24" href="bssn__macros_8h_source.html" title="bssn_macros.h" alt="" coords="177,304,287,331"/><area shape="rect" id="node25" href="FRW_8h_source.html" title="../../utils/FRW.h" alt="" coords="533,229,648,256"/><area shape="rect" id="node21" href="RK4Register_8h_source.html" title="utils/RK4Register.h" alt="" coords="1645,304,1780,331"/><area shape="rect" id="node23" href="cosmo__macros_8h_source.html" title="../../cosmo_macros.h" alt="" coords="5,304,152,331"/></map>
+<area shape="rect" id="node2" href="bssn_8h_source.html" title="../bssn/bssn.h" alt="" coords="321,229,425,256"/><area shape="rect" id="node28" href="components_2scalar_2scalar_8h_source.html" title="scalar.h" alt="" coords="281,155,348,181"/><area shape="rect" id="node29" href="io_8h_source.html" title="../../IO/io.h" alt="" coords="633,80,719,107"/><area shape="rect" id="node3" href="cosmo__includes_8h_source.html" title="../../cosmo_includes.h" alt="" coords="1370,379,1520,405"/><area shape="rect" id="node18" href="cosmo__types_8h_source.html" title="../../cosmo_types.h" alt="" coords="249,453,383,480"/><area shape="rect" id="node19" href="Array_8h_source.html" title="utils/Array.h" alt="" coords="91,603,183,629"/><area shape="rect" id="node22" href="bssn__data_8h_source.html" title="bssn_data.h" alt="" coords="269,379,363,405"/><area shape="rect" id="node24" href="bssn__macros_8h_source.html" title="bssn_macros.h" alt="" coords="114,453,224,480"/><area shape="rect" id="node25" href="BSSNGaugeHandler_8h.html" title="Functions to determine gauge evolution for the BSSN class. Functions are determined via a config sett..." alt="" coords="297,304,449,331"/><area shape="rect" id="node26" href="ConfigParser_8h_source.html" title="../../utils/ConfigParser.h" alt="" coords="407,453,568,480"/><area shape="rect" id="node27" href="FRW_8h_source.html" title="../../utils/FRW.h" alt="" coords="1185,304,1300,331"/><area shape="rect" id="node21" href="RK4Register_8h_source.html" title="utils/RK4Register.h" alt="" coords="153,528,288,555"/><area shape="rect" id="node23" href="cosmo__macros_8h_source.html" title="../../cosmo_macros.h" alt="" coords="815,453,961,480"/><area shape="rect" id="node30" href="cosmo__globals_8h_source.html" title="../cosmo_globals.h" alt="" coords="729,379,860,405"/><area shape="rect" id="node33" href="Fourier_8h_source.html" title="../utils/Fourier.h" alt="" coords="773,229,885,256"/><area shape="rect" id="node36" href="math_8h_source.html" title="math.h" alt="" coords="729,304,791,331"/><area shape="rect" id="node37" href="IOData_8h_source.html" title="IOData.h" alt="" coords="2092,379,2165,405"/><area shape="rect" id="node31" href="Timer_8h_source.html" title="utils/Timer.h" alt="" coords="645,453,739,480"/></map>
 </div>
 </div><div class="textblock"><div class="dynheader">
 This graph shows which files directly or indirectly include this file:</div>
@@ -118,16 +119,22 @@ This graph shows which files directly or indirectly include this file:</div>
 Functions</h2></td></tr>
 <tr class="memitem:aa27df7a7975cec6402c5e8e89e843af9"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aa27df7a7975cec6402c5e8e89e843af9"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>cosmo::scalar_ic_set_wave</b> (BSSN *bssn, Scalar *scalar)</td></tr>
-<tr class="memdesc:aa27df7a7975cec6402c5e8e89e843af9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initialize a small-amplitude wave on a flat metric (use a stationary gaussian wave packet for now) NB: nonzero constraint violation. <br /></td></tr>
+<tr class="memdesc:aa27df7a7975cec6402c5e8e89e843af9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initialize a small-amplitude wave on a flat metric (use a stationary Gaussian wave packet for now) NB: nonzero constraint violation. <br /></td></tr>
 <tr class="separator:aa27df7a7975cec6402c5e8e89e843af9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af9c47ff11c2b70084f2cec6ad73dc87a"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="af9c47ff11c2b70084f2cec6ad73dc87a"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>cosmo::scalar_ic_set_Lambda</b> (BSSN *bssn, Scalar *scalar)</td></tr>
 <tr class="memdesc:af9c47ff11c2b70084f2cec6ad73dc87a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initialize scalar field to zero: assumes potential with a minimum, constant value here, so a cosmological constant. <br /></td></tr>
 <tr class="separator:af9c47ff11c2b70084f2cec6ad73dc87a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac5a6b2245c449c0d20abc45eb5e1dffd"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ac5a6b2245c449c0d20abc45eb5e1dffd"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>cosmo::scalar_ic_set_semianalytic_test</b> (BSSN *bssn, Scalar *scalar)</td></tr>
-<tr class="memdesc:ac5a6b2245c449c0d20abc45eb5e1dffd"><td class="mdescLeft">&#160;</td><td class="mdescRight">semi-analytic test initial conditions: a sinusoidal fluctuation in a particular direction &amp; corresponding metric <br /></td></tr>
-<tr class="separator:ac5a6b2245c449c0d20abc45eb5e1dffd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acb37c16473a86ba218718f6f59609b99"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="acb37c16473a86ba218718f6f59609b99"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>cosmo::scalar_ic_set_semianalytic_test</b> (BSSN *bssn, Scalar *scalar, IOData *iodata)</td></tr>
+<tr class="memdesc:acb37c16473a86ba218718f6f59609b99"><td class="mdescLeft">&#160;</td><td class="mdescRight">semi-analytic test initial conditions: a sinusoidal fluctuation in a particular direction &amp; corresponding metric <br /></td></tr>
+<tr class="separator:acb37c16473a86ba218718f6f59609b99"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a781e49fa7b3fc00fd24f415f93614d67"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a781e49fa7b3fc00fd24f415f93614d67"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>cosmo::scalar_ic_set_Bowen_York</b> (BSSN *bssn, Scalar *scalar, IOData *iodata)</td></tr>
+<tr class="separator:a781e49fa7b3fc00fd24f415f93614d67"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adc704b8a9843519c0634ddd1c24ba7a2"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="adc704b8a9843519c0634ddd1c24ba7a2"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>cosmo::scalar_ic_set_full_equations</b> (BSSN *bssn, Scalar *scalar, IOData *iodata)</td></tr>
+<tr class="separator:adc704b8a9843519c0634ddd1c24ba7a2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Functions to set initial conditions for the Scalar class. Functions should be made callable via a config setting in ScalarSim class. </p>
@@ -140,7 +147,7 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>cosmo::scalar_ic_set_
     1.8.7
     |
     View cosmograph on
-    <a href="https://github.com/jbcm627/cosmograph">
+    <a href="https://github.com/cwru-pat/cosmograph">
       GitHub <i class="fa fa-github" aria-hidden="true"></i>
     </a>
   </footer>

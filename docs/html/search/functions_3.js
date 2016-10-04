@@ -5,5 +5,7 @@ var searchData=
   ['calculate_5fddgamma',['calculate_ddgamma',['../classcosmo_1_1BSSN.html#a796d7df9b9139449d27e42d2b0e3b402',1,'cosmo::BSSN']]],
   ['calculate_5fdgamma',['calculate_dgamma',['../classcosmo_1_1BSSN.html#aba30b5f72b6562a5718b6ef302f924b8',1,'cosmo::BSSN']]],
   ['calculate_5fdk',['calculate_dK',['../classcosmo_1_1BSSN.html#aeecfee86416dcb19d8d7604c5a270db2',1,'cosmo::BSSN']]],
-  ['clearsrc',['clearSrc',['../classcosmo_1_1BSSN.html#a628e7ed645ccd0538942e33253d58e72',1,'cosmo::BSSN']]]
+  ['christoffelconstraintcalc',['christoffelConstraintCalc',['../classcosmo_1_1BSSN.html#a94723d3c2e5a325f5b3d73c351cbc103',1,'cosmo::BSSN']]],
+  ['clearsrc',['clearSrc',['../classcosmo_1_1BSSN.html#a628e7ed645ccd0538942e33253d58e72',1,'cosmo::BSSN']]],
+  ['conformalsynclapse',['ConformalSyncLapse',['../classcosmo_1_1BSSNGaugeHandler.html#a8cc9f69d77cae4376cdff1cfadad309b',1,'cosmo::BSSNGaugeHandler']]]
 ];

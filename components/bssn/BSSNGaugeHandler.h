@@ -1,4 +1,5 @@
-/** @file bssn_gauge_fns.h
+/**
+ * @file BSSNGaugeHandler.h
  * @brief Functions to determine gauge evolution for the BSSN class.
  * Functions are determined via a config setting in the CosmoSim class.
  */
@@ -58,10 +59,11 @@ private:
   real_t DampedWaveShift3(BSSNData *bd);
 
   // AwA Gauge Wave test lapse
+  real_t gauge_wave_dir; ///< wave direction of prop. (\in {1,2,3})
   real_t AwAGaugeWaveLapse(BSSNData *bd);
 
   // AwA Shifted Gauge Wave test gauge
-  real_t AwA_shift_dir; ///< shifted wave direction of prop. (\in {1,2,3})
+  // also uses gauge_wave_dir
   real_t AwAShiftedWaveLapse(BSSNData *bd);
   real_t AwAShiftedWaveShift1(BSSNData *bd);
   real_t AwAShiftedWaveShift2(BSSNData *bd);
@@ -101,7 +103,7 @@ private:
 
   void _initDefaultParameters(ConfigParser *config)
   {
-    AwA_shift_dir = std::stoi((*config)("AwA_shift_dir", "1"));
+    gauge_wave_dir = std::stoi((*config)("gauge_wave_dir", "1"));
     dw_mu_l = std::stod((*config)("dw_mu_l", "0.0"));
     dw_mu_s = std::stod((*config)("dw_mu_s", "0.0"));
     dw_p = std::stod((*config)("dw_p", "0.0"));

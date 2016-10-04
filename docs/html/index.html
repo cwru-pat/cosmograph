@@ -69,7 +69,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
      onmouseover="return searchBox.OnSearchSelectShow()"
      onmouseout="return searchBox.OnSearchSelectHide()"
      onkeydown="return searchBox.OnSearchSelectKey(event)">
-<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Files</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Functions</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Variables</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Pages</a></div>
+<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Files</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Functions</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Variables</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Typedefs</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(6)"><span class="SelectionMark">&#160;</span>Pages</a></div>
 
 <!-- iframe showing the search results (closed by default) -->
 <div id="MSearchResultsWindow">
@@ -86,6 +86,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="textblock"><p><a href="https://travis-ci.com/cwru-pat/cosmograph">![Build Status](https://travis-ci.com/cwru-pat/cosmograph.svg?token=j5zJrjKFZL3UXL3HwPp6&amp;branch=master)</a></p>
 <h2>Cosmological General Relativity And (Perfect fluid | Particle) Hydrodynamics Code</h2>
 <p><em>But we'll see about the "particle" part.</em></p>
+<p>Some additional information can be found on the github pages <a href="https://cwru-pat.github.io/cosmograph">CosmoGRaPH</a> page.</p>
 <h3>Software dependencies</h3>
 <ul>
 <li>git</li>
@@ -96,7 +97,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <li>a compiler with c++11 support</li>
 </ul>
 <p>To install these on on linux (Ubuntu, Mint), run a command like:</p>
-<p>```{r, engine='bash', compile} sudo apt-get install git cmake libhdf5-dev fftw3-dev libzip-dev g++ ```</p>
+<p>```{r, engine='bash', compile} sudo apt-get install git cmake libhdf5-serial-dev fftw3-dev libzip-dev g++ ```</p>
 <h3>Obtaining up the code</h3>
 <ul>
 <li>1) Clone the code: <code>git clone <a href="https://github.com/cwru-pat/cosmograph">https://github.com/cwru-pat/cosmograph</a></code></li>
@@ -133,7 +134,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
     1.8.7
     |
     View cosmograph on
-    <a href="https://github.com/jbcm627/cosmograph">
+    <a href="https://github.com/cwru-pat/cosmograph">
       GitHub <i class="fa fa-github" aria-hidden="true"></i>
     </a>
   </footer>

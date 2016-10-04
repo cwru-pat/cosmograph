@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['powerdump',['powerDump',['../classcosmo_1_1Fourier.html#aeb7fe5fd339676fcbd80447dee766d35',1,'cosmo::Fourier']]]
+  ['log',['log',['../classcosmo_1_1IOData.html#a841f5e15d06883b068cf00b741634353',1,'cosmo::IOData']]]
 ];

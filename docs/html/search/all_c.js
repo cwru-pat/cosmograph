@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['lap_5fv_5fh',['lap_v_h',['../classFASMultigrid.html#ab980ed4616dd03d8484d429d93804f6e',1,'FASMultigrid']]],
+  ['lapse_5ffn',['lapse_fn',['../classcosmo_1_1BSSNGaugeHandler.html#a33be24dd228139ec6acd68add4b9a967',1,'cosmo::BSSNGaugeHandler']]],
   ['log',['log',['../classcosmo_1_1IOData.html#a841f5e15d06883b068cf00b741634353',1,'cosmo::IOData']]]
 ];

@@ -1,6 +1,7 @@
 var searchData=
 [
-  ['webserver',['webServer',['../classcosmo_1_1webServer.html',1,'cosmo']]],
-  ['weyllensingscalarsum_5fim',['WeylLensingScalarSum_Im',['../classcosmo_1_1RayTrace.html#a8177fbca503ac552cac91e6dcce35151',1,'cosmo::RayTrace']]],
-  ['weyllensingscalarsum_5fre',['WeylLensingScalarSum_Re',['../classcosmo_1_1RayTrace.html#a33e1cc835b7d24381688584f9103eacf',1,'cosmo::RayTrace']]]
+  ['vacuumsim',['VacuumSim',['../classcosmo_1_1VacuumSim.html',1,'cosmo']]],
+  ['value',['value',['../structcosmo_1_1atom.html#a224d224d0353bd42f73994e913e7c040',1,'cosmo::atom']]],
+  ['varsig',['varSig',['../classcosmo_1_1RayTrace.html#a857185e50601d09ccf6616daa48ec7e5',1,'cosmo::RayTrace']]],
+  ['varsig',['VarSig',['../structcosmo_1_1VarSig.html',1,'cosmo']]]
 ];

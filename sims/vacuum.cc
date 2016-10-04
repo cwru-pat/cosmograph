@@ -28,12 +28,15 @@ void VacuumSim::setICs()
   if(_config["ic_type"] == "stability")
   {
     iodata->log("Setting stability initial conditions.");
-    bssn_ic_awa_stability(bssnSim);
+    real_t A = std::stod(_config("noise_amp", "1.0e-10"));
+    bssn_ic_awa_stability(bssnSim, A);
   }
   else if(_config["ic_type"] == "linear_wave")
   {
     iodata->log("Setting linear wave initial conditions.");
-    bssn_ic_awa_linear_wave(bssnSim);
+    int dir = std::stoi(_config("wave_dir", "1"));
+    real_t A = std::stod(_config("wave_amp", "1.0e-8"));
+    bssn_ic_awa_linear_wave(bssnSim, A, dir);
   }
   else if(_config["ic_type"] == "linear_wave_desitter")
   {
@@ -49,7 +52,8 @@ void VacuumSim::setICs()
   else if(_config["ic_type"] == "shifted_gauge_wave")
   {
     iodata->log("Setting shifted gauge wave initial conditions.");
-    bssn_ic_awa_shifted_gauge_wave(bssnSim);
+    int dir = std::stoi(_config("gauge_wave_dir", "1"));
+    bssn_ic_awa_shifted_gauge_wave(bssnSim, dir);
   }
   else
   {

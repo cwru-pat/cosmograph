@@ -1,7 +1,8 @@
 var searchData=
 [
-  ['u_5fexp',['u_exp',['../classFASMultigrid.html#abe18f1690931f468f43b99705e994880',1,'FASMultigrid']]],
-  ['u_5fh',['u_h',['../classFASMultigrid.html#a268e7c4b20377d640415c3053230b8c1',1,'FASMultigrid']]],
+  ['u_5fh',['u_h',['../classcosmo_1_1FASMultigrid.html#a24cec7be1e0e905e834644baa7d18ad8',1,'cosmo::FASMultigrid']]],
+  ['u_5fid',['u_id',['../structcosmo_1_1atom.html#adb281b41527837d586f80d8615f6ba2c',1,'cosmo::atom']]],
+  ['u_5fn',['u_n',['../classcosmo_1_1FASMultigrid.html#a8b951e03ec8d7d36ce1ed0ab3767a1f3',1,'cosmo::FASMultigrid']]],
   ['unitricci',['unitRicci',['../structcosmo_1_1BSSNData.html#a99845586f24b98d94d84244ef14e3e13',1,'cosmo::BSSNData']]],
   ['uricci11',['Uricci11',['../structcosmo_1_1BSSNData.html#a053beadcbf8d2c5049ffb155f84799da',1,'cosmo::BSSNData']]],
   ['uricci12',['Uricci12',['../structcosmo_1_1BSSNData.html#a5fcdc3994b1e0d293854073f9ca94581',1,'cosmo::BSSNData']]],
