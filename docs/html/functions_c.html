@@ -75,6 +75,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
       <li class="current"><a href="functions.html"><span>All</span></a></li>
       <li><a href="functions_func.html"><span>Functions</span></a></li>
       <li><a href="functions_vars.html"><span>Variables</span></a></li>
+      <li><a href="functions_type.html"><span>Typedefs</span></a></li>
     </ul>
   </div>
   <div id="navrow4" class="tabs3">
@@ -94,6 +95,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
       <li><a href="functions_l.html#index_l"><span>l</span></a></li>
       <li><a href="functions_m.html#index_m"><span>m</span></a></li>
       <li><a href="functions_n.html#index_n"><span>n</span></a></li>
+      <li><a href="functions_o.html#index_o"><span>o</span></a></li>
       <li><a href="functions_p.html#index_p"><span>p</span></a></li>
       <li><a href="functions_r.html#index_r"><span>r</span></a></li>
       <li><a href="functions_s.html#index_s"><span>s</span></a></li>
@@ -102,7 +104,6 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
       <li><a href="functions_v.html#index_v"><span>v</span></a></li>
       <li><a href="functions_w.html#index_w"><span>w</span></a></li>
       <li><a href="functions_x.html#index_x"><span>x</span></a></li>
-      <li><a href="functions_~.html#index_~"><span>~</span></a></li>
     </ul>
   </div>
 </div><!-- top -->
@@ -111,7 +112,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
      onmouseover="return searchBox.OnSearchSelectShow()"
      onmouseout="return searchBox.OnSearchSelectHide()"
      onkeydown="return searchBox.OnSearchSelectKey(event)">
-<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Files</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Functions</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Variables</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Pages</a></div>
+<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Files</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Functions</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Variables</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Typedefs</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(6)"><span class="SelectionMark">&#160;</span>Pages</a></div>
 
 <!-- iframe showing the search results (closed by default) -->
 <div id="MSearchResultsWindow">
@@ -139,11 +140,20 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <li>calculate_dK()
 : <a class="el" href="classcosmo_1_1BSSN.html#aeecfee86416dcb19d8d7604c5a270db2">cosmo::BSSN</a>
 </li>
+<li>christoffelConstraintCalc()
+: <a class="el" href="classcosmo_1_1BSSN.html#a94723d3c2e5a325f5b3d73c351cbc103">cosmo::BSSN</a>
+</li>
 <li>clearSrc()
 : <a class="el" href="classcosmo_1_1BSSN.html#a628e7ed645ccd0538942e33253d58e72">cosmo::BSSN</a>
 </li>
 <li>coarse_src_h
-: <a class="el" href="classFASMultigrid.html#a2e19b1c67c6208f202868b61a2d2113c">FASMultigrid</a>
+: <a class="el" href="classcosmo_1_1FASMultigrid.html#a2bcebd146c2713ee857b92f415550912">cosmo::FASMultigrid</a>
+</li>
+<li>ConformalSyncLapse()
+: <a class="el" href="classcosmo_1_1BSSNGaugeHandler.html#a8cc9f69d77cae4376cdff1cfadad309b">cosmo::BSSNGaugeHandler</a>
+</li>
+<li>const_coef
+: <a class="el" href="classcosmo_1_1molecule.html#acecb74991f3075470eb03970150ed886">cosmo::molecule</a>
 </li>
 <li>corner_rp
 : <a class="el" href="classcosmo_1_1RayTrace.html#ac1e50585e00b6a982feda10ff286e71a">cosmo::RayTrace&lt; RT, IT &gt;</a>
@@ -158,7 +168,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
     1.8.7
     |
     View cosmograph on
-    <a href="https://github.com/jbcm627/cosmograph">
+    <a href="https://github.com/cwru-pat/cosmograph">
       GitHub <i class="fa fa-github" aria-hidden="true"></i>
     </a>
   </footer>

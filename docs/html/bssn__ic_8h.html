@@ -73,7 +73,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
      onmouseover="return searchBox.OnSearchSelectShow()"
      onmouseout="return searchBox.OnSearchSelectHide()"
      onkeydown="return searchBox.OnSearchSelectKey(event)">
-<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Files</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Functions</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Variables</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Pages</a></div>
+<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Files</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Functions</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Variables</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Typedefs</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(6)"><span class="SelectionMark">&#160;</span>Pages</a></div>
 
 <!-- iframe showing the search results (closed by default) -->
 <div id="MSearchResultsWindow">
@@ -103,7 +103,7 @@ Include dependency graph for bssn_ic.h:</div>
 <div class="dyncontent">
 <div class="center"><img src="bssn__ic_8h__incl.png" border="0" usemap="#components_2bssn_2bssn__ic_8h" alt=""/></div>
 <map name="components_2bssn_2bssn__ic_8h" id="components_2bssn_2bssn__ic_8h">
-<area shape="rect" id="node2" href="bssn_8h_source.html" title="bssn.h" alt="" coords="1353,80,1415,107"/><area shape="rect" id="node3" href="cosmo__includes_8h_source.html" title="../../cosmo_includes.h" alt="" coords="547,155,697,181"/><area shape="rect" id="node18" href="cosmo__types_8h_source.html" title="../../cosmo_types.h" alt="" coords="1239,155,1373,181"/><area shape="rect" id="node19" href="Array_8h_source.html" title="utils/Array.h" alt="" coords="1345,304,1436,331"/><area shape="rect" id="node22" href="bssn__data_8h_source.html" title="bssn_data.h" alt="" coords="1527,155,1620,181"/><area shape="rect" id="node24" href="bssn__macros_8h_source.html" title="bssn_macros.h" alt="" coords="1671,229,1781,256"/><area shape="rect" id="node25" href="FRW_8h_source.html" title="../../utils/FRW.h" alt="" coords="1051,155,1167,181"/><area shape="rect" id="node21" href="RK4Register_8h_source.html" title="utils/RK4Register.h" alt="" coords="1239,229,1373,256"/><area shape="rect" id="node23" href="cosmo__macros_8h_source.html" title="../../cosmo_macros.h" alt="" coords="1500,229,1647,256"/></map>
+<area shape="rect" id="node2" href="bssn_8h_source.html" title="bssn.h" alt="" coords="1239,80,1300,107"/><area shape="rect" id="node3" href="cosmo__includes_8h_source.html" title="../../cosmo_includes.h" alt="" coords="510,155,660,181"/><area shape="rect" id="node18" href="cosmo__types_8h_source.html" title="../../cosmo_types.h" alt="" coords="1245,304,1379,331"/><area shape="rect" id="node19" href="Array_8h_source.html" title="utils/Array.h" alt="" coords="1401,453,1492,480"/><area shape="rect" id="node22" href="bssn__data_8h_source.html" title="bssn_data.h" alt="" coords="1364,229,1457,256"/><area shape="rect" id="node24" href="bssn__macros_8h_source.html" title="bssn_macros.h" alt="" coords="1575,304,1685,331"/><area shape="rect" id="node25" href="BSSNGaugeHandler_8h.html" title="Functions to determine gauge evolution for the BSSN class. Functions are determined via a config sett..." alt="" coords="1135,155,1288,181"/><area shape="rect" id="node26" href="ConfigParser_8h_source.html" title="../../utils/ConfigParser.h" alt="" coords="1006,304,1167,331"/><area shape="rect" id="node27" href="FRW_8h_source.html" title="../../utils/FRW.h" alt="" coords="918,155,1033,181"/><area shape="rect" id="node21" href="RK4Register_8h_source.html" title="utils/RK4Register.h" alt="" coords="1295,379,1429,405"/><area shape="rect" id="node23" href="cosmo__macros_8h_source.html" title="../../cosmo_macros.h" alt="" coords="1404,304,1551,331"/></map>
 </div>
 </div><div class="textblock"><div class="dynheader">
 This graph shows which files directly or indirectly include this file:</div>
@@ -115,15 +115,33 @@ This graph shows which files directly or indirectly include this file:</div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:ab0a1b2eaa6557c9e925fd69692613096"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><b>cosmo::bssn_ic_awa_stability</b> (BSSN *bssn)</td></tr>
-<tr class="memdesc:ab0a1b2eaa6557c9e925fd69692613096"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set flat vacuum spacetime initial conditions, plus small "noise" fluctuations.  <a href="#ab0a1b2eaa6557c9e925fd69692613096">More...</a><br /></td></tr>
-<tr class="separator:ab0a1b2eaa6557c9e925fd69692613096"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ace240e9622de6ac82b98c951126f4ea6"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ace240e9622de6ac82b98c951126f4ea6"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>cosmo::bssn_ic_awa_linear_wave</b> (BSSN *bssn)</td></tr>
+<tr class="memitem:ab13b741ad7c686ef09e8396887b4bf0d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><b>cosmo::bssn_ic_awa_stability</b> (BSSN *bssn, real_t A)</td></tr>
+<tr class="memdesc:ab13b741ad7c686ef09e8396887b4bf0d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set flat vacuum spacetime initial conditions, plus small "noise" fluctuations.  <a href="#ab13b741ad7c686ef09e8396887b4bf0d">More...</a><br /></td></tr>
+<tr class="separator:ab13b741ad7c686ef09e8396887b4bf0d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ace240e9622de6ac82b98c951126f4ea6"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><b>cosmo::bssn_ic_awa_linear_wave</b> (BSSN *bssn)</td></tr>
+<tr class="memdesc:ace240e9622de6ac82b98c951126f4ea6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initialize with a "linear" wave propagating in the x-direction.  <a href="#ace240e9622de6ac82b98c951126f4ea6">More...</a><br /></td></tr>
 <tr class="separator:ace240e9622de6ac82b98c951126f4ea6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae0e762276073980edbe7629f0b824577"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ae0e762276073980edbe7629f0b824577"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>cosmo::bssn_ic_awa_linear_wave_desitter</b> (BSSN *bssn)</td></tr>
+<tr class="memitem:a7a5b8bb600414a7aa4c8ec8b7d220415"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><b>cosmo::bssn_ic_awa_linear_wave</b> (BSSN *bssn, real_t A, int dir)</td></tr>
+<tr class="memdesc:a7a5b8bb600414a7aa4c8ec8b7d220415"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initialize with a "linear" wave propagating in the 'dir'-direction.  <a href="#a7a5b8bb600414a7aa4c8ec8b7d220415">More...</a><br /></td></tr>
+<tr class="separator:a7a5b8bb600414a7aa4c8ec8b7d220415"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae0e762276073980edbe7629f0b824577"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><b>cosmo::bssn_ic_awa_linear_wave_desitter</b> (BSSN *bssn)</td></tr>
+<tr class="memdesc:ae0e762276073980edbe7629f0b824577"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initialize with a "linear" wave propagating in the x-direction, on top of a deSitter spacetime.  <a href="#ae0e762276073980edbe7629f0b824577">More...</a><br /></td></tr>
 <tr class="separator:ae0e762276073980edbe7629f0b824577"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a89bb0811fceed9869dce2584d9442425"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a89bb0811fceed9869dce2584d9442425"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>cosmo::bssn_ic_awa_gauge_wave</b> (BSSN *bssn)</td></tr>
+<tr class="memdesc:a89bb0811fceed9869dce2584d9442425"><td class="mdescLeft">&#160;</td><td class="mdescRight">AwA Gauge Wave Test. <br /></td></tr>
+<tr class="separator:a89bb0811fceed9869dce2584d9442425"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aafacf90291bcbcef36d4648b20a1024b"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aafacf90291bcbcef36d4648b20a1024b"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>cosmo::bssn_ic_awa_gauge_wave</b> (BSSN *bssn, int dir)</td></tr>
+<tr class="memdesc:aafacf90291bcbcef36d4648b20a1024b"><td class="mdescLeft">&#160;</td><td class="mdescRight">AwA Gauge Wave Test, setting wave propagation direction. <br /></td></tr>
+<tr class="separator:aafacf90291bcbcef36d4648b20a1024b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad3d848e36df2ac138d48fcc1d4061457"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ad3d848e36df2ac138d48fcc1d4061457"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>cosmo::bssn_ic_awa_shifted_gauge_wave</b> (BSSN *bssn)</td></tr>
+<tr class="separator:ad3d848e36df2ac138d48fcc1d4061457"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a71c587014ce426ce727782c4387e7ad5"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a71c587014ce426ce727782c4387e7ad5"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>cosmo::bssn_ic_awa_shifted_gauge_wave</b> (BSSN *bssn, int dir)</td></tr>
+<tr class="memdesc:a71c587014ce426ce727782c4387e7ad5"><td class="mdescLeft">&#160;</td><td class="mdescRight">AwA Shifted Gauge Wave Test. <br /></td></tr>
+<tr class="separator:a71c587014ce426ce727782c4387e7ad5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Functions to set initial conditions for the BSSN class. Functions are called via a config setting in VacuumSim class. </p>
@@ -136,7 +154,7 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>cosmo::bssn_ic_awa_li
     1.8.7
     |
     View cosmograph on
-    <a href="https://github.com/jbcm627/cosmograph">
+    <a href="https://github.com/cwru-pat/cosmograph">
       GitHub <i class="fa fa-github" aria-hidden="true"></i>
     </a>
   </footer>

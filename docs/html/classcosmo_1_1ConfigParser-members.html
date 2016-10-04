@@ -75,7 +75,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
      onmouseover="return searchBox.OnSearchSelectShow()"
      onmouseout="return searchBox.OnSearchSelectHide()"
      onkeydown="return searchBox.OnSearchSelectKey(event)">
-<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Files</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Functions</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Variables</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Pages</a></div>
+<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Files</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Functions</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Variables</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Typedefs</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(6)"><span class="SelectionMark">&#160;</span>Pages</a></div>
 
 <!-- iframe showing the search results (closed by default) -->
 <div id="MSearchResultsWindow">
@@ -102,8 +102,9 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
   <tr bgcolor="#f0f0f0" class="even"><td class="entry"><b>ConfigParser</b>(std::string fname) (defined in <a class="el" href="classcosmo_1_1ConfigParser.html">cosmo::ConfigParser</a>)</td><td class="entry"><a class="el" href="classcosmo_1_1ConfigParser.html">cosmo::ConfigParser</a></td><td class="entry"></td></tr>
   <tr bgcolor="#f0f0f0"><td class="entry"><b>fileName</b> (defined in <a class="el" href="classcosmo_1_1ConfigParser.html">cosmo::ConfigParser</a>)</td><td class="entry"><a class="el" href="classcosmo_1_1ConfigParser.html">cosmo::ConfigParser</a></td><td class="entry"><span class="mlabel">private</span></td></tr>
   <tr bgcolor="#f0f0f0" class="even"><td class="entry"><b>getFileName</b>() (defined in <a class="el" href="classcosmo_1_1ConfigParser.html">cosmo::ConfigParser</a>)</td><td class="entry"><a class="el" href="classcosmo_1_1ConfigParser.html">cosmo::ConfigParser</a></td><td class="entry"></td></tr>
-  <tr bgcolor="#f0f0f0"><td class="entry"><b>operator[]</b>(std::string param) (defined in <a class="el" href="classcosmo_1_1ConfigParser.html">cosmo::ConfigParser</a>)</td><td class="entry"><a class="el" href="classcosmo_1_1ConfigParser.html">cosmo::ConfigParser</a></td><td class="entry"></td></tr>
-  <tr bgcolor="#f0f0f0" class="even"><td class="entry"><b>parse</b>(std::string fname) (defined in <a class="el" href="classcosmo_1_1ConfigParser.html">cosmo::ConfigParser</a>)</td><td class="entry"><a class="el" href="classcosmo_1_1ConfigParser.html">cosmo::ConfigParser</a></td><td class="entry"></td></tr>
+  <tr><td class="entry"><a class="el" href="classcosmo_1_1ConfigParser.html#af325ba5ec3c303c53e6ec6ac8c12033d">operator()</a>(std::string param, std::string default_val)</td><td class="entry"><a class="el" href="classcosmo_1_1ConfigParser.html">cosmo::ConfigParser</a></td><td class="entry"></td></tr>
+  <tr class="even"><td class="entry"><a class="el" href="classcosmo_1_1ConfigParser.html#aa1c54c4305985953005fa32a536491e4">operator[]</a>(std::string param)</td><td class="entry"><a class="el" href="classcosmo_1_1ConfigParser.html">cosmo::ConfigParser</a></td><td class="entry"></td></tr>
+  <tr bgcolor="#f0f0f0"><td class="entry"><b>parse</b>(std::string fname) (defined in <a class="el" href="classcosmo_1_1ConfigParser.html">cosmo::ConfigParser</a>)</td><td class="entry"><a class="el" href="classcosmo_1_1ConfigParser.html">cosmo::ConfigParser</a></td><td class="entry"></td></tr>
 </table></div><!-- contents -->
 
   <hr class="footer"/>
@@ -113,7 +114,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
     1.8.7
     |
     View cosmograph on
-    <a href="https://github.com/jbcm627/cosmograph">
+    <a href="https://github.com/cwru-pat/cosmograph">
       GitHub <i class="fa fa-github" aria-hidden="true"></i>
     </a>
   </footer>

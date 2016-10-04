@@ -1,11 +1,13 @@
 <map id="components/bssn/bssn_ic.h" name="components/bssn/bssn_ic.h">
-<area shape="rect" id="node2" href="$bssn_8h_source.html" title="bssn.h" alt="" coords="1353,80,1415,107"/>
-<area shape="rect" id="node3" href="$cosmo__includes_8h_source.html" title="../../cosmo_includes.h" alt="" coords="547,155,697,181"/>
-<area shape="rect" id="node18" href="$cosmo__types_8h_source.html" title="../../cosmo_types.h" alt="" coords="1239,155,1373,181"/>
-<area shape="rect" id="node19" href="$Array_8h_source.html" title="utils/Array.h" alt="" coords="1345,304,1436,331"/>
-<area shape="rect" id="node22" href="$bssn__data_8h_source.html" title="bssn_data.h" alt="" coords="1527,155,1620,181"/>
-<area shape="rect" id="node24" href="$bssn__macros_8h_source.html" title="bssn_macros.h" alt="" coords="1671,229,1781,256"/>
-<area shape="rect" id="node25" href="$FRW_8h_source.html" title="../../utils/FRW.h" alt="" coords="1051,155,1167,181"/>
-<area shape="rect" id="node21" href="$RK4Register_8h_source.html" title="utils/RK4Register.h" alt="" coords="1239,229,1373,256"/>
-<area shape="rect" id="node23" href="$cosmo__macros_8h_source.html" title="../../cosmo_macros.h" alt="" coords="1500,229,1647,256"/>
+<area shape="rect" id="node2" href="$bssn_8h_source.html" title="bssn.h" alt="" coords="1239,80,1300,107"/>
+<area shape="rect" id="node3" href="$cosmo__includes_8h_source.html" title="../../cosmo_includes.h" alt="" coords="510,155,660,181"/>
+<area shape="rect" id="node18" href="$cosmo__types_8h_source.html" title="../../cosmo_types.h" alt="" coords="1245,304,1379,331"/>
+<area shape="rect" id="node19" href="$Array_8h_source.html" title="utils/Array.h" alt="" coords="1401,453,1492,480"/>
+<area shape="rect" id="node22" href="$bssn__data_8h_source.html" title="bssn_data.h" alt="" coords="1364,229,1457,256"/>
+<area shape="rect" id="node24" href="$bssn__macros_8h_source.html" title="bssn_macros.h" alt="" coords="1575,304,1685,331"/>
+<area shape="rect" id="node25" href="$BSSNGaugeHandler_8h.html" title="Functions to determine gauge evolution for the BSSN class. Functions are determined via a config sett..." alt="" coords="1135,155,1288,181"/>
+<area shape="rect" id="node26" href="$ConfigParser_8h_source.html" title="../../utils/ConfigParser.h" alt="" coords="1006,304,1167,331"/>
+<area shape="rect" id="node27" href="$FRW_8h_source.html" title="../../utils/FRW.h" alt="" coords="918,155,1033,181"/>
+<area shape="rect" id="node21" href="$RK4Register_8h_source.html" title="utils/RK4Register.h" alt="" coords="1295,379,1429,405"/>
+<area shape="rect" id="node23" href="$cosmo__macros_8h_source.html" title="../../cosmo_macros.h" alt="" coords="1404,304,1551,331"/>
 </map>

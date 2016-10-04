@@ -1,5 +1,4 @@
 var searchData=
 [
-  ['weyllensingscalarsum_5fim',['WeylLensingScalarSum_Im',['../classcosmo_1_1RayTrace.html#a8177fbca503ac552cac91e6dcce35151',1,'cosmo::RayTrace']]],
-  ['weyllensingscalarsum_5fre',['WeylLensingScalarSum_Re',['../classcosmo_1_1RayTrace.html#a33e1cc835b7d24381688584f9103eacf',1,'cosmo::RayTrace']]]
+  ['powerdump',['powerDump',['../classcosmo_1_1Fourier.html#aeb7fe5fd339676fcbd80447dee766d35',1,'cosmo::Fourier']]]
 ];

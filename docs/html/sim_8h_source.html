@@ -73,7 +73,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
      onmouseover="return searchBox.OnSearchSelectShow()"
      onmouseout="return searchBox.OnSearchSelectHide()"
      onkeydown="return searchBox.OnSearchSelectKey(event)">
-<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Files</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Functions</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Variables</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Pages</a></div>
+<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Files</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Functions</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Variables</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Typedefs</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(6)"><span class="SelectionMark">&#160;</span>Pages</a></div>
 
 <!-- iframe showing the search results (closed by default) -->
 <div id="MSearchResultsWindow">
@@ -147,7 +147,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="line"><a name="l00053"></a><span class="lineno">   53</span>&#160;<span class="preprocessor"># if USE_COSMOTRACE</span></div>
 <div class="line"><a name="l00054"></a><span class="lineno">   54</span>&#160;  <span class="keywordtype">void</span> runRayTraceStep();</div>
 <div class="line"><a name="l00055"></a><span class="lineno">   55</span>&#160;  <span class="keywordtype">void</span> outputRayTraceStep();</div>
-<div class="line"><a name="l00056"></a><span class="lineno">   56</span>&#160;<span class="preprocessor">#endif</span></div>
+<div class="line"><a name="l00056"></a><span class="lineno">   56</span>&#160;<span class="preprocessor"># endif</span></div>
 <div class="line"><a name="l00057"></a><span class="lineno">   57</span>&#160;</div>
 <div class="line"><a name="l00058"></a><span class="lineno">   58</span>&#160;  <span class="keywordtype">void</span> prepBSSNOutput();</div>
 <div class="line"><a name="l00059"></a><span class="lineno">   59</span>&#160;  <span class="keywordtype">void</span> outputStateInformation();</div>
@@ -162,9 +162,9 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="line"><a name="l00068"></a><span class="lineno">   68</span>&#160;<span class="preprocessor">#endif</span></div>
 <div class="ttc" id="classcosmo_1_1IOData_html"><div class="ttname"><a href="classcosmo_1_1IOData.html">cosmo::IOData</a></div><div class="ttdef"><b>Definition:</b> IOData.h:18</div></div>
 <div class="ttc" id="classcosmo_1_1CosmoSim_html_ae7680f67652f22eb74e78bfc7a98acd1"><div class="ttname"><a href="classcosmo_1_1CosmoSim.html#ae7680f67652f22eb74e78bfc7a98acd1">cosmo::CosmoSim::simInit</a></div><div class="ttdeci">void simInit()</div><div class="ttdoc">Initialize individual simulation class instances. </div><div class="ttdef"><b>Definition:</b> sim.cc:45</div></div>
-<div class="ttc" id="classcosmo_1_1CosmoSim_html_adf2962fec04d0a0b718d71c7e47c1221"><div class="ttname"><a href="classcosmo_1_1CosmoSim.html#adf2962fec04d0a0b718d71c7e47c1221">cosmo::CosmoSim::run</a></div><div class="ttdeci">void run()</div><div class="ttdoc">Run the simulation. </div><div class="ttdef"><b>Definition:</b> sim.cc:73</div></div>
+<div class="ttc" id="classcosmo_1_1CosmoSim_html_adf2962fec04d0a0b718d71c7e47c1221"><div class="ttname"><a href="classcosmo_1_1CosmoSim.html#adf2962fec04d0a0b718d71c7e47c1221">cosmo::CosmoSim::run</a></div><div class="ttdeci">void run()</div><div class="ttdoc">Run the simulation. </div><div class="ttdef"><b>Definition:</b> sim.cc:74</div></div>
 <div class="ttc" id="classcosmo_1_1Fourier_html"><div class="ttname"><a href="classcosmo_1_1Fourier.html">cosmo::Fourier</a></div><div class="ttdef"><b>Definition:</b> Fourier.h:21</div></div>
-<div class="ttc" id="classcosmo_1_1BSSN_html"><div class="ttname"><a href="classcosmo_1_1BSSN.html">cosmo::BSSN</a></div><div class="ttdoc">BSSN Class: evolves BSSN metric fields, computes derived quantities. </div><div class="ttdef"><b>Definition:</b> bssn.h:21</div></div>
+<div class="ttc" id="classcosmo_1_1BSSN_html"><div class="ttname"><a href="classcosmo_1_1BSSN.html">cosmo::BSSN</a></div><div class="ttdoc">BSSN Class: evolves BSSN metric fields, computes derived quantities. </div><div class="ttdef"><b>Definition:</b> bssn.h:23</div></div>
 <div class="ttc" id="classcosmo_1_1CosmoSim_html"><div class="ttname"><a href="classcosmo_1_1CosmoSim.html">cosmo::CosmoSim</a></div><div class="ttdef"><b>Definition:</b> sim.h:17</div></div>
 </div><!-- fragment --></div><!-- contents -->
 
@@ -175,7 +175,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
     1.8.7
     |
     View cosmograph on
-    <a href="https://github.com/jbcm627/cosmograph">
+    <a href="https://github.com/cwru-pat/cosmograph">
       GitHub <i class="fa fa-github" aria-hidden="true"></i>
     </a>
   </footer>

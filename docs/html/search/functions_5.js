@@ -1,4 +1,7 @@
 var searchData=
 [
-  ['fasmultigrid',['FASMultigrid',['../classFASMultigrid.html#a8e82ce8e57bad34323e1c2fd1d57a59b',1,'FASMultigrid::FASMultigrid(IDX_T grid_num_x_in, IDX_T grid_num_y_in, IDX_T grid_num_z_in, REAL_T grid_length_x_in, REAL_T grid_length_y_in, REAL_T grid_length_z_in, IDX_T max_depth_in, IDX_T max_relax_iters_in, relax_t relax_scheme_in, REAL_T relaxation_tolerance_in)'],['../classFASMultigrid.html#a4a3efa0e641a1090d67505ff7ac5dc5b',1,'FASMultigrid::FASMultigrid(IDX_T grid_num_in, REAL_T grid_length_in, IDX_T max_depth_in, REAL_T relaxation_tolerance_in)']]]
+  ['ev_5flapse',['ev_lapse',['../classcosmo_1_1BSSNGaugeHandler.html#a16838b451dfbf9629d526285aa7bbe7e',1,'cosmo::BSSNGaugeHandler']]],
+  ['ev_5fshift1',['ev_shift1',['../classcosmo_1_1BSSNGaugeHandler.html#a4b2ad13ed0f2e15a9dfe26a7953842dc',1,'cosmo::BSSNGaugeHandler']]],
+  ['ev_5fshift2',['ev_shift2',['../classcosmo_1_1BSSNGaugeHandler.html#a1da65c6525f769ff99023ec2f89d043e',1,'cosmo::BSSNGaugeHandler']]],
+  ['ev_5fshift3',['ev_shift3',['../classcosmo_1_1BSSNGaugeHandler.html#a54216e23360fd169aa6f8275a168cdfa',1,'cosmo::BSSNGaugeHandler']]]
 ];

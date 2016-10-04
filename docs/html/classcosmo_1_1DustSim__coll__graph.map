@@ -1,10 +1,11 @@
 <map id="cosmo::DustSim" name="cosmo::DustSim">
-<area shape="rect" id="node2" href="$classcosmo_1_1CosmoSim.html" title="cosmo::CosmoSim" alt="" coords="851,240,986,267"/>
-<area shape="rect" id="node3" href="$classcosmo_1_1BSSN.html" title="BSSN Class: evolves BSSN metric fields, computes derived quantities. " alt="" coords="639,700,745,727"/>
-<area shape="rect" id="node4" href="$classcosmo_1_1FRW.html" title="cosmo::FRW\&lt; real_t \&gt;" alt="" coords="337,732,493,759"/>
-<area shape="rect" id="node22" href="$classcosmo_1_1IOData.html" title="cosmo::IOData" alt="" coords="359,240,470,267"/>
-<area shape="rect" id="node24" href="$classcosmo_1_1Static.html" title="cosmo::Static" alt="" coords="641,791,743,817"/>
-<area shape="rect" id="node10" href="$classcosmo_1_1CosmoArray.html" title="cosmo::CosmoArray\&lt;\l idx_t, real_t \&gt;" alt="" coords="339,1021,490,1062"/>
-<area shape="rect" id="node14" href="$classcosmo_1_1RK4Register.html" title="RK4 Class for integration. " alt="" coords="343,582,487,623"/>
-<area shape="rect" id="node19" href="$classcosmo_1_1Fourier.html" title="cosmo::Fourier" alt="" coords="637,77,747,104"/>
+<area shape="rect" id="node2" href="$classcosmo_1_1CosmoSim.html" title="cosmo::CosmoSim" alt="" coords="889,597,1023,624"/>
+<area shape="rect" id="node3" href="$classcosmo_1_1BSSN.html" title="BSSN Class: evolves BSSN metric fields, computes derived quantities. " alt="" coords="676,913,783,940"/>
+<area shape="rect" id="node5" href="$classcosmo_1_1FRW.html" title="cosmo::FRW\&lt; real_t \&gt;" alt="" coords="358,508,514,535"/>
+<area shape="rect" id="node18" href="$classcosmo_1_1BSSNGaugeHandler.html" title="cosmo::BSSNGaugeHandler" alt="" coords="341,1396,531,1423"/>
+<area shape="rect" id="node25" href="$classcosmo_1_1IOData.html" title="cosmo::IOData" alt="" coords="381,409,491,436"/>
+<area shape="rect" id="node27" href="$classcosmo_1_1Static.html" title="cosmo::Static" alt="" coords="678,1332,781,1359"/>
+<area shape="rect" id="node10" href="$classcosmo_1_1CosmoArray.html" title="cosmo::CosmoArray\&lt;\l idx_t, real_t \&gt;" alt="" coords="361,1325,511,1366"/>
+<area shape="rect" id="node14" href="$classcosmo_1_1RK4Register.html" title="RK4 Class for integration. " alt="" coords="364,1103,508,1145"/>
+<area shape="rect" id="node22" href="$classcosmo_1_1Fourier.html" title="cosmo::Fourier" alt="" coords="675,57,784,84"/>
 </map>

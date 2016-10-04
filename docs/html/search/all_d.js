@@ -19,5 +19,7 @@ var searchData=
   ['mi13',['mi13',['../structcosmo_1_1BSSNData.html#a7c9430354dba10c79cba56cf6ef76cab',1,'cosmo::BSSNData']]],
   ['mi22',['mi22',['../structcosmo_1_1BSSNData.html#a270cdec699ef308c3e4358a1ee574052',1,'cosmo::BSSNData']]],
   ['mi23',['mi23',['../structcosmo_1_1BSSNData.html#a3e9dd1f8d6862b1ed1c0200ce920343d',1,'cosmo::BSSNData']]],
-  ['mi33',['mi33',['../structcosmo_1_1BSSNData.html#a437d36c916efd030e16010c4c75258b4',1,'cosmo::BSSNData']]]
+  ['mi33',['mi33',['../structcosmo_1_1BSSNData.html#a437d36c916efd030e16010c4c75258b4',1,'cosmo::BSSNData']]],
+  ['molecule',['molecule',['../classcosmo_1_1molecule.html',1,'cosmo']]],
+  ['molecule_5fn',['molecule_n',['../classcosmo_1_1FASMultigrid.html#a7d0f014bccc3caa98926b70fd2611ea5',1,'cosmo::FASMultigrid']]]
 ];

@@ -75,7 +75,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
      onmouseover="return searchBox.OnSearchSelectShow()"
      onmouseout="return searchBox.OnSearchSelectHide()"
      onkeydown="return searchBox.OnSearchSelectKey(event)">
-<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Files</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Functions</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Variables</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Pages</a></div>
+<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Files</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Functions</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Variables</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Typedefs</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(6)"><span class="SelectionMark">&#160;</span>Pages</a></div>
 
 <!-- iframe showing the search results (closed by default) -->
 <div id="MSearchResultsWindow">
@@ -115,9 +115,12 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>parse</b> (std::strin
 <tr class="memitem:a9ee37368ab128d86f26b794ce0a4ee2c"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a9ee37368ab128d86f26b794ce0a4ee2c"></a>
 std::string&#160;</td><td class="memItemRight" valign="bottom"><b>getFileName</b> ()</td></tr>
 <tr class="separator:a9ee37368ab128d86f26b794ce0a4ee2c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa1c54c4305985953005fa32a536491e4"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aa1c54c4305985953005fa32a536491e4"></a>
-std::string&#160;</td><td class="memItemRight" valign="bottom"><b>operator[]</b> (std::string param)</td></tr>
+<tr class="memitem:aa1c54c4305985953005fa32a536491e4"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcosmo_1_1ConfigParser.html#aa1c54c4305985953005fa32a536491e4">operator[]</a> (std::string param)</td></tr>
+<tr class="memdesc:aa1c54c4305985953005fa32a536491e4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get value of required parameter.  <a href="#aa1c54c4305985953005fa32a536491e4">More...</a><br /></td></tr>
 <tr class="separator:aa1c54c4305985953005fa32a536491e4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af325ba5ec3c303c53e6ec6ac8c12033d"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcosmo_1_1ConfigParser.html#af325ba5ec3c303c53e6ec6ac8c12033d">operator()</a> (std::string param, std::string default_val)</td></tr>
+<tr class="memdesc:af325ba5ec3c303c53e6ec6ac8c12033d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get value of parameter; use default if not set.  <a href="#af325ba5ec3c303c53e6ec6ac8c12033d">More...</a><br /></td></tr>
+<tr class="separator:af325ba5ec3c303c53e6ec6ac8c12033d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pri-attribs"></a>
 Private Attributes</h2></td></tr>
@@ -129,6 +132,66 @@ std::string &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>config</b
 std::string&#160;</td><td class="memItemRight" valign="bottom"><b>fileName</b></td></tr>
 <tr class="separator:ac1ce5cea6f5c55958882f66323de6d7b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
+<h2 class="groupheader">Member Function Documentation</h2>
+<a class="anchor" id="af325ba5ec3c303c53e6ec6ac8c12033d"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::string cosmo::ConfigParser::operator() </td>
+          <td>(</td>
+          <td class="paramtype">std::string&#160;</td>
+          <td class="paramname"><em>param</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::string&#160;</td>
+          <td class="paramname"><em>default_val</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Get value of parameter; use default if not set. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">param</td><td>parameter name string </td></tr>
+    <tr><td class="paramname">default_val</td><td>default_val to use if param was not set </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="aa1c54c4305985953005fa32a536491e4"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::string cosmo::ConfigParser::operator[] </td>
+          <td>(</td>
+          <td class="paramtype">std::string&#160;</td>
+          <td class="paramname"><em>param</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Get value of required parameter. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">param</td><td>parameter name string </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
 <hr/>The documentation for this class was generated from the following files:<ul>
 <li>utils/<a class="el" href="ConfigParser_8h_source.html">ConfigParser.h</a></li>
 <li>utils/ConfigParser.cc</li>
@@ -142,7 +205,7 @@ std::string&#160;</td><td class="memItemRight" valign="bottom"><b>fileName</b></
     1.8.7
     |
     View cosmograph on
-    <a href="https://github.com/jbcm627/cosmograph">
+    <a href="https://github.com/cwru-pat/cosmograph">
       GitHub <i class="fa fa-github" aria-hidden="true"></i>
     </a>
   </footer>

@@ -1,5 +1,6 @@
 <map id="cosmo::BSSN" name="cosmo::BSSN">
-<area shape="rect" id="node2" href="$classcosmo_1_1FRW.html" title="cosmo::FRW\&lt; real_t \&gt;" alt="" coords="281,153,437,180"/>
-<area shape="rect" id="node8" href="$classcosmo_1_1CosmoArray.html" title="cosmo::CosmoArray\&lt;\l idx_t, real_t \&gt;" alt="" coords="283,461,434,502"/>
-<area shape="rect" id="node12" href="$classcosmo_1_1RK4Register.html" title="RK4 Class for integration. " alt="" coords="287,638,431,679"/>
+<area shape="rect" id="node3" href="$classcosmo_1_1FRW.html" title="cosmo::FRW\&lt; real_t \&gt;" alt="" coords="342,157,498,184"/>
+<area shape="rect" id="node16" href="$classcosmo_1_1BSSNGaugeHandler.html" title="cosmo::BSSNGaugeHandler" alt="" coords="325,545,515,572"/>
+<area shape="rect" id="node8" href="$classcosmo_1_1CosmoArray.html" title="cosmo::CosmoArray\&lt;\l idx_t, real_t \&gt;" alt="" coords="345,781,495,822"/>
+<area shape="rect" id="node12" href="$classcosmo_1_1RK4Register.html" title="RK4 Class for integration. " alt="" coords="348,969,492,1010"/>
 </map>

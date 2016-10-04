@@ -2,10 +2,9 @@ var searchData=
 [
   ['r',['r',['../structcosmo_1_1BSSNData.html#a629f7bcaa873075a5808289ed76eba1a',1,'cosmo::BSSNData']]],
   ['rd',['rd',['../classcosmo_1_1RayTrace.html#af93777676f66f508de9f94314974527b',1,'cosmo::RayTrace']]],
-  ['relaxation_5ftolerance',['relaxation_tolerance',['../classFASMultigrid.html#aeec9072503aeddb334e88c670ba9f785',1,'FASMultigrid']]],
+  ['relaxation_5ftolerance',['relaxation_tolerance',['../classcosmo_1_1FASMultigrid.html#a1bbe63f9253fac0cec80c50b17cd4b0d',1,'cosmo::FASMultigrid']]],
   ['rho_5ffrw',['rho_FRW',['../structcosmo_1_1BSSNData.html#a76d1c2e6085be6f7404fede0deffc26d',1,'cosmo::BSSNData']]],
-  ['rho_5fh',['rho_h',['../classFASMultigrid.html#a2c795dac22be0d9f6670ad4f1accfba6',1,'FASMultigrid']]],
-  ['rho_5fnum',['rho_num',['../classFASMultigrid.html#a7f28fbd423e890af8be33f223aa2441c',1,'FASMultigrid']]],
+  ['rho_5fh',['rho_h',['../classcosmo_1_1FASMultigrid.html#af37cb528a3cd44866de1a36bc874879c',1,'cosmo::FASMultigrid']]],
   ['ricci11',['ricci11',['../structcosmo_1_1BSSNData.html#a313759d43358f07679f11d3d2d99566c',1,'cosmo::BSSNData']]],
   ['ricci12',['ricci12',['../structcosmo_1_1BSSNData.html#a20f8282a259b62bd66ae7c96e4690646',1,'cosmo::BSSNData']]],
   ['ricci13',['ricci13',['../structcosmo_1_1BSSNData.html#a516cc6a77fbd9a132047efdb4fccdb7d',1,'cosmo::BSSNData']]],
