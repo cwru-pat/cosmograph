@@ -46,7 +46,7 @@ cmake -DCOSMO_N=50 -DCOSMO_NY=6 -DCOSMO_NZ=6 -DCOSMO_USE_Z4c_DAMPING=1 .. && mak
 ./cosmo $TMP_CONFIG_FILE
 
 # Vary resolutions
-cmake -DCOSMO_N=100 -DCOSMO_NY=4 -DCOSMO_NZ=4 .. && make -j16
+cmake -DCOSMO_N=50 -DCOSMO_NY=4 -DCOSMO_NZ=4 .. && make -j16
 ./cosmo ../config/AwA/stability_test_r1.txt
 cmake -DCOSMO_N=100 -DCOSMO_NY=4 -DCOSMO_NZ=4 .. && make -j16
 ./cosmo ../config/AwA/stability_test_r2.txt

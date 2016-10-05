@@ -1,6 +1,6 @@
 steps = 100000
 
-lapse = OnePlusLog
+lapse = Harmonic
 
 simulation_type = vacuum
 ic_type = stability
