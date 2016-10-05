@@ -499,8 +499,10 @@
   )
 
 #define BSSN_MI_SCALE(I) exp(6.0*bd->phi)*( \
-    fabs(2.0/3.0*derivative(bd->i, bd->j, bd->k, I, DIFFK->_array_a)) \
+    fabs(2.0/3.0*bd->d##I##K) \
+    /* Note: S_I was lowered with the full metric, not conformal. */ \
     + fabs(8*PI*(bd->S##I)) \
+    + fabs(2.0/3.0*2.0*bd->d##I##theta) \
     + 6.0*fabs( \
       bd->gammai11*bd->A1##I*bd->d1phi + bd->gammai21*bd->A2##I*bd->d1phi + bd->gammai31*bd->A3##I*bd->d1phi \
       + bd->gammai12*bd->A1##I*bd->d2phi + bd->gammai22*bd->A2##I*bd->d2phi + bd->gammai32*bd->A3##I*bd->d2phi \
