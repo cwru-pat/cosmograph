@@ -208,6 +208,36 @@ void io_bssn_constraint_violation(IOData *iodata, idx_t step, BSSN * bssnSim)
     io_dump_value(iodata, S_calcs[6], "S_violations", "\t"); // max(S/[S])
     io_dump_value(iodata, S_calcs[2], "S_violations", "\n"); // max(S)
   }
+
+  bool output_g11m1 = ( std::stoi(_config("IO_constraint_g11m1", "0")) > 0 );
+  if( output_step && output_this_step && output_g11m1 )
+  {
+    arr_t & Dg11 = *bssnSim->fields["DIFFphi_a"];
+    idx_t i, j, k;
+    real_t mean = 0, stdev = 0, max = 0;
+#   pragma omp parallel for default(shared) private(i, j, k) reduction(+:mean)
+    LOOP3(i, j, k)
+    {
+      idx_t idx = NP_INDEX(i,j,k);
+      mean += Dg11[idx];
+#     pragma omp critical
+      {
+        max = max > std::fabs(Dg11[idx]) ? max : std::fabs(Dg11[idx]);
+      }
+    }
+    mean /= POINTS;
+#   pragma omp parallel for default(shared) private(i, j, k) reduction(+:stdev)
+    LOOP3(i, j, k)
+    {
+      idx_t idx = NP_INDEX(i,j,k);
+      stdev += std::pow(mean - Dg11[idx], 2.0);
+    }
+    stdev = std::sqrt(stdev/(POINTS-1));
+    io_dump_value(iodata, stdev, "g11_violations", "\t");
+    io_dump_value(iodata, mean, "g11_violations", "\t");
+    io_dump_value(iodata, max, "g11_violations", "\n");
+  }
+
 }
 
 /**

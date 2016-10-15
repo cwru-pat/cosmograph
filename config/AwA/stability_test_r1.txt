@@ -15,4 +15,5 @@ output_dir = stability_test_r1
 dump_file = calculated
 
 IO_constraint_interval = 10
+IO_constraint_g11m1 = 1
 IO_bssnstats_interval = 10

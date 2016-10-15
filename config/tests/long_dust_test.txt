@@ -3,12 +3,11 @@ steps = 5000
 KO_damping_coefficient = 0
 k_damping_amp = 0
 a_adj_amp = 0
-normalize_metric = 1
 
 simulation_type = dust
-peak_amplitude_frac = 500.0
+peak_amplitude_frac = 0.01
 rho_K_lambda_frac = 0.0
-ic_spec_cut = 3
+ic_spec_cut = 1
 IC_viol_amp = 0.0
 
 output_dir = long_dust_test
