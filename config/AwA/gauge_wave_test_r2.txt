@@ -1,7 +1,10 @@
-steps = 2000
+steps = 20000
 dt_frac = 0.25
 
-KO_damping_coefficient = 1.0
+KO_damping_coefficient = 1
+k_damping_amp = 0
+a_adj_amp = 0
+normalize_metric = 1
 
 lapse = AwAGaugeWave
 gauge_wave_dir = 1

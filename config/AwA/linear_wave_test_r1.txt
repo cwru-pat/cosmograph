@@ -8,8 +8,6 @@ normalize_metric = 1
 
 simulation_type = vacuum
 ic_type = linear_wave
-wave_dir = 1
-wave_amp = 1.0e-8
 
 output_dir = linear_wave_test_r1
 dump_file = calculated
