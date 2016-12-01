@@ -22,8 +22,8 @@ real_t BSSNGaugeHandler::Static(BSSNData *bd)
  */
 real_t BSSNGaugeHandler::HarmonicLapse(BSSNData *bd)
 {
-  // TODO: Generalize K0
-  return -1.0*pw2(bd->alpha)*( bd->K - bd->K0 );
+  // TODO: Generalize K0 (FIX)
+  return -1.0*pw2(bd->alpha)*( bd->K - (-3.0) );
 }
 
 

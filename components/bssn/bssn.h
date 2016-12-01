@@ -90,6 +90,8 @@ public:
       void calculateRicciTF(BSSNData *bd);
       void calculateDDalphaTF(BSSNData *bd);
 
+      void enforceTFSIJ(BSSNData *bd);
+
     /* (optional) Calculations of additional quantities */
       void set_full_metric(BSSNData *bd);
       void set_full_metric_der(BSSNData *bd);

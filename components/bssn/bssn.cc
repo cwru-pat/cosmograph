@@ -347,6 +347,9 @@ void BSSN::set_bd_values(idx_t i, idx_t j, idx_t k, BSSNData *bd)
   // Ricci depends on DDphi
   calculateRicciTF(bd);
 
+  // enforce trace-free source
+  enforceTFSIJ(bd);
+
   // Hamiltonian constraint
   bd->H = hamiltonianConstraintCalc(bd);
 }
@@ -617,6 +620,21 @@ void BSSN::calculateRicciTF(BSSNData *bd)
   return;
 }
 
+void BSSN::enforceTFSIJ(BSSNData *bd)
+{
+  idx_t idx = bd->idx;
+  real_t trS = exp(-4.0*bd->phi)*(
+      STF11_a[idx]*bd->gammai11 + STF22_a[idx]*bd->gammai22 + STF33_a[idx]*bd->gammai33
+      + 2.0*(STF12_a[idx]*bd->gammai12 + STF13_a[idx]*bd->gammai13 + STF23_a[idx]*bd->gammai23)
+    );
+
+  STF11_a[idx] -= (1.0/3.0)*exp(4.0*bd->phi)*trS;
+  STF12_a[idx] -= (1.0/3.0)*exp(4.0*bd->phi)*trS;
+  STF13_a[idx] -= (1.0/3.0)*exp(4.0*bd->phi)*trS;
+  STF22_a[idx] -= (1.0/3.0)*exp(4.0*bd->phi)*trS;
+  STF23_a[idx] -= (1.0/3.0)*exp(4.0*bd->phi)*trS;
+  STF33_a[idx] -= (1.0/3.0)*exp(4.0*bd->phi)*trS;
+}
 
 
 /*

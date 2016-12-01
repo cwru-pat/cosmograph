@@ -52,15 +52,9 @@ void ParticleSim::setICs()
   set_gaussian_random_field(DIFFphi_p, fourier, &icd);
 
   // rho = -lap(phi)/xi^5/2pi
-  LOOP3(i, j, k) {
-    Particle<real_t> particle = {0};
-
-    // Particle position in grid
-    particle.X[0] = i*dx;
-    particle.X[1] = j*dx;
-    particle.X[2] = k*dx;
-
-    // Particle mass
+# pragma omp parallel for default(shared) private(i,j,k)
+  LOOP3(i, j, k)
+  {
     DIFFr[NP_INDEX(i,j,k)] = rho_FRW - 0.5/PI/(
       pow(1.0 + DIFFphi_p[NP_INDEX(i,j,k)], 5.0)
     )*(
@@ -68,11 +62,88 @@ void ParticleSim::setICs()
       + double_derivative(i, j, k, 2, 2, DIFFphi_p)
       + double_derivative(i, j, k, 3, 3, DIFFphi_p)
     );
+  }
+
+  LOOP3(i, j, k)
+  {
+#   if 0
+    // 1 particle per gridpoint
     real_t rho = DIFFr[INDEX(i,j,k)];
     real_t rootdetg = std::exp(6.0*DIFFphi_p[INDEX(i,j,k)]);
-    particle.M = rho*dx*dx*dx*rootdetg;
-
+    real_t mass = rho*dx*dx*dx*rootdetg;
+    Particle<real_t> particle = {0};
+    particle.X[0] = i*dx;
+    particle.X[1] = j*dx;
+    particle.X[2] = k*dx;
+    particle.M = mass;
     particles->addParticle( particle );
+#   elif 1
+    // 8 particles per gridpoint
+    // linear interpolation to get particles 1/2-way between
+    // neighboring gridpoints
+
+    // TODO: doc this or something
+    real_t m[2][2][2];
+    for(int fx=0; fx<=1; ++fx)
+      for(int fy=0; fy<=1; ++fy)
+        for(int fz=0; fz<=1; ++fz)
+        {
+          real_t rho = DIFFr[INDEX(i+fx,j+fy,k+fz)];
+          real_t rootdetg = std::exp(6.0*DIFFphi_p[INDEX(i+fx,j+fy,k+fz)]);
+          m[fx][fy][fz] = rho*dx*dx*dx*rootdetg / 8.0; // 8 particles per gridpoint
+        }
+
+    for(int fx=0; fx<=1; ++fx)
+      for(int fy=0; fy<=1; ++fy)
+        for(int fz=0; fz<=1; ++fz)
+        {
+          // interpolated mass
+          real_t mass = (
+              m[0][0][0] + fx*fy*fz*m[1][1][1]
+              + fx*m[1][0][0] + fy*m[0][1][0] + fz*m[0][0][1]
+              + fx*fy*m[1][1][0] + fy*fz*m[0][1][1] + fx*fz*m[1][0][1]
+              ) / std::pow(2.0, fx+fy+fz);
+
+          Particle<real_t> particle = {0};
+          particle.X[0] = (i+fx/2.0)*dx;
+          particle.X[1] = (j+fy/2.0)*dx;
+          particle.X[2] = (k+fz/2.0)*dx;
+          particle.M = mass;
+          particles->addParticle( particle );
+        }
+#   else
+    // 3^3 particles per gridpoint
+    // linear interpolation to get particles 1/2-way between
+    // neighboring gridpoints
+
+    // TODO: doc this or something
+    real_t m[2][2][2];
+    for(int fx=0; fx<=1; ++fx)
+      for(int fy=0; fy<=1; ++fy)
+        for(int fz=0; fz<=1; ++fz)
+        {
+          real_t rho = DIFFr[INDEX(i+fx,j+fy,k+fz)];
+          real_t rootdetg = std::exp(6.0*DIFFphi_p[INDEX(i+fx,j+fy,k+fz)]);
+          m[fx][fy][fz] = rho*dx*dx*dx*rootdetg / 27.0; // 27 particles per gridpoint
+        }
+    for(int fx=0; fx<=2; ++fx)
+      for(int fy=0; fy<=2; ++fy)
+        for(int fz=0; fz<=2; ++fz)
+        {
+          // interpolated mass
+          real_t mass = (
+              (3.0-fx)*(3.0-fy)*(3.0-fz)*m[0][0][0] + fx*fy*fz*m[1][1][1]
+              + fx*(3.0-fy)*(3.0-fz)*m[1][0][0] + (3.0-fx)*fy*(3.0-fz)*m[0][1][0] + (3.0-fx)*(3.0-fy)*fz*m[0][0][1]
+              + fx*fy*(3.0-fz)*m[1][1][0] + (3.0-fx)*fy*fz*m[0][1][1] + fx*(3.0-fy)*fz*m[1][0][1]
+            ) / 27.0;
+          Particle<real_t> particle = {0};
+          particle.X[0] = (i+fx/3.0)*dx;
+          particle.X[1] = (j+fy/3.0)*dx;
+          particle.X[2] = (k+fz/3.0)*dx;
+          particle.M = mass;
+          particles->addParticle( particle );
+        }
+#   endif
   }
 
   // phi = ln(xi)
@@ -135,6 +206,7 @@ void ParticleSim::initParticleStep()
     particles->stepInit(bssnSim->fields);
     bssnSim->clearSrc();
     particles->addParticlesToBSSNSrc(bssnSim->fields);
+
   _timer["RK_steps"].stop();
 }
 
@@ -146,6 +218,11 @@ void ParticleSim::outputParticleStep()
     io_bssn_fields_powerdump(iodata, step, bssnSim->fields, fourier);
     io_bssn_dump_statistics(iodata, step, bssnSim->fields, bssnSim->frw);
     io_bssn_constraint_violation(iodata, step, bssnSim);
+
+    if(step == 0)
+    {
+      outputStateInformation();
+    }
   _timer["output"].stop();
 }
 
