@@ -38,9 +38,9 @@ void Particles::init(idx_t n_particles)
     Particle<real_t> particle = {0};
 
     // Randomized position
-    particle.X[0] = 0.0*dist(gen)*N*dx;
-    particle.X[1] = 0.0*dist(gen)*N*dx;
-    particle.X[2] = 0.0*dist(gen)*N*dx;
+    particle.X[0] = 0.0*dist(gen)*COSMO_N*dx;
+    particle.X[1] = 0.0*dist(gen)*COSMO_N*dx;
+    particle.X[2] = 0.0*dist(gen)*COSMO_N*dx;
     // Mass in units TBD
     particle.M = 1.0*dx*dx*dx;
 
@@ -80,7 +80,7 @@ void Particles::addParticle(Particle<real_t> particle)
  */
 real_t Particles::getFractionalIndex(real_t x)
 {
-  return real_t_mod(x, N*dx)/dx;
+  return real_t_mod(x, COSMO_N*dx)/dx;
 }
 
 /**

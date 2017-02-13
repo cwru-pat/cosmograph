@@ -106,9 +106,9 @@ void set_gaussian_random_field(arr_t & field, Fourier *fourier, ICsData *icd)
           }
 
           pmag = sqrt(
-            pw2(px * ( (real_t) N / (real_t) NX ) )
-             + pw2(py * ( (real_t) N / (real_t) NY ))
-             + pw2(pz * ( (real_t) N / (real_t) NZ ))
+            pw2(px)
+             + pw2(py)
+             + pw2(pz)
             );
 
           // Scale by power spectrum
@@ -163,21 +163,21 @@ void init_ray_vector(std::vector<RayTrace<real_t, idx_t> *> * rays, idx_t n_rays
     real_t X0, Y0, Z0;
     if(i<n_rays/3)
     {
-      X0 = 0.382813*N*dx;
-      Y0 = 0.476563*N*dx;
-      Z0 = 0.351563*N*dx;
+      X0 = 0.382813*COSMO_N*dx;
+      Y0 = 0.476563*COSMO_N*dx;
+      Z0 = 0.351563*COSMO_N*dx;
     }
     else if(i<2*n_rays/3)
     {
-      X0 = 0.460938*N*dx;
-      Y0 = 0.554688*N*dx;
-      Z0 = 0.492188*N*dx;
+      X0 = 0.460938*COSMO_N*dx;
+      Y0 = 0.554688*COSMO_N*dx;
+      Z0 = 0.492188*COSMO_N*dx;
     }
     else
     {
-      X0 = 0.0429688*N*dx;
-      Y0 = 0.0360625*N*dx;
-      Z0 = 0.0390625*N*dx;
+      X0 = 0.0429688*COSMO_N*dx;
+      Y0 = 0.0360625*COSMO_N*dx;
+      Z0 = 0.0390625*COSMO_N*dx;
     }
     // ray position starts at an observer (integrating back in time...)
     rd.x[0] = X0;

@@ -9,17 +9,17 @@
 
 // simulation size
 // Code runs much slower with global N (slow indexing?)
-#ifndef N
-  #define N 16
+#ifndef COSMO_N
+  #define COSMO_N 16
 #endif
 #ifndef NX
-  #define NX N
+  #define NX COSMO_N
 #endif
 #ifndef NY
-  #define NY N
+  #define NY COSMO_N
 #endif
 #ifndef NZ
-  #define NZ N
+  #define NZ COSMO_N
 #endif
 #define POINTS ((NX)*(NY)*(NZ))
 

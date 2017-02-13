@@ -414,8 +414,8 @@ void scalar_ic_set_full_equations(BSSN * bssn, Scalar * scalar, IOData * iodata)
     multigrid.setPolySrcAtPt(0, 16, i, j, k, value); //set value for term 2
     avg5 += value;
   }
-  avg1 = avg1/N/N/N;
-  avg5 = avg5/N/N/N;
+  avg1 = avg1/NX/NX/NX;
+  avg5 = avg5/NX/NX/NX;
 
   /*Finishing adding Hamiltonian constraint**************************************************/
 
@@ -532,7 +532,7 @@ void scalar_ic_set_full_equations(BSSN * bssn, Scalar * scalar, IOData * iodata)
   iodata->log("The average value of coefficient of the fifth order term is: " + stringify(avg5));
   iodata->log("The suggested initial value of multigrid solver is: " + stringify(std::pow(-avg1/avg5,1.0/4.0)));
   iodata->log("The estimated value of gradient energy/potential is:" + stringify(-avg5/PI/2.0/scalar->V(1)));
-  iodata->log("The ratio of H_LEN_FRAC/H_0^-1 is: " + stringify(dx*N/(3.0/K_src)));
+  iodata->log("The ratio of H_LEN_FRAC/H_0^-1 is: " + stringify(dx*NX/(3.0/K_src)));
 
   
   LOOP3(i, j, k)
@@ -787,7 +787,7 @@ void scalar_ic_set_multigrid(BSSN * bssn, Scalar * scalar, IOData * iodata)
 
   iodata->log("K_0 = " + stringify(K_src) + ", H_0 = "
       + stringify(-K_src/3.0) + ", and k/H_0 = "
-      + stringify(2.0*PI/(N*dx)/(-K_src/3.0))
+      + stringify(2.0*PI/(NX*dx)/(-K_src/3.0))
     );
 
    // solve for BSSN fields using multigrid class:
@@ -854,14 +854,14 @@ void scalar_ic_set_multigrid(BSSN * bssn, Scalar * scalar, IOData * iodata)
 
   }
   
-  avg1 = avg1/N/N/N;
-  avg5 = avg5/N/N/N;
+  avg1 = avg1/NX/NX/NX;
+  avg5 = avg5/NX/NX/NX;
   multigrid.initializeRhoHeirarchy();
   iodata->log("The average value of coefficient of the first order term is: " + stringify(avg1));
   iodata->log("The average value of coefficient of the fifth order term is: " + stringify(avg5));
   iodata->log("The suggested initial value of multigrid solver is: " + stringify(std::pow(-avg1/avg5,1.0/4.0)));
   iodata->log("The estimated value of gradient energy/potential is:" + stringify(-avg5/PI/2.0/scalar->V(1)));
-  iodata->log("The ratio of H_LEN_FRAC/H_0^-1 is: " + stringify(dx*N/(3.0/K_src)));
+  iodata->log("The ratio of H_LEN_FRAC/H_0^-1 is: " + stringify(dx*NX/(3.0/K_src)));
 
   LOOP3(i, j, k)
   {

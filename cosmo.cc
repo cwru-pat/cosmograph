@@ -38,7 +38,7 @@ int main(int argc, char **argv)
   //       set these in config file?
   //       big performance hit setting N dynamically, should deal with BCs separately.
   
-  dx = stold(_config( "dx", stringify(H_LEN_FRAC/(1.0*N)) ));
+  dx = stold(_config( "dx", stringify(H_LEN_FRAC/(1.0*COSMO_N)) ));
   dt = stold(_config( "dt_frac", "0.1" ))*dx;
 
   // Set number of threads if specified

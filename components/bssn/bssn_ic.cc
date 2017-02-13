@@ -18,7 +18,7 @@ void bssn_ic_awa_stability(BSSN * bssn, real_t A)
   std::random_device rd;
   std::mt19937 gen(7.0 /*rd()*/);
   std::uniform_real_distribution<real_t> dist(
-      -A*50/N*50/N, A*50/N*50/N
+      -A*50/NX*50/NX, A*50/NX*50/NX
     );
 
   arr_t & DIFFgamma11_p = *bssn->fields["DIFFgamma11_p"];
