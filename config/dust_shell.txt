@@ -1,0 +1,15 @@
+steps = 1
+
+simulation_type = dust
+ic_type = shell
+shell_angular_scale_l = 3
+shell_amplitude = 0.00001
+
+ray_integrate = 0
+
+output_dir = dust_shell
+dump_file = calculated
+
+IO_3D_grid_interval = 6000
+IO_2D_grid_interval = 2000
+IO_1D_grid_interval = 2000

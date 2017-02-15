@@ -73,6 +73,7 @@ void CosmoSim::simInit()
  */
 void CosmoSim::run()
 {
+  outputStateInformation();
   iodata->log("Running simulation...");
 
   _timer["loop"].start();
