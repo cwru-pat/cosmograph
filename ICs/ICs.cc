@@ -148,6 +148,47 @@ void set_gaussian_random_field(arr_t & field, Fourier *fourier, ICsData *icd)
  */
 void init_ray_vector(std::vector<RayTrace<real_t, idx_t> *> * rays, idx_t n_rays)
 {
+  std::string ray_ic_type = _config("ray_ic_type", "");
+
+  if(ray_ic_type == "healpix")
+  {
+    init_healpix_ray_vectors(rays);
+  }
+  else
+  {
+    init_random_ray_vectors(rays, n_rays);
+  }
+}
+
+void init_healpix_ray_vectors(std::vector<RayTrace<real_t, idx_t> *> * rays)
+{
+  RaytraceData<real_t> rd = {0};
+
+  // ray position starts at an observer centered in the box
+  rd.x[0] = (NX - 0.5)*dx/2.0;
+  rd.x[1] = (NY - 0.5)*dx/2.0;
+  rd.x[2] = (NZ - 0.5)*dx/2.0;
+
+  // energy, angle in arb. units
+  rd.E = 1.0;
+  rd.Phi = -1.0;
+
+  // foreach ray direction in healpix grid:
+  // {
+  //   // velocity directed inwards
+  //   // normalization of V is enforced by raytrace class
+  //   rd.V[0] = vx;
+  //   rd.V[1] = vy;
+  //   rd.V[2] = vz;
+
+  //   RayTrace<real_t, idx_t> * ray;
+  //   ray = new RayTrace<real_t, idx_t> (-std::fabs(dt), dx, rd);
+  //   rays->push_back( ray );
+  // }
+}
+
+void init_random_ray_vectors(std::vector<RayTrace<real_t, idx_t> *> * rays, idx_t n_rays)
+{
   idx_t i = 0;
   RaytraceData<real_t> rd = {0};
 

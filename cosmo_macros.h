@@ -41,7 +41,7 @@
 
 // evolve shift as well? (if not, assumed to be zero)
 #ifndef USE_BSSN_SHIFT
-  #define USE_BSSN_SHIFT false
+  #define USE_BSSN_SHIFT true
 #endif
 
 // Gamma-driver gauge settings (must turn on bssn_shift as well)

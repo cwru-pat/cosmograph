@@ -1,6 +1,5 @@
 #include "particles.h"
-#include "../components/static/static_ic.h"
-#include "../ICs/ICs.h"
+#include "../components/particles/particle_ic.h"
 
 namespace cosmo
 {
@@ -23,179 +22,19 @@ void ParticleSim::init()
   _timer["init"].stop();
 }
 
-/**
- * @brief Initialize particles from gaussian random field data
- * @details Initialize particles from gaussian random field data, so particle
- *  masses are that needed to recreate the corresponding density field.
- * 
- * @param particles reference to Particles class containing particles
- * @param bssn_fields map to fields from bssn class
- * @param      fourier       { parameter_description }
- * @param      iod           { parameter_description }
- */
 void ParticleSim::setICs()
 {
-  // TODO: Move to separate file?
-  idx_t i, j, k;
-  ICsData icd = cosmo_get_ICsData();
-  real_t rho_FRW = icd.rho_K_matter;
-  arr_t & DIFFr = *bssnSim->fields["DIFFr_a"];
-  arr_t & DIFFphi_p = *bssnSim->fields["DIFFphi_p"];
-  arr_t & DIFFphi_a = *bssnSim->fields["DIFFphi_a"];
-  arr_t & DIFFphi_f = *bssnSim->fields["DIFFphi_f"];
-  iodata->log( "Generating ICs with peak at k = " + stringify(icd.peak_k) );
-  iodata->log( "Generating ICs with peak amp. = " + stringify(icd.peak_amplitude) );
-
-  // the conformal factor in front of metric is the solution to
-  // d^2 exp(\phi) = -2*pi exp(5\phi) * \rho
-  // generate gaussian random field 1 + xi = exp(phi) (use phi_p as a proxy):
-  set_gaussian_random_field(DIFFphi_p, fourier, &icd);
-
-  // rho = -lap(phi)/xi^5/2pi
-# pragma omp parallel for default(shared) private(i,j,k)
-  LOOP3(i, j, k)
+  if(_config("ic_type", "") == "vectorpert")
   {
-    DIFFr[NP_INDEX(i,j,k)] = rho_FRW - 0.5/PI/(
-      pow(1.0 + DIFFphi_p[NP_INDEX(i,j,k)], 5.0)
-    )*(
-      double_derivative(i, j, k, 1, 1, DIFFphi_p)
-      + double_derivative(i, j, k, 2, 2, DIFFphi_p)
-      + double_derivative(i, j, k, 3, 3, DIFFphi_p)
-    );
+    particle_ic_set_vectorpert(bssnSim, particles, iodata);
   }
-
-  LOOP3(i, j, k)
+  else if(_config("ic_type", "") == "sinusoid")
   {
-#   if 0
-    // 1 particle per gridpoint
-    real_t rho = DIFFr[INDEX(i,j,k)];
-    real_t rootdetg = std::exp(6.0*DIFFphi_p[INDEX(i,j,k)]);
-    real_t mass = rho*dx*dx*dx*rootdetg;
-    Particle<real_t> particle = {0};
-    particle.X[0] = i*dx;
-    particle.X[1] = j*dx;
-    particle.X[2] = k*dx;
-    particle.M = mass;
-    particles->addParticle( particle );
-#   elif 1
-    // 8 particles per gridpoint
-    // linear interpolation to get particles 1/2-way between
-    // neighboring gridpoints
-
-    // TODO: doc this or something
-    real_t m[2][2][2];
-    for(int fx=0; fx<=1; ++fx)
-      for(int fy=0; fy<=1; ++fy)
-        for(int fz=0; fz<=1; ++fz)
-        {
-          real_t rho = DIFFr[INDEX(i+fx,j+fy,k+fz)];
-          real_t rootdetg = std::exp(6.0*DIFFphi_p[INDEX(i+fx,j+fy,k+fz)]);
-          m[fx][fy][fz] = rho*dx*dx*dx*rootdetg / 8.0; // 8 particles per gridpoint
-        }
-
-    for(int fx=0; fx<=1; ++fx)
-      for(int fy=0; fy<=1; ++fy)
-        for(int fz=0; fz<=1; ++fz)
-        {
-          // interpolated mass
-          real_t mass = (
-              m[0][0][0] + fx*fy*fz*m[1][1][1]
-              + fx*m[1][0][0] + fy*m[0][1][0] + fz*m[0][0][1]
-              + fx*fy*m[1][1][0] + fy*fz*m[0][1][1] + fx*fz*m[1][0][1]
-              ) / std::pow(2.0, fx+fy+fz);
-
-          Particle<real_t> particle = {0};
-          particle.X[0] = (i+fx/2.0)*dx;
-          particle.X[1] = (j+fy/2.0)*dx;
-          particle.X[2] = (k+fz/2.0)*dx;
-          particle.M = mass;
-          particles->addParticle( particle );
-        }
-#   else
-    // 3^3 particles per gridpoint
-    // linear interpolation to get particles 1/2-way between
-    // neighboring gridpoints
-
-    // TODO: doc this or something
-    real_t m[2][2][2];
-    for(int fx=0; fx<=1; ++fx)
-      for(int fy=0; fy<=1; ++fy)
-        for(int fz=0; fz<=1; ++fz)
-        {
-          real_t rho = DIFFr[INDEX(i+fx,j+fy,k+fz)];
-          real_t rootdetg = std::exp(6.0*DIFFphi_p[INDEX(i+fx,j+fy,k+fz)]);
-          m[fx][fy][fz] = rho*dx*dx*dx*rootdetg / 27.0; // 27 particles per gridpoint
-        }
-    for(int fx=0; fx<=2; ++fx)
-      for(int fy=0; fy<=2; ++fy)
-        for(int fz=0; fz<=2; ++fz)
-        {
-          // interpolated mass
-          real_t mass = (
-              (3.0-fx)*(3.0-fy)*(3.0-fz)*m[0][0][0] + fx*fy*fz*m[1][1][1]
-              + fx*(3.0-fy)*(3.0-fz)*m[1][0][0] + (3.0-fx)*fy*(3.0-fz)*m[0][1][0] + (3.0-fx)*(3.0-fy)*fz*m[0][0][1]
-              + fx*fy*(3.0-fz)*m[1][1][0] + (3.0-fx)*fy*fz*m[0][1][1] + fx*(3.0-fy)*fz*m[1][0][1]
-            ) / 27.0;
-          Particle<real_t> particle = {0};
-          particle.X[0] = (i+fx/3.0)*dx;
-          particle.X[1] = (j+fy/3.0)*dx;
-          particle.X[2] = (k+fz/3.0)*dx;
-          particle.M = mass;
-          particles->addParticle( particle );
-        }
-#   endif
+    particle_ic_set_sinusoid(bssnSim, particles, iodata);
   }
-
-  // phi = ln(xi)
-  #pragma omp parallel for default(shared) private(i,j,k)
-  LOOP3(i,j,k) {
-    idx_t idx = NP_INDEX(i,j,k);
-    DIFFphi_a[idx] = log1p(DIFFphi_p[idx]);
-    DIFFphi_f[idx] = log1p(DIFFphi_p[idx]);
-    DIFFphi_p[idx] = log1p(DIFFphi_p[idx]);
-  }
-
-  // Make sure min density value > 0
-  // Set conserved density variable field
-  real_t min = icd.rho_K_matter;
-  real_t max = min;
-  LOOP3(i,j,k)
+  else
   {
-    real_t rho = DIFFr[NP_INDEX(i,j,k)];
-
-    if(rho < min)
-    {
-      min = rho;
-    }
-    if(rho > max)
-    {
-      max = rho;
-    }
-    if(rho != rho)
-    {
-      iodata->log("Error: NaN energy density.");
-      throw -1;
-    }
-  }
-
-  iodata->log( "Minimum fluid density: " + stringify(min) );
-  iodata->log( "Maximum fluid density: " + stringify(max) );
-  iodata->log( "Average fluctuation density: " + stringify(average(DIFFr)) );
-  iodata->log( "Std.dev fluctuation density: " + stringify(standard_deviation(DIFFr)) );
-  if(min < 0.0)
-  {
-    iodata->log( "Error: negative density in some regions.");
-    throw -1;
-  }
-
-  arr_t & DIFFK_p = *bssnSim->fields["DIFFK_p"];
-  arr_t & DIFFK_a = *bssnSim->fields["DIFFK_a"];
-  #pragma omp parallel for default(shared) private(i,j,k)
-  LOOP3(i,j,k)
-  {
-    idx_t idx = NP_INDEX(i,j,k);
-    DIFFK_a[idx] = -sqrt(24.0*PI*rho_FRW);
-    DIFFK_p[idx] = -sqrt(24.0*PI*rho_FRW);
+    particle_ic_set_random(bssnSim, particles, fourier, iodata);
   }
 }
 
@@ -218,7 +57,7 @@ void ParticleSim::outputParticleStep()
     io_bssn_fields_powerdump(iodata, step, bssnSim->fields, fourier);
     io_bssn_dump_statistics(iodata, step, bssnSim->fields, bssnSim->frw);
     io_bssn_constraint_violation(iodata, step, bssnSim);
-
+    io_print_particles(iodata, step, particles);
     if(step == 0)
     {
       outputStateInformation();

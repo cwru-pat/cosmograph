@@ -659,4 +659,40 @@ void io_dump_2d_array(IOData *iodata, real_t * array, idx_t n_x, idx_t n_y,
   return;
 }
 
+void io_print_particles(IOData *iodata, idx_t step, Particles *particles)
+{
+  bool output_step = ( std::stoi(_config("IO_particles", "0")) > 0 );
+  bool output_this_step = (0 == step % std::stoi(_config("IO_particles", "1")));
+  if( output_step && output_this_step )
+  {
+    // output misc. info about simulation here.
+    char data[35];
+    std::string dump_filename = iodata->dir() + "particles.dat.gz";
+
+    gzFile datafile = gzopen(dump_filename.c_str(), "ab");
+    if(datafile == Z_NULL) {
+      iodata->log("Error opening file: " + dump_filename);
+      return;
+    }
+
+// modified for 1-d output
+    particle_vec * p_vec = particles->getParticleVec();
+    for(particle_vec::iterator it = p_vec->begin(); it != p_vec->end(); ++it) {
+      if(std::abs(it->p_a.X[1]) < 1e-10 && std::abs(it->p_a.X[2]) < 1e-10)
+      {
+        sprintf(data, "%.15g\t", (double) it->p_a.X[0]);
+        gzwrite(datafile, data, strlen(data));
+      }
+      // sprintf(data, "%.15g\t", (double) it->p_a.X[1]);
+      // gzwrite(datafile, data, strlen(data));
+      // sprintf(data, "%.15g\t", (double) it->p_a.X[2]);
+      // gzwrite(datafile, data, strlen(data));
+    }
+
+    sprintf(data, "\n");
+    gzwrite(datafile, data, strlen(data));
+    gzclose(datafile);
+  }
+}
+
 } /* namespace cosmo */

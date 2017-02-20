@@ -18,6 +18,11 @@ Particles::~Particles()
   // anything to do?
 }
 
+particle_vec * Particles::getParticleVec()
+{
+  return particles;
+}
+
 /**
  * @brief Create random particles
  * @details Add particles with randomized positions, zero velocity,

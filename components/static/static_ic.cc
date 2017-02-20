@@ -157,7 +157,6 @@ void dust_ic_set_sphere(BSSN * bssn, Static * dust, IOData * iodata)
 
   auto & frw = bssn->frw;
 
-
   // shell amplitude
   real_t A = stod(_config("shell_amplitude", "1e-5"));
   // Shell described by only one fixed l:
