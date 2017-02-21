@@ -185,8 +185,7 @@ void particle_ic_set_random(BSSN * bssnSim, Particles * particles, Fourier * fou
  */
 void particle_ic_set_sinusoid(BSSN * bssnSim, Particles * particles, IOData * iodata)
 {
-std::cout.precision(15);
-std::cout << "Setting sinusoidal ICs.\n";
+  iodata->log("Setting sinusoidal ICs.");
   idx_t i, j, k;
 
   // conformal factor
@@ -294,8 +293,67 @@ std::cout << "Setting sinusoidal ICs.\n";
 /**
  * @brief Initialize particles per vector mode ID
  */
-void particle_ic_set_vectorpert(BSSN * bssnSim, Particles * particles, IOData * iodata)
+void particle_ic_set_vectorpert(BSSN * bssnSim, Particles * particles,
+  IOData * iodata)
 {
+  iodata->log("Setting ICs based on a vector mode fluctuation.");
+  // assumes functions vary in the y-direction
+  idx_t i, j, k;
+
+  // K is initially K_FRW
+  arr_t & DIFFK_p = *bssnSim->fields["DIFFK_p"];
+  // A_xy contains non-FRW fluctuation
+  arr_t & A12_p = *bssnSim->fields["A12_p"];
+
+  real_t B = std::stod(_config("peak_amplitude", "0.0001"));
+  iodata->log( "Generating ICs with peak amp. = " + stringify(B) );
+
+  real_t rho_FRW = 3.0/PI/8.0;
+  real_t K_FRW = -sqrt(24.0*PI*rho_FRW);
+  real_t L = H_LEN_FRAC;
+
+  // grid values
+  for(i=0; i<NX; ++i)
+    for(j=0; j<NY; ++j)
+      for(k=0; k<NZ; ++k)
+  {
+    idx_t idx = NP_INDEX(i,j,k);
+    real_t y = j*dx;
+
+    DIFFK_p[idx] = K_FRW;
+    A12_p[idx] = B*std::sin(2.0*PI*y/L);
+  }
+
+  // particle values
+  idx_t particles_per_dy = std::stoi(_config("particles_per_dy", "1"));
+  iodata->log("Particles per dx: " + stringify(particles_per_dy));
+  for(i=0; i<NX; ++i)
+    for(j=0; j<NY*particles_per_dy; ++j)
+      for(k=0; k<NZ; ++k)
+  {
+    real_t y = ((real_t) j)/((real_t) particles_per_dy)*dx;
+    // Given quantity
+    real_t Axy = B*std::sin(2.0*PI*y/L);
+    
+    // determined via momentum constraint
+    real_t Sx = B/L*std::cos(2.0*PI*y/L)/4.0;
+
+    // determined via Hamiltonian constraint:
+    real_t rho = ( K_FRW*K_FRW/12.0 - 2.0*Axy*Axy/8.0 ) / 2.0 / PI;
+
+    // fluid EOM defn's
+    real_t Ux = Sx/rho/std::sqrt(1.0 - pw2(Sx/rho));
+    real_t W = std::sqrt(1.0 + Ux*Ux);
+
+    real_t rootdetg = std::exp(0.0);
+    Particle<real_t> particle = {0};
+    particle.X[0] = i*dx;
+    particle.X[1] = y;
+    particle.X[2] = k*dx;
+    particle.U[0] = Ux;
+    particle.M = rho*(dx/particles_per_dy)*dx*dx*rootdetg/W; // CIC error here
+    particles->addParticle( particle );
+  }
 
 }
 

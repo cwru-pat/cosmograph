@@ -45,7 +45,6 @@ void ParticleSim::initParticleStep()
     particles->stepInit(bssnSim->fields);
     bssnSim->clearSrc();
     particles->addParticlesToBSSNSrc(bssnSim->fields);
-
   _timer["RK_steps"].stop();
 }
 
