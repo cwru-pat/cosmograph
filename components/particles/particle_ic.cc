@@ -327,15 +327,15 @@ void particle_ic_set_vectorpert(BSSN * bssnSim, Particles * particles,
   // particle values
   idx_t particles_per_dy = std::stoi(_config("particles_per_dy", "1"));
   iodata->log("Particles per dx: " + stringify(particles_per_dy));
+
+
   for(i=0; i<NX; ++i)
     for(j=0; j<NY*particles_per_dy; ++j)
       for(k=0; k<NZ; ++k)
   {
     real_t y = ((real_t) j)/((real_t) particles_per_dy)*dx;
-    // Given quantity
+    // Given quantities
     real_t Axy = B*std::sin(2.0*PI*y/L);
-    
-    // determined via momentum constraint
     real_t Sx = B/L*std::cos(2.0*PI*y/L)/4.0;
 
     // determined via Hamiltonian constraint:
@@ -354,6 +354,55 @@ void particle_ic_set_vectorpert(BSSN * bssnSim, Particles * particles,
     particle.M = rho*(dx/particles_per_dy)*dx*dx*rootdetg/W; // CIC error here
     particles->addParticle( particle );
   }
+
+  // for(i=0; i<NX; ++i)
+  //   for(j=0; j<NY; ++j)
+  //     for(k=0; k<NZ; ++k)
+  //       for(int p=0; p<particles_per_dy; ++p)
+  // {
+  //   real_t y_down = j*dx;
+  //   real_t y_up = (j+1)*dx;
+  //   real_t pos_frac = ( (real_t) p + 0.5 ) / (real_t) particles_per_dy;
+  //   real_t y = ((real_t) j + pos_frac)*dx;
+
+  //   // Given quantities
+  //   real_t Axy_up = B*std::sin(2.0*PI*y_up/L);
+  //   real_t Axy_down = B*std::sin(2.0*PI*y_down/L);
+
+  //   real_t Sx_up = B/L*std::cos(2.0*PI*y_up/L)/4.0;
+  //   real_t Sx_down = B/L*std::cos(2.0*PI*y_down/L)/4.0;
+
+  //   // determined via Hamiltonian constraint:
+  //   real_t rho_up = ( K_FRW*K_FRW/12.0 - 2.0*Axy_up*Axy_up/8.0 ) / 2.0 / PI;
+  //   real_t rho_down = ( K_FRW*K_FRW/12.0 - 2.0*Axy_down*Axy_down/8.0 ) / 2.0 / PI;
+
+  //   // fluid EOM defn's
+  //   real_t Ux_up = Sx_up/rho_up/std::sqrt(1.0 - pw2(Sx_up/rho_up));
+  //   real_t Ux_down = Sx_down/rho_down/std::sqrt(1.0 - pw2(Sx_down/rho_down));
+  //   real_t W_up = std::sqrt(1.0 + Ux_up*Ux_up);
+  //   real_t W_down = std::sqrt(1.0 + Ux_down*Ux_down);
+  //   real_t M_up = rho_up*(dx/particles_per_dy)*dx*dx/W_up;
+  //   real_t M_down = rho_down*(dx/particles_per_dy)*dx*dx/W_down;
+
+  //   real_t MW_up = M_up*W_up;
+  //   real_t MU_up = M_up*Ux_up;
+  //   real_t MW_down = M_down*W_down;
+  //   real_t MU_down = M_down*Ux_down;
+  //   real_t MW = MW_down*(1.0 - pos_frac) + MW_up*pos_frac;
+  //   real_t MU = MU_down*(1.0 - pos_frac) + MU_up*pos_frac;
+
+  //   // Particle velocity, mass:
+  //   real_t Ux = (MU < 0 ? -1.0 : 1.0) * 1.0 / std::sqrt(MW*MW/MU/MU - 1.0);
+  //   real_t M = MU/Ux;
+
+  //   Particle<real_t> particle = {0};
+  //   particle.X[0] = i*dx;
+  //   particle.X[1] = y;
+  //   particle.X[2] = k*dx;
+  //   particle.U[0] = Ux;
+  //   particle.M = M;
+  //   particles->addParticle( particle );
+  // }
 
 }
 

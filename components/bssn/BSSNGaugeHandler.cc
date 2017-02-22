@@ -46,7 +46,7 @@ real_t BSSNGaugeHandler::AnharmonicLapse(BSSNData *bd)
  */
 real_t BSSNGaugeHandler::OnePlusLogLapse(BSSNData *bd)
 {
-  return -2.0*bd->alpha*( bd->K  )*gd_c
+  return -2.0*bd->alpha*( bd->K - bd->K_avg )*gd_c
       + bd->beta1*bd->d1a + bd->beta2*bd->d2a + bd->beta3*bd->d3a;
 }
 

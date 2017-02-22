@@ -40,6 +40,8 @@ public:
 
   // Standard FRW spacetime integrator - for a reference metric
   FRW<real_t> * frw; ///< FRW reference metric instance
+  // Average K for reference
+  real_t K_avg;
 
   BSSN(ConfigParser * config);
   ~BSSN();

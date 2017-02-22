@@ -1,12 +1,10 @@
-steps = 100
+steps = 400
 dt_frac = 0.1
-particles_per_dy = 10
+particles_per_dy = 8
 
 lapse = OnePlusLog
+gd_c = 1.0
 
-KO_damping_coefficient = 0.0
-k_damping_amp = 0
-a_adj_amp = 0
 normalize_metric = 1
 
 simulation_type = particles
