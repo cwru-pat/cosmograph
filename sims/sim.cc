@@ -62,8 +62,7 @@ void CosmoSim::simInit()
       iodata->log("Please change this setting in cosmo_macros.h and recompile.");
       throw -1;
     }
-    int rays_num = std::stoi(_config["rays_num"]);
-    init_ray_vector(&rays, rays_num);
+    init_ray_vector(&rays);
   }
 # endif
 }

@@ -22,10 +22,9 @@ real_t cosmo_power_spectrum(real_t k, ICsData *icd);
 void set_gaussian_random_field(arr_t & field, Fourier *fourier, ICsData *icd);
 
 #if USE_COSMOTRACE
-void init_ray_vector(std::vector<RayTrace<real_t, idx_t> *> * rays,
-  idx_t n_rays);
+void init_ray_vector(std::vector<RayTrace<real_t, idx_t> *> * rays);
 void init_healpix_ray_vectors(std::vector<RayTrace<real_t, idx_t> *> * rays);
-void init_random_ray_vectors(std::vector<RayTrace<real_t, idx_t> *> * rays, idx_t n_rays);
+void init_random_ray_vectors(std::vector<RayTrace<real_t, idx_t> *> * rays);
 #endif
 
 } // namespace cosmo

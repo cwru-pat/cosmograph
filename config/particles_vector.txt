@@ -1,6 +1,7 @@
-steps = 400
+steps = 100
 dt_frac = 0.1
 particles_per_dy = 8
+deconvolution_strength = 0
 
 lapse = OnePlusLog
 gd_c = 1.0
@@ -9,7 +10,7 @@ normalize_metric = 1
 
 simulation_type = particles
 ic_type = vectorpert
-peak_amplitude = 0.1
+peak_amplitude = 0.25
 
 output_dir = particle_vectorpert_test
 dump_file = calculated
@@ -17,10 +18,23 @@ dump_file = calculated
 IO_constraint_interval = 10
 IO_bssnstats_interval = 10
 
-IO_1D_grid_interval = 40
-IO_1D_DIFFr_a = 1
-IO_1D_DIFFphi_a = 1
-IO_1D_DIFFK_a = 1
-IO_1D_DIFFgamma11_a = 1
+IO_particles = 1
+IO_1D_grid_interval = 1
 
-IO_particles = 40
+IO_1D_DIFFr_a = 1
+IO_1D_DIFFr_a_axis = 2
+
+IO_1D_DIFFphi_a = 1
+IO_1D_DIFFphi_a_axis = 2
+
+IO_1D_DIFFK_a = 1
+IO_1D_DIFFK_a_axis = 2
+
+IO_1D_DIFFgamma12_a = 1
+IO_1D_DIFFgamma12_a_axis = 2
+
+IO_1D_A12_a = 1
+IO_1D_A12_a_axis = 2
+
+IO_1D_S1_a = 1
+IO_1D_S1_a_axis = 2

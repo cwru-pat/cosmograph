@@ -561,63 +561,36 @@ void Particles::addParticlesToBSSNSrc(
     real_t S_2 = MnA*W*p_a.U[1];
     real_t S_3 = MnA*W*p_a.U[2];
 
-// if(pr == particles->begin())
-//   std::cout << "[ (X,V,S,MnA)=(" + stringify(p_a.X[0]/dx) + "," + stringify(p_a.U[0]) + "," + stringify(S_1) + "," + stringify(MnA) + ") ]";
-
-    // Eq . 5.226 in Baumgarte & Shapiro, using NGP or CIC
-    //<<< TODO: option to control this
-#   if false
-      // NGP interpolant
-      idx_t x_idx = getNearestIndex(p_a.X[0]);
-      idx_t y_idx = getNearestIndex(p_a.X[1]);
-      idx_t z_idx = getNearestIndex(p_a.X[2]);
-      idx_t idx = INDEX(x_idx, y_idx, z_idx);
-#     pragma omp critical
+    // Eq . 5.226 in Baumgarte & Shapiro, using CIC
+    idx_t x_idx = getIndexBelow(p_a.X[0]);
+    idx_t y_idx = getIndexBelow(p_a.X[1]);
+    idx_t z_idx = getIndexBelow(p_a.X[2]);
+    real_t x_d[3] = {0};
+    setX_d(p_a.X, x_d);
+#   pragma omp critical
+    {
+      for(int x=0; x<=1; ++x)
+        for(int y=0; y<=1; ++y)
+          for(int z=0; z<=1; ++z)
       {
-        DIFFr_a[idx] += MnA*W*W;
-        DIFFS_a[idx] += trS;
-        S1_a[idx] += S_1;
-        S2_a[idx] += S_2;
-        S3_a[idx] += S_3;
-        STF11_a[idx] += MnA*p_a.U[0]*p_a.U[0];
-        STF12_a[idx] += MnA*p_a.U[0]*p_a.U[1];
-        STF13_a[idx] += MnA*p_a.U[0]*p_a.U[2];
-        STF22_a[idx] += MnA*p_a.U[1]*p_a.U[1];
-        STF23_a[idx] += MnA*p_a.U[1]*p_a.U[2];
-        STF33_a[idx] += MnA*p_a.U[2]*p_a.U[2];
-      }
-#   else
-      // CIC / linear weighting interpolant
-      idx_t x_idx = getIndexBelow(p_a.X[0]);
-      idx_t y_idx = getIndexBelow(p_a.X[1]);
-      idx_t z_idx = getIndexBelow(p_a.X[2]);
-      real_t x_d[3] = {0};
-      setX_d(p_a.X, x_d);
-#     pragma omp critical
-      {
-        for(int x=0; x<2; ++x)
-          for(int y=0; y<2; ++y)
-            for(int z=0; z<2; ++z)
-            {
-              idx_t idx = INDEX(x_idx + x, y_idx + y, z_idx + z);
-              real_t cic_weight = (1-std::fabs(x-x_d[0]))*(1-std::fabs(y-x_d[1]))*(1-std::fabs(z-x_d[2]));
-              DIFFr_a[idx] += cic_weight*(MnA*W*W);
-              DIFFS_a[idx] += cic_weight*trS;
+        idx_t idx = INDEX(x_idx + x, y_idx + y, z_idx + z);
+        real_t cic_weight = (1-std::fabs(x-x_d[0]))*(1-std::fabs(y-x_d[1]))*(1-std::fabs(z-x_d[2]));
+        DIFFr_a[idx] += cic_weight*(MnA*W*W);
+        DIFFS_a[idx] += cic_weight*trS;
 
-              S1_a[idx] += cic_weight*S_1;
-              S2_a[idx] += cic_weight*S_2;
-              S3_a[idx] += cic_weight*S_3;
+        S1_a[idx] += cic_weight*S_1;
+        S2_a[idx] += cic_weight*S_2;
+        S3_a[idx] += cic_weight*S_3;
 
-              // Not trace-free. Trace-free enforced by BSSN class.
-              STF11_a[idx] += cic_weight*(MnA*p_a.U[0]*p_a.U[0]);
-              STF12_a[idx] += cic_weight*(MnA*p_a.U[0]*p_a.U[1]);
-              STF13_a[idx] += cic_weight*(MnA*p_a.U[0]*p_a.U[2]);
-              STF22_a[idx] += cic_weight*(MnA*p_a.U[1]*p_a.U[1]);
-              STF23_a[idx] += cic_weight*(MnA*p_a.U[1]*p_a.U[2]);
-              STF33_a[idx] += cic_weight*(MnA*p_a.U[2]*p_a.U[2]);
-            }
+        // Not trace-free. Trace-free enforced by BSSN class.
+        STF11_a[idx] += cic_weight*(MnA*p_a.U[0]*p_a.U[0]);
+        STF12_a[idx] += cic_weight*(MnA*p_a.U[0]*p_a.U[1]);
+        STF13_a[idx] += cic_weight*(MnA*p_a.U[0]*p_a.U[2]);
+        STF22_a[idx] += cic_weight*(MnA*p_a.U[1]*p_a.U[1]);
+        STF23_a[idx] += cic_weight*(MnA*p_a.U[1]*p_a.U[2]);
+        STF33_a[idx] += cic_weight*(MnA*p_a.U[2]*p_a.U[2]);
       }
-#   endif
+    }
 
   }
 

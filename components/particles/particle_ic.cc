@@ -311,6 +311,7 @@ void particle_ic_set_vectorpert(BSSN * bssnSim, Particles * particles,
   real_t rho_FRW = 3.0/PI/8.0;
   real_t K_FRW = -sqrt(24.0*PI*rho_FRW);
   real_t L = H_LEN_FRAC;
+  real_t phase = 0.5;
 
   // grid values
   for(i=0; i<NX; ++i)
@@ -321,7 +322,7 @@ void particle_ic_set_vectorpert(BSSN * bssnSim, Particles * particles,
     real_t y = j*dx;
 
     DIFFK_p[idx] = K_FRW;
-    A12_p[idx] = B*std::sin(2.0*PI*y/L);
+    A12_p[idx] = B*std::sin(2.0*PI*y/L + phase);
   }
 
   // particle values
@@ -330,79 +331,52 @@ void particle_ic_set_vectorpert(BSSN * bssnSim, Particles * particles,
 
 
   for(i=0; i<NX; ++i)
-    for(j=0; j<NY*particles_per_dy; ++j)
+    for(j=0; j<NY; ++j)
       for(k=0; k<NZ; ++k)
+        for(int p=0; p<particles_per_dy; ++p)
   {
-    real_t y = ((real_t) j)/((real_t) particles_per_dy)*dx;
-    // Given quantities
-    real_t Axy = B*std::sin(2.0*PI*y/L);
-    real_t Sx = B/L*std::cos(2.0*PI*y/L)/4.0;
+    real_t p_frac = dx/particles_per_dy;
+
+    // particle position + adjacent particle positions
+    real_t ys[3] = { j*dx + (p-1)*p_frac, j*dx + p*p_frac, j*dx + (p+1)*p_frac };
 
     // determined via Hamiltonian constraint:
-    real_t rho = ( K_FRW*K_FRW/12.0 - 2.0*Axy*Axy/8.0 ) / 2.0 / PI;
+    real_t Axy, Sx; // "primitives"
+    real_t rho, Ux, W, M; // variables to construct (some intermediate)
+    real_t MWs[3], MUs[3]; // variables to deconvolve
+    for(int s=0; s<3; ++s)
+    {
+      Axy = B*std::sin(2.0*PI*ys[s]/L + phase);
+      Sx =  B/L*std::cos(2.0*PI*ys[s]/L + phase)/4.0;
 
-    // fluid EOM defn's
-    real_t Ux = Sx/rho/std::sqrt(1.0 - pw2(Sx/rho));
-    real_t W = std::sqrt(1.0 + Ux*Ux);
+      // fluid defn's
+      rho = ( K_FRW*K_FRW/12.0 - 2.0*Axy*Axy/8.0 ) / 2.0 / PI;
+      Ux = Sx/rho/std::sqrt(1.0 - pw2(Sx/rho));
+      W = std::sqrt(1.0 + Ux*Ux);
 
-    real_t rootdetg = std::exp(0.0);
+      // Particle mass
+      M = rho*(dx/particles_per_dy)*dx*dx/W;
+
+      MWs[s] = M*W;
+      MUs[s] = M*Ux;
+    }
+
+    // de-convolved variables
+    real_t stren = std::stod(_config("deconvolution_strength", "1.0"));
+    real_t MW = -stren*MWs[0] + (1.0+2.0*stren)*MWs[1] - stren*MWs[2];
+    real_t MU = -stren*MUs[0] + (1.0+2.0*stren)*MUs[1] - stren*MUs[2];
+
+    Ux = (MU > 0 ? 1.0 : -1.0) / std::sqrt( pw2(MW/MU) - 1.0 );
+    M = MU/Ux;
+
     Particle<real_t> particle = {0};
     particle.X[0] = i*dx;
-    particle.X[1] = y;
+    particle.X[1] = ys[1];
     particle.X[2] = k*dx;
     particle.U[0] = Ux;
-    particle.M = rho*(dx/particles_per_dy)*dx*dx*rootdetg/W; // CIC error here
+    particle.M = M; // CIC error here?
     particles->addParticle( particle );
   }
-
-  // for(i=0; i<NX; ++i)
-  //   for(j=0; j<NY; ++j)
-  //     for(k=0; k<NZ; ++k)
-  //       for(int p=0; p<particles_per_dy; ++p)
-  // {
-  //   real_t y_down = j*dx;
-  //   real_t y_up = (j+1)*dx;
-  //   real_t pos_frac = ( (real_t) p + 0.5 ) / (real_t) particles_per_dy;
-  //   real_t y = ((real_t) j + pos_frac)*dx;
-
-  //   // Given quantities
-  //   real_t Axy_up = B*std::sin(2.0*PI*y_up/L);
-  //   real_t Axy_down = B*std::sin(2.0*PI*y_down/L);
-
-  //   real_t Sx_up = B/L*std::cos(2.0*PI*y_up/L)/4.0;
-  //   real_t Sx_down = B/L*std::cos(2.0*PI*y_down/L)/4.0;
-
-  //   // determined via Hamiltonian constraint:
-  //   real_t rho_up = ( K_FRW*K_FRW/12.0 - 2.0*Axy_up*Axy_up/8.0 ) / 2.0 / PI;
-  //   real_t rho_down = ( K_FRW*K_FRW/12.0 - 2.0*Axy_down*Axy_down/8.0 ) / 2.0 / PI;
-
-  //   // fluid EOM defn's
-  //   real_t Ux_up = Sx_up/rho_up/std::sqrt(1.0 - pw2(Sx_up/rho_up));
-  //   real_t Ux_down = Sx_down/rho_down/std::sqrt(1.0 - pw2(Sx_down/rho_down));
-  //   real_t W_up = std::sqrt(1.0 + Ux_up*Ux_up);
-  //   real_t W_down = std::sqrt(1.0 + Ux_down*Ux_down);
-  //   real_t M_up = rho_up*(dx/particles_per_dy)*dx*dx/W_up;
-  //   real_t M_down = rho_down*(dx/particles_per_dy)*dx*dx/W_down;
-
-  //   real_t MW_up = M_up*W_up;
-  //   real_t MU_up = M_up*Ux_up;
-  //   real_t MW_down = M_down*W_down;
-  //   real_t MU_down = M_down*Ux_down;
-  //   real_t MW = MW_down*(1.0 - pos_frac) + MW_up*pos_frac;
-  //   real_t MU = MU_down*(1.0 - pos_frac) + MU_up*pos_frac;
-
-  //   // Particle velocity, mass:
-  //   real_t Ux = (MU < 0 ? -1.0 : 1.0) * 1.0 / std::sqrt(MW*MW/MU/MU - 1.0);
-  //   real_t M = MU/Ux;
-
-  //   Particle<real_t> particle = {0};
-  //   particle.X[0] = i*dx;
-  //   particle.X[1] = y;
-  //   particle.X[2] = k*dx;
-  //   particle.U[0] = Ux;
-  //   particle.M = M;
-  //   particles->addParticle( particle );
-  // }
 
 }
 

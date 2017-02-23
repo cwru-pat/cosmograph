@@ -135,7 +135,7 @@ void io_bssn_fields_snapshot(IOData *iodata, idx_t step,
   if( output_step && output_this_step )
   {
     for ( const auto &field_reg : bssn_fields ) {
-      // look for names of the form: "IO_2D_field_r"
+      // look for names of the form: "IO_1D_field_r"
       if( std::stoi(_config( "IO_1D_" + field_reg.first , "0")) )
       {
         io_dump_strip(iodata, *bssn_fields[field_reg.first],
@@ -675,18 +675,14 @@ void io_print_particles(IOData *iodata, idx_t step, Particles *particles)
       return;
     }
 
-// modified for 1-d output
     particle_vec * p_vec = particles->getParticleVec();
     for(particle_vec::iterator it = p_vec->begin(); it != p_vec->end(); ++it) {
-      if(std::abs(it->p_a.X[1]) < 1e-10 && std::abs(it->p_a.X[2]) < 1e-10)
-      {
-        sprintf(data, "%.15g\t", (double) it->p_a.X[0]);
-        gzwrite(datafile, data, strlen(data));
-      }
-      // sprintf(data, "%.15g\t", (double) it->p_a.X[1]);
-      // gzwrite(datafile, data, strlen(data));
-      // sprintf(data, "%.15g\t", (double) it->p_a.X[2]);
-      // gzwrite(datafile, data, strlen(data));
+      sprintf(data, "%.15g\t", (double) it->p_a.X[0]);
+      gzwrite(datafile, data, strlen(data));
+      sprintf(data, "%.15g\t", (double) it->p_a.X[1]);
+      gzwrite(datafile, data, strlen(data));
+      sprintf(data, "%.15g\t", (double) it->p_a.X[2]);
+      gzwrite(datafile, data, strlen(data));
     }
 
     sprintf(data, "\n");
