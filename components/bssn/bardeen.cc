@@ -89,10 +89,17 @@ void Bardeen::setPotentials()
     real_t h_tr = h11[idx] + h22[idx] + h33[idx];
     real_t dt_h_tr = dt_h11[idx] + dt_h22[idx] + dt_h33[idx];
     real_t d2t_h_tr = d2t_h11[idx] + d2t_h22[idx] + d2t_h33[idx];
+
+    // defn's for semantic clarity
+    real_t djdk_d2_hjk = A[idx];
+    real_t dt_djdk_d2_hjk = dt_A[idx];
+    real_t d2t_djdk_d2_hjk = d2t_A[idx];
     
-    A[idx] = ( h_tr - A[idx] )/2.0;
-    dt_A[idx] = ( dt_h_tr - dt_A[idx] )/2.0;
-    d2t_A[idx] = ( d2t_h_tr - d2t_A[idx] )/2.0;
+    // final values
+    A[idx] = ( h_tr - djdk_d2_hjk )/a/a/2.0;
+    dt_A[idx] = -2.0*A[idx]*dadt/a + ( dt_h_tr - dt_djdk_d2_hjk )/a/a/2.0;
+    d2t_A[idx] =  -2.0*A[idx]*( pw2(dadt/a) + d2adt2/a ) - 4.0*dadt/a*dt_A[idx]
+                  + ( d2t_h_tr - d2t_djdk_d2_hjk )/a/a/2.0;
   }
 
   // construct B (and its time derivatives) in increments:
@@ -106,9 +113,10 @@ void Bardeen::setPotentials()
     real_t dt_h_tr = dt_h11[idx] + dt_h22[idx] + dt_h33[idx];
     real_t d2t_h_tr = d2t_h11[idx] + d2t_h22[idx] + d2t_h33[idx];
     
-    B[idx] = ( h_tr - 3.0*A[idx] );
-    dt_B[idx] = ( dt_h_tr - 3.0*dt_A[idx] );
-    d2t_B[idx] = ( d2t_h_tr - 3.0*d2t_A[idx] );
+    B[idx] = ( h_tr/a/a - 3.0*A[idx] );
+    dt_B[idx] = ( dt_h_tr/a/a - 2.0/a/a/a*dadt*h_tr - 3.0*dt_A[idx] );
+    d2t_B[idx] = ( d2t_h_tr/a/a - 2.0/a/a/a*dadt*dt_h_tr
+      - 2.0/a/a/a*(d2adt2 - 3.0*dadt/a)*h_tr - 3.0*d2t_A[idx] );
   }
   // inverse laplacian of
   fourier->inverseLaplacian <idx_t, real_t> (B._array);
@@ -123,8 +131,15 @@ void Bardeen::setPotentials()
     idx_t idx = NP_INDEX(i,j,k);
 
     Phi[idx] = -a/2.0*( 2.0*dadt*dt_B[idx] + a*d2t_B[idx] );
-    Psi[idx] = -a/2.0*( a*dadt*dt_B[idx] - A[idx] );
+    Psi[idx] = -1.0/2.0*A[idx] + a*dadt*dt_B[idx]/2.0;
   }
+
+  real_t Psi_mean = 0.0; real_t Phi_mean = 0.0;
+  LOOP3(i,j,k) { idx_t idx = NP_INDEX(i,j,k); Psi_mean += Psi[idx]; Phi_mean += Phi[idx]; }
+  Psi_mean /= POINTS; Phi_mean /= POINTS;
+
+  std::cout << "(Phi, <Phi>, Psi, <Psi>) = (" << Phi[0] << ", " << Phi_mean
+    << ", " << Psi[0] << ", " << Psi_mean << "); Psi-<Psi> = " << Psi[0] - Psi_mean << " \n";
 
 }
 

@@ -215,9 +215,6 @@ void Fourier::inverseLaplacian(RT *field)
   IT i, j, k;
   RT px, py, pz, pmag;
 
-  // note this may have poor precision for large datasets
-  RT sum = 0.0;
-
   fftw_execute_dft_r2c(p_r2c, field, f_field);
 
   for(i=0; i<NX; i++)
