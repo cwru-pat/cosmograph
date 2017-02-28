@@ -357,6 +357,7 @@ void io_raytrace_dump(IOData *iodata, idx_t step,
   RaytraceData<real_t> tmp_rd = {0};
   real_t * ray_dump_values = new real_t[num_rays * num_values];
   
+# pragma omp parallel for
   for(idx_t n=0; n<num_rays; n++)
   {
     tmp_rd = (*rays)[n]->getRaytraceData();
@@ -690,5 +691,43 @@ void io_print_particles(IOData *iodata, idx_t step, Particles *particles)
     gzclose(datafile);
   }
 }
+
+void io_raytrace_bardeen_dump(IOData *iodata, idx_t step,
+  std::vector<RayTrace<real_t, idx_t> *> const * rays, Bardeen * bardeen)
+{
+  bardeen->setPotentials();
+
+  idx_t num_rays = rays->size();
+  
+  real_t * Phis, * Psis;
+  Phis = new real_t [num_rays];
+  Psis = new real_t [num_rays];
+
+# pragma omp parallel for
+  for(idx_t n=0; n<num_rays; n++)
+  {
+    RaytraceData<real_t> tmp_rd = {0};
+    tmp_rd = (*rays)[n]->getRaytraceData();
+    Phis[n] = interp(tmp_rd.x[0]/dx, tmp_rd.x[1]/dx, tmp_rd.x[2]/dx,
+      NX, NY, NZ, bardeen->Phi);
+    Psis[n] = interp(tmp_rd.x[0]/dx, tmp_rd.x[1]/dx, tmp_rd.x[2]/dx,
+      NX, NY, NZ, bardeen->Psi);
+  }
+
+  // Write data from individual rays to file
+  std::string dataset_name = "step_" + std::to_string(step);
+  std::string file_name = "bardeen_phi_data";
+  io_dump_2d_array(iodata, Phis, num_rays, 1,
+    file_name, dataset_name);
+  file_name = "bardeen_psi_data";
+  io_dump_2d_array(iodata, Psis, num_rays, 1,
+    file_name, dataset_name);
+
+  delete[] Phis;
+  delete[] Psis;
+
+  return;
+}
+
 
 } /* namespace cosmo */

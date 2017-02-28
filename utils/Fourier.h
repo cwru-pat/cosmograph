@@ -33,14 +33,21 @@ public:
 
   template<typename IT, typename RT>
   void Initialize(IT nx, IT ny, IT nz, RT *field);
+  
   template<typename IT, typename RT>
   void Initialize_1D(IT n, RT *field);
+  
   template<typename ft>
   void execute_f_r2c(ft rt );
+  
   template<typename ct>
   void execute_f_c2r(ct rt);
+
   template<typename RT, typename IOT>
   void powerDump(RT *in, IOT *iodata);
+
+  template<typename IT, typename RT>
+  void inverseLaplacian(RT *field);
 };
 
 
@@ -83,16 +90,19 @@ void Fourier::Initialize_1D(IT n, RT *field)
                                f_field, field,FFTW_ESTIMATE
 			       );
 }
+
 template<typename ft> 
 void Fourier::execute_f_r2c(ft rt)
 {
    fftw_execute(p_r2c);
 }
+
 template<typename ct>
 void Fourier::execute_f_c2r(ct rt)
 {
    fftw_execute(p_c2r);
 }
+
 /**
  * @brief Compute a power spectrum and write to file
  * 
@@ -198,6 +208,44 @@ void Fourier::powerDump(RT *in, IOT *iodata)
 }
 
 
+// compute inverse laplacian for input array
+template<typename IT, typename RT>
+void Fourier::inverseLaplacian(RT *field)
+{
+  IT i, j, k;
+  RT px, py, pz, pmag;
+
+  // note this may have poor precision for large datasets
+  RT sum = 0.0;
+
+  fftw_execute_dft_r2c(p_r2c, field, f_field);
+
+  for(i=0; i<NX; i++)
+  {
+    px = (RT) (i<=NX/2 ? i : i-NX);
+    for(j=0; j<NY; j++)
+    {
+      py = (RT) (j<=NY/2 ? j : j-NY);
+      for(k=0; k<NZ/2+1; k++)
+      {
+        pz = (RT) k;
+
+        IT fft_index = FFT_NP_INDEX(i,j,k);
+
+        pmag = sqrt( pw2(px) + pw2(py) + pw2(pz) )*2.0*PI/H_LEN_FRAC;
+
+        f_field[fft_index][0] /= -pmag*pmag*POINTS;
+        f_field[fft_index][1] /= -pmag*pmag*POINTS;
+      }
+    }
+  }
+  // zero mode?
+  f_field[0][0] = 0;
+  f_field[0][1] = 0;
+
+  fftw_execute_dft_c2r(p_c2r, f_field, field);
 }
+
+} // namespace cosmo
 
 #endif

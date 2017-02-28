@@ -30,6 +30,15 @@ CosmoSim::CosmoSim()
   }
 # endif
 
+  if( stoi(_config("use_bardeen", "0")) )
+  {
+    use_bardeen = true;
+  }
+  else
+  {
+    use_bardeen = false;
+  }
+
   // Store simulation type
   simulation_type = _config["simulation_type"];
 }
@@ -65,6 +74,11 @@ void CosmoSim::simInit()
     init_ray_vector(&rays);
   }
 # endif
+
+  if(use_bardeen)
+  {
+    bardeen = new Bardeen(bssnSim, fourier);
+  }
 }
 
 /**
@@ -114,7 +128,12 @@ void CosmoSim::runRayTraceStep()
 void CosmoSim::outputRayTraceStep()
 {
   _timer["output"].start();
+  
   io_raytrace_dump(iodata, step, &rays);
+  
+  if(use_bardeen)
+    io_raytrace_bardeen_dump(iodata, step, &rays, bardeen);
+
   _timer["output"].stop();
 }
 #endif

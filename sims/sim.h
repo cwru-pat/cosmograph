@@ -9,7 +9,7 @@
 
 #include "../IO/io.h"
 #include "../components/bssn/bssn.h"
-
+#include "../components/bssn/bardeen.h"
 
 namespace cosmo
 {
@@ -27,6 +27,9 @@ protected:
   Fourier * fourier;
   
   BSSN * bssnSim;
+
+  Bardeen * bardeen;
+  bool use_bardeen;
 
   int verbosity;
 

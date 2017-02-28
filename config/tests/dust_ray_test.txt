@@ -25,3 +25,5 @@ IO_powerspec_interval = 100
 
 IO_constraint_interval = 10
 IO_bssnstats_interval = 10
+
+use_bardeen = 1

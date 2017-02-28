@@ -167,14 +167,14 @@ void dust_ic_set_sphere(BSSN * bssn, Static * dust, IOData * iodata)
   // spherical shell of perturbations in phi0field
 
   // place shell around center of box
-  real_t x0 = (NX - 0.5)*dx/2.0;
-  real_t y0 = (NY - 0.5)*dx/2.0;
-  real_t z0 = (NZ - 0.5)*dx/2.0;
+  real_t x0 = (NX-0.001)*dx/2.0;
+  real_t y0 = (NY-0.001)*dx/2.0;
+  real_t z0 = (NZ-0.001)*dx/2.0;
 
-  // place spherical "shell" of fluctuations at r = NX/6, 1/3-way between observer and boundary 
-  real_t r_shell = NX*dx / 5.0;
+  // place spherical "shell" of fluctuations at r = NX/4, 1/2-way between observer and boundary 
+  real_t r_shell = NX*dx / 4.0;
   // shell width
-  real_t shell_width = NX*dx / 10.0; // 4-sigma limit for gaussian
+  real_t shell_width = NX*dx / 40.0;
 
   // Angular fluctuations in shell described by spherical harmonic coeffs, a_lm's,
   complex_t * alms = new complex_t[m_idx(l,l)+1];
@@ -232,7 +232,7 @@ std::cout << "al-2_r = " << alms[m_idx(l,-2)].first << ", al-2_i = " << alms[m_i
     }
 
     // gaussian profile shell of fluctuations
-    real_t U_r = A*std::exp( -pw2((r - r_shell)/2.0/(4.0*shell_width)) );
+    real_t U_r = A*std::exp( -pw2((r - r_shell)/2.0/shell_width) );
     // cosine profile
     // real_t U_r = (r < r_shell-shell_width || r > r_shell+shell_width ) ? 0 : A*(1+std::cos(PI*(r-r_shell)/shell_width));
 
