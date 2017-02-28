@@ -10,7 +10,7 @@ void Bardeen::setPotentials()
 
   // compute conformal factor, time-derivatives (assumes dust universe)
   arr_t & DIFFphi_a = *bssn->fields["DIFFphi_a"];
-  real_t a = exp( 2.0*conformal_average(DIFFphi_a, DIFFphi_a, bssn->frw->get_phi()) );
+  real_t a = exp( 2.0*( bssn->frw->get_phi() + conformal_average(DIFFphi_a, DIFFphi_a, bssn->frw->get_phi()) ) );
   real_t dadt = 1.0/std::sqrt(a); // reliant upon on dust universe
   real_t d2adt2 = -1.0/2.0/a/a; // reliant upon on dust universe
 
@@ -134,13 +134,12 @@ void Bardeen::setPotentials()
     Psi[idx] = -1.0/2.0*A[idx] + a*dadt*dt_B[idx]/2.0;
   }
 
-  real_t Psi_mean = 0.0; real_t Phi_mean = 0.0;
-  LOOP3(i,j,k) { idx_t idx = NP_INDEX(i,j,k); Psi_mean += Psi[idx]; Phi_mean += Phi[idx]; }
-  Psi_mean /= POINTS; Phi_mean /= POINTS;
-
-  std::cout << "(Phi, <Phi>, Psi, <Psi>) = (" << Phi[0] << ", " << Phi_mean
-    << ", " << Psi[0] << ", " << Psi_mean << "); Psi-<Psi> = " << Psi[0] - Psi_mean << " \n";
-
+  // debugging; print out values
+  // real_t Psi_mean = 0.0; real_t Phi_mean = 0.0;
+  // LOOP3(i,j,k) { idx_t idx = NP_INDEX(i,j,k); Psi_mean += Psi[idx]; Phi_mean += Phi[idx]; }
+  // Psi_mean /= POINTS; Phi_mean /= POINTS;
+  // std::cout << "(Phi, <Phi>, Psi, <Psi>) = (" << Phi[10] << ", " << Phi_mean
+  //   << ", " << Psi[10] << ", " << Psi_mean << ")\n";
 }
 
 }
