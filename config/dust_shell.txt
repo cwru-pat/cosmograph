@@ -6,8 +6,8 @@ shell_angular_scale_l = 3
 shell_amplitude = 0.00001
 
 ray_integrate = 1
-ray_flip_step = 40
-IO_raytrace_interval = 1
+ray_flip_step = 400
+IO_raytrace_interval = 10
 ray_ic_type = healpix
 healpix_vecs_file = ../config/healpix_vecs/nside_16.vecs
 
@@ -20,5 +20,3 @@ IO_3D_DIFFr_a = 1
 
 IO_constraint_interval = 10
 IO_bssnstats_interval = 10
-
-use_bardeen = 1

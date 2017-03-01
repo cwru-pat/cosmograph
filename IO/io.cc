@@ -357,7 +357,7 @@ void io_raytrace_dump(IOData *iodata, idx_t step,
   RaytraceData<real_t> tmp_rd = {0};
   real_t * ray_dump_values = new real_t[num_rays * num_values];
   
-# pragma omp parallel for
+# pragma omp parallel for private(tmp_rd)
   for(idx_t n=0; n<num_rays; n++)
   {
     tmp_rd = (*rays)[n]->getRaytraceData();
@@ -371,10 +371,15 @@ void io_raytrace_dump(IOData *iodata, idx_t step,
     ray_dump_values[n*num_values + 7] = tmp_rd.sig_Im;
     ray_dump_values[n*num_values + 8] = tmp_rd.rho;
 
+#   pragma omp atomic
     total_E += tmp_rd.E;
+#   pragma omp atomic
     total_Phi += tmp_rd.Phi;
+#   pragma omp atomic
     total_ell += tmp_rd.ell;
+#   pragma omp atomic
     total_ellrho += tmp_rd.ell*tmp_rd.rho;
+#   pragma omp atomic
     total_rho += tmp_rd.E*tmp_rd.rho;
   }
 
