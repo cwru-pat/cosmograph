@@ -5,13 +5,14 @@ cd "$(dirname "$0")"
 # And up two directories should be the main codebase.
 pwd
 
-###
-# Compile
-###
 mkdir -p ../../build
 cd ../../build
 TMP_CONFIG_FILE=stability_test_r4.txt.test
 cp ../config/AwA/stability_test_r4.txt $TMP_CONFIG_FILE
+
+###
+# Compile
+###
 
 # KO Dissipation run
 echo "Running with KO Dissipation..."
