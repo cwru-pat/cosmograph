@@ -304,6 +304,8 @@ void particle_ic_set_vectorpert(BSSN * bssnSim, Particles * particles,
   arr_t & DIFFK_p = *bssnSim->fields["DIFFK_p"];
   // A_xy contains non-FRW fluctuation
   arr_t & A12_p = *bssnSim->fields["A12_p"];
+  // beta1 (x-shift) to counter fluid velocity
+  arr_t & beta1_p = *bssnSim->fields["beta1_p"];
 
   real_t B = std::stod(_config("peak_amplitude", "0.0001"));
   iodata->log( "Generating ICs with peak amp. = " + stringify(B) );
@@ -322,7 +324,14 @@ void particle_ic_set_vectorpert(BSSN * bssnSim, Particles * particles,
     real_t y = j*dx;
 
     DIFFK_p[idx] = K_FRW;
-    A12_p[idx] = B*std::sin(2.0*PI*y/L + phase);
+
+    real_t Axy = B*std::sin(2.0*PI*y/L + phase);
+    A12_p[idx] = Axy;
+
+    // much more unstable when using shift
+    // real_t Sx = B/L*std::cos(2.0*PI*y/L + phase)/4.0; 
+    // real_t rho = ( K_FRW*K_FRW/12.0 - 2.0*Axy*Axy/8.0 ) / 2.0 / PI;
+    // beta1_p[idx] = Sx/rho/std::sqrt(1.0 - pw2(Sx/rho));
   }
 
   // particle values
@@ -374,7 +383,8 @@ void particle_ic_set_vectorpert(BSSN * bssnSim, Particles * particles,
     particle.X[1] = ys[1];
     particle.X[2] = k*dx;
     particle.U[0] = Ux;
-    particle.M = M; // CIC error here?
+    particle.M = M;
+
     particles->addParticle( particle );
   }
 

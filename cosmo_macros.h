@@ -46,7 +46,7 @@
 
 // Gamma-driver gauge settings (must turn on bssn_shift as well)
 #ifndef USE_GAMMA_DRIVER
-  #define USE_GAMMA_DRIVER false
+  #define USE_GAMMA_DRIVER true
 #endif
 
 // Optionally exclude some second-order terms

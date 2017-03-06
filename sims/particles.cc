@@ -44,7 +44,7 @@ void ParticleSim::initParticleStep()
     bssnSim->stepInit();
     particles->stepInit(bssnSim->fields);
     bssnSim->clearSrc();
-    particles->addParticlesToBSSNSrc(bssnSim->fields);
+    particles->addParticlesToBSSNSrc(bssnSim);
   _timer["RK_steps"].stop();
 }
 
@@ -75,7 +75,7 @@ void ParticleSim::runParticleStep()
 
     // Second RK step source
     bssnSim->clearSrc();
-    particles->addParticlesToBSSNSrc(bssnSim->fields);
+    particles->addParticlesToBSSNSrc(bssnSim);
     // Second RK step
     bssnSim->RKEvolve();
     particles->RK2Step(bssnSim->fields);
@@ -84,7 +84,7 @@ void ParticleSim::runParticleStep()
 
     // Third RK step source
     bssnSim->clearSrc();
-    particles->addParticlesToBSSNSrc(bssnSim->fields);
+    particles->addParticlesToBSSNSrc(bssnSim);
     // Third RK step
     bssnSim->RKEvolve();
     particles->RK3Step(bssnSim->fields);
@@ -93,7 +93,7 @@ void ParticleSim::runParticleStep()
 
     // Fourth RK step source
     bssnSim->clearSrc();
-    particles->addParticlesToBSSNSrc(bssnSim->fields);
+    particles->addParticlesToBSSNSrc(bssnSim);
     // Fourth RK step
     bssnSim->RKEvolve();
     particles->RK4Step(bssnSim->fields);

@@ -421,8 +421,6 @@ void Particles::RKStep(ParticleRegister<real_t> * pr, real_t h, real_t RK_sum_co
   for(int i=1; i<=3; i++)
   {
     p_c.X[iIDX(i)] = p_p.X[iIDX(i)] + h*(pp_a.gi[aIDX(i,1)]*p_a.U[iIDX(1)] + pp_a.gi[aIDX(i,2)]*p_a.U[iIDX(2)] + pp_a.gi[aIDX(i,3)]*p_a.U[iIDX(3)] - pp_a.beta[iIDX(i)]);
-    p_f.X[iIDX(i)] += RK_sum_coeff*p_c.X[iIDX(i)];
-
     p_c.U[iIDX(i)] = p_p.U[iIDX(i)] + h*(
       -1.0*W*pp_a.dalpha[iIDX(i)] + p_a.U[iIDX(1)]*pp_a.dbeta[iIDX(i)][iIDX(1)] + p_a.U[iIDX(2)]*pp_a.dbeta[iIDX(i)][iIDX(2)] + p_a.U[iIDX(3)]*pp_a.dbeta[iIDX(i)][iIDX(3)]
       -1.0/2.0/U0*(
@@ -430,6 +428,8 @@ void Particles::RKStep(ParticleRegister<real_t> * pr, real_t h, real_t RK_sum_co
         + 2.0*( pp_a.dgi[iIDX(i)][aIDX(1,2)]*p_a.U[0]*p_a.U[1] + pp_a.dgi[iIDX(i)][aIDX(1,3)]*p_a.U[0]*p_a.U[2] + pp_a.dgi[iIDX(i)][aIDX(2,3)]*p_a.U[1]*p_a.U[2] )
       )
     );
+
+    p_f.X[iIDX(i)] += RK_sum_coeff*p_c.X[iIDX(i)];
     p_f.U[iIDX(i)] += RK_sum_coeff*p_c.U[iIDX(i)];
   }
 }
@@ -509,15 +509,6 @@ void Particles::stepTerm()
       p_p.X[i] = p_f.X[i]/3.0 - 2.0/3.0*p_p.X[i];
       p_p.U[i] = p_f.U[i]/3.0 - 2.0/3.0*p_p.U[i];
     }
-    // std::cout << p_p.X[0] << ", " << p_p.X[1] << ", " << p_p.X[2] << ", ";
-    // std::cout << p_p.U[0] << ", " << p_p.U[1] << ", " << p_p.U[2] << ", ";
-    // idx_t x_idx = getIndexBelow(p_p.X[0]);
-    // idx_t y_idx = getIndexBelow(p_p.X[1]);
-    // idx_t z_idx = getIndexBelow(p_p.X[2]);
-    // real_t x_d[3] = {0};
-    // setX_d(p_p.X, x_d);
-    // std::cout << x_idx  << ", " << y_idx  << ", " << z_idx  << ", ";
-    // std::cout << x_d[0] << ", " << x_d[1] << ", " << x_d[2] << "\n";
   }
   _timer["Particles::RKCalcs"].stop();
 }
@@ -526,29 +517,28 @@ void Particles::stepTerm()
  * Set bssn _a source registers
  * using data from particle _c register
  */
-void Particles::addParticlesToBSSNSrc(
-  map_t & bssn_fields)
+void Particles::addParticlesToBSSNSrc(BSSN * bssnSim)
 {
   _timer["Particles::addToBSSNSrc"].start();
 
   // matter / source fields
   // will always be setting _a register from _a register
-  arr_t & DIFFr_a = *bssn_fields["DIFFr_a"];
-  arr_t & DIFFS_a = *bssn_fields["DIFFS_a"];
-  arr_t & S1_a = *bssn_fields["S1_a"];
-  arr_t & S2_a = *bssn_fields["S2_a"];
-  arr_t & S3_a = *bssn_fields["S3_a"];
-  arr_t & STF11_a = *bssn_fields["STF11_a"];
-  arr_t & STF12_a = *bssn_fields["STF12_a"];
-  arr_t & STF13_a = *bssn_fields["STF13_a"];
-  arr_t & STF22_a = *bssn_fields["STF22_a"];
-  arr_t & STF23_a = *bssn_fields["STF23_a"];
-  arr_t & STF33_a = *bssn_fields["STF33_a"];
+  arr_t & DIFFr_a = *bssnSim->fields["DIFFr_a"];
+  arr_t & DIFFS_a = *bssnSim->fields["DIFFS_a"];
+  arr_t & S1_a = *bssnSim->fields["S1_a"];
+  arr_t & S2_a = *bssnSim->fields["S2_a"];
+  arr_t & S3_a = *bssnSim->fields["S3_a"];
+  arr_t & STF11_a = *bssnSim->fields["STF11_a"];
+  arr_t & STF12_a = *bssnSim->fields["STF12_a"];
+  arr_t & STF13_a = *bssnSim->fields["STF13_a"];
+  arr_t & STF22_a = *bssnSim->fields["STF22_a"];
+  arr_t & STF23_a = *bssnSim->fields["STF23_a"];
+  arr_t & STF33_a = *bssnSim->fields["STF33_a"];
 
   PARTICLES_PARALLEL_LOOP(pr)
   {
     Particle<real_t> & p_a = pr->p_a;
-    ParticleMetricPrimitives<real_t> pp_a = getInterpolatedPrimitivesIncomplete(& p_a, bssn_fields);
+    ParticleMetricPrimitives<real_t> pp_a = getInterpolatedPrimitivesIncomplete(& p_a, bssnSim->fields);
 
     real_t W = std::sqrt( 1.0 + 
         pp_a.gi[aIDX(1,1)]*p_a.U[0]*p_a.U[0] + pp_a.gi[aIDX(2,2)]*p_a.U[1]*p_a.U[1] + pp_a.gi[aIDX(3,3)]*p_a.U[2]*p_a.U[2]
@@ -556,42 +546,84 @@ void Particles::addParticlesToBSSNSrc(
       );
     real_t MnA = p_a.M / W / dx/dx/dx / pp_a.rootdetg;
 
-    real_t trS = MnA*W*W - MnA;
+    real_t rho = MnA*W*W;
+    real_t S = rho - MnA;
     real_t S_1 = MnA*W*p_a.U[0];
     real_t S_2 = MnA*W*p_a.U[1];
     real_t S_3 = MnA*W*p_a.U[2];
 
-    // Eq . 5.226 in Baumgarte & Shapiro, using CIC
-    idx_t x_idx = getIndexBelow(p_a.X[0]);
-    idx_t y_idx = getIndexBelow(p_a.X[1]);
-    idx_t z_idx = getIndexBelow(p_a.X[2]);
-    real_t x_d[3] = {0};
-    setX_d(p_a.X, x_d);
+    // cubic interpolant with kernel of characteristic "softening" radius r_s and maximum width w_k
+    // eg, Eq. 12.2: http://www.ita.uni-heidelberg.de/~dullemond/lectures/num_fluid_2011/Chapter_12.pdf
+    real_t r_s = 2.5; // units of dx
+    real_t w_k = r_s*2.0;
+    idx_t w_idx = (idx_t) (w_k + 1.0);
+    // distribute mass to nearby gridpoints
+    idx_t x_idx = (idx_t) (p_a.X[0]/dx);
+    idx_t y_idx = (idx_t) (p_a.X[1]/dx);
+    idx_t z_idx = (idx_t) (p_a.X[2]/dx);
 #   pragma omp critical
     {
-      for(int x=0; x<=1; ++x)
-        for(int y=0; y<=1; ++y)
-          for(int z=0; z<=1; ++z)
+      for(idx_t x=x_idx-w_idx; x<=x_idx+w_idx+1; ++x)
+        for(idx_t y=y_idx-w_idx; y<=y_idx+w_idx+1; ++y)
+          for(idx_t z=z_idx-w_idx; z<=z_idx+w_idx+1; ++z)
       {
-        idx_t idx = INDEX(x_idx + x, y_idx + y, z_idx + z);
-        real_t cic_weight = (1-std::fabs(x-x_d[0]))*(1-std::fabs(y-x_d[1]))*(1-std::fabs(z-x_d[2]));
-        DIFFr_a[idx] += cic_weight*(MnA*W*W);
-        DIFFS_a[idx] += cic_weight*trS;
+        idx_t idx = INDEX(x,y,z);
 
-        S1_a[idx] += cic_weight*S_1;
-        S2_a[idx] += cic_weight*S_2;
-        S3_a[idx] += cic_weight*S_3;
+        real_t r = std::sqrt( pw2(x - p_a.X[0]/dx) + pw2(y - p_a.X[1]/dx) + pw2(z - p_a.X[2]/dx) );
+        real_t weight = 0.0;
+        real_t q = r/r_s;
+        if(r > 2.0*r_s)
+        {
+          weight = 0;
+        }
+        else if(r > r_s)
+        {
+          weight = 1.0/PI/std::pow(r_s,3.0)*(1.0/4.0)*std::pow((2.0-q), 3.0);
+        }
+        else
+        {
+          weight = 1.0/PI/std::pow(r_s,3.0)*(1.0 - 3.0/2.0*pw2(q) + 3.0/4.0*std::pow(q, 3.0) );
+        }
 
-        // Not trace-free. Trace-free enforced by BSSN class.
-        STF11_a[idx] += cic_weight*(MnA*p_a.U[0]*p_a.U[0]);
-        STF12_a[idx] += cic_weight*(MnA*p_a.U[0]*p_a.U[1]);
-        STF13_a[idx] += cic_weight*(MnA*p_a.U[0]*p_a.U[2]);
-        STF22_a[idx] += cic_weight*(MnA*p_a.U[1]*p_a.U[1]);
-        STF23_a[idx] += cic_weight*(MnA*p_a.U[1]*p_a.U[2]);
-        STF33_a[idx] += cic_weight*(MnA*p_a.U[2]*p_a.U[2]);
+        DIFFr_a[idx] += weight*rho;
+        DIFFS_a[idx] += weight*S;
+
+        S1_a[idx] += weight*S_1;
+        S2_a[idx] += weight*S_2;
+        S3_a[idx] += weight*S_3;
+
+        // Not yet trace-free
+        STF11_a[idx] += weight*(MnA*p_a.U[0]*p_a.U[0]);
+        STF12_a[idx] += weight*(MnA*p_a.U[0]*p_a.U[1]);
+        STF13_a[idx] += weight*(MnA*p_a.U[0]*p_a.U[2]);
+        STF22_a[idx] += weight*(MnA*p_a.U[1]*p_a.U[1]);
+        STF23_a[idx] += weight*(MnA*p_a.U[1]*p_a.U[2]);
+        STF33_a[idx] += weight*(MnA*p_a.U[2]*p_a.U[2]);
       }
-    }
+    } // end loop over nearby indexes 
+  } // end particles loop
 
+
+  // ensure STF is trace-free
+  idx_t i, j, k;
+# pragma omp parallel for default(shared) private(i, j, k)
+  LOOP3(i, j, k)
+  {
+    idx_t idx = NP_INDEX(i,j,k);
+
+    BSSNData bd = {0};
+    bssnSim->set_bd_values(i, j, k, &bd);
+    real_t trS = exp(-4.0*bd.phi)*(
+        STF11_a[idx]*bd.gammai11 + STF22_a[idx]*bd.gammai22 + STF33_a[idx]*bd.gammai33
+        + 2.0*(STF12_a[idx]*bd.gammai12 + STF13_a[idx]*bd.gammai13 + STF23_a[idx]*bd.gammai23)
+      );
+
+    STF11_a[idx] -= (1.0/3.0)*exp(4.0*bd.phi)*bd.gamma11*trS;
+    STF12_a[idx] -= (1.0/3.0)*exp(4.0*bd.phi)*bd.gamma12*trS;
+    STF13_a[idx] -= (1.0/3.0)*exp(4.0*bd.phi)*bd.gamma13*trS;
+    STF22_a[idx] -= (1.0/3.0)*exp(4.0*bd.phi)*bd.gamma22*trS;
+    STF23_a[idx] -= (1.0/3.0)*exp(4.0*bd.phi)*bd.gamma23*trS;
+    STF33_a[idx] -= (1.0/3.0)*exp(4.0*bd.phi)*bd.gamma33*trS;
   }
 
   _timer["Particles::addToBSSNSrc"].stop();

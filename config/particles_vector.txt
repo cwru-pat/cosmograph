@@ -1,16 +1,15 @@
 steps = 100
 dt_frac = 0.1
-particles_per_dy = 8
+particles_per_dy = 1
 deconvolution_strength = 0
 
-lapse = OnePlusLog
-gd_c = 1.0
 
+KO_damping_coefficient = 0.0
 normalize_metric = 1
 
 simulation_type = particles
 ic_type = vectorpert
-peak_amplitude = 0.25
+peak_amplitude = 0.2
 
 output_dir = particle_vectorpert_test
 dump_file = calculated
@@ -32,6 +31,9 @@ IO_1D_DIFFK_a_axis = 2
 
 IO_1D_DIFFgamma12_a = 1
 IO_1D_DIFFgamma12_a_axis = 2
+
+IO_1D_DIFFalpha_a = 1
+IO_1D_DIFFalpha_a_axis = 2
 
 IO_1D_A12_a = 1
 IO_1D_A12_a_axis = 2

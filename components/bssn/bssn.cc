@@ -354,9 +354,6 @@ void BSSN::set_bd_values(idx_t i, idx_t j, idx_t k, BSSNData *bd)
   // Ricci depends on DDphi
   calculateRicciTF(bd);
 
-  // enforce trace-free source
-  enforceTFSIJ(bd);
-
   // Hamiltonian constraint
   bd->H = hamiltonianConstraintCalc(bd);
 }
@@ -577,18 +574,6 @@ void BSSN::calculateRicciTF(BSSNData *bd)
             + 2.0*(bd->Uricci12*bd->gammai12 + bd->Uricci13*bd->gammai13 + bd->Uricci23*bd->gammai23);
 
   /* Phi- contribution */
-# if EXCLUDE_SECOND_ORDER_FRW
-  real_t expression = (
-    bd->gammai11*bd->D1D1phi + bd->gammai22*bd->D2D2phi + bd->gammai33*bd->D3D3phi
-    + 2.0*( bd->gammai12*bd->D1D2phi + bd->gammai13*bd->D1D3phi + bd->gammai23*bd->D2D3phi )
-  );
-  bd->ricci11 = bd->Uricci11 - 2.0*( bd->D1D1phi + bd->gamma11*(expression) );
-  bd->ricci12 = bd->Uricci12 - 2.0*( bd->D1D2phi + bd->gamma12*(expression) );
-  bd->ricci13 = bd->Uricci13 - 2.0*( bd->D1D3phi + bd->gamma13*(expression) );
-  bd->ricci22 = bd->Uricci22 - 2.0*( bd->D2D2phi + bd->gamma22*(expression) );
-  bd->ricci23 = bd->Uricci23 - 2.0*( bd->D2D3phi + bd->gamma23*(expression) );
-  bd->ricci33 = bd->Uricci33 - 2.0*( bd->D3D3phi + bd->gamma33*(expression) );
-# else
   real_t expression = (
     bd->gammai11*(bd->D1D1phi + 2.0*bd->d1phi*bd->d1phi)
     + bd->gammai22*(bd->D2D2phi + 2.0*bd->d2phi*bd->d2phi)
@@ -606,7 +591,6 @@ void BSSN::calculateRicciTF(BSSNData *bd)
   bd->ricci22 = bd->Uricci22 - 2.0*( bd->D2D2phi - 2.0*bd->d2phi*bd->d2phi + bd->gamma22*(expression) );
   bd->ricci23 = bd->Uricci23 - 2.0*( bd->D2D3phi - 2.0*bd->d2phi*bd->d3phi + bd->gamma23*(expression) );
   bd->ricci33 = bd->Uricci33 - 2.0*( bd->D3D3phi - 2.0*bd->d3phi*bd->d3phi + bd->gamma33*(expression) );
-# endif
 
   /* calculate full Ricci scalar at this point */
   bd->ricci = exp(-4.0*bd->phi)*(
@@ -641,6 +625,8 @@ void BSSN::enforceTFSIJ(BSSNData *bd)
   STF22_a[idx] -= (1.0/3.0)*exp(4.0*bd->phi)*bd->gamma22*trS;
   STF23_a[idx] -= (1.0/3.0)*exp(4.0*bd->phi)*bd->gamma23*trS;
   STF33_a[idx] -= (1.0/3.0)*exp(4.0*bd->phi)*bd->gamma33*trS;
+
+  BSSN_APPLY_TO_SOURCES(GEN1_SET_LOCAL_VALUES);
 }
 
 
@@ -720,15 +706,8 @@ real_t BSSN::ev_DIFFK(BSSNData *bd)
   return (
     - bd->DDaTR
     + bd->alpha*(
-#       if EXCLUDE_SECOND_ORDER_FRW
-          1.0/3.0*(bd->DIFFK + 2.0*bd->theta)*2.0*bd->K_FRW
-#       else
           1.0/3.0*(bd->DIFFK + 2.0*bd->theta)*(bd->DIFFK + 2.0*bd->theta + 2.0*bd->K_FRW)
-#       endif
-
-#       if !(EXCLUDE_SECOND_ORDER_SMALL)
           + bd->AijAij
-#       endif
     )
     + 4.0*PI*bd->alpha*(bd->DIFFr + bd->DIFFS)
     + 4.0*PI*bd->DIFFalpha*(bd->rho_FRW + bd->S_FRW)
