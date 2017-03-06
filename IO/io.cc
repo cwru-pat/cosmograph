@@ -135,7 +135,7 @@ void io_bssn_fields_snapshot(IOData *iodata, idx_t step,
   if( output_step && output_this_step )
   {
     for ( const auto &field_reg : bssn_fields ) {
-      // look for names of the form: "IO_2D_field_r"
+      // look for names of the form: "IO_1D_field_r"
       if( std::stoi(_config( "IO_1D_" + field_reg.first , "0")) )
       {
         io_dump_strip(iodata, *bssn_fields[field_reg.first],
@@ -208,6 +208,36 @@ void io_bssn_constraint_violation(IOData *iodata, idx_t step, BSSN * bssnSim)
     io_dump_value(iodata, S_calcs[6], "S_violations", "\t"); // max(S/[S])
     io_dump_value(iodata, S_calcs[2], "S_violations", "\n"); // max(S)
   }
+
+  bool output_g11m1 = ( std::stoi(_config("IO_constraint_g11m1", "0")) > 0 );
+  if( output_step && output_this_step && output_g11m1 )
+  {
+    arr_t & Dg11 = *bssnSim->fields["DIFFphi_a"];
+    idx_t i, j, k;
+    real_t mean = 0, stdev = 0, max = 0;
+#   pragma omp parallel for default(shared) private(i, j, k) reduction(+:mean)
+    LOOP3(i, j, k)
+    {
+      idx_t idx = NP_INDEX(i,j,k);
+      mean += Dg11[idx];
+#     pragma omp critical
+      {
+        max = max > std::fabs(Dg11[idx]) ? max : std::fabs(Dg11[idx]);
+      }
+    }
+    mean /= POINTS;
+#   pragma omp parallel for default(shared) private(i, j, k) reduction(+:stdev)
+    LOOP3(i, j, k)
+    {
+      idx_t idx = NP_INDEX(i,j,k);
+      stdev += std::pow(mean - Dg11[idx], 2.0);
+    }
+    stdev = std::sqrt(stdev/(POINTS-1));
+    io_dump_value(iodata, stdev, "g11_violations", "\t");
+    io_dump_value(iodata, mean, "g11_violations", "\t");
+    io_dump_value(iodata, max, "g11_violations", "\n");
+  }
+
 }
 
 /**
@@ -327,6 +357,7 @@ void io_raytrace_dump(IOData *iodata, idx_t step,
   RaytraceData<real_t> tmp_rd = {0};
   real_t * ray_dump_values = new real_t[num_rays * num_values];
   
+# pragma omp parallel for private(tmp_rd)
   for(idx_t n=0; n<num_rays; n++)
   {
     tmp_rd = (*rays)[n]->getRaytraceData();
@@ -340,10 +371,15 @@ void io_raytrace_dump(IOData *iodata, idx_t step,
     ray_dump_values[n*num_values + 7] = tmp_rd.sig_Im;
     ray_dump_values[n*num_values + 8] = tmp_rd.rho;
 
+#   pragma omp atomic
     total_E += tmp_rd.E;
+#   pragma omp atomic
     total_Phi += tmp_rd.Phi;
+#   pragma omp atomic
     total_ell += tmp_rd.ell;
+#   pragma omp atomic
     total_ellrho += tmp_rd.ell*tmp_rd.rho;
+#   pragma omp atomic
     total_rho += tmp_rd.E*tmp_rd.rho;
   }
 
@@ -628,5 +664,75 @@ void io_dump_2d_array(IOData *iodata, real_t * array, idx_t n_x, idx_t n_y,
   status = status; // suppress "unused" warning
   return;
 }
+
+void io_print_particles(IOData *iodata, idx_t step, Particles *particles)
+{
+  bool output_step = ( std::stoi(_config("IO_particles", "0")) > 0 );
+  bool output_this_step = (0 == step % std::stoi(_config("IO_particles", "1")));
+  if( output_step && output_this_step )
+  {
+    // output misc. info about simulation here.
+    char data[35];
+    std::string dump_filename = iodata->dir() + "particles.dat.gz";
+
+    gzFile datafile = gzopen(dump_filename.c_str(), "ab");
+    if(datafile == Z_NULL) {
+      iodata->log("Error opening file: " + dump_filename);
+      return;
+    }
+
+    particle_vec * p_vec = particles->getParticleVec();
+    for(particle_vec::iterator it = p_vec->begin(); it != p_vec->end(); ++it) {
+      sprintf(data, "%.15g\t", (double) it->p_a.X[0]);
+      gzwrite(datafile, data, strlen(data));
+      sprintf(data, "%.15g\t", (double) it->p_a.X[1]);
+      gzwrite(datafile, data, strlen(data));
+      sprintf(data, "%.15g\t", (double) it->p_a.X[2]);
+      gzwrite(datafile, data, strlen(data));
+    }
+
+    sprintf(data, "\n");
+    gzwrite(datafile, data, strlen(data));
+    gzclose(datafile);
+  }
+}
+
+void io_raytrace_bardeen_dump(IOData *iodata, idx_t step,
+  std::vector<RayTrace<real_t, idx_t> *> const * rays, Bardeen * bardeen)
+{
+  bardeen->setPotentials();
+
+  idx_t num_rays = rays->size();
+  
+  real_t * Phis, * Psis;
+  Phis = new real_t [num_rays];
+  Psis = new real_t [num_rays];
+
+# pragma omp parallel for
+  for(idx_t n=0; n<num_rays; n++)
+  {
+    RaytraceData<real_t> tmp_rd = {0};
+    tmp_rd = (*rays)[n]->getRaytraceData();
+    Phis[n] = interp(tmp_rd.x[0]/dx, tmp_rd.x[1]/dx, tmp_rd.x[2]/dx,
+      NX, NY, NZ, bardeen->Phi);
+    Psis[n] = interp(tmp_rd.x[0]/dx, tmp_rd.x[1]/dx, tmp_rd.x[2]/dx,
+      NX, NY, NZ, bardeen->Psi);
+  }
+
+  // Write data from individual rays to file
+  std::string dataset_name = "step_" + std::to_string(step);
+  std::string file_name = "bardeen_phi_data";
+  io_dump_2d_array(iodata, Phis, num_rays, 1,
+    file_name, dataset_name);
+  file_name = "bardeen_psi_data";
+  io_dump_2d_array(iodata, Psis, num_rays, 1,
+    file_name, dataset_name);
+
+  delete[] Phis;
+  delete[] Psis;
+
+  return;
+}
+
 
 } /* namespace cosmo */

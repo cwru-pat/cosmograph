@@ -18,6 +18,11 @@ Particles::~Particles()
   // anything to do?
 }
 
+particle_vec * Particles::getParticleVec()
+{
+  return particles;
+}
+
 /**
  * @brief Create random particles
  * @details Add particles with randomized positions, zero velocity,
@@ -38,11 +43,15 @@ void Particles::init(idx_t n_particles)
     Particle<real_t> particle = {0};
 
     // Randomized position
-    particle.X[0] = dist(gen)*N*dx;
-    particle.X[1] = dist(gen)*N*dx;
-    particle.X[2] = dist(gen)*N*dx;
+    particle.X[0] = 0.0*dist(gen)*COSMO_N*dx;
+    particle.X[1] = 0.0*dist(gen)*COSMO_N*dx;
+    particle.X[2] = 0.0*dist(gen)*COSMO_N*dx;
     // Mass in units TBD
     particle.M = 1.0*dx*dx*dx;
+
+    particle.U[0] = dist(gen)/3.0;
+    particle.U[1] = dist(gen)/13.0;
+    particle.U[2] = dist(gen)/2.0;
 
     ParticleRegister<real_t> particle_register;
     particle_register.p_p = particle;
@@ -76,7 +85,7 @@ void Particles::addParticle(Particle<real_t> particle)
  */
 real_t Particles::getFractionalIndex(real_t x)
 {
-  return real_t_mod(x, N*dx)/dx;
+  return real_t_mod(x, COSMO_N*dx)/dx;
 }
 
 /**
@@ -500,6 +509,15 @@ void Particles::stepTerm()
       p_p.X[i] = p_f.X[i]/3.0 - 2.0/3.0*p_p.X[i];
       p_p.U[i] = p_f.U[i]/3.0 - 2.0/3.0*p_p.U[i];
     }
+    // std::cout << p_p.X[0] << ", " << p_p.X[1] << ", " << p_p.X[2] << ", ";
+    // std::cout << p_p.U[0] << ", " << p_p.U[1] << ", " << p_p.U[2] << ", ";
+    // idx_t x_idx = getIndexBelow(p_p.X[0]);
+    // idx_t y_idx = getIndexBelow(p_p.X[1]);
+    // idx_t z_idx = getIndexBelow(p_p.X[2]);
+    // real_t x_d[3] = {0};
+    // setX_d(p_p.X, x_d);
+    // std::cout << x_idx  << ", " << y_idx  << ", " << z_idx  << ", ";
+    // std::cout << x_d[0] << ", " << x_d[1] << ", " << x_d[2] << "\n";
   }
   _timer["Particles::RKCalcs"].stop();
 }
@@ -538,57 +556,41 @@ void Particles::addParticlesToBSSNSrc(
       );
     real_t MnA = p_a.M / W / dx/dx/dx / pp_a.rootdetg;
 
-    // Eq . 5.226 in Baumgarte & Shapiro, using NGP or CIC
-    //<<< TODO: option to control this
-#   if false
-      // NGP interpolant
-      idx_t x_idx = getNearestIndex(p_a.X[0]);
-      idx_t y_idx = getNearestIndex(p_a.X[1]);
-      idx_t z_idx = getNearestIndex(p_a.X[2]);
-      idx_t idx = INDEX(x_idx, y_idx, z_idx);
-#     pragma omp critical
+    real_t trS = MnA*W*W - MnA;
+    real_t S_1 = MnA*W*p_a.U[0];
+    real_t S_2 = MnA*W*p_a.U[1];
+    real_t S_3 = MnA*W*p_a.U[2];
+
+    // Eq . 5.226 in Baumgarte & Shapiro, using CIC
+    idx_t x_idx = getIndexBelow(p_a.X[0]);
+    idx_t y_idx = getIndexBelow(p_a.X[1]);
+    idx_t z_idx = getIndexBelow(p_a.X[2]);
+    real_t x_d[3] = {0};
+    setX_d(p_a.X, x_d);
+#   pragma omp critical
+    {
+      for(int x=0; x<=1; ++x)
+        for(int y=0; y<=1; ++y)
+          for(int z=0; z<=1; ++z)
       {
-        DIFFr_a[idx] += MnA*W*W;
-        DIFFS_a[idx] += MnA*W*W - MnA;
-        S1_a[idx] += MnA*W*p_a.U[0];
-        S2_a[idx] += MnA*W*p_a.U[1];
-        S3_a[idx] += MnA*W*p_a.U[2];
-        STF11_a[idx] += MnA*p_a.U[0]*p_a.U[0];
-        STF12_a[idx] += MnA*p_a.U[0]*p_a.U[1];
-        STF13_a[idx] += MnA*p_a.U[0]*p_a.U[2];
-        STF22_a[idx] += MnA*p_a.U[1]*p_a.U[1];
-        STF23_a[idx] += MnA*p_a.U[1]*p_a.U[2];
-        STF33_a[idx] += MnA*p_a.U[2]*p_a.U[2];
+        idx_t idx = INDEX(x_idx + x, y_idx + y, z_idx + z);
+        real_t cic_weight = (1-std::fabs(x-x_d[0]))*(1-std::fabs(y-x_d[1]))*(1-std::fabs(z-x_d[2]));
+        DIFFr_a[idx] += cic_weight*(MnA*W*W);
+        DIFFS_a[idx] += cic_weight*trS;
+
+        S1_a[idx] += cic_weight*S_1;
+        S2_a[idx] += cic_weight*S_2;
+        S3_a[idx] += cic_weight*S_3;
+
+        // Not trace-free. Trace-free enforced by BSSN class.
+        STF11_a[idx] += cic_weight*(MnA*p_a.U[0]*p_a.U[0]);
+        STF12_a[idx] += cic_weight*(MnA*p_a.U[0]*p_a.U[1]);
+        STF13_a[idx] += cic_weight*(MnA*p_a.U[0]*p_a.U[2]);
+        STF22_a[idx] += cic_weight*(MnA*p_a.U[1]*p_a.U[1]);
+        STF23_a[idx] += cic_weight*(MnA*p_a.U[1]*p_a.U[2]);
+        STF33_a[idx] += cic_weight*(MnA*p_a.U[2]*p_a.U[2]);
       }
-#   else
-      // CIC / linear weighting interpolant
-      idx_t x_idx = getIndexBelow(p_a.X[0]);
-      idx_t y_idx = getIndexBelow(p_a.X[1]);
-      idx_t z_idx = getIndexBelow(p_a.X[2]);
-      real_t x_d[3] = {0};
-      setX_d(p_a.X, x_d);
-#     pragma omp critical
-      {
-        for(int x=0; x<2; ++x)
-          for(int y=0; y<2; ++y)
-            for(int z=0; z<2; ++z)
-            {
-              idx_t idx = INDEX(x_idx + x, y_idx + y, z_idx + z);
-              real_t cic_weight = (1-std::fabs(x-x_d[0]))*(1-std::fabs(y-x_d[1]))*(1-std::fabs(z-x_d[2]));
-              DIFFr_a[idx] += cic_weight*(MnA*W*W);
-              DIFFS_a[idx] += cic_weight*(MnA*W*W - MnA);
-              S1_a[idx] += cic_weight*(MnA*W*p_a.U[0]);
-              S2_a[idx] += cic_weight*(MnA*W*p_a.U[1]);
-              S3_a[idx] += cic_weight*(MnA*W*p_a.U[2]);
-              STF11_a[idx] += cic_weight*(MnA*p_a.U[0]*p_a.U[0]);
-              STF12_a[idx] += cic_weight*(MnA*p_a.U[0]*p_a.U[1]);
-              STF13_a[idx] += cic_weight*(MnA*p_a.U[0]*p_a.U[2]);
-              STF22_a[idx] += cic_weight*(MnA*p_a.U[1]*p_a.U[1]);
-              STF23_a[idx] += cic_weight*(MnA*p_a.U[1]*p_a.U[2]);
-              STF33_a[idx] += cic_weight*(MnA*p_a.U[2]*p_a.U[2]);
-            }
-      }
-#   endif
+    }
 
   }
 

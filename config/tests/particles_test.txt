@@ -1,7 +1,14 @@
-steps = 100
+steps = 4000
+
+lapse = Harmonic
+
+KO_damping_coefficient = 1.0
+k_damping_amp = 0
+a_adj_amp = 0
+normalize_metric = 1
 
 simulation_type = particles
-peak_amplitude_frac = 5.0
+peak_amplitude_frac = 5000.0
 rho_K_lambda_frac = 0.0
 ic_spec_cut = 1
 IC_viol_amp = 0.0
@@ -13,12 +20,7 @@ dump_file = calculated
 
 IO_3D_grid_interval = 100
 IO_3D_DIFFphi_a = 1
-IO_2D_grid_interval = 100
-IO_2D_DIFFphi_a = 1
-IO_1D_grid_interval = 10
-IO_1D_DIFFphi_a = 1
+IO_3D_DIFFr_a = 1
 
-IO_powerspec_interval = 100
-
-IO_constraint_interval = 10
-IO_bssnstats_interval = 10
+IO_constraint_interval = 1
+IO_bssnstats_interval = 1

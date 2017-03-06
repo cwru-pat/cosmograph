@@ -27,6 +27,8 @@ public:
   void init(idx_t n_particles);
   void addParticle(Particle<real_t> particle);
   
+  particle_vec * getParticleVec();
+
   real_t getFractionalIndex(real_t x);
   idx_t getIndexBelow(real_t x);
   idx_t getNearestIndex(real_t x);

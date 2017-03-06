@@ -30,6 +30,15 @@ CosmoSim::CosmoSim()
   }
 # endif
 
+  if( stoi(_config("use_bardeen", "0")) )
+  {
+    use_bardeen = true;
+  }
+  else
+  {
+    use_bardeen = false;
+  }
+
   // Store simulation type
   simulation_type = _config["simulation_type"];
 }
@@ -62,10 +71,14 @@ void CosmoSim::simInit()
       iodata->log("Please change this setting in cosmo_macros.h and recompile.");
       throw -1;
     }
-    int rays_num = std::stoi(_config["rays_num"]);
-    init_ray_vector(&rays, rays_num);
+    init_ray_vector(&rays);
   }
 # endif
+
+  if(use_bardeen)
+  {
+    bardeen = new Bardeen(bssnSim, fourier);
+  }
 }
 
 /**
@@ -115,7 +128,12 @@ void CosmoSim::runRayTraceStep()
 void CosmoSim::outputRayTraceStep()
 {
   _timer["output"].start();
+  
   io_raytrace_dump(iodata, step, &rays);
+  
+  if(use_bardeen)
+    io_raytrace_bardeen_dump(iodata, step, &rays, bardeen);
+
   _timer["output"].stop();
 }
 #endif
@@ -170,7 +188,7 @@ void CosmoSim::outputStateInformation()
   bssnSim->stepInit();
   prepBSSNOutput();
   iodata->log(
-      "Average | Min | Max conformal factor reached: " + stringify(
+      "Average | Min | Max conformal factor: " + stringify(
         average(*bssnSim->fields["DIFFphi_a"]) + bssnSim->frw->get_phi()
       ) + " | " + stringify(
         min(*bssnSim->fields["DIFFphi_a"]) + bssnSim->frw->get_phi()
@@ -178,7 +196,7 @@ void CosmoSim::outputStateInformation()
         max(*bssnSim->fields["DIFFphi_a"]) + bssnSim->frw->get_phi()
       ));
   iodata->log(
-      "Average | Min | Max extrinsic curvature reached: " + stringify(
+      "Average | Min | Max extrinsic curvature: " + stringify(
         average(*bssnSim->fields["DIFFK_a"]) + bssnSim->frw->get_K()
       ) + " | " + stringify(
         min(*bssnSim->fields["DIFFK_a"]) + bssnSim->frw->get_K()
@@ -190,15 +208,15 @@ void CosmoSim::outputStateInformation()
   bssnSim->setConstraintCalcs(H_calcs, M_calcs, G_calcs,
                               A_calcs, S_calcs);
   iodata->log(
-      "Final Max. (Normed) Hamiltonian constraint violation: "
+      "Max. (Normed) Hamiltonian constraint violation: "
       + stringify(H_calcs[2]) + " (" + stringify(H_calcs[6]) + ")"
     );
   iodata->log(
-      "Final Max. (Normed) Momentum constraint violation: "
+      "Max. (Normed) Momentum constraint violation: "
       + stringify(M_calcs[2]) + " (" + stringify(M_calcs[6]) + ")"
     );
 # if USE_BSSN_SHIFT
-  iodata->log("Final num. e-folds expanded for is: "
+  iodata->log("num. e-folds expanded for is: "
     + stringify( exp(conformal_average( *bssnSim->fields["expN_a"],
       *bssnSim->fields["DIFFphi_a"], bssnSim->frw->get_phi() )) )
     );

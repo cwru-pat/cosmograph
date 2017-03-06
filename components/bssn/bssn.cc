@@ -208,6 +208,7 @@ void BSSN::K1Finalize()
 {
   frw->P1_step(dt);
   BSSN_FINALIZE_K(1);
+  K_avg = conformal_average(DIFFK->_array_a, DIFFphi->_array_a, frw->get_phi());
 }
 
 /**
@@ -218,6 +219,7 @@ void BSSN::K2Finalize()
 {
   frw->P2_step(dt);
   BSSN_FINALIZE_K(2);
+  K_avg = conformal_average(DIFFK->_array_a, DIFFphi->_array_a, frw->get_phi());
 }
 
 /**
@@ -228,6 +230,7 @@ void BSSN::K3Finalize()
 {
   frw->P3_step(dt);
   BSSN_FINALIZE_K(3);
+  K_avg = conformal_average(DIFFK->_array_a, DIFFphi->_array_a, frw->get_phi());
 }
 
 /**
@@ -238,6 +241,7 @@ void BSSN::K4Finalize()
 {
   frw->RK_total_step(dt);
   BSSN_FINALIZE_K(4);
+  K_avg = conformal_average(DIFFK->_array_f, DIFFphi->_array_f, frw->get_phi());
 }
 
 /**
@@ -307,6 +311,9 @@ void BSSN::set_bd_values(idx_t i, idx_t j, idx_t k, BSSNData *bd)
   bd->rho_FRW = frw->get_rho();
   bd->S_FRW = frw->get_S();
 
+  // average K
+  bd->K_avg = K_avg;
+
   // draw data from cache
   set_local_vals(bd);
   set_gammai_values(i, j, k, bd);
@@ -346,6 +353,9 @@ void BSSN::set_bd_values(idx_t i, idx_t j, idx_t k, BSSNData *bd)
   calculateDDalphaTF(bd);
   // Ricci depends on DDphi
   calculateRicciTF(bd);
+
+  // enforce trace-free source
+  enforceTFSIJ(bd);
 
   // Hamiltonian constraint
   bd->H = hamiltonianConstraintCalc(bd);
@@ -617,6 +627,21 @@ void BSSN::calculateRicciTF(BSSNData *bd)
   return;
 }
 
+void BSSN::enforceTFSIJ(BSSNData *bd)
+{
+  idx_t idx = bd->idx;
+  real_t trS = exp(-4.0*bd->phi)*(
+      STF11_a[idx]*bd->gammai11 + STF22_a[idx]*bd->gammai22 + STF33_a[idx]*bd->gammai33
+      + 2.0*(STF12_a[idx]*bd->gammai12 + STF13_a[idx]*bd->gammai13 + STF23_a[idx]*bd->gammai23)
+    );
+
+  STF11_a[idx] -= (1.0/3.0)*exp(4.0*bd->phi)*bd->gamma11*trS;
+  STF12_a[idx] -= (1.0/3.0)*exp(4.0*bd->phi)*bd->gamma12*trS;
+  STF13_a[idx] -= (1.0/3.0)*exp(4.0*bd->phi)*bd->gamma13*trS;
+  STF22_a[idx] -= (1.0/3.0)*exp(4.0*bd->phi)*bd->gamma22*trS;
+  STF23_a[idx] -= (1.0/3.0)*exp(4.0*bd->phi)*bd->gamma23*trS;
+  STF33_a[idx] -= (1.0/3.0)*exp(4.0*bd->phi)*bd->gamma33*trS;
+}
 
 
 /*

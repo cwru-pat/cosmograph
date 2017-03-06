@@ -1,6 +1,6 @@
 # Simulation resolution
 if(DEFINED COSMO_N)
-  add_definitions(-DN=${COSMO_N})
+  add_definitions(-DCOSMO_N=${COSMO_N})
   message(STATUS "${Cyan}Setting N=${COSMO_N}.${ColorReset}")
 endif()
 

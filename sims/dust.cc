@@ -10,7 +10,7 @@ DustSim::DustSim()
   if(_config("lapse", "") != "" && _config("lapse", "") != "static")
   {
     iodata->log("Error - not using synchronous gauge! You must use it for dust sims.");
-    iodata->log("Please change this setting in cosmo_macros.h and recompile.");
+    iodata->log("Please change this setting in the config file and re-run.");
     throw -1;
   }
 }
@@ -38,7 +38,16 @@ void DustSim::setICs()
   _timer["ICs"].start();
 
   iodata->log("Setting dust initial conditions (ICs).");
-  dust_ic_set_random(bssnSim, staticSim, fourier, iodata);
+
+  if(_config("ic_type", "") == "shell")
+  {
+    dust_ic_set_sphere(bssnSim, staticSim, iodata);
+  }
+  else
+  {
+    iodata->log("Creating gaussian random field.");
+    dust_ic_set_random(bssnSim, staticSim, fourier, iodata);
+  }
   iodata->log("Finished setting ICs.");
   
   _timer["ICs"].stop();

@@ -499,13 +499,15 @@
   )
 
 #define BSSN_MI_SCALE(I) exp(6.0*bd->phi)*( \
-    fabs(2.0/3.0*derivative(bd->i, bd->j, bd->k, I, DIFFK->_array_a)) \
-    + fabs(8*PI*(bd->S##I)) \
-    + 6.0*fabs( \
+    std::abs(2.0/3.0*bd->d##I##K) \
+    /* Note: S_I was lowered with the full metric, not conformal. */ \
+    + std::abs(8*PI*(bd->S##I)) \
+    + std::abs(2.0/3.0*2.0*bd->d##I##theta) \
+    + 6.0*std::abs( \
       bd->gammai11*bd->A1##I*bd->d1phi + bd->gammai21*bd->A2##I*bd->d1phi + bd->gammai31*bd->A3##I*bd->d1phi \
       + bd->gammai12*bd->A1##I*bd->d2phi + bd->gammai22*bd->A2##I*bd->d2phi + bd->gammai32*bd->A3##I*bd->d2phi \
       + bd->gammai13*bd->A1##I*bd->d3phi + bd->gammai23*bd->A2##I*bd->d3phi + bd->gammai33*bd->A3##I*bd->d3phi \
-    ) + fabs( \
+    ) + std::abs( \
       /* (gamma^jk D_j A_ki) */ \
       bd->gammai11*derivative(bd->i, bd->j, bd->k, 1, A1##I->_array_a) + bd->gammai12*derivative(bd->i, bd->j, bd->k, 2, A1##I->_array_a) + bd->gammai13*derivative(bd->i, bd->j, bd->k, 3, A1##I->_array_a) \
       + bd->gammai21*derivative(bd->i, bd->j, bd->k, 1, A2##I->_array_a) + bd->gammai22*derivative(bd->i, bd->j, bd->k, 2, A2##I->_array_a) + bd->gammai23*derivative(bd->i, bd->j, bd->k, 3, A2##I->_array_a) \
@@ -523,7 +525,7 @@
    - 2.0*(bd->gammai12*bd->G##I##12 + bd->gammai13*bd->G##I##13 + bd->gammai23*bd->G##I##23);
 
 #define BSSN_GI_SCALE(I) \
-  fabs(bd->Gamma##I) + fabs(bd->gammai11*bd->G##I##11 - bd->gammai22*bd->G##I##22 - bd->gammai33*bd->G##I##33 \
+  std::abs(bd->Gamma##I) + std::abs(bd->gammai11*bd->G##I##11 - bd->gammai22*bd->G##I##22 - bd->gammai33*bd->G##I##33 \
    - 2.0*(bd->gammai12*bd->G##I##12 + bd->gammai13*bd->G##I##13 + bd->gammai23*bd->G##I##23));
 
 

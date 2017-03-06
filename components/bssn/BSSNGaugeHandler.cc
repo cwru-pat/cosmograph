@@ -22,8 +22,8 @@ real_t BSSNGaugeHandler::Static(BSSNData *bd)
  */
 real_t BSSNGaugeHandler::HarmonicLapse(BSSNData *bd)
 {
-  // TODO: Generalize K0
-  return -1.0*pw2(bd->alpha)*( bd->K - bd->K0 );
+  // TODO: Generalize K0 (FIX)
+  return -1.0*pw2(bd->alpha)*( bd->K - bd->K_avg );
 }
 
 
@@ -36,8 +36,7 @@ real_t BSSNGaugeHandler::AnharmonicLapse(BSSNData *bd)
   // Ref. showing presence of offset:
   // http://relativity.livingreviews.org/open?pubNo=lrr-2012-9&amp;page=articlesu7.html
   // for FRW (+ perturbation) sims, having no offset leads to lapse blowing up?
-  real_t K_FRW_0 = -3.0;
-  return 1.0*pw2(bd->alpha)*( bd->K - K_FRW_0 );
+  return 1.0*pw2(bd->alpha)*( bd->K - bd->K_avg );
 }
 
 
@@ -46,7 +45,7 @@ real_t BSSNGaugeHandler::AnharmonicLapse(BSSNData *bd)
  */
 real_t BSSNGaugeHandler::OnePlusLogLapse(BSSNData *bd)
 {
-  return -2.0*bd->alpha*( bd->K  )*gd_c
+  return -2.0*bd->alpha*( bd->K - bd->K_avg )*gd_c
       + bd->beta1*bd->d1a + bd->beta2*bd->d2a + bd->beta3*bd->d3a;
 }
 

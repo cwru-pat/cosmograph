@@ -40,6 +40,8 @@ public:
 
   // Standard FRW spacetime integrator - for a reference metric
   FRW<real_t> * frw; ///< FRW reference metric instance
+  // Average K for reference
+  real_t K_avg;
 
   BSSN(ConfigParser * config);
   ~BSSN();
@@ -89,6 +91,8 @@ public:
       void calculateDDphi(BSSNData *bd);
       void calculateRicciTF(BSSNData *bd);
       void calculateDDalphaTF(BSSNData *bd);
+
+      void enforceTFSIJ(BSSNData *bd);
 
     /* (optional) Calculations of additional quantities */
       void set_full_metric(BSSNData *bd);

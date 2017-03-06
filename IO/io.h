@@ -14,7 +14,9 @@
 #endif
 
 #include "../components/bssn/bssn.h"
+#include "../components/bssn/bardeen.h"
 #include "../components/scalar/scalar.h"
+#include "../components/particles/particles.h"
 #include "IOData.h"
 
 namespace cosmo
@@ -50,6 +52,11 @@ void io_dump_value(IOData *iodata, real_t value, std::string filename,
   std::string delimiter);
 void io_dump_2d_array(IOData *iodata, real_t * array, idx_t n_x, idx_t n_y,
   std::string filename, std::string dataset_name);
+
+void io_print_particles(IOData *iodata, idx_t step, Particles *particles);
+
+void io_raytrace_bardeen_dump(IOData *iodata, idx_t step,
+  std::vector<RayTrace<real_t, idx_t> *> const * rays, Bardeen * bardeen);
 
 }
 

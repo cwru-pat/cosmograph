@@ -1,7 +1,7 @@
 steps = 100
 
 simulation_type = dust
-peak_amplitude_frac = 5.0
+peak_amplitude_frac = 10000.0
 rho_K_lambda_frac = 0.0
 ic_spec_cut = 1
 IC_viol_amp = 0.0
@@ -25,3 +25,5 @@ IO_powerspec_interval = 100
 
 IO_constraint_interval = 10
 IO_bssnstats_interval = 10
+
+use_bardeen = 1

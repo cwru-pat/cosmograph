@@ -9,17 +9,17 @@
 
 // simulation size
 // Code runs much slower with global N (slow indexing?)
-#ifndef N
-  #define N 16
+#ifndef COSMO_N
+  #define COSMO_N 16
 #endif
 #ifndef NX
-  #define NX N
+  #define NX COSMO_N
 #endif
 #ifndef NY
-  #define NY N
+  #define NY COSMO_N
 #endif
 #ifndef NZ
-  #define NZ N
+  #define NZ COSMO_N
 #endif
 #define POINTS ((NX)*(NY)*(NZ))
 
@@ -41,7 +41,7 @@
 
 // evolve shift as well? (if not, assumed to be zero)
 #ifndef USE_BSSN_SHIFT
-  #define USE_BSSN_SHIFT false
+  #define USE_BSSN_SHIFT true
 #endif
 
 // Gamma-driver gauge settings (must turn on bssn_shift as well)

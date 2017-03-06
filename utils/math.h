@@ -645,6 +645,8 @@ inline real_t laplacian(idx_t i, idx_t j, idx_t k, arr_t & field)
   );
 }
 
+
+
 /**
  * @brief Compute the average of a field
  * 
@@ -664,6 +666,7 @@ inline real_t average(arr_t & field)
   }
   return sum/POINTS;
 }
+
 
 /**
  * @brief Compute the average volume of a simulation
@@ -843,6 +846,7 @@ inline idx_t idx_t_mod(idx_t n, idx_t d)
 
 inline real_t real_t_mod(real_t n, real_t d)
 {
+  // is there a (small) chance of this not actually working due to roundoff?
   return n - d*std::floor(n/d);
 }
 
@@ -1441,6 +1445,36 @@ inline real_t laplacian(idx_t i, idx_t j, idx_t k, idx_t nx, idx_t ny, idx_t nz,
           + double_derivative(i, j, k, nx, ny, nz, 2, 2, field)
           + double_derivative(i, j, k, nx, ny, nz, 3, 3, field)
   );
+}
+
+inline real_t interp(real_t i, real_t j, real_t k, idx_t nx, idx_t ny,
+  idx_t nz, arr_t & field)
+{
+  real_t C000 = field[INDEX( (idx_t) i, (idx_t) j, (idx_t) k )];
+  real_t C001 = field[INDEX( (idx_t) i, (idx_t) j, (idx_t) k + 1 )];
+  real_t C010 = field[INDEX( (idx_t) i, (idx_t) j + 1, (idx_t) k )];
+  real_t C011 = field[INDEX( (idx_t) i, (idx_t) j + 1, (idx_t) k + 1 )];
+  real_t C100 = field[INDEX( (idx_t) i + 1, (idx_t) j, (idx_t) k )];
+  real_t C101 = field[INDEX( (idx_t) i + 1, (idx_t) j, (idx_t) k + 1 )];
+  real_t C110 = field[INDEX( (idx_t) i + 1, (idx_t) j + 1, (idx_t) k )];
+  real_t C111 = field[INDEX( (idx_t) i + 1, (idx_t) j + 1, (idx_t) k + 1 )];
+
+  real_t i_frac = real_t_mod( i, 1.0 );
+  real_t j_frac = real_t_mod( j, 1.0 );
+  real_t k_frac = real_t_mod( k, 1.0 );
+
+  real_t C00 = C000*(1.0 - i_frac) + C100*i_frac;
+  real_t C01 = C001*(1.0 - i_frac) + C101*i_frac;
+  real_t C10 = C010*(1.0 - i_frac) + C110*i_frac;
+  real_t C11 = C011*(1.0 - i_frac) + C111*i_frac;
+
+  real_t C0 = C00*(1.0 - j_frac) + C10*j_frac;
+  real_t C1 = C01*(1.0 - j_frac) + C11*j_frac;
+
+  // return "C"
+  return C0*(1.0 - k_frac) + C1*k_frac;
+
+  return 0.0;
 }
 
 }

@@ -1,0 +1,24 @@
+steps = 800
+
+simulation_type = dust
+ic_type = shell
+shell_angular_scale_l = 3
+shell_amplitude = 0.00001
+
+ray_integrate = 1
+ray_flip_step = 400
+IO_raytrace_interval = 1
+ray_ic_type = healpix
+healpix_vecs_file = ../config/healpix_vecs/nside_16.vecs
+
+output_dir = dust_shell
+dump_file = calculated
+
+IO_3D_grid_interval = 100
+IO_3D_DIFFphi_a = 1
+IO_3D_DIFFr_a = 1
+
+IO_constraint_interval = 10
+IO_bssnstats_interval = 10
+
+use_bardeen = 1
