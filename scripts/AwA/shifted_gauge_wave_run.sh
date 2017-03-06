@@ -8,6 +8,7 @@ pwd
 ###
 # Compile
 ###
+
 mkdir -p ../../build
 cd ../../build
 
@@ -36,3 +37,4 @@ cmake -DCOSMO_N=100 -DCOSMO_NY=6 -DCOSMO_NZ=6 -DCOSMO_H_LEN_FRAC=1 -DCOSMO_USE_B
 ./cosmo ../config/AwA/shifted_gauge_wave_test_r2.txt
 cmake -DCOSMO_N=200 -DCOSMO_NY=6 -DCOSMO_NZ=6 -DCOSMO_H_LEN_FRAC=1 -DCOSMO_USE_BSSN_SHIFT=1 .. && make -j16
 ./cosmo ../config/AwA/shifted_gauge_wave_test_r4.txt
+
