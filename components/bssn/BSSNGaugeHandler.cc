@@ -202,4 +202,23 @@ real_t BSSNGaugeHandler::AwAShiftedWaveShift3(BSSNData *bd)
 }
 
 
+
+
+/**
+ * @brief AwA "redshifted" shift
+ */
+real_t BSSNGaugeHandler::RedShift1(BSSNData *bd)
+{
+  return 2.0/3.0*bd->K*bd->alpha*bd->beta1;
+}
+real_t BSSNGaugeHandler::RedShift2(BSSNData *bd)
+{
+  return 2.0/3.0*bd->K*bd->alpha*bd->beta2;
+}
+real_t BSSNGaugeHandler::RedShift3(BSSNData *bd)
+{
+  return 2.0/3.0*bd->K*bd->alpha*bd->beta3;
+}
+
+
 } // namespace cosmo

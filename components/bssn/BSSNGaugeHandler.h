@@ -69,6 +69,11 @@ private:
   real_t AwAShiftedWaveShift2(BSSNData *bd);
   real_t AwAShiftedWaveShift3(BSSNData *bd);
 
+  // RedShift
+  real_t RedShift1(BSSNData *bd);
+  real_t RedShift2(BSSNData *bd);
+  real_t RedShift3(BSSNData *bd);
+
   // Map of strings to functions
   void _initGaugeMaps()
   {
@@ -99,6 +104,10 @@ private:
     shift_gauge_map["AwAShiftedWave"]["1"] = &BSSNGaugeHandler::AwAShiftedWaveShift1;
     shift_gauge_map["AwAShiftedWave"]["2"] = &BSSNGaugeHandler::AwAShiftedWaveShift2;
     shift_gauge_map["AwAShiftedWave"]["3"] = &BSSNGaugeHandler::AwAShiftedWaveShift3;
+    // Trial vector mode shift velocity-counter
+    shift_gauge_map["RedShift"]["1"] = &BSSNGaugeHandler::RedShift1;
+    shift_gauge_map["RedShift"]["2"] = &BSSNGaugeHandler::RedShift2;
+    shift_gauge_map["RedShift"]["3"] = &BSSNGaugeHandler::RedShift3;
   }
 
   void _initDefaultParameters(ConfigParser *config)
@@ -146,6 +155,7 @@ public:
       throw -1;
     }
 
+    std::cout << "Using lapse: `" << name << "`.\n";
     lapse_fn = lapse_gauge_map[name];
   }
 

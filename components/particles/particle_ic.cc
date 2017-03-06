@@ -329,9 +329,9 @@ void particle_ic_set_vectorpert(BSSN * bssnSim, Particles * particles,
     A12_p[idx] = Axy;
 
     // much more unstable when using shift
-    // real_t Sx = B/L*std::cos(2.0*PI*y/L + phase)/4.0; 
-    // real_t rho = ( K_FRW*K_FRW/12.0 - 2.0*Axy*Axy/8.0 ) / 2.0 / PI;
-    // beta1_p[idx] = Sx/rho/std::sqrt(1.0 - pw2(Sx/rho));
+    real_t Sx = B/L*std::cos(2.0*PI*y/L + phase)/4.0; 
+    real_t rho = ( K_FRW*K_FRW/12.0 - 2.0*Axy*Axy/8.0 ) / 2.0 / PI;
+    beta1_p[idx] = Sx/rho/std::sqrt(1.0 - pw2(Sx/rho));
   }
 
   // particle values

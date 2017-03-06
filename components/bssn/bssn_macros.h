@@ -564,12 +564,6 @@
  */
 
 // actual fields:
-#define gamma21 gamma12
-#define gamma31 gamma13
-#define gamma32 gamma23
-#define gammai21 gammai12
-#define gammai31 gammai13
-#define gammai32 gammai23
 #define A21 A12
 #define A31 A13
 #define A32 A23
@@ -581,14 +575,17 @@
 #define DIFFgammai31 DIFFgammai13
 #define DIFFgammai32 DIFFgammai23
 
-#define DIFFgamma21 DIFFgamma12
-#define DIFFgamma31 DIFFgamma13
-#define DIFFgamma32 DIFFgamma23
-#define A21 A12
-#define A31 A13
-#define A32 A23
-
 // local variables:
+// non-difference metric
+#define gamma21 gamma12
+#define gamma31 gamma13
+#define gamma32 gamma23
+
+// inverse metric
+#define gammai21 gammai12
+#define gammai31 gammai13
+#define gammai32 gammai23
+
 // ricci tensor
 #define ricciTF21 ricciTF12
 #define ricciTF31 ricciTF13
