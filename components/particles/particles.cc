@@ -509,6 +509,15 @@ void Particles::stepTerm()
       p_p.X[i] = p_f.X[i]/3.0 - 2.0/3.0*p_p.X[i];
       p_p.U[i] = p_f.U[i]/3.0 - 2.0/3.0*p_p.U[i];
     }
+    // std::cout << p_p.X[0] << ", " << p_p.X[1] << ", " << p_p.X[2] << ", ";
+    // std::cout << p_p.U[0] << ", " << p_p.U[1] << ", " << p_p.U[2] << ", ";
+    // idx_t x_idx = getIndexBelow(p_p.X[0]);
+    // idx_t y_idx = getIndexBelow(p_p.X[1]);
+    // idx_t z_idx = getIndexBelow(p_p.X[2]);
+    // real_t x_d[3] = {0};
+    // setX_d(p_p.X, x_d);
+    // std::cout << x_idx  << ", " << y_idx  << ", " << z_idx  << ", ";
+    // std::cout << x_d[0] << ", " << x_d[1] << ", " << x_d[2] << "\n";
   }
   _timer["Particles::RKCalcs"].stop();
 }
