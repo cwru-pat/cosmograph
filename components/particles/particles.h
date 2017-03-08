@@ -4,6 +4,7 @@
 #include "../../cosmo_types.h"
 #include "../../cosmo_includes.h"
 #include "particles_data.h"
+#include "../bssn/bssn.h"
 
 namespace cosmo
 {
@@ -64,7 +65,8 @@ public:
   void regSwap_c_a();
   void stepTerm();
 
-  void addParticlesToBSSNSrc(map_t & bssn_fields);
+  real_t getKernelWeight(real_t r, real_t r_s);
+  void addParticlesToBSSNSrc(BSSN * bssnSim);
   void addParticleToBSSNSrc(Particle<real_t> * p_c, map_t & bssn_fields);
 };
 

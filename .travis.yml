@@ -18,6 +18,7 @@ addons:
     - libhdf5-serial-dev
     - libfftw3-dev
     - libzip-dev
+    - libboost-dev
 
 install:
  - pwd

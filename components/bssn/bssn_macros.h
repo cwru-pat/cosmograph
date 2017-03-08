@@ -238,16 +238,12 @@
 #define BSSN_CALCULATE_RICCI_UNITARY_TERM3(K, I, J) \
   bd->Gammad##K*bd->GL##I##J##K
 
-#if EXCLUDE_SECOND_ORDER_SMALL
-#define BSSN_CALCULATE_RICCI_UNITARY_TERM4(K, L, M, I, J) 0
-#else
 #define BSSN_CALCULATE_RICCI_UNITARY_TERM4(K, L, M, I, J) \
   bd->gammai##L##M*( \
     bd->G##K##L##I*bd->GL##J##K##M + bd->G##K##L##J*bd->GL##I##K##M \
     /* symmetrize below because symmetry */ \
     + 0.5*(bd->G##K##I##M*bd->GL##K##L##J + bd->G##K##J##M*bd->GL##K##L##I) \
   )
-#endif
 
 #define BSSN_CALCULATE_RICCI_UNITARY(I, J) bd->Uricci##I##J = ( \
     - 0.5*( \
@@ -291,25 +287,15 @@
   )
 #endif
 
-#if EXCLUDE_SECOND_ORDER_SMALL
-# define BSSN_DT_AIJ_SECOND_ORDER_AA(I, J) 0
-#else
 # define BSSN_DT_AIJ_SECOND_ORDER_AA(I, J) ( \
       bd->gammai11*bd->A1##I*bd->A1##J + bd->gammai12*bd->A1##I*bd->A2##J + bd->gammai13*bd->A1##I*bd->A3##J \
       + bd->gammai21*bd->A2##I*bd->A1##J + bd->gammai22*bd->A2##I*bd->A2##J + bd->gammai23*bd->A2##I*bd->A3##J \
       + bd->gammai31*bd->A3##I*bd->A1##J + bd->gammai32*bd->A3##I*bd->A2##J + bd->gammai33*bd->A3##I*bd->A3##J \
     )
-#endif
 
-#if EXCLUDE_SECOND_ORDER_SMALL
-# define BSSN_DT_AIJ_SECOND_ORDER_KA(I, J) ( \
-    (bd->K_FRW + 2.0*bd->theta)*bd->A##I##J \
-  )
-#else
 # define BSSN_DT_AIJ_SECOND_ORDER_KA(I, J) ( \
     (bd->K + 2.0*bd->theta)*bd->A##I##J \
   )
-#endif
 
 #if USE_BSSN_SHIFT
 #define BSSN_DT_AIJ(I, J) ( \
@@ -331,15 +317,11 @@
 
 #define BSSN_DT_GAMMAI(I) (BSSN_DT_GAMMAI_NOSHIFT(I) + BSSN_DT_GAMMAI_SHIFT(I))
 
-#if EXCLUDE_SECOND_ORDER_SMALL
-#define BSSN_DT_GAMMAI_SECOND_ORDER(I) 0
-#else
 #define BSSN_DT_GAMMAI_SECOND_ORDER(I) ( \
   bd->G##I##11*bd->Acont11 + bd->G##I##22*bd->Acont22 + bd->G##I##33*bd->Acont33 \
   + 2.0*(bd->G##I##12*bd->Acont12 + bd->G##I##13*bd->Acont13 + bd->G##I##23*bd->Acont23) \
   + 6.0*(bd->Acont##I##1*bd->d1phi + bd->Acont##I##2*bd->d2phi + bd->Acont##I##3*bd->d3phi) \
 )
-#endif
 
 #define BSSN_DT_GAMMAI_NOSHIFT(I) ( \
     - 2.0*(bd->Acont##I##1*bd->d1a + bd->Acont##I##2*bd->d2a + bd->Acont##I##3*bd->d3a) \
@@ -479,7 +461,7 @@
 // M_I == \bar{gamma}_{IJ} M^J
 #define BSSN_MI(I) exp(6.0*bd->phi)*( \
     - 2.0/3.0*bd->d##I##K \
-    /* Note: S_I was lowered with the full metric, not conformal. */ \
+    /* Note: S_I is lowered with the full metric, not conformal. */ \
     - 8*PI*(bd->S##I) \
     - 2.0/3.0*2.0*bd->d##I##theta \
     + 6.0*( \
@@ -500,7 +482,7 @@
 
 #define BSSN_MI_SCALE(I) exp(6.0*bd->phi)*( \
     std::abs(2.0/3.0*bd->d##I##K) \
-    /* Note: S_I was lowered with the full metric, not conformal. */ \
+    /* Note: S_I is lowered with the full metric, not conformal. */ \
     + std::abs(8*PI*(bd->S##I)) \
     + std::abs(2.0/3.0*2.0*bd->d##I##theta) \
     + 6.0*std::abs( \
@@ -582,12 +564,6 @@
  */
 
 // actual fields:
-#define gamma21 gamma12
-#define gamma31 gamma13
-#define gamma32 gamma23
-#define gammai21 gammai12
-#define gammai31 gammai13
-#define gammai32 gammai23
 #define A21 A12
 #define A31 A13
 #define A32 A23
@@ -599,14 +575,17 @@
 #define DIFFgammai31 DIFFgammai13
 #define DIFFgammai32 DIFFgammai23
 
-#define DIFFgamma21 DIFFgamma12
-#define DIFFgamma31 DIFFgamma13
-#define DIFFgamma32 DIFFgamma23
-#define A21 A12
-#define A31 A13
-#define A32 A23
-
 // local variables:
+// non-difference metric
+#define gamma21 gamma12
+#define gamma31 gamma13
+#define gamma32 gamma23
+
+// inverse metric
+#define gammai21 gammai12
+#define gammai31 gammai13
+#define gammai32 gammai23
+
 // ricci tensor
 #define ricciTF21 ricciTF12
 #define ricciTF31 ricciTF13
