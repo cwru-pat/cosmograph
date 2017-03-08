@@ -1,7 +1,5 @@
 steps = 100
 dt_frac = 0.1
-particles_per_dy = 2
-deconvolution_strength = 0
 
 KO_damping_coefficient = 0.5
 normalize_metric = 1
@@ -9,6 +7,9 @@ normalize_metric = 1
 simulation_type = particles
 ic_type = vectorpert
 peak_amplitude = 0.02
+particles_per_dy = 2
+smoothing_radius = 2.5
+deconvolution_strength = 0
 
 shift = RedShift
 lapse = OnePlusLog

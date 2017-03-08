@@ -1,9 +1,9 @@
 #include "particles.h"
-#include "../../cosmo_globals.h"
 #include "particles_macros.h"
 #include "../../utils/math.h"
 #include "../../utils/Timer.h"
 #include "../../IO/io.h"
+#include "../../cosmo_globals.h"
 
 namespace cosmo
 {
@@ -555,6 +555,9 @@ void Particles::addParticlesToBSSNSrc(BSSN * bssnSim)
   arr_t & STF23_a = *bssnSim->fields["STF23_a"];
   arr_t & STF33_a = *bssnSim->fields["STF33_a"];
 
+  // smoothing radius
+  real_t r_s = std::stod(_config("smoothing_radius", "1.5")); // units of dx
+
   PARTICLES_PARALLEL_LOOP(pr)
   {
     Particle<real_t> & p_a = pr->p_a;
@@ -574,8 +577,6 @@ void Particles::addParticlesToBSSNSrc(BSSN * bssnSim)
 
     // cubic interpolant with kernel of characteristic "softening" radius r_s and maximum width w_k
     // eg, Eq. 12.2: http://www.ita.uni-heidelberg.de/~dullemond/lectures/num_fluid_2011/Chapter_12.pdf
-    // perfectly mass-conserving radii include:
-    real_t r_s = 2.5; // units of dx
     real_t w_k = r_s*2.0;
     idx_t w_idx = (idx_t) (w_k + 1.0);
     
