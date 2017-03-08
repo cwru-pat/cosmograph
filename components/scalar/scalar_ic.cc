@@ -188,11 +188,12 @@ void scalar_ic_set_semianalytic_test(BSSN * bssn, Scalar * scalar,
   }
 }
 
+#if USE_MULTIGRID
 void scalar_ic_set_full_equations(BSSN * bssn, Scalar * scalar, IOData * iodata)
 {
   idx_t i, j, k;
 
-    // Choose a configuration for the scalar fields first:
+  // Choose a configuration for the scalar fields first:
   arr_t & phi = scalar->phi._array_p; // field
   arr_t & psi1 = scalar->psi1._array_p; // derivative of phi in x-dir
   arr_t & psi2 = scalar->psi2._array_p; // derivative of phi in y-dir
@@ -296,7 +297,6 @@ void scalar_ic_set_full_equations(BSSN * bssn, Scalar * scalar, IOData * iodata)
   }
 
 
-  
   arr_t * X = new arr_t [4];
 
   for(i = 1; i < 4; i++)
@@ -568,9 +568,9 @@ void scalar_ic_set_full_equations(BSSN * bssn, Scalar * scalar, IOData * iodata)
     
     phi_p[idx] = std::log(fabs(phi_p[idx]));
     phi_a[idx] = phi_p[idx];
-  }
-  
+  } 
 }
+
   
   
 void scalar_ic_set_Bowen_York(BSSN * bssn, Scalar * scalar, IOData * iodata)
@@ -697,7 +697,6 @@ void scalar_ic_set_Bowen_York(BSSN * bssn, Scalar * scalar, IOData * iodata)
     multigrid.VCycles(std::stoi(_config["num_v_cycles"]));
 }
   
-#if USE_MULTIGRID
 /**
  * @brief Use the multigrid solver to solve for metric factors given
  * a particular scalar field implementation.
@@ -837,8 +836,6 @@ void scalar_ic_set_multigrid(BSSN * bssn, Scalar * scalar, IOData * iodata)
   atom_tmp.value = 5;
   multigrid.eqns[0][2].add_atom(atom_tmp);
 
-  
-  
   real_t avg1 = 0.0, avg5 = 0.0;
   LOOP3(i, j, k)
   {

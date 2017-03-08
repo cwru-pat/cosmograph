@@ -42,7 +42,6 @@ void ScalarSim::setICs()
     iodata->log("Error: Multigrid solver was not compiled.");
     throw -1;    
 #   endif
-    
   }
   else if(_config["scalar_ic_type"] == "full_constraints")
   {
