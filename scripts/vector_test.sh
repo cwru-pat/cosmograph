@@ -38,9 +38,9 @@ sed -i -E "s/steps = [0-9]+/steps = 6400/g" $TMP_CONFIG_FILE
 sed -i -E "s/particle_vectorpert_test_r0128/particle_vectorpert_test_r1024/g" $TMP_CONFIG_FILE
 ./cosmo $TMP_CONFIG_FILE
 
-cmake -DCOSMO_N=4096 -DCOSMO_NX=1 -DCOSMO_NZ=1 -DCOSMO_STENCIL_ORDER=2 .. && make -j32
-sed -i -E "s/steps = [0-9]+/steps = 25600/g" $TMP_CONFIG_FILE
-sed -i -E "s/particle_vectorpert_test_r1024/particle_vectorpert_test_r4096/g" $TMP_CONFIG_FILE
-./cosmo $TMP_CONFIG_FILE
+# cmake -DCOSMO_N=4096 -DCOSMO_NX=1 -DCOSMO_NZ=1 -DCOSMO_STENCIL_ORDER=2 .. && make -j32
+# sed -i -E "s/steps = [0-9]+/steps = 25600/g" $TMP_CONFIG_FILE
+# sed -i -E "s/particle_vectorpert_test_r1024/particle_vectorpert_test_r4096/g" $TMP_CONFIG_FILE
+# ./cosmo $TMP_CONFIG_FILE
 
 rm $TMP_CONFIG_FILE

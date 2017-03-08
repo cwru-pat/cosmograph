@@ -3,12 +3,12 @@ dt_frac = 0.1
 particles_per_dy = 2
 deconvolution_strength = 0
 
-KO_damping_coefficient = 0.0
+KO_damping_coefficient = 0.5
 normalize_metric = 1
 
 simulation_type = particles
 ic_type = vectorpert
-peak_amplitude = 0.2
+peak_amplitude = 0.02
 
 shift = RedShift
 lapse = OnePlusLog
@@ -16,8 +16,8 @@ lapse = OnePlusLog
 output_dir = particle_vectorpert_test
 dump_file = calculated
 
-IO_constraint_interval = 1
-IO_bssnstats_interval = 1
+IO_constraint_interval = 10
+IO_bssnstats_interval = 10
 
 IO_particles = 1
 

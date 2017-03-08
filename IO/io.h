@@ -55,8 +55,10 @@ void io_dump_2d_array(IOData *iodata, real_t * array, idx_t n_x, idx_t n_y,
 
 void io_print_particles(IOData *iodata, idx_t step, Particles *particles);
 
+#if USE_COSMOTRACE
 void io_raytrace_bardeen_dump(IOData *iodata, idx_t step,
   std::vector<RayTrace<real_t, idx_t> *> const * rays, Bardeen * bardeen);
+#endif
 
 }
 

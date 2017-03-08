@@ -209,14 +209,23 @@ real_t BSSNGaugeHandler::AwAShiftedWaveShift3(BSSNData *bd)
  */
 real_t BSSNGaugeHandler::RedShift1(BSSNData *bd)
 {
+# if USE_GAMMA_DRIVER
+  return bd->auxB1 + 2.0/3.0*bd->K*bd->alpha*bd->beta1;
+# endif
   return 2.0/3.0*bd->K*bd->alpha*bd->beta1;
 }
 real_t BSSNGaugeHandler::RedShift2(BSSNData *bd)
 {
+# if USE_GAMMA_DRIVER
+  return bd->auxB2 + 2.0/3.0*bd->K*bd->alpha*bd->beta2;
+# endif
   return 2.0/3.0*bd->K*bd->alpha*bd->beta2;
 }
 real_t BSSNGaugeHandler::RedShift3(BSSNData *bd)
 {
+# if USE_GAMMA_DRIVER
+  return bd->auxB3 + 2.0/3.0*bd->K*bd->alpha*bd->beta3;
+# endif
   return 2.0/3.0*bd->K*bd->alpha*bd->beta3;
 }
 

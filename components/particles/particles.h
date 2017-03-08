@@ -65,6 +65,7 @@ public:
   void regSwap_c_a();
   void stepTerm();
 
+  real_t getKernelWeight(real_t r, real_t r_s);
   void addParticlesToBSSNSrc(BSSN * bssnSim);
   void addParticleToBSSNSrc(Particle<real_t> * p_c, map_t & bssn_fields);
 };

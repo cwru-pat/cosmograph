@@ -697,6 +697,7 @@ void io_print_particles(IOData *iodata, idx_t step, Particles *particles)
   }
 }
 
+#if USE_COSMOTRACE
 void io_raytrace_bardeen_dump(IOData *iodata, idx_t step,
   std::vector<RayTrace<real_t, idx_t> *> const * rays, Bardeen * bardeen)
 {
@@ -733,6 +734,6 @@ void io_raytrace_bardeen_dump(IOData *iodata, idx_t step,
 
   return;
 }
-
+#endif
 
 } /* namespace cosmo */

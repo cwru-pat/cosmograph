@@ -513,6 +513,26 @@ void Particles::stepTerm()
   _timer["Particles::RKCalcs"].stop();
 }
 
+real_t Particles::getKernelWeight(real_t r, real_t r_s)
+{
+  real_t weight = 0.0;
+  real_t q = r/r_s;
+  if(r > 2.0*r_s)
+  {
+    weight = 0;
+  }
+  else if(r > r_s)
+  {
+    weight = 1.0/PI/std::pow(r_s,3.0)*(1.0/4.0)*std::pow((2.0-q), 3.0);
+  }
+  else
+  {
+    weight = 1.0/PI/std::pow(r_s,3.0)*(1.0 - 3.0/2.0*pw2(q) + 3.0/4.0*std::pow(q, 3.0) );
+  }
+
+  return weight;
+}
+
 /**
  * Set bssn _a source registers
  * using data from particle _c register
@@ -554,13 +574,26 @@ void Particles::addParticlesToBSSNSrc(BSSN * bssnSim)
 
     // cubic interpolant with kernel of characteristic "softening" radius r_s and maximum width w_k
     // eg, Eq. 12.2: http://www.ita.uni-heidelberg.de/~dullemond/lectures/num_fluid_2011/Chapter_12.pdf
+    // perfectly mass-conserving radii include:
     real_t r_s = 2.5; // units of dx
     real_t w_k = r_s*2.0;
     idx_t w_idx = (idx_t) (w_k + 1.0);
+    
     // distribute mass to nearby gridpoints
     idx_t x_idx = (idx_t) (p_a.X[0]/dx);
     idx_t y_idx = (idx_t) (p_a.X[1]/dx);
     idx_t z_idx = (idx_t) (p_a.X[2]/dx);
+
+    // ensure conservation of mass
+    real_t total_weight = 0.0;
+    for(idx_t x=x_idx-w_idx; x<=x_idx+w_idx+1; ++x)
+      for(idx_t y=y_idx-w_idx; y<=y_idx+w_idx+1; ++y)
+        for(idx_t z=z_idx-w_idx; z<=z_idx+w_idx+1; ++z)
+        {
+          real_t r = std::sqrt( pw2(x - p_a.X[0]/dx) + pw2(y - p_a.X[1]/dx) + pw2(z - p_a.X[2]/dx) );
+          total_weight += getKernelWeight(r, r_s);
+        }
+
 #   pragma omp critical
     {
       for(idx_t x=x_idx-w_idx; x<=x_idx+w_idx+1; ++x)
@@ -570,20 +603,7 @@ void Particles::addParticlesToBSSNSrc(BSSN * bssnSim)
         idx_t idx = INDEX(x,y,z);
 
         real_t r = std::sqrt( pw2(x - p_a.X[0]/dx) + pw2(y - p_a.X[1]/dx) + pw2(z - p_a.X[2]/dx) );
-        real_t weight = 0.0;
-        real_t q = r/r_s;
-        if(r > 2.0*r_s)
-        {
-          weight = 0;
-        }
-        else if(r > r_s)
-        {
-          weight = 1.0/PI/std::pow(r_s,3.0)*(1.0/4.0)*std::pow((2.0-q), 3.0);
-        }
-        else
-        {
-          weight = 1.0/PI/std::pow(r_s,3.0)*(1.0 - 3.0/2.0*pw2(q) + 3.0/4.0*std::pow(q, 3.0) );
-        }
+        real_t weight = getKernelWeight(r, r_s) / total_weight;
 
         DIFFr_a[idx] += weight*rho;
         DIFFS_a[idx] += weight*S;
@@ -602,7 +622,6 @@ void Particles::addParticlesToBSSNSrc(BSSN * bssnSim)
       }
     } // end loop over nearby indexes 
   } // end particles loop
-
 
   // ensure STF is trace-free
   idx_t i, j, k;
