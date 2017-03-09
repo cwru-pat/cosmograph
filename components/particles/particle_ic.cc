@@ -309,6 +309,15 @@ void particle_ic_set_vectorpert(BSSN * bssnSim, Particles * particles,
 
   real_t B = std::stod(_config("peak_amplitude", "0.0001"));
   iodata->log( "Generating ICs with peak amp. = " + stringify(B) );
+  real_t use_initial_shift = std::stoi(_config("use_initial_shift", "1"));
+  if(use_initial_shift)
+  {
+    iodata->log( "Using initial shift." );
+  }
+  else
+  {
+    iodata->log( "Not using initial shift." );
+  }
 
   real_t rho_FRW = 3.0/PI/8.0;
   real_t K_FRW = -sqrt(24.0*PI*rho_FRW);
@@ -328,10 +337,13 @@ void particle_ic_set_vectorpert(BSSN * bssnSim, Particles * particles,
     real_t Axy = B*std::sin(2.0*PI*y/L + phase);
     A12_p[idx] = Axy;
 
-    // much more unstable when using shift
-    real_t Sx = B/L*std::cos(2.0*PI*y/L + phase)/4.0; 
-    real_t rho = ( K_FRW*K_FRW/12.0 - 2.0*Axy*Axy/8.0 ) / 2.0 / PI;
-    beta1_p[idx] = Sx/rho/std::sqrt(1.0 - pw2(Sx/rho));
+    // more stable when using shift?
+    if(use_initial_shift)
+    {
+      real_t Sx = B/L*std::cos(2.0*PI*y/L + phase)/4.0; 
+      real_t rho = ( K_FRW*K_FRW/12.0 - 2.0*Axy*Axy/8.0 ) / 2.0 / PI;
+      beta1_p[idx] = Sx/rho/std::sqrt(1.0 - pw2(Sx/rho));
+    }
   }
 
   // particle values
