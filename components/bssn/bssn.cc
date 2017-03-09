@@ -354,6 +354,9 @@ void BSSN::set_bd_values(idx_t i, idx_t j, idx_t k, BSSNData *bd)
   // Ricci depends on DDphi
   calculateRicciTF(bd);
 
+  // enforce trace-free source
+  enforceTFSIJ(bd);
+
   // Hamiltonian constraint
   bd->H = hamiltonianConstraintCalc(bd);
 }
