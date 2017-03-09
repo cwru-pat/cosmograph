@@ -13,7 +13,6 @@ cd ../build
 TMP_CONFIG_FILE=particles_vector.txt.test
 cp ../config/particles_vector.txt $TMP_CONFIG_FILE
 
-
 do_runs () {
   PEAK_AMPLITUDE=$1
   PARTICLES_PER_DY=$2
