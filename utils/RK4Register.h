@@ -68,13 +68,7 @@ class RK4Register
       sim_dt = sim_dt_in;
     }
 
-    ~RK4Register()
-    {
-      _array_p.~CosmoArray();
-      _array_a.~CosmoArray();
-      _array_c.~CosmoArray();
-      _array_f.~CosmoArray();
-    }
+    ~RK4Register() {}
 
     /**
      * @brief Set "name" property of instance, CosmoArray member instances

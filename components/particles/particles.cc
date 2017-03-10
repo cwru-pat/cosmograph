@@ -601,7 +601,7 @@ void Particles::addParticlesToBSSNSrc(BSSN * bssnSim)
         for(idx_t y=y_idx-w_idx; y<=y_idx+w_idx+1; ++y)
           for(idx_t z=z_idx-w_idx; z<=z_idx+w_idx+1; ++z)
       {
-        idx_t idx = INDEX(x,y,z);
+        idx_t idx = NP_INDEX( idx_t_mod(x,NX), idx_t_mod(y,NY), idx_t_mod(z,NZ) );
 
         real_t r = std::sqrt( pw2(x - p_a.X[0]/dx) + pw2(y - p_a.X[1]/dx) + pw2(z - p_a.X[2]/dx) );
         real_t weight = getKernelWeight(r, r_s) / total_weight;

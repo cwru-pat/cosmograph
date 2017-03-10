@@ -4,11 +4,6 @@
 namespace cosmo
 {
 
-ParticleSim::ParticleSim()
-{
-
-}
-
 void ParticleSim::init()
 {
   _timer["init"].start();

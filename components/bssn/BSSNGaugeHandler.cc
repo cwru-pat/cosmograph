@@ -22,7 +22,6 @@ real_t BSSNGaugeHandler::Static(BSSNData *bd)
  */
 real_t BSSNGaugeHandler::HarmonicLapse(BSSNData *bd)
 {
-  // TODO: Generalize K0 (FIX)
   return -1.0*pw2(bd->alpha)*( bd->K - bd->K_avg );
 }
 
@@ -209,24 +208,22 @@ real_t BSSNGaugeHandler::AwAShiftedWaveShift3(BSSNData *bd)
  */
 real_t BSSNGaugeHandler::RedShift1(BSSNData *bd)
 {
-# if USE_GAMMA_DRIVER
-  return bd->auxB1 + 2.0/3.0*bd->K*bd->alpha*bd->beta1;
-# endif
-  return 2.0/3.0*bd->K*bd->alpha*bd->beta1;
+  real_t val = 0.0;
+  val += -4.0*bd->beta1*( -1.0/6.0*bd->alpha*bd->K
+      + bd->beta1*bd->d1phi + bd->beta2*bd->d2phi + bd->beta3*bd->d3phi
+      - ( bd->d1beta1 + bd->d2beta2 + bd->d3beta3 )
+    );
+  return val;
 }
 real_t BSSNGaugeHandler::RedShift2(BSSNData *bd)
 {
-# if USE_GAMMA_DRIVER
-  return bd->auxB2 + 2.0/3.0*bd->K*bd->alpha*bd->beta2;
-# endif
-  return 2.0/3.0*bd->K*bd->alpha*bd->beta2;
+  real_t val = 0.0;
+  return val;
 }
 real_t BSSNGaugeHandler::RedShift3(BSSNData *bd)
 {
-# if USE_GAMMA_DRIVER
-  return bd->auxB3 + 2.0/3.0*bd->K*bd->alpha*bd->beta3;
-# endif
-  return 2.0/3.0*bd->K*bd->alpha*bd->beta3;
+  real_t val = 0.0;
+  return val;
 }
 
 

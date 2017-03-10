@@ -15,6 +15,8 @@ use_initial_shift = 1
 
 shift = RedShift
 lapse = OnePlusLog
+gd_c = 2.0
+gd_eta = 1.0
 
 output_dir = particle_vectorpert_test
 dump_file = calculated
@@ -31,5 +33,9 @@ IO_1D_DIFFphi_a = 1
 IO_1D_DIFFphi_a_axis = 2
 IO_1D_DIFFalpha_a = 1
 IO_1D_DIFFalpha_a_axis = 2
+IO_1D_DIFFK_a = 1
+IO_1D_DIFFK_a_axis = 2
+IO_1D_A12_a = 1
+IO_1D_A12_a_axis = 2
 IO_1D_S1_a = 1
 IO_1D_S1_a_axis = 2

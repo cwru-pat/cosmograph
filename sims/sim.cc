@@ -43,11 +43,6 @@ CosmoSim::CosmoSim()
   simulation_type = _config["simulation_type"];
 }
 
-CosmoSim::~CosmoSim()
-{
-  std::cout << std::flush;
-}
-
 /**
  * @brief      Initialize individual simulation class instances
  */

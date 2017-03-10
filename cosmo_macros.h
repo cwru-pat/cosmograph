@@ -41,12 +41,12 @@
 
 // evolve shift as well? (if not, assumed to be zero)
 #ifndef USE_BSSN_SHIFT
-  #define USE_BSSN_SHIFT true
+  #define USE_BSSN_SHIFT false
 #endif
 
 // Gamma-driver gauge settings (must turn on bssn_shift as well)
 #ifndef USE_GAMMA_DRIVER
-  #define USE_GAMMA_DRIVER true
+  #define USE_GAMMA_DRIVER false
 #endif
 
 // Optionally exclude some second-order terms
@@ -155,7 +155,7 @@
         name->init(NX, NY, NZ, dt)
 
 #define RK4_ARRAY_DELETE(name) \
-        name->~RK4Register()
+        delete name
 
 #define RK4_SET_LOCAL_VALUES(name) \
     bd->name = name->_array_a[bd->idx];
@@ -171,8 +171,7 @@
 #define GEN1_ARRAY_ALLOC(name) \
         name##_a.init(NX, NY, NZ)
 
-#define GEN1_ARRAY_DELETE(name) \
-        name##_a.~CosmoArray()
+#define GEN1_ARRAY_DELETE(name)
 
 #define GEN1_SET_LOCAL_VALUES(name) \
     bd->name = name##_a[bd->idx];

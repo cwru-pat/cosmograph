@@ -21,7 +21,18 @@ protected:
 
 public:
   ScalarSim(){}
-  ~ScalarSim(){}
+  ~ScalarSim()
+  {
+    delete iodata;
+    delete bssnSim;
+    delete fourier;
+    if(use_bardeen)
+    {
+      delete bardeen;
+    }
+
+    std::cout << std::flush;
+  }
 
   void init();
   void setICs();

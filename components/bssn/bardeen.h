@@ -53,7 +53,11 @@ public:
     B.init(NX, NY, NZ); dt_B.init(NX, NY, NZ); d2t_B.init(NX, NY, NZ);
     Phi.init(NX, NY, NZ); Psi.init(NX, NY, NZ);
   }
-  ~Bardeen();
+  
+  ~Bardeen()
+  {
+    // anything to do?
+  }
 
   void setPotentials();
 

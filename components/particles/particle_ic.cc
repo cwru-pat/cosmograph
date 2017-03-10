@@ -322,7 +322,7 @@ void particle_ic_set_vectorpert(BSSN * bssnSim, Particles * particles,
   real_t rho_FRW = 3.0/PI/8.0;
   real_t K_FRW = -sqrt(24.0*PI*rho_FRW);
   real_t L = H_LEN_FRAC;
-  real_t phase = 0.5;
+  real_t phase = 2.0*PI*0.5*dx/L;
 
   // grid values
   for(i=0; i<NX; ++i)

@@ -43,8 +43,10 @@ BSSN::~BSSN()
   BSSN_APPLY_TO_FIELDS(RK4_ARRAY_DELETE)
   BSSN_APPLY_TO_SOURCES(GEN1_ARRAY_DELETE)
   BSSN_APPLY_TO_GEN1_EXTRAS(GEN1_ARRAY_DELETE)
-}
 
+  delete gaugeHandler;
+  delete frw;
+}
 
 
 /**
@@ -162,6 +164,8 @@ void BSSN::setKODampingCoefficient(real_t coefficient)
 void BSSN::stepInit()
 {
   BSSN_RK_INITIALIZE; // macro calls stepInit for all fields
+
+  K_avg = conformal_average(DIFFK->_array_p, DIFFphi->_array_p, frw->get_phi());
 
   if(normalize_metric)
     set_DIFFgamma_Aij_norm(); // norms metric in _a register

@@ -12,7 +12,7 @@ class CosmoArray
 {
   public:
     IT nx, ny, nz;
-    IT pts;
+    IT pts = 0;
 
     std::string name;
 
@@ -32,7 +32,8 @@ class CosmoArray
 
     ~CosmoArray()
     {
-      delete [] _array;
+      if(pts > 0)
+        delete [] _array;
     }
 
     void setName(std::string name_in)
@@ -48,12 +49,7 @@ class CosmoArray
 
       pts = nx*ny*nz;
 
-      int status = posix_memalign((void **) &_array, 64, pts * sizeof(RT));
-      if(status != 0)
-      {
-        throw -1;
-      }
-
+      _array = new RT[pts];
       #pragma omp parallel for
       for(IT i=0; i<pts; ++i)
       {

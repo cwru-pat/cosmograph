@@ -8,7 +8,7 @@ if(COSMO_DEBUG)
   # add -g for valgrind
   message(STATUS "${Cyan} Debug build enabled (-g flag).${ColorReset}")
   set(PROFILING     "-g")
-  set(OPT_LEVEL     "-O1")
+  set(OPT_LEVEL     "-O0")
   set(CC_OPTS       "")
 else()
   set(PROFILING     "")
