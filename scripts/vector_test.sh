@@ -42,7 +42,7 @@ do_runs () {
     USE_SHIFT="false"
   fi
 
-  DIR="vector_run-A_$PEAK_AMPLITUDE-ppdy_$PARTICLES_PER_DY-rs_$SMOOTHING_RADIUS-bi_$INITIAL_SHIFT-gauge_$SLICING-L_$BOX_LENGTH"
+  DIR="vector_run-b_$PEAK_AMPLITUDE-ppdy_$PARTICLES_PER_DY-rs_$SMOOTHING_RADIUS-bi_$INITIAL_SHIFT-gauge_$SLICING-L_$BOX_LENGTH"
   mkdir -p $DIR
 
   declare -a RESOLUTIONS=("0016" "0032" "0064" "0128" "0256") # "0016" "0032" "0064" "0128" "0256" "0512" 1024"
@@ -62,7 +62,7 @@ do_runs () {
   done
 }
 
-for B in 0.003 0.03 # amplitude
+for b in 0.01 0.1 # amplitude
 do
   for L in 0.5 0.005 # box length
   do
@@ -75,7 +75,7 @@ do
           for g in 0 # gauge
           do
             printf "Running: do_runs $B $ppdy $rs $bi $g\n"
-            do_runs $B $ppdy $rs $bi $g $L
+            do_runs $b $ppdy $rs $bi $g $L
           done
         done
       done

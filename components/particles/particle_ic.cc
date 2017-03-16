@@ -307,8 +307,8 @@ void particle_ic_set_vectorpert(BSSN * bssnSim, Particles * particles,
   // beta1 (x-shift) to counter fluid velocity
   arr_t & beta1_p = *bssnSim->fields["beta1_p"];
 
-  real_t B = std::stod(_config("peak_amplitude", "0.0001"));
-  iodata->log( "Generating ICs with peak amp. = " + stringify(B) );
+  real_t b = std::stod(_config("peak_amplitude", "0.01"));
+  iodata->log( "Generating ICs with b = " + stringify(b) );
   real_t use_initial_shift = std::stoi(_config("use_initial_shift", "1"));
   if(use_initial_shift)
   {
@@ -322,6 +322,7 @@ void particle_ic_set_vectorpert(BSSN * bssnSim, Particles * particles,
   real_t rho_FRW = 3.0/PI/8.0;
   real_t K_FRW = -sqrt(24.0*PI*rho_FRW);
   real_t L = H_LEN_FRAC;
+  real_t B = b*L*L;
   real_t phase = 2.0*PI*0.5*dx/L;
 
   // grid values
