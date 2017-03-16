@@ -334,15 +334,13 @@ void particle_ic_set_vectorpert(BSSN * bssnSim, Particles * particles,
 
     DIFFK_p[idx] = K_FRW;
 
-    real_t Axy = B*std::sin(2.0*PI*y/L + phase);
+    real_t Axy = B*PI/L*std::cos(2.0*PI*y/L + phase);
     A12_p[idx] = Axy;
 
     // more stable when using shift?
     if(use_initial_shift)
     {
-      real_t Sx = B/L*std::cos(2.0*PI*y/L + phase)/4.0; 
-      real_t rho = ( K_FRW*K_FRW/12.0 - 2.0*Axy*Axy/8.0 ) / 2.0 / PI;
-      beta1_p[idx] = Sx/rho/std::sqrt(1.0 - pw2(Sx/rho));
+      beta1_p[idx] = B*std::sin(2.0*PI*y/L + phase);
     }
   }
 
@@ -362,17 +360,16 @@ void particle_ic_set_vectorpert(BSSN * bssnSim, Particles * particles,
     real_t ys[3] = { j*dx + (p-1)*p_frac, j*dx + p*p_frac, j*dx + (p+1)*p_frac };
 
     // determined via Hamiltonian constraint:
-    real_t Axy, Sx; // "primitives"
+    real_t Axy, Sx;
     real_t rho, Ux, W, M; // variables to construct (some intermediate)
     real_t MWs[3], MUs[3]; // variables to deconvolve
     for(int s=0; s<3; ++s)
     {
-      Axy = B*std::sin(2.0*PI*ys[s]/L + phase);
-      Sx =  B/L*std::cos(2.0*PI*ys[s]/L + phase)/4.0;
+      Axy = B*PI/L*std::cos(2.0*PI*ys[s]/L + phase);
+      Sx = -B*PI/L/L/4.0*std::sin(2.0*PI*ys[s]/L + phase);
 
-      // fluid defn's
-      rho = ( K_FRW*K_FRW/12.0 - 2.0*Axy*Axy/8.0 ) / 2.0 / PI;
-      Ux = Sx/rho/std::sqrt(1.0 - pw2(Sx/rho));
+      rho = (K_FRW*K_FRW/12.0 - 2.0*Axy*Axy/8.0)/2.0/PI;
+      Ux = Sx/std::sqrt(rho*rho - Sx*Sx);
       W = std::sqrt(1.0 + Ux*Ux);
 
       // Particle mass
