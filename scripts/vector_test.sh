@@ -19,7 +19,7 @@ do_runs () {
   SMOOTHING_RADIUS=$3
   INITIAL_SHIFT=$4
   SLICING=$5
-  BOX_LENGTH=$5
+  BOX_LENGTH=$6
   sed -i -E "s/peak_amplitude = [\.0-9]+/peak_amplitude = $PEAK_AMPLITUDE/g" $TMP_CONFIG_FILE
   sed -i -E "s/particles_per_dy = [0-9]+/particles_per_dy = $PARTICLES_PER_DY/g" $TMP_CONFIG_FILE
   sed -i -E "s/smoothing_radius = [\.0-9]+/smoothing_radius = $SMOOTHING_RADIUS/g" $TMP_CONFIG_FILE
@@ -51,7 +51,7 @@ do_runs () {
     RES=$(echo $r | sed 's/^0*//')
     STEPS=$((RES*100))
     printf "Performing run with N = $RES\n"
-    cmake -DCOSMO_N=$RES -DCOSMO_NX=1 -DCOSMO_NZ=1 -DCOSMO_STENCIL_ORDER=2 -DCOSMO_USE_GAMMA_DRIVER=$USE_GAMMA_DRIVER -DCOSMO_USE_BSSN_SHIFT=$USE_SHIFT -DCOSMO_L=$BOX_LENGTH .. && make -j32
+    cmake -DCOSMO_N=$RES -DCOSMO_NX=1 -DCOSMO_NZ=1 -DCOSMO_STENCIL_ORDER=2 -DCOSMO_USE_GAMMA_DRIVER=$USE_GAMMA_DRIVER -DCOSMO_USE_BSSN_SHIFT=$USE_SHIFT -DCOSMO_H_LEN_FRAC=$BOX_LENGTH .. && make -j32
     if [ $? -ne 0 ]; then
       echo "Error: compilation failed!"
     else
