@@ -8,10 +8,10 @@
 #SBATCH -o job.out
 #SBATCH -J JOBNAME
 
-cp -r * $PFSDIR
-cd $PFSDIR
+cp -r * $TMPDIR
+cd $TMPDIR
 rm job.out
-echo "Working in: " . $PFSDIR
+echo "Working in: " . $TMPDIR
 
 ./cosmo config.txt
 
