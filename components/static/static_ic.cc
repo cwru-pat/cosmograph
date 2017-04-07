@@ -181,7 +181,8 @@ void dust_ic_set_sphere(BSSN * bssn, Static * dust, IOData * iodata)
   std::mt19937 gen(7);
   std::normal_distribution<> normal_dist(0,1);
   std::uniform_real_distribution<> uniform_dist(0.0, 2.0*PI);
-std::cout << "normal_dist(gen) = " << normal_dist(gen) << ", uniform_dist(gen) = " << uniform_dist(gen) << "\n";
+
+  std::cout << "normal_dist(gen) = " << normal_dist(gen) << ", uniform_dist(gen) = " << uniform_dist(gen) << "\n";
 
   // zero mode:
   alms[m_idx(l, 0)].first = normal_dist(gen);
@@ -198,11 +199,9 @@ std::cout << "normal_dist(gen) = " << normal_dist(gen) << ", uniform_dist(gen) =
   for(int m = -l; m <= -1; m++)
   {
     real_t Condon_Shortley_phase = std::abs(m) % 2 ? 1 : -1;
-    alms[m_idx(l,m)].first = alms[m_idx(l,-m)].first*Condon_Shortley_phase;
-    alms[m_idx(l,m)].second = -alms[m_idx(l,-m)].second*Condon_Shortley_phase;
+    alms[m_idx(l,-m)].first = alms[m_idx(l,m)].first*Condon_Shortley_phase;
+    alms[m_idx(l,-m)].second = -alms[m_idx(l,m)].second*Condon_Shortley_phase;
   }
-
-std::cout << "al-2_r = " << alms[m_idx(l,-2)].first << ", al-2_i = " << alms[m_idx(l,-2)].second << "\n";
 
   LOOP3(i,j,k) {
     idx_t idx = NP_INDEX(i,j,k);
