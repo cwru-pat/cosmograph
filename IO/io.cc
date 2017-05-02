@@ -705,9 +705,10 @@ void io_raytrace_bardeen_dump(IOData *iodata, idx_t step,
 
   idx_t num_rays = rays->size();
   
-  real_t * Phis, * Psis;
+  real_t * Phis, * Psis, * dt_Bs;
   Phis = new real_t [num_rays];
   Psis = new real_t [num_rays];
+  dt_Bs = new real_t [num_rays];
 
 # pragma omp parallel for
   for(idx_t n=0; n<num_rays; n++)
@@ -718,6 +719,8 @@ void io_raytrace_bardeen_dump(IOData *iodata, idx_t step,
       NX, NY, NZ, bardeen->Phi);
     Psis[n] = interp(tmp_rd.x[0]/dx, tmp_rd.x[1]/dx, tmp_rd.x[2]/dx,
       NX, NY, NZ, bardeen->Psi);
+    dt_Bs[n] = interp(tmp_rd.x[0]/dx, tmp_rd.x[1]/dx, tmp_rd.x[2]/dx,
+      NX, NY, NZ, bardeen->dt_B);
   }
 
   // Write data from individual rays to file
@@ -728,9 +731,13 @@ void io_raytrace_bardeen_dump(IOData *iodata, idx_t step,
   file_name = "bardeen_psi_data";
   io_dump_2d_array(iodata, Psis, num_rays, 1,
     file_name, dataset_name);
+  file_name = "bardeen_dt_B_data";
+  io_dump_2d_array(iodata, dt_Bs, num_rays, 1,
+    file_name, dataset_name);
 
   delete[] Phis;
   delete[] Psis;
+  delete[] dt_Bs;
 
   return;
 }

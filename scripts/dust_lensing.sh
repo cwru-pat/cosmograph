@@ -17,15 +17,15 @@ DRY_RUN=false
 
 RES=128
 FLIP_DELAY=0
-POWER_L=5
+POWER_CUT=17
 
 # read in options
 for i in "$@"
 do
   case $i in
       -h|--help)
-      printf "Usage: ./dust_shells.sh\n"
-      printf "         [-C|--cluster-run] [(-N|--resolution-N)=128] [-d|--dry-run] [(-f|--flip-delay)=0] [(-l|--l)=5]\n"
+      printf "Usage: ./dust_lensing.sh\n"
+      printf "         [-C|--cluster-run] [(-N|--resolution-N)=128] [-d|--dry-run] [(-f|--flip-delay)=0] [(-k|--k)=17]\n"
       exit 0
       ;;
       -N=*|--resolution-N=*)
@@ -37,7 +37,7 @@ do
       shift # past argument=value
       ;;
       -l=*|--l=*)
-      POWER_L="${i#*=}"
+      POWER_CUT="${i#*=}"
       shift # past argument=value
       ;;
       -C|--cluster-run)
@@ -66,7 +66,7 @@ FLIP_STEP=$(((800 + $FLIP_DELAY)*$RES/128))
 IO3D=$((200*$RES/128))
 
 # Job directory
-JOBDIR="dust_shell_R-${RES}_F-${FLIP_STEP}_l-${POWER_L}"
+JOBDIR="dust_lensing_R-${RES}_F-${FLIP_STEP}_kcut-${POWER_CUT}"
 
 printf "${BLUE}Deploying runs:${NC}\n"
 if "$USE_CLUSTER"; then
@@ -121,7 +121,7 @@ fi
 mv cosmo "$JOBDIR/."
 cd "$JOBDIR"
 
-cp ../../config/dust_shell.txt config.txt
+cp ../../config/dust_lensing.txt config.txt
 cp ../../config/healpix_vecs/nside_16.vecs nside_16.vecs
 sed -i.bak "s/healpix_vecs_file = ..\/config\/healpix_vecs\//healpix_vecs_file = /" config.txt
 
@@ -133,7 +133,7 @@ if "$USE_CLUSTER"; then
   sed -i.bak "s/72:00:00/${JOBTIME}:00:00/" job.slurm
 fi
 
-sed -i.bak "s/shell_angular_scale_l = [\.0-9]+/shell_angular_scale_l = $POWER_L/" config.txt
+sed -i.bak "s/ic_spec_cut = [\.0-9]+/ic_spec_cut = $POWER_CUT/" config.txt
 
 # Adjust output/step parameters per resolution
 sed -i.bak "s/steps = [\.0-9]+/steps = $STEPS/" config.txt
@@ -153,6 +153,8 @@ fi
 
 if "$USE_CLUSTER"; then
   printf "squeue -u jbm120\n"
+  squeue -u jbm120
+  printf "squeue -u jbm120 --start\n"
   squeue -u jbm120 --start
 fi
 

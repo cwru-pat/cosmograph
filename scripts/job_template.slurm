@@ -1,6 +1,7 @@
 #!/bin/bash
 #SBATCH --nodes=1
 #SBATCH --cpus-per-task=16
+#SBATCH --exclusive
 #SBATCH --time=72:00:00
 #SBATCH --mem=28g
 #SBATCH -A gds6

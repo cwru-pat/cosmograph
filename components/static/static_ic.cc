@@ -158,9 +158,9 @@ void dust_ic_set_sphere(BSSN * bssn, Static * dust, IOData * iodata)
   auto & frw = bssn->frw;
 
   // shell amplitude
-  real_t A = stod(_config("shell_amplitude", "1e-5"));
+  const real_t A = stod(_config("shell_amplitude", "1e-5"));
   // Shell described by only one fixed l:
-  idx_t l = stoi(_config("shell_angular_scale_l", "1"));
+  const idx_t l = stoi(_config("shell_angular_scale_l", "1"));
   iodata->log( "Generating ICs with shell angular scale of l = " + stringify(l) );
   iodata->log( "Generating ICs with peak amp. = " + stringify(A) );
 
@@ -179,7 +179,7 @@ void dust_ic_set_sphere(BSSN * bssn, Static * dust, IOData * iodata)
   // Angular fluctuations in shell described by spherical harmonic coeffs, a_lm's,
   complex_t * alms = new complex_t[m_idx(l,l)+1];
   std::mt19937 gen(7);
-  std::normal_distribution<> normal_dist(0,1);
+  std::normal_distribution<> normal_dist(0.0, 1.0);
   std::uniform_real_distribution<> uniform_dist(0.0, 2.0*PI);
 
   std::cout << "normal_dist(gen) = " << normal_dist(gen) << ", uniform_dist(gen) = " << uniform_dist(gen) << "\n";
@@ -198,9 +198,15 @@ void dust_ic_set_sphere(BSSN * bssn, Static * dust, IOData * iodata)
   // negative modes:
   for(int m = -l; m <= -1; m++)
   {
-    real_t Condon_Shortley_phase = std::abs(m) % 2 ? 1 : -1;
-    alms[m_idx(l,-m)].first = alms[m_idx(l,m)].first*Condon_Shortley_phase;
-    alms[m_idx(l,-m)].second = -alms[m_idx(l,m)].second*Condon_Shortley_phase;
+    real_t Condon_Shortley_phase = std::abs(m) % 2 ? -1.0 : 1.0; // 0 (false) if m even, 1 (true) if odd
+    alms[m_idx(l,m)].first = Condon_Shortley_phase*alms[m_idx(l,std::abs(m))].first;
+    alms[m_idx(l,m)].second = -Condon_Shortley_phase*alms[m_idx(l,std::abs(m))].second;
+  }
+
+  for(int m = -l; m <= l; m++)
+  {
+    std::cout << "Amp. of a_{" << l << "," << m << "} = " << alms[m_idx(l,m)].first
+      << " + " << alms[m_idx(l,m)].second << "i\n";
   }
 
   LOOP3(i,j,k) {
@@ -221,8 +227,8 @@ void dust_ic_set_sphere(BSSN * bssn, Static * dust, IOData * iodata)
       real_t Y_r = boost::math::spherical_harmonic_r(l, m, theta, phi);
       real_t Y_i = boost::math::spherical_harmonic_i(l, m, theta, phi);
 
-      DIFFphi_r += alms[m_idx(l,m)].first * Y_r;
-      DIFFphi_i += alms[m_idx(l,m)].second * Y_i;
+      DIFFphi_r += alms[m_idx(l,m)].first*Y_r - alms[m_idx(l,m)].second*Y_i;
+      DIFFphi_i += alms[m_idx(l,m)].first*Y_i + alms[m_idx(l,m)].second*Y_r;
     }
     if(std::abs(DIFFphi_i) > 1e-6)
     {
