@@ -18,6 +18,7 @@ DRY_RUN=false
 RES=128
 FLIP_DELAY=0
 POWER_CUT=17
+NSIDE=16
 
 # read in options
 for i in "$@"
@@ -25,7 +26,8 @@ do
   case $i in
       -h|--help)
       printf "Usage: ./dust_lensing.sh\n"
-      printf "         [-C|--cluster-run] [(-N|--resolution-N)=128] [-d|--dry-run] [(-f|--flip-delay)=0] [(-k|--k)=17]\n"
+      printf "         [-C|--cluster-run] [(-N|--resolution-N)=128] [-d|--dry-run]\n"
+      printf "         [(-f|--flip-delay)=0] [(-k|--k)=17] [(-n|-nside)=16]\n"
       exit 0
       ;;
       -N=*|--resolution-N=*)
@@ -42,10 +44,14 @@ do
       ;;
       -C|--cluster-run)
       USE_CLUSTER=true
-      shift # past argument=value
+      shift # past argument
       ;;
       -d|--dry-run)
       DRY_RUN=true
+      shift # past argument
+      ;;
+      -n=*|--nside=*)
+      NSIDE="${i#*=}"
       shift # past argument=value
       ;;
       *)
@@ -66,7 +72,7 @@ FLIP_STEP=$(((800 + $FLIP_DELAY)*$RES/128))
 IO3D=$((200*$RES/128))
 
 # Job directory
-JOBDIR="dust_lensing_R-${RES}_F-${FLIP_STEP}_kcut-${POWER_CUT}"
+JOBDIR="dust_lensing_R-${RES}_F-${FLIP_STEP}_kcut-${POWER_CUT}_Nside-${NSIDE}"
 
 printf "${BLUE}Deploying runs:${NC}\n"
 if "$USE_CLUSTER"; then
@@ -133,12 +139,13 @@ if "$USE_CLUSTER"; then
   sed -i.bak "s/72:00:00/${JOBTIME}:00:00/" job.slurm
 fi
 
-sed -i.bak "s/ic_spec_cut = [\.0-9]+/ic_spec_cut = $POWER_CUT/" config.txt
+sed -i.bak -e "s/ic_spec_cut = [\.0-9]+/ic_spec_cut = $POWER_CUT/" config.txt
+sed -i.bak -e "s/healpix_vecs_file = nside_[\.0-9]+\.vecs/healpix_vecs_file = nside_$NSIDE\.vecs/" config.txt
 
 # Adjust output/step parameters per resolution
-sed -i.bak "s/steps = [\.0-9]+/steps = $STEPS/" config.txt
-sed -i.bak "s/ray_flip_step = [\.0-9]+/ray_flip_step = $FLIP_STEP/" config.txt
-sed -i.bak "s/IO_3D_grid_interval = [\.0-9]+/IO_3D_grid_interval = $IO3D/" config.txt
+sed -i.bak -e "s/steps = [\.0-9]+/steps = $STEPS/" config.txt
+sed -i.bak -e "s/ray_flip_step = [\.0-9]+/ray_flip_step = $FLIP_STEP/" config.txt
+sed -i.bak -e "s/IO_3D_grid_interval = [\.0-9]+/IO_3D_grid_interval = $IO3D/" config.txt
 
 # Run job, go back up a dir
 if [ "$DRY_RUN" = false ]; then

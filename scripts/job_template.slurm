@@ -9,11 +9,16 @@
 #SBATCH -o job.out
 #SBATCH -J JOBNAME
 
-cp -r * $TMPDIR
-cd $TMPDIR
+JOBDIR="job-$SLURM_JOBID"
+JOBPATH="$TMPDIR/$JOBDIR"
+mkdir -p $JOBPATH
+cp -r * $JOBPATH
+cd $JOBPATH
+
 rm job.out
-echo "Working in: " . $TMPDIR
+echo "Working in: " . $JOBPATH
 
 ./cosmo config.txt
 
-cp -r * $SLURM_SUBMIT_DIR
+cd $TMPDIR
+cp -r $JOBDIR $SLURM_SUBMIT_DIR
