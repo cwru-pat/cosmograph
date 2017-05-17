@@ -128,7 +128,7 @@ mv cosmo "$JOBDIR/."
 cd "$JOBDIR"
 
 cp ../../config/dust_lensing.txt config.txt
-cp ../../config/healpix_vecs/nside_16.vecs nside_16.vecs
+cp ../../config/healpix_vecs/nside_$NSIDE.vecs nside_$NSIDE.vecs
 sed -i.bak "s/healpix_vecs_file = ..\/config\/healpix_vecs\//healpix_vecs_file = /" config.txt
 
 if "$USE_CLUSTER"; then
@@ -139,13 +139,13 @@ if "$USE_CLUSTER"; then
   sed -i.bak "s/72:00:00/${JOBTIME}:00:00/" job.slurm
 fi
 
-sed -i.bak -e "s/ic_spec_cut = [\.0-9]+/ic_spec_cut = $POWER_CUT/" config.txt
-sed -i.bak -e "s/healpix_vecs_file = nside_[\.0-9]+\.vecs/healpix_vecs_file = nside_$NSIDE\.vecs/" config.txt
+sed -i.bak -r "s/ic_spec_cut = [\.0-9]+/ic_spec_cut = $POWER_CUT/" config.txt
+sed -i.bak -r "s/healpix_vecs_file = nside_[0-9]+\.vecs/healpix_vecs_file = nside_32\.vecs/" config.txt
 
 # Adjust output/step parameters per resolution
-sed -i.bak -e "s/steps = [\.0-9]+/steps = $STEPS/" config.txt
-sed -i.bak -e "s/ray_flip_step = [\.0-9]+/ray_flip_step = $FLIP_STEP/" config.txt
-sed -i.bak -e "s/IO_3D_grid_interval = [\.0-9]+/IO_3D_grid_interval = $IO3D/" config.txt
+sed -i.bak -r "s/steps = [\.0-9]+/steps = $STEPS/" config.txt
+sed -i.bak -r "s/ray_flip_step = [\.0-9]+/ray_flip_step = $FLIP_STEP/" config.txt
+sed -i.bak -r "s/IO_3D_grid_interval = [\.0-9]+/IO_3D_grid_interval = $IO3D/" config.txt
 
 # Run job, go back up a dir
 if [ "$DRY_RUN" = false ]; then

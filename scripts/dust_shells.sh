@@ -18,6 +18,7 @@ DRY_RUN=false
 RES=128
 FLIP_DELAY=0
 POWER_L=5
+NSIDE=16
 
 # read in options
 for i in "$@"
@@ -25,7 +26,8 @@ do
   case $i in
       -h|--help)
       printf "Usage: ./dust_shells.sh\n"
-      printf "         [-C|--cluster-run] [(-N|--resolution-N)=128] [-d|--dry-run] [(-f|--flip-delay)=0] [(-l|--l)=5]\n"
+      printf "         [-C|--cluster-run] [(-N|--resolution-N)=128] [-d|--dry-run]\n"
+      printf "         [(-n|-nside)=16] [(-f|--flip-delay)=0] [(-l|--l)=5]\n"
       exit 0
       ;;
       -N=*|--resolution-N=*)
@@ -48,6 +50,10 @@ do
       DRY_RUN=true
       shift # past argument=value
       ;;
+      -n=*|--nside=*)
+      NSIDE="${i#*=}"
+      shift # past argument=value
+      ;;
       *)
         printf "Unrecognized option will not be used: ${i#*=}\n"
         # unknown option
@@ -66,7 +72,7 @@ FLIP_STEP=$(((800 + $FLIP_DELAY)*$RES/128))
 IO3D=$((200*$RES/128))
 
 # Job directory
-JOBDIR="dust_shell_R-${RES}_F-${FLIP_STEP}_l-${POWER_L}"
+JOBDIR="dust_shell_R-${RES}_F-${FLIP_STEP}_l-${POWER_L}_Nside-${NSIDE}"
 
 printf "${BLUE}Deploying runs:${NC}\n"
 if "$USE_CLUSTER"; then
@@ -122,7 +128,7 @@ mv cosmo "$JOBDIR/."
 cd "$JOBDIR"
 
 cp ../../config/dust_shell.txt config.txt
-cp ../../config/healpix_vecs/nside_16.vecs nside_16.vecs
+cp ../../config/healpix_vecs/nside_$NSIDE.vecs nside_$NSIDE.vecs
 sed -i.bak "s/healpix_vecs_file = ..\/config\/healpix_vecs\//healpix_vecs_file = /" config.txt
 
 if "$USE_CLUSTER"; then
@@ -133,12 +139,13 @@ if "$USE_CLUSTER"; then
   sed -i.bak "s/72:00:00/${JOBTIME}:00:00/" job.slurm
 fi
 
-sed -i.bak "s/shell_angular_scale_l = [\.0-9]+/shell_angular_scale_l = $POWER_L/" config.txt
+sed -i.bak -r "s/shell_angular_scale_l = [\.0-9]+/shell_angular_scale_l = $POWER_L/" config.txt
+sed -i.bak -r "s/healpix_vecs_file = nside_[0-9]+\.vecs/healpix_vecs_file = nside_32\.vecs/" config.txt
 
 # Adjust output/step parameters per resolution
-sed -i.bak "s/steps = [\.0-9]+/steps = $STEPS/" config.txt
-sed -i.bak "s/ray_flip_step = [\.0-9]+/ray_flip_step = $FLIP_STEP/" config.txt
-sed -i.bak "s/IO_3D_grid_interval = [\.0-9]+/IO_3D_grid_interval = $IO3D/" config.txt
+sed -i.bak -r "s/steps = [\.0-9]+/steps = $STEPS/" config.txt
+sed -i.bak -r "s/ray_flip_step = [\.0-9]+/ray_flip_step = $FLIP_STEP/" config.txt
+sed -i.bak -r "s/IO_3D_grid_interval = [\.0-9]+/IO_3D_grid_interval = $IO3D/" config.txt
 
 # Run job, go back up a dir
 if [ "$DRY_RUN" = false ]; then
@@ -153,6 +160,8 @@ fi
 
 if "$USE_CLUSTER"; then
   printf "squeue -u jbm120\n"
+  squeue -u jbm120
+  printf "squeue -u jbm120 --start\n"
   squeue -u jbm120 --start
 fi
 

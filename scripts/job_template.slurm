@@ -3,7 +3,7 @@
 #SBATCH --cpus-per-task=16
 #SBATCH --exclusive
 #SBATCH --time=72:00:00
-#SBATCH --mem=28g
+#SBATCH --mem=61g
 #SBATCH -A gds6
 #SBATCH --mail-type=STAGE_OUT
 #SBATCH -o job.out
