@@ -19,6 +19,7 @@ RES=128
 FLIP_DELAY=0
 POWER_CUT=17
 NSIDE=16
+SEED=7
 
 # read in options
 for i in "$@"
@@ -27,7 +28,7 @@ do
       -h|--help)
       printf "Usage: ./dust_lensing.sh\n"
       printf "         [-C|--cluster-run] [(-N|--resolution-N)=128] [-d|--dry-run]\n"
-      printf "         [(-f|--flip-delay)=0] [(-k|--k)=17] [(-n|-nside)=16]\n"
+      printf "         [(-f|--flip-delay)=0] [(-k|--k)=17] [(-n|-nside)=16] [(-s|-seed)=7]\n"
       exit 0
       ;;
       -N=*|--resolution-N=*)
@@ -38,7 +39,7 @@ do
       FLIP_DELAY="${i#*=}"
       shift # past argument=value
       ;;
-      -l=*|--l=*)
+      -k=*|--k=*)
       POWER_CUT="${i#*=}"
       shift # past argument=value
       ;;
@@ -49,6 +50,10 @@ do
       -d|--dry-run)
       DRY_RUN=true
       shift # past argument
+      ;;
+      -s=*|--seed=*)
+      SEED="${i#*=}"
+      shift # past argument=value
       ;;
       -n=*|--nside=*)
       NSIDE="${i#*=}"
@@ -72,7 +77,7 @@ FLIP_STEP=$(((800 + $FLIP_DELAY)*$RES/128))
 IO3D=$((200*$RES/128))
 
 # Job directory
-JOBDIR="dust_lensing_R-${RES}_F-${FLIP_STEP}_kcut-${POWER_CUT}_Nside-${NSIDE}"
+JOBDIR="dust_lensing_R-${RES}_F-${FLIP_STEP}_kcut-${POWER_CUT}_Nside-${NSIDE}_S-${SEED}"
 
 printf "${BLUE}Deploying runs:${NC}\n"
 if "$USE_CLUSTER"; then
@@ -139,8 +144,9 @@ if "$USE_CLUSTER"; then
   sed -i.bak "s/72:00:00/${JOBTIME}:00:00/" job.slurm
 fi
 
+sed -i.bak -r "s/mt19937_seed = [\.0-9]+/mt19937_seed = $SEED/" config.txt
 sed -i.bak -r "s/ic_spec_cut = [\.0-9]+/ic_spec_cut = $POWER_CUT/" config.txt
-sed -i.bak -r "s/healpix_vecs_file = nside_[0-9]+\.vecs/healpix_vecs_file = nside_32\.vecs/" config.txt
+sed -i.bak -r "s/healpix_vecs_file = nside_[0-9]+\.vecs/healpix_vecs_file = nside_$NSIDE\.vecs/" config.txt
 
 # Adjust output/step parameters per resolution
 sed -i.bak -r "s/steps = [\.0-9]+/steps = $STEPS/" config.txt

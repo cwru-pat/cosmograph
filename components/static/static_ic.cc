@@ -178,7 +178,8 @@ void dust_ic_set_sphere(BSSN * bssn, Static * dust, IOData * iodata)
 
   // Angular fluctuations in shell described by spherical harmonic coeffs, a_lm's,
   complex_t * alms = new complex_t[m_idx(l,l)+1];
-  std::mt19937 gen(7);
+  const real_t seed = stod(_config("mt19937_seed", "7"));
+  std::mt19937 gen(seed);
   std::normal_distribution<> normal_dist(0.0, 1.0);
   std::uniform_real_distribution<> uniform_dist(0.0, 2.0*PI);
 

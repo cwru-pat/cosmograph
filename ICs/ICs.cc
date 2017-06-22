@@ -65,7 +65,8 @@ void set_gaussian_random_field(arr_t & field, Fourier *fourier, ICsData *icd)
 
   // populate "field" with random values
   std::random_device rd;
-  std::mt19937 gen(9.0 /*rd()*/);
+  const real_t seed = stod(_config("mt19937_seed", "9"));
+  std::mt19937 gen(seed);
   std::normal_distribution<real_t> gaussian_distribution;
   std::uniform_real_distribution<double> angular_distribution(0.0, 2.0*PI);
    // calling these here before looping suppresses a warning (bug)
