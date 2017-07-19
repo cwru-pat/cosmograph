@@ -52,6 +52,16 @@ public:
     A.init(NX, NY, NZ); dt_A.init(NX, NY, NZ); d2t_A.init(NX, NY, NZ);
     B.init(NX, NY, NZ); dt_B.init(NX, NY, NZ); d2t_B.init(NX, NY, NZ);
     Phi.init(NX, NY, NZ); Psi.init(NX, NY, NZ);
+
+    // add Bardeen potentials to BSSN fields map
+    bssn->fields["Bardeen_Phi"] = & Phi;
+    bssn->fields["Bardeen_Psi"] = & Psi;
+    bssn->fields["Bardeen_A"] = & A;
+    bssn->fields["Bardeen_dt_A"] = & dt_A;
+    bssn->fields["Bardeen_d2t_A"] = & d2t_A;
+    bssn->fields["Bardeen_B"] = & B;
+    bssn->fields["Bardeen_dt_B"] = & dt_B;
+    bssn->fields["Bardeen_d2t_B"] = & d2t_B;
   }
   
   ~Bardeen()

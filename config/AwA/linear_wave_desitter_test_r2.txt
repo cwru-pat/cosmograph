@@ -1,0 +1,31 @@
+steps = 40000
+dt_frac = 0.25  
+
+KO_damping_coefficient = 0
+k_damping_amp = 0
+a_adj_amp = 0
+normalize_metric = 1
+
+simulation_type = vacuum
+ic_type = linear_wave_desitter
+
+output_dir = linear_wave_test_desitter_r4
+dump_file = calculated
+
+IO_1D_grid_interval = 10
+
+IO_1D_DIFFgamma11_a = 1
+IO_1D_DIFFgamma11_a_axis = 1
+IO_1D_DIFFgamma22_a = 1
+IO_1D_DIFFgamma22_a_axis = 1
+IO_1D_DIFFgamma33_a = 1
+IO_1D_DIFFgamma33_a_axis = 1
+IO_1D_A11_a = 1
+IO_1D_A11_a_axis = 1
+IO_1D_A22_a = 1
+IO_1D_A22_a_axis = 1
+IO_1D_A33_a = 1
+IO_1D_A33_a_axis = 1
+
+IO_constraint_interval = 10
+IO_bssnstats_interval = 10
