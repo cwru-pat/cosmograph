@@ -9,7 +9,7 @@ normalize_metric = 1
 simulation_type = vacuum
 ic_type = linear_wave_desitter
 
-output_dir = linear_wave_test_desitter_r4
+output_dir = linear_wave_test_desitter_r1
 dump_file = calculated
 
 IO_1D_grid_interval = 10

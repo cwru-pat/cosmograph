@@ -80,7 +80,7 @@ void Bardeen::setPotentials()
   fourier->inverseLaplacian <idx_t, real_t> (A._array);
   fourier->inverseLaplacian <idx_t, real_t> (dt_A._array);
   fourier->inverseLaplacian <idx_t, real_t> (d2t_A._array);
-  // (A.3) subtract from trace and /2
+  // (A.3) subtract from trace and /(2a^2)
 # pragma omp parallel for default(shared) private(i, j, k)
   LOOP3(i,j,k)
   {
@@ -101,6 +101,32 @@ void Bardeen::setPotentials()
     d2t_A[idx] =  -2.0*A[idx]*( pw2(dadt/a) + d2adt2/a ) - 4.0*dadt/a*dt_A[idx]
                   + ( d2t_h_tr - d2t_djdk_d2_hjk )/a/a/2.0;
   }
+  // fix monopoles: <h_tr> / a^2 = <3A> + <d^2 B> = <3A> (periodic spacetime)
+  //             => <A> = <h_tr> / 3 / a^2
+  real_t avg_A = average(A);
+  real_t avg_dt_A = average(dt_A);
+  real_t avg_d2t_A = average(d2t_A);
+  real_t avg_h_tr = 0, avg_dt_h_tr = 0, avg_d2t_h_tr = 0;
+  LOOP3(i,j,k)
+  {
+    idx_t idx = NP_INDEX(i,j,k);
+    avg_h_tr += h11[idx] + h22[idx] + h33[idx];
+    avg_dt_h_tr += dt_h11[idx] + dt_h22[idx] + dt_h33[idx];
+    avg_d2t_h_tr += d2t_h11[idx] + d2t_h22[idx] + d2t_h33[idx];
+  }
+  avg_h_tr /= POINTS;
+  avg_dt_h_tr /= POINTS;
+  avg_d2t_h_tr /= POINTS;
+
+  LOOP3(i,j,k)
+  {
+    idx_t idx = NP_INDEX(i,j,k);
+    A[idx] += avg_h_tr/3.0/a/a - avg_A;
+    dt_A[idx] += avg_dt_h_tr/3.0/a/a - 2.0*avg_h_tr*dadt/3.0/a/a/a - avg_dt_A;
+    d2t_A[idx] += avg_d2t_h_tr/3.0/a/a - 2.0*dadt*avg_dt_h_tr/3.0/a/a/a
+     + 6.0*avg_h_tr*dadt*dadt/3.0/a/a/a/a - 2.0*avg_h_tr*d2adt2/3.0/a/a/a - 2.0*avg_dt_h_tr*dadt/3.0/a/a/a
+     - avg_d2t_A;
+  }
 
   // construct B (and its time derivatives) in increments:
   // (B.1) trace - 3A
@@ -115,14 +141,13 @@ void Bardeen::setPotentials()
     
     B[idx] = ( h_tr/a/a - 3.0*A[idx] );
     dt_B[idx] = ( dt_h_tr/a/a - 2.0/a/a/a*dadt*h_tr - 3.0*dt_A[idx] );
-    d2t_B[idx] = ( d2t_h_tr/a/a - 2.0/a/a/a*dadt*dt_h_tr
-      - 2.0/a/a/a*(d2adt2 - 3.0*dadt/a)*h_tr - 3.0*d2t_A[idx] );
+    d2t_B[idx] = ( d2t_h_tr/a/a - 4.0/a/a/a*dadt*dt_h_tr
+      - 2.0/a/a/a*d2adt2*h_tr + 6.0/a/a/a/a*dadt*dadt*h_tr - 3.0*d2t_A[idx] );
   }
   // inverse laplacian of
   fourier->inverseLaplacian <idx_t, real_t> (B._array);
   fourier->inverseLaplacian <idx_t, real_t> (dt_B._array);
   fourier->inverseLaplacian <idx_t, real_t> (d2t_B._array);
-
 
   // scalar metric fields obtained... get Bardeen potentials:
 # pragma omp parallel for default(shared) private(i, j, k)
@@ -140,6 +165,7 @@ void Bardeen::setPotentials()
   // Psi_mean /= POINTS; Phi_mean /= POINTS;
   // std::cout << "(Phi, <Phi>, Psi, <Psi>) = (" << Phi[10] << ", " << Phi_mean
   //   << ", " << Psi[10] << ", " << Psi_mean << ")\n";
+
 }
 
 }
