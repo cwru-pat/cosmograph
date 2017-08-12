@@ -31,6 +31,7 @@ void Bardeen::setPotentials()
     h13[idx] = e4phi*bd.gamma13;
     h23[idx] = e4phi*bd.gamma23;
 
+    // dt gamma_ij = -2.0*K_ij
     // K_{ij} = e^{4\phi} * A_{ij} + gamma_{ij}*K/3
     dt_h11[idx] = -2.0*e4phi*(bd.A11 + bd.gamma11*bd.K/3.0) - 2.0*a*dadt;
     dt_h22[idx] = -2.0*e4phi*(bd.A22 + bd.gamma22*bd.K/3.0) - 2.0*a*dadt;
@@ -39,22 +40,24 @@ void Bardeen::setPotentials()
     dt_h13[idx] = -2.0*e4phi*(bd.A13 + bd.gamma13*bd.K/3.0);
     dt_h23[idx] = -2.0*e4phi*(bd.A23 + bd.gamma23*bd.K/3.0);
 
-    // K_{ij} = e^{4\phi} * A_{ij} + gamma_{ij}*K/3
-    d2t_h11[idx] = -2.0*( 4.0*bssn->ev_DIFFphi(&bd)*e4phi*(bd.A11 + bd.gamma11*bd.K/3.0)
-                    + e4phi*( bssn->ev_A11(&bd) + bssn->ev_DIFFgamma11(&bd)*bd.K/3.0 + bd.gamma11*bssn->ev_DIFFK(&bd)/3.0 )
+    // dt K_{ij}
+    real_t ev_phi = bssn->ev_DIFFK(&bd) + -bd.K_FRW/6.0;
+    real_t ev_K = bssn->ev_DIFFK(&bd) + bd.K_FRW*bd.K_FRW/3.0 + 4.0*PI*bd.rho_FRW;
+    d2t_h11[idx] = -2.0*( 4.0*(ev_phi)*e4phi*(bd.A11 + bd.gamma11*bd.K/3.0)
+                    + e4phi*( bssn->ev_A11(&bd) + bssn->ev_DIFFgamma11(&bd)*bd.K/3.0 + bd.gamma11*ev_K/3.0 )
                     + dadt*dadt + a*d2adt2 );
-    d2t_h22[idx] = -2.0*( 4.0*bssn->ev_DIFFphi(&bd)*e4phi*(bd.A22 + bd.gamma22*bd.K/3.0)
-                    + e4phi*( bssn->ev_A22(&bd) + bssn->ev_DIFFgamma22(&bd)*bd.K/3.0 + bd.gamma22*bssn->ev_DIFFK(&bd)/3.0 )
+    d2t_h22[idx] = -2.0*( 4.0*(ev_phi)*e4phi*(bd.A22 + bd.gamma22*bd.K/3.0)
+                    + e4phi*( bssn->ev_A22(&bd) + bssn->ev_DIFFgamma22(&bd)*bd.K/3.0 + bd.gamma22*ev_K/3.0 )
                     + dadt*dadt + a*d2adt2 );
-    d2t_h33[idx] = -2.0*( 4.0*bssn->ev_DIFFphi(&bd)*e4phi*(bd.A33 + bd.gamma33*bd.K/3.0)
-                    + e4phi*( bssn->ev_A33(&bd) + bssn->ev_DIFFgamma33(&bd)*bd.K/3.0 + bd.gamma33*bssn->ev_DIFFK(&bd)/3.0 )
+    d2t_h33[idx] = -2.0*( 4.0*(ev_phi)*e4phi*(bd.A33 + bd.gamma33*bd.K/3.0)
+                    + e4phi*( bssn->ev_A33(&bd) + bssn->ev_DIFFgamma33(&bd)*bd.K/3.0 + bd.gamma33*ev_K/3.0 )
                     + dadt*dadt + a*d2adt2 );
-    d2t_h12[idx] = -2.0*( 4.0*bssn->ev_DIFFphi(&bd)*e4phi*(bd.A12 + bd.gamma12*bd.K/3.0)
-                    + e4phi*( bssn->ev_A12(&bd) + bssn->ev_DIFFgamma12(&bd)*bd.K/3.0 + bd.gamma12*bssn->ev_DIFFK(&bd)/3.0 ) );
-    d2t_h13[idx] = -2.0*( 4.0*bssn->ev_DIFFphi(&bd)*e4phi*(bd.A13 + bd.gamma13*bd.K/3.0)
-                    + e4phi*( bssn->ev_A13(&bd) + bssn->ev_DIFFgamma13(&bd)*bd.K/3.0 + bd.gamma13*bssn->ev_DIFFK(&bd)/3.0 ) );
-    d2t_h23[idx] = -2.0*( 4.0*bssn->ev_DIFFphi(&bd)*e4phi*(bd.A23 + bd.gamma23*bd.K/3.0)
-                    + e4phi*( bssn->ev_A23(&bd) + bssn->ev_DIFFgamma23(&bd)*bd.K/3.0 + bd.gamma23*bssn->ev_DIFFK(&bd)/3.0 ) );
+    d2t_h12[idx] = -2.0*( 4.0*(ev_phi)*e4phi*(bd.A12 + bd.gamma12*bd.K/3.0)
+                    + e4phi*( bssn->ev_A12(&bd) + bssn->ev_DIFFgamma12(&bd)*bd.K/3.0 + bd.gamma12*ev_K/3.0 ) );
+    d2t_h13[idx] = -2.0*( 4.0*(ev_phi)*e4phi*(bd.A13 + bd.gamma13*bd.K/3.0)
+                    + e4phi*( bssn->ev_A13(&bd) + bssn->ev_DIFFgamma13(&bd)*bd.K/3.0 + bd.gamma13*ev_K/3.0 ) );
+    d2t_h23[idx] = -2.0*( 4.0*(ev_phi)*e4phi*(bd.A23 + bd.gamma23*bd.K/3.0)
+                    + e4phi*( bssn->ev_A23(&bd) + bssn->ev_DIFFgamma23(&bd)*bd.K/3.0 + bd.gamma23*ev_K/3.0 ) );
   }
 
   // construct A (and its time derivatives) in increments:
@@ -144,6 +147,7 @@ void Bardeen::setPotentials()
     d2t_B[idx] = ( d2t_h_tr/a/a - 4.0/a/a/a*dadt*dt_h_tr
       - 2.0/a/a/a*d2adt2*h_tr + 6.0/a/a/a/a*dadt*dadt*h_tr - 3.0*d2t_A[idx] );
   }
+
   // inverse laplacian of
   fourier->inverseLaplacian <idx_t, real_t> (B._array);
   fourier->inverseLaplacian <idx_t, real_t> (dt_B._array);
@@ -158,13 +162,6 @@ void Bardeen::setPotentials()
     Phi[idx] = -a/2.0*( 2.0*dadt*dt_B[idx] + a*d2t_B[idx] );
     Psi[idx] = -1.0/2.0*A[idx] + a*dadt*dt_B[idx]/2.0;
   }
-
-  // debugging; print out values
-  // real_t Psi_mean = 0.0; real_t Phi_mean = 0.0;
-  // LOOP3(i,j,k) { idx_t idx = NP_INDEX(i,j,k); Psi_mean += Psi[idx]; Phi_mean += Phi[idx]; }
-  // Psi_mean /= POINTS; Phi_mean /= POINTS;
-  // std::cout << "(Phi, <Phi>, Psi, <Psi>) = (" << Phi[10] << ", " << Phi_mean
-  //   << ", " << Psi[10] << ", " << Psi_mean << ")\n";
 
 }
 
