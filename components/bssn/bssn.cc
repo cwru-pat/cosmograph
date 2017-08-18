@@ -12,7 +12,7 @@ namespace cosmo
  */
 BSSN::BSSN(ConfigParser * config)
 {
-  gaugeHandler = new BSSNGaugeHandler(config);
+  gaugeHandler = new BSSNGaugeHandler(config, this);
 
   KO_damping_coefficient = std::stod((*config)("KO_damping_coefficient", "0.0"));
   a_adj_amp = std::stod((*config)("a_adj_amp", "0.0"));
@@ -166,6 +166,7 @@ void BSSN::stepInit()
   BSSN_RK_INITIALIZE; // macro calls stepInit for all fields
 
   K_avg = conformal_average(DIFFK->_array_p, DIFFphi->_array_p, frw->get_phi());
+  rho_avg = conformal_average(DIFFr_a, DIFFphi->_array_p, frw->get_phi());
 
   if(normalize_metric)
     set_DIFFgamma_Aij_norm(); // norms metric in _a register
@@ -213,6 +214,7 @@ void BSSN::K1Finalize()
   frw->P1_step(dt);
   BSSN_FINALIZE_K(1);
   K_avg = conformal_average(DIFFK->_array_a, DIFFphi->_array_a, frw->get_phi());
+  rho_avg = conformal_average(DIFFr_a, DIFFphi->_array_p, frw->get_phi());
 }
 
 /**
@@ -224,6 +226,7 @@ void BSSN::K2Finalize()
   frw->P2_step(dt);
   BSSN_FINALIZE_K(2);
   K_avg = conformal_average(DIFFK->_array_a, DIFFphi->_array_a, frw->get_phi());
+  rho_avg = conformal_average(DIFFr_a, DIFFphi->_array_p, frw->get_phi());
 }
 
 /**
@@ -235,6 +238,7 @@ void BSSN::K3Finalize()
   frw->P3_step(dt);
   BSSN_FINALIZE_K(3);
   K_avg = conformal_average(DIFFK->_array_a, DIFFphi->_array_a, frw->get_phi());
+  rho_avg = conformal_average(DIFFr_a, DIFFphi->_array_p, frw->get_phi());
 }
 
 /**
@@ -246,6 +250,7 @@ void BSSN::K4Finalize()
   frw->RK_total_step(dt);
   BSSN_FINALIZE_K(4);
   K_avg = conformal_average(DIFFK->_array_f, DIFFphi->_array_f, frw->get_phi());
+  rho_avg = conformal_average(DIFFr_a, DIFFphi->_array_p, frw->get_phi());
 }
 
 /**
@@ -317,6 +322,7 @@ void BSSN::set_bd_values(idx_t i, idx_t j, idx_t k, BSSNData *bd)
 
   // average K
   bd->K_avg = K_avg;
+  bd->rho_avg = rho_avg;
 
   // draw data from cache
   set_local_vals(bd);

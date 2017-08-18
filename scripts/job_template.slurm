@@ -2,7 +2,7 @@
 #SBATCH --nodes=1
 #SBATCH --exclusive
 #SBATCH --time=72:00:00
-#SBATCH --mem=44g
+#SBATCH --mem=60g
 #SBATCH -A gds6
 #SBATCH --mail-type=STAGE_OUT
 #SBATCH -o job.out

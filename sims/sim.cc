@@ -174,6 +174,9 @@ void CosmoSim::prepBSSNOutput()
     BSSNData b_data = {0}; // data structure associated with bssn sim
     bssnSim->set_bd_values(i, j, k, &b_data);
   }
+
+  if(use_bardeen)
+    bardeen->setPotentials();
 }
 
 void CosmoSim::outputStateInformation()

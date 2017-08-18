@@ -10,8 +10,11 @@ void Bardeen::setPotentials()
 
   // compute conformal factor, time-derivatives (assumes dust universe)
   arr_t & DIFFphi_a = *bssn->fields["DIFFphi_a"];
+  arr_t & DIFFalpha_a = *bssn->fields["DIFFalpha_a"];
+  arr_t & DIFFK_a = *bssn->fields["DIFFK_a"];
   real_t a = exp( 2.0*( bssn->frw->get_phi() + conformal_average(DIFFphi_a, DIFFphi_a, bssn->frw->get_phi()) ) );
-  real_t dadt = 1.0/std::sqrt(a); // reliant upon on dust universe
+  // a' ~ -1/3*a*alpha*k
+  real_t dadt = -1.0/3.0*a*(1.0 + conformal_average(DIFFalpha_a, DIFFphi_a, bssn->frw->get_phi()))*(bssn->frw->get_K() + conformal_average(DIFFK_a, DIFFphi_a, bssn->frw->get_phi()));
   real_t d2adt2 = -1.0/2.0/a/a; // reliant upon on dust universe
 
   // construct h_ij components, time derivatives
@@ -147,7 +150,6 @@ void Bardeen::setPotentials()
     d2t_B[idx] = ( d2t_h_tr/a/a - 4.0/a/a/a*dadt*dt_h_tr
       - 2.0/a/a/a*d2adt2*h_tr + 6.0/a/a/a/a*dadt*dadt*h_tr - 3.0*d2t_A[idx] );
   }
-
   // inverse laplacian of
   fourier->inverseLaplacian <idx_t, real_t> (B._array);
   fourier->inverseLaplacian <idx_t, real_t> (dt_B._array);
@@ -162,6 +164,48 @@ void Bardeen::setPotentials()
     Phi[idx] = -a/2.0*( 2.0*dadt*dt_B[idx] + a*d2t_B[idx] );
     Psi[idx] = -1.0/2.0*A[idx] + a*dadt*dt_B[idx]/2.0;
   }
+
+  // // Consistency checks / debugging
+  // idx_t pt = 4;
+  // real_t tr_h = h11[pt] + h22[pt] + h33[pt];
+  // real_t dt_tr_h = dt_h11[pt] + dt_h22[pt] + dt_h33[pt];
+  // real_t d2t_tr_h = d2t_h11[pt] + d2t_h22[pt] + d2t_h33[pt];
+  
+  // std::cout << "\na = " << a << "; dadt = " << dadt << "; 1/sqrt(a) = " << 1.0/std::sqrt(a) << "; A = "
+  //   << A[pt] << "; DIFFalpha=" << DIFFalpha_a[pt] << ";\n";
+
+  // std::cout << "3A + lap(B) - tr_h/a^2 = '0' = " << 3*A[pt] + laplacian(0,0,pt,B) - tr_h/a/a << ";\n";
+  // std::cout << "3 dtA + lap(dtB) - dt_tr_h/a^2 + 2 dadt / a^3 * tr_h = '0' = "
+  //   << 3*dt_A[pt] + laplacian(0,0,pt,dt_B) - dt_tr_h/a/a + 2*dadt/a/a/a*tr_h << ";\n";
+  // std::cout << "3 d2tA + lap(d2tB) - tr_d2t_h/a^2 + 2 dadt dt_tr_h/a^3 + 2 dadt / a^3 * dt_tr_h - 6 dadt*dadt / a^4 * tr_h + 2 d2adt2 / a^3 * tr_h = '0' = "
+  //   << 3*d2t_A[pt] + laplacian(0,0,pt,d2t_B) - d2t_tr_h/a/a + 4*dadt/a/a/a*dt_tr_h - 6*dadt*dadt/a/a/a/a*tr_h + 2*d2adt2/a/a/a*tr_h << ";\n";
+
+  // std::cout << "Average field values: <A>=" << 3.0*average(A) << ", <h>/a^2=" << avg_h_tr/a/a << ";\n";
+
+  // // di dj h_ij ?= lap(A) + lap^2(B)
+  // real_t didjhij =       double_derivative(i, j, k, 1, 1, h11) + double_derivative(i, j, k, 2, 2, h22) + double_derivative(i, j, k, 3, 3, h33)
+  //     + 2.0*(double_derivative(i, j, k, 1, 2, h12) + double_derivative(i, j, k, 1, 3, h13) + double_derivative(i, j, k, 2, 3, h23));
+  // real_t dt_didjhij =       double_derivative(i, j, k, 1, 1, dt_h11) + double_derivative(i, j, k, 2, 2, dt_h22) + double_derivative(i, j, k, 3, 3, dt_h33)
+  //     + 2.0*(double_derivative(i, j, k, 1, 2, dt_h12) + double_derivative(i, j, k, 1, 3, dt_h13) + double_derivative(i, j, k, 2, 3, dt_h23));
+  // real_t d2t_didjhij =       double_derivative(i, j, k, 1, 1, d2t_h11) + double_derivative(i, j, k, 2, 2, d2t_h22) + double_derivative(i, j, k, 3, 3, d2t_h33)
+  //     + 2.0*(double_derivative(i, j, k, 1, 2, d2t_h12) + double_derivative(i, j, k, 1, 3, d2t_h13) + double_derivative(i, j, k, 2, 3, d2t_h23));
+
+  // LOOP3(i,j,k) { tmp[NP_INDEX(i,j,k)] = laplacian(i,j,k,B); }
+  // std::cout << "di dj hij / a^2 = " << didjhij/a/a
+  //   << "; lap(A) + lap^2(B) = " << laplacian(0,0,pt,A) + laplacian(0,0,pt,tmp) << "; \n";
+  // //time-der;
+  // LOOP3(i,j,k) { tmp[NP_INDEX(i,j,k)] = laplacian(i,j,k,dt_B); }
+  // std::cout << "dt_didjhij / a^2 -2dadt*didjhij/a^3  = " << dt_didjhij/a/a - 2.0/a/a/a*dadt*didjhij
+  //   << "; lap(dt_A) + lap^2(dt_B) = " << laplacian(0,0,pt,dt_A) + laplacian(0,0,pt,tmp) << "; \n";
+  // // 2nd time-der
+  // LOOP3(i,j,k) { tmp[NP_INDEX(i,j,k)] = laplacian(i,j,k,d2t_B); }
+  // std::cout << "d2t_didjhij / a^2 -2*dadt*dt_didjhij / a^3 -2d2adt2*didjhij/a^3 - 2dadt*dt_didjhij/a^3 + 6 dadt^2*didjhij/a^4  = "
+  //   << d2t_didjhij/a/a - 2.0*dadt*dt_didjhij/a/a/a - 2.0/a/a/a*d2adt2*didjhij + 6.0/a/a/a/a*dadt*dadt*didjhij - 2.0/a/a/a*dadt*dt_didjhij
+  //   << "; lap(d2t_A) + lap^2(d2t_B) = " << laplacian(0,0,pt,d2t_A) + laplacian(0,0,pt,tmp) << "; \n";
+
+  // std::cout << "Linear constraint: "
+  //   << A[pt] - a*a*d2t_B[pt] - 3*dadt*a*dt_B[pt] << "\n";
+
 
 }
 

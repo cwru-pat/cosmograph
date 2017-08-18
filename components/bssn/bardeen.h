@@ -37,6 +37,8 @@ public:
   // Bardeen potentials
   arr_t Phi, Psi;
 
+  arr_t tmp;
+
   Bardeen(BSSN * bssn_in, Fourier * fourier_in)
   {
     bssn = bssn_in;
@@ -52,6 +54,8 @@ public:
     A.init(NX, NY, NZ); dt_A.init(NX, NY, NZ); d2t_A.init(NX, NY, NZ);
     B.init(NX, NY, NZ); dt_B.init(NX, NY, NZ); d2t_B.init(NX, NY, NZ);
     Phi.init(NX, NY, NZ); Psi.init(NX, NY, NZ);
+
+    tmp.init(NX, NY, NZ);
 
     // add Bardeen potentials to BSSN fields map
     bssn->fields["Bardeen_Phi"] = & Phi;

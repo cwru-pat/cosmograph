@@ -1,4 +1,5 @@
 #include "BSSNGaugeHandler.h"
+#include "bssn.h"
 #include "../../cosmo_types.h"
 #include "../../cosmo_globals.h"
 #include <map>
@@ -56,6 +57,32 @@ real_t BSSNGaugeHandler::ConformalSyncLapse(BSSNData *bd)
 {
   return -1.0/3.0*bd->alpha*bd->K_FRW;
 }
+
+
+/**
+ * @brief Trial Lapse function in cosmology
+ * Assumes reference metric is not used / minkowski
+ */
+real_t BSSNGaugeHandler::TestKDriverLapse(BSSNData *bd)
+{
+  real_t dta = (
+    bssn->ev_DIFFK(bd) - ( pw2(bd->K_avg)/3.0 + 4.0*PI*bd->rho_avg )
+  ) + (
+    bd->K - bd->K_avg
+  );
+
+  return -1.0*k_driver_coeff*dta;
+}
+
+/**
+ * @brief Trial Lapse function in cosmology
+ */
+real_t BSSNGaugeHandler::TestAijDriverLapse(BSSNData *bd)
+{
+  return 0.0;
+}
+
+
 
 /**
  * @brief Gamma driver shift in x-dir
@@ -202,29 +229,20 @@ real_t BSSNGaugeHandler::AwAShiftedWaveShift3(BSSNData *bd)
 
 
 
-
 /**
- * @brief AwA "redshifted" shift
+ * @brief Aij driver test gauge 
  */
-real_t BSSNGaugeHandler::RedShift1(BSSNData *bd)
+real_t BSSNGaugeHandler::AijDriverShift1(BSSNData *bd)
 {
-  real_t val = 0.0;
-  val += -4.0*bd->beta1*( -1.0/6.0*bd->alpha*bd->K
-      + bd->beta1*bd->d1phi + bd->beta2*bd->d2phi + bd->beta3*bd->d3phi
-      - ( bd->d1beta1 + bd->d2beta2 + bd->d3beta3 )
-    );
-  return val;
+  return -k_driver_coeff*( std::abs(bssn->ev_A11(bd) + bd->A11) + std::abs(bssn->ev_A12(bd) + bd->A12) + std::abs(bssn->ev_A13(bd) + bd->A13) );
 }
-real_t BSSNGaugeHandler::RedShift2(BSSNData *bd)
+real_t BSSNGaugeHandler::AijDriverShift2(BSSNData *bd)
 {
-  real_t val = 0.0;
-  return val;
+  return -k_driver_coeff*( std::abs(bssn->ev_A12(bd) + bd->A12) + std::abs(bssn->ev_A22(bd) + bd->A22) + std::abs(bssn->ev_A23(bd) + bd->A23) );
 }
-real_t BSSNGaugeHandler::RedShift3(BSSNData *bd)
+real_t BSSNGaugeHandler::AijDriverShift3(BSSNData *bd)
 {
-  real_t val = 0.0;
-  return val;
+  return -k_driver_coeff*( std::abs(bssn->ev_A13(bd) + bd->A13) + std::abs(bssn->ev_A23(bd) + bd->A23) + std::abs(bssn->ev_A33(bd) + bd->A33) );
 }
-
 
 } // namespace cosmo

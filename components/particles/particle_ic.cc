@@ -16,7 +16,6 @@ namespace cosmo
 void particle_ic_set_random(BSSN * bssnSim, Particles * particles, Fourier * fourier,
   IOData * iodata)
 {
-  // TODO: Move to separate file?
   idx_t i, j, k;
   ICsData icd = cosmo_get_ICsData();
   real_t rho_FRW = icd.rho_K_matter;
@@ -195,7 +194,7 @@ void particle_ic_set_sinusoid(BSSN * bssnSim, Particles * particles, IOData * io
   // matter sources
   arr_t & DIFFr_a = *bssnSim->fields["DIFFr_a"];
 
-  real_t A = std::stod(_config("peak_amplitude", "0.0001"));
+  real_t A = H_LEN_FRAC*H_LEN_FRAC*std::stod(_config("peak_amplitude_frac", "0.0001"));
   iodata->log( "Generating ICs with peak amp. = " + stringify(A) );
 
   real_t rho_FRW = 3.0/PI/8.0;
