@@ -43,6 +43,10 @@ void DustSim::setICs()
   {
     dust_ic_set_sphere(bssnSim, staticSim, iodata);
   }
+  else if(_config("ic_type", "") == "sinusoid")
+  {
+    dust_ic_set_sinusoid(bssnSim, staticSim, fourier, iodata);
+  }
   else
   {
     iodata->log("Creating gaussian random field.");
@@ -70,6 +74,10 @@ void DustSim::outputDustStep()
     io_bssn_fields_powerdump(iodata, step, bssnSim->fields, fourier);
     io_bssn_dump_statistics(iodata, step, bssnSim->fields, bssnSim->frw);
     io_bssn_constraint_violation(iodata, step, bssnSim);
+    if(step == 0)
+    {
+      outputStateInformation();
+    }
   _timer["output"].stop();
 }
 

@@ -238,10 +238,29 @@ void particle_ic_set_sinusoid(BSSN * bssnSim, Particles * particles, IOData * io
     real_t x = ((real_t) i / (real_t) NX / (real_t) particles_per_dx);
 
     real_t phi = A*sin(2.0*PI*x + phix);
+
+    // \rho at a few/adjacent points
     real_t rho = rho_FRW + -exp(-4.0*phi)/PI/2.0*(
         pw2(twopi_L*A*cos(2.0*PI*x + phix))
         - pw2_twopi_L*A*sin(2.0*PI*x + phix)
       );
+    real_t xp = x + dx/particles_per_dx;
+    real_t xm = x - dx/particles_per_dx;
+    real_t rhop = rho_FRW + -exp(-4.0*phi)/PI/2.0*(
+        pw2(twopi_L*A*cos(2.0*PI*xp + phix))
+        - pw2_twopi_L*A*sin(2.0*PI*xp + phix)
+      );
+    real_t rhom = rho_FRW + -exp(-4.0*phi)/PI/2.0*(
+        pw2(twopi_L*A*cos(2.0*PI*xm + phix))
+        - pw2_twopi_L*A*sin(2.0*PI*xm + phix)
+      );
+    // deconvolution to get mass
+    // mass is distributed across nearby points;
+    // try to counteract this
+    // TODO: tune this?
+    real_t stren = std::stod(_config("deconvolution_strength", "1.0"));
+    rho = -stren*rhop + (1.0+2.0*stren)*rho - stren*rhom;
+
 
     real_t rootdetg = std::exp(6.0*phi);
     Particle<real_t> particle = {0};

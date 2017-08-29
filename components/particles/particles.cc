@@ -646,6 +646,9 @@ void Particles::addParticlesToBSSNSrc(BSSN * bssnSim)
     STF33_a[idx] -= (1.0/3.0)*exp(4.0*bd.phi)*bd.gamma33*trS;
   }
 
+std::cout << "STF11=" << STF11_a[3] << "; STF12=" << STF12_a[3] << "; STF22=" << STF22_a[3] << "\n";
+std::cout << "S1=" << S1_a[3] << "; S2=" << S2_a[3] << "; S3=" << S3_a[3] << "\n";
+
   _timer["Particles::addToBSSNSrc"].stop();
 }
 

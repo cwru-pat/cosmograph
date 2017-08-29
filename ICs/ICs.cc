@@ -10,7 +10,7 @@ ICsData cosmo_get_ICsData()
 
   icd.rho_K_matter = 3.0/PI/8.0; // matter density term from FRW equation
 
-  real_t rho_K_lambda_frac = (real_t) stold(_config["rho_K_lambda_frac"]); // DE density
+  real_t rho_K_lambda_frac = (real_t) stold(_config("rho_K_lambda_frac","0.0")); // DE density
   icd.rho_K_lambda = rho_K_lambda_frac*icd.rho_K_matter;
 
   // power spectrum amplitude as a fraction of the density

@@ -1,30 +1,18 @@
 steps = 4000
-dt_frac = 0.05
 
-particles_per_dx = 3
-smoothing_radius = 1.5
-
-lapse = TestKDriverLapse
-k_driver_coeff = 0.0
-
-KO_damping_coefficient = 0.0
-k_damping_amp = 0
-a_adj_amp = 0
-normalize_metric = 1
-
-simulation_type = particles
+simulation_type = dust
 ic_type = sinusoid
 peak_amplitude_frac = 0.001
-deconvolution_strength = 0.0
 
-output_dir = particle_sinusoid_test
+KO_damping_coefficient = 0
+normalize_metric = 1
+
+output_dir = dust_SVT_test
 dump_file = calculated
 
 IO_constraint_interval = 10
 IO_bssnstats_interval = 10
 IO_1D_grid_interval = 40
-
-IO_particles = 200
 
 IO_1D_DIFFr_a = 1
 
