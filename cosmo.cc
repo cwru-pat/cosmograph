@@ -8,6 +8,7 @@
 #include "sims/particles.h"
 #include "sims/scalar.h"
 #include "sims/vacuum.h"
+#include "sims/sheets.h"
 
 using namespace std;
 using namespace cosmo;
@@ -69,12 +70,18 @@ int main(int argc, char **argv)
   {
     cosmoSim = new VacuumSim();
   }
+  else if( simulation_type == "sheets")
+  {
+   
+    cosmoSim = new SheetSim();
+  }
   else
   {
     std::cerr << "Invalid simulation type specified.";
     throw 2;
   }
-
+  std::cout<<"Finishing!\n";
+  throw 1;
   // Initialize simulation 
   cosmoSim->init();
 

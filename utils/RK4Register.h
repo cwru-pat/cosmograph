@@ -39,6 +39,35 @@ class RK4Register
       // call init()
     }
 
+ RK4Register(IT nx_in, IT ny_in, IT nz_in, RT sim_dt_in):
+      _array_p(nx_in, ny_in, nz_in),
+        _array_a(nx_in, ny_in, nz_in),
+        _array_c(nx_in, ny_in, nz_in),
+        _array_f(nx_in, ny_in, nz_in)
+        {
+          setDt(sim_dt_in);
+
+          points = nx_in*ny_in*nz_in;
+
+          // call init()
+        }
+
+      
+    RK4Register(IT nx_in, IT ny_in, IT nz_in, RT lx_in, RT ly_in, RT lz_in, RT sim_dt_in):
+      _array_p(nx_in, ny_in, nz_in, lx_in, ly_in, lz_in),
+        _array_a(nx_in, ny_in, nz_in, lx_in, ly_in, lz_in),
+        _array_c(nx_in, ny_in, nz_in, lx_in, ly_in, lz_in),
+        _array_f(nx_in, ny_in, nz_in, lx_in, ly_in, lz_in)
+      {
+        setDt(sim_dt_in);
+
+        points = nx_in*ny_in*nz_in;
+      
+
+        // call init()
+      }
+
+      
     /**
      * @brief Initialize class variables; call CosmoArray::init for array members
      * @details Set "dt" for class instance; grid dimensions
@@ -167,6 +196,23 @@ class RK4Register
       swap_a_c();
     }
 
+    RT& _p(const IT & i, const IT & j, const IT & k) { return _array_p(i, j, k); }
+    RT& _a(const IT & i, const IT & j, const IT & k) { return _array_a(i, j, k); }
+    RT& _c(const IT & i, const IT & j, const IT & k) { return _array_c(i, j, k); }
+    RT& _f(const IT & i, const IT & j, const IT & k) { return _array_f(i, j, k); }
+
+    RT& operator()(const IT & i, const IT & j, const IT & k)
+    {
+      return _array_a(i, j, k);
+      return _array_a[_array_a.idx(i, j, k)];
+    }
+
+    RT& operator[](IT idx)
+    {
+      return _array_a[idx];
+    }
+
+    
 };
 
 } // end namespace
