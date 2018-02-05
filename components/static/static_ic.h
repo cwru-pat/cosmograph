@@ -18,6 +18,9 @@ namespace cosmo
 void dust_ic_set_random(BSSN * bssn, Static * dust, Fourier * fourier,
   IOData * iodata);
 
+void dust_ic_set_sinusoid(BSSN * bssn, Static * dust, Fourier * fourier,
+  IOData * iodata);
+
 void dust_ic_set_sphere(BSSN * bssn, Static * dust, IOData * iodata);
 
 }

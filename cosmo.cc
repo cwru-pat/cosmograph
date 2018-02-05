@@ -91,5 +91,6 @@ int main(int argc, char **argv)
   // Run simulation
   cosmoSim->run();
 
+  delete cosmoSim;
   return EXIT_SUCCESS;
 }

@@ -41,7 +41,7 @@ protected:
 
 public:
   CosmoSim();
-  ~CosmoSim();
+  virtual ~CosmoSim() {};
 
   // These functions will be called in main();
   // Each derived class should implement them.

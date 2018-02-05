@@ -15,10 +15,15 @@
 namespace cosmo
 {
 
+class BSSN; // forward declaration of BSSN class
+
 class BSSNGaugeHandler
 {
 private:
   typedef real_t (BSSNGaugeHandler::*bssn_gauge_func_t)(BSSNData *bd); ///< internal function pointer type
+
+  // Reference to BSSN instance
+  BSSN * bssn;
 
   // Maps to available functions
   std::map<std::string, bssn_gauge_func_t> lapse_gauge_map;
@@ -69,10 +74,12 @@ private:
   real_t AwAShiftedWaveShift2(BSSNData *bd);
   real_t AwAShiftedWaveShift3(BSSNData *bd);
 
-  // RedShift
-  real_t RedShift1(BSSNData *bd);
-  real_t RedShift2(BSSNData *bd);
-  real_t RedShift3(BSSNData *bd);
+  real_t k_driver_coeff;
+  real_t TestKDriverLapse(BSSNData *bd);
+  real_t TestAijDriverLapse(BSSNData *bd);
+  real_t AijDriverShift1(BSSNData *bd);
+  real_t AijDriverShift2(BSSNData *bd);
+  real_t AijDriverShift3(BSSNData *bd);
 
   // Map of strings to functions
   void _initGaugeMaps()
@@ -86,6 +93,9 @@ private:
     lapse_gauge_map["ConformalSync"] = &BSSNGaugeHandler::ConformalSyncLapse;
     lapse_gauge_map["AwAGaugeWave"] = &BSSNGaugeHandler::AwAGaugeWaveLapse;
     lapse_gauge_map["AwAShiftedWave"] = &BSSNGaugeHandler::AwAShiftedWaveLapse;
+
+    lapse_gauge_map["TestKDriverLapse"] = &BSSNGaugeHandler::TestKDriverLapse;
+    lapse_gauge_map["TestAijDriverLapse"] = &BSSNGaugeHandler::TestAijDriverLapse;
 
     // Shift functions
     // Static gauge
@@ -104,10 +114,11 @@ private:
     shift_gauge_map["AwAShiftedWave"]["1"] = &BSSNGaugeHandler::AwAShiftedWaveShift1;
     shift_gauge_map["AwAShiftedWave"]["2"] = &BSSNGaugeHandler::AwAShiftedWaveShift2;
     shift_gauge_map["AwAShiftedWave"]["3"] = &BSSNGaugeHandler::AwAShiftedWaveShift3;
-    // Trial vector mode shift velocity-counter
-    shift_gauge_map["RedShift"]["1"] = &BSSNGaugeHandler::RedShift1;
-    shift_gauge_map["RedShift"]["2"] = &BSSNGaugeHandler::RedShift2;
-    shift_gauge_map["RedShift"]["3"] = &BSSNGaugeHandler::RedShift3;
+
+
+    shift_gauge_map["AijDriverShift"]["1"] = &BSSNGaugeHandler::AijDriverShift1;
+    shift_gauge_map["AijDriverShift"]["2"] = &BSSNGaugeHandler::AijDriverShift2;
+    shift_gauge_map["AijDriverShift"]["3"] = &BSSNGaugeHandler::AijDriverShift3;
   }
 
   void _initDefaultParameters(ConfigParser *config)
@@ -117,6 +128,8 @@ private:
     dw_mu_s = std::stod((*config)("dw_mu_s", "0.0"));
     dw_p = std::stod((*config)("dw_p", "0.0"));
     gd_c = std::stod((*config)("gd_c", "0.0"));
+
+    k_driver_coeff = std::stod((*config)("k_driver_coeff", "0.04"));
   }
 
 public:
@@ -136,12 +149,14 @@ public:
   /**
    * @brief Initialize with gauge determined by config file (default to a "static", non-evolving gauge)
    */
-  BSSNGaugeHandler(ConfigParser *config)
+  BSSNGaugeHandler(ConfigParser *config, BSSN *bssnSim)
   {
     _initGaugeMaps();
     _initDefaultParameters(config);
     setLapseFn((*config)("lapse", "Static"));
     setShiftFn((*config)("shift", "Static"));
+
+    bssn = bssnSim;
   }
 
   /**

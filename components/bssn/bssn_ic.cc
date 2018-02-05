@@ -132,24 +132,37 @@ void bssn_ic_awa_diagonal_linear_wave(BSSN * bssn)
  * @brief Initialize with a "linear" wave propagating in the x-direction,
  * on top of a deSitter spacetime.
  * @details Solution should behave, at linear order, as a damped wave equation.
+ * Should be run as a vacuum sim (todo: clean up)
  */
 void bssn_ic_awa_linear_wave_desitter(BSSN * bssn)
 {
-  bssn_ic_awa_linear_wave(bssn);
+  bssn_ic_awa_linear_wave(bssn, 1.0e-8, 1);
 
-  idx_t i, j, k;
+  real_t rho = 1.0e-3;
+  auto & frw = bssn->frw;
 
-  arr_t & r_a = *bssn->fields["r_a"];
-  arr_t & K_p = *bssn->fields["K_p"];
+  real_t K = -sqrt(24.0*PI*rho);
 
-  LOOP3(i,j,k)
-  {
-    // FRW Background parameters
-    real_t rho = 1.0;
+  frw->set_phi(0.0);
+  frw->set_K(K);
+  frw->addFluid(rho, -1.0 /* w=-1 */);
 
-    r_a[NP_INDEX(i,j,k)] = rho; // constant density
-    K_p[NP_INDEX(i,j,k)] = -sqrt(24.0*PI*rho);
-  }
+  // idx_t i, j, k;
+
+  // arr_t & DIFFr_a = *bssn->fields["DIFFr_a"];
+  // arr_t & DIFFS_a = *bssn->fields["DIFFS_a"];
+  // arr_t & DIFFK_p = *bssn->fields["DIFFK_p"];
+
+  // LOOP3(i,j,k)
+  // {
+  //   // FRW Background parameters
+  //   real_t rho = 1.0e-3;
+
+  //   DIFFr_a[NP_INDEX(i,j,k)] = rho; // constant density
+  //                                   // not evolved for a vacuum sim
+  //   DIFFS_a[NP_INDEX(i,j,k)] = -3.0*rho;
+  //   DIFFK_p[NP_INDEX(i,j,k)] = -sqrt(24.0*PI*rho);
+  // }
 }
 
 /**

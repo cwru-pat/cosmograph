@@ -509,15 +509,6 @@ void Particles::stepTerm()
       p_p.X[i] = p_f.X[i]/3.0 - 2.0/3.0*p_p.X[i];
       p_p.U[i] = p_f.U[i]/3.0 - 2.0/3.0*p_p.U[i];
     }
-    // std::cout << p_p.X[0] << ", " << p_p.X[1] << ", " << p_p.X[2] << ", ";
-    // std::cout << p_p.U[0] << ", " << p_p.U[1] << ", " << p_p.U[2] << ", ";
-    // idx_t x_idx = getIndexBelow(p_p.X[0]);
-    // idx_t y_idx = getIndexBelow(p_p.X[1]);
-    // idx_t z_idx = getIndexBelow(p_p.X[2]);
-    // real_t x_d[3] = {0};
-    // setX_d(p_p.X, x_d);
-    // std::cout << x_idx  << ", " << y_idx  << ", " << z_idx  << ", ";
-    // std::cout << x_d[0] << ", " << x_d[1] << ", " << x_d[2] << "\n";
   }
   _timer["Particles::RKCalcs"].stop();
 }
@@ -610,7 +601,7 @@ void Particles::addParticlesToBSSNSrc(BSSN * bssnSim)
         for(idx_t y=y_idx-w_idx; y<=y_idx+w_idx+1; ++y)
           for(idx_t z=z_idx-w_idx; z<=z_idx+w_idx+1; ++z)
       {
-        idx_t idx = INDEX(x,y,z);
+        idx_t idx = NP_INDEX( idx_t_mod(x,NX), idx_t_mod(y,NY), idx_t_mod(z,NZ) );
 
         real_t r = std::sqrt( pw2(x - p_a.X[0]/dx) + pw2(y - p_a.X[1]/dx) + pw2(z - p_a.X[2]/dx) );
         real_t weight = getKernelWeight(r, r_s) / total_weight;
@@ -654,6 +645,9 @@ void Particles::addParticlesToBSSNSrc(BSSN * bssnSim)
     STF23_a[idx] -= (1.0/3.0)*exp(4.0*bd.phi)*bd.gamma23*trS;
     STF33_a[idx] -= (1.0/3.0)*exp(4.0*bd.phi)*bd.gamma33*trS;
   }
+
+std::cout << "STF11=" << STF11_a[3] << "; STF12=" << STF12_a[3] << "; STF22=" << STF22_a[3] << "\n";
+std::cout << "S1=" << S1_a[3] << "; S2=" << S2_a[3] << "; S3=" << S3_a[3] << "\n";
 
   _timer["Particles::addToBSSNSrc"].stop();
 }

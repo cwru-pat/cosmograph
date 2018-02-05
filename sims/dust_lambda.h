@@ -13,7 +13,18 @@ class DustLambdaSim : public DustSim
 {
 public:
   DustLambdaSim();
-  ~DustLambdaSim(){}
+  ~DustLambdaSim()
+  {
+    delete iodata;
+    delete bssnSim;
+    delete fourier;
+    if(use_bardeen)
+    {
+      delete bardeen;
+    }
+
+    std::cout << std::flush;
+  }
 
   void init();
   void setICs();

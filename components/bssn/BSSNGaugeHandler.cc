@@ -1,4 +1,5 @@
 #include "BSSNGaugeHandler.h"
+#include "bssn.h"
 #include "../../cosmo_types.h"
 #include "../../cosmo_globals.h"
 #include <map>
@@ -22,7 +23,6 @@ real_t BSSNGaugeHandler::Static(BSSNData *bd)
  */
 real_t BSSNGaugeHandler::HarmonicLapse(BSSNData *bd)
 {
-  // TODO: Generalize K0 (FIX)
   return -1.0*pw2(bd->alpha)*( bd->K - bd->K_avg );
 }
 
@@ -57,6 +57,32 @@ real_t BSSNGaugeHandler::ConformalSyncLapse(BSSNData *bd)
 {
   return -1.0/3.0*bd->alpha*bd->K_FRW;
 }
+
+
+/**
+ * @brief Trial Lapse function in cosmology
+ * Assumes reference metric is not used / minkowski
+ */
+real_t BSSNGaugeHandler::TestKDriverLapse(BSSNData *bd)
+{
+  real_t dta = (
+    bssn->ev_DIFFK(bd) - ( pw2(bd->K_avg)/3.0 + 4.0*PI*bd->rho_avg )
+  ) + (
+    bd->K - bd->K_avg
+  );
+
+  return -1.0*k_driver_coeff*dta;
+}
+
+/**
+ * @brief Trial Lapse function in cosmology
+ */
+real_t BSSNGaugeHandler::TestAijDriverLapse(BSSNData *bd)
+{
+  return 0.0;
+}
+
+
 
 /**
  * @brief Gamma driver shift in x-dir
@@ -203,31 +229,20 @@ real_t BSSNGaugeHandler::AwAShiftedWaveShift3(BSSNData *bd)
 
 
 
-
 /**
- * @brief AwA "redshifted" shift
+ * @brief Aij driver test gauge 
  */
-real_t BSSNGaugeHandler::RedShift1(BSSNData *bd)
+real_t BSSNGaugeHandler::AijDriverShift1(BSSNData *bd)
 {
-# if USE_GAMMA_DRIVER
-  return bd->auxB1 + 2.0/3.0*bd->K*bd->alpha*bd->beta1;
-# endif
-  return 2.0/3.0*bd->K*bd->alpha*bd->beta1;
+  return -k_driver_coeff*( std::abs(bssn->ev_A11(bd) + bd->A11) + std::abs(bssn->ev_A12(bd) + bd->A12) + std::abs(bssn->ev_A13(bd) + bd->A13) );
 }
-real_t BSSNGaugeHandler::RedShift2(BSSNData *bd)
+real_t BSSNGaugeHandler::AijDriverShift2(BSSNData *bd)
 {
-# if USE_GAMMA_DRIVER
-  return bd->auxB2 + 2.0/3.0*bd->K*bd->alpha*bd->beta2;
-# endif
-  return 2.0/3.0*bd->K*bd->alpha*bd->beta2;
+  return -k_driver_coeff*( std::abs(bssn->ev_A12(bd) + bd->A12) + std::abs(bssn->ev_A22(bd) + bd->A22) + std::abs(bssn->ev_A23(bd) + bd->A23) );
 }
-real_t BSSNGaugeHandler::RedShift3(BSSNData *bd)
+real_t BSSNGaugeHandler::AijDriverShift3(BSSNData *bd)
 {
-# if USE_GAMMA_DRIVER
-  return bd->auxB3 + 2.0/3.0*bd->K*bd->alpha*bd->beta3;
-# endif
-  return 2.0/3.0*bd->K*bd->alpha*bd->beta3;
+  return -k_driver_coeff*( std::abs(bssn->ev_A13(bd) + bd->A13) + std::abs(bssn->ev_A23(bd) + bd->A23) + std::abs(bssn->ev_A33(bd) + bd->A33) );
 }
-
 
 } // namespace cosmo

@@ -140,6 +140,127 @@ void dust_ic_set_random(BSSN * bssn, Static * dust, Fourier * fourier,
 }
 
 
+/**
+ * @brief Sinusoidal mode ICs
+ */
+void dust_ic_set_sinusoid(BSSN * bssn, Static * dust, Fourier * fourier,
+  IOData * iodata)
+{
+  idx_t i, j, k;
+
+  arr_t & DIFFr_a = *bssn->fields["DIFFr_a"];
+  arr_t & DIFFphi_p = *bssn->fields["DIFFphi_p"];
+  arr_t & DIFFD_a = *dust->fields["DIFFD_a"];
+
+  auto & frw = bssn->frw;
+
+  real_t rho_FRW = 3.0/PI/8.0;
+  real_t K_FRW = -sqrt(24.0*PI*rho_FRW);
+  real_t A = H_LEN_FRAC*H_LEN_FRAC*std::stod(_config("peak_amplitude_frac", "0.001"));
+
+  // the conformal factor in front of metric is the solution to
+  // d^2 exp(\phi) = -2*pi exp(5\phi) * \delta_rho
+  // generate random mode in \phi
+  // delta_rho = -(lap e^\phi)/e^(4\phi)/2pi
+  real_t phix = 2.77;
+  real_t twopi_L = 2.0*PI/H_LEN_FRAC;
+  real_t pw2_twopi_L = twopi_L*twopi_L;
+  // grid values
+  LOOP3(i,j,k)
+  {
+    idx_t idx = NP_INDEX(i,j,k);
+
+    real_t x = ((real_t) i / (real_t) NX);
+    real_t phi = A*sin(2.0*PI*x + phix);
+    real_t DIFFrho = -exp(-4.0*phi)/PI/2.0*(
+        pw2(twopi_L*A*cos(2.0*PI*x + phix))
+        - pw2_twopi_L*A*sin(2.0*PI*x + phix)
+      );
+
+    // These aren't difference vars
+    DIFFphi_p[NP_INDEX(i,j,k)] = phi;
+    DIFFr_a[idx] = DIFFrho;
+
+// // debugging: throw away field
+// DIFFD_a[idx] = phi;
+  }
+// std::cout << std::setprecision(17);
+// std::cout << "field[0] = " << DIFFD_a[0] << "; ";
+// fourier->inverseLaplacian <idx_t, real_t> (DIFFD_a._array);
+// std::cout << "lap/lap field = " << laplacian(0,0,0,DIFFD_a) << "\n";
+
+  // Make sure min density value > 0
+  // Set conserved density variable field
+  real_t min = rho_FRW;
+  real_t max = min;
+  LOOP3(i,j,k)
+  {
+    idx_t idx = NP_INDEX(i,j,k);
+    real_t DIFFr = DIFFr_a[idx];
+    real_t rho = rho_FRW + DIFFr;
+    // phi_FRW = 0
+    real_t DIFFphi = DIFFphi_p[idx];
+    // phi = DIFFphi
+    // DIFFK = 0
+
+    DIFFD_a[idx] =
+      rho_FRW*expm1(6.0*DIFFphi) + exp(6.0*DIFFphi)*DIFFr;
+
+    if(rho < min)
+    {
+      min = rho;
+    }
+    if(rho > max)
+    {
+      max = rho;
+    }
+    if(rho != rho)
+    {
+      iodata->log("Error: NaN energy density.");
+      throw -1;
+    }
+  }
+
+  iodata->log( "Minimum fluid density: " + stringify(min) );
+  iodata->log( "Maximum fluid density: " + stringify(max) );
+  iodata->log( "Average fluctuation density: " + stringify(average(DIFFD_a)) );
+  iodata->log( "Std.dev fluctuation density: " + stringify(standard_deviation(DIFFD_a)) );
+  if(min < 0.0)
+  {
+    iodata->log("Error: negative density in some regions.");
+    throw -1;
+  }
+
+# if USE_REFERENCE_FRW
+  // Set values in reference FRW integrator
+  frw->set_phi(0.0);
+  frw->set_K(K_FRW);
+  frw->addFluid(rho_FRW, 0.0 /* w=0 */);
+# else
+  arr_t & DIFFK_p = *bssn->fields["DIFFK_p"];
+  arr_t & DIFFK_a = *bssn->fields["DIFFK_a"];
+  // add in FRW pieces to ICs
+  // phi is unchanged
+  // rho (D) and K get contribs
+  // w=0 fluid only
+# pragma omp parallel for default(shared) private(i,j,k)
+  LOOP3(i,j,k)
+  {
+    idx_t idx = NP_INDEX(i,j,k);
+
+    real_t D_FRW = rho_FRW; // on initial slice
+
+    DIFFr_a[idx] += rho_FRW;
+
+    DIFFK_a[idx] = -sqrt(24.0*PI*rho_FRW);
+    DIFFK_p[idx] = -sqrt(24.0*PI*rho_FRW);
+
+    DIFFD_a[idx] += D_FRW;
+  }
+# endif
+}
+
+
 
 /**
  * @brief Spherical "shell" of perturbations around an observer
@@ -158,9 +279,9 @@ void dust_ic_set_sphere(BSSN * bssn, Static * dust, IOData * iodata)
   auto & frw = bssn->frw;
 
   // shell amplitude
-  real_t A = stod(_config("shell_amplitude", "1e-5"));
+  const real_t A = stod(_config("shell_amplitude", "1e-5"));
   // Shell described by only one fixed l:
-  idx_t l = stoi(_config("shell_angular_scale_l", "1"));
+  const idx_t l = stoi(_config("shell_angular_scale_l", "1"));
   iodata->log( "Generating ICs with shell angular scale of l = " + stringify(l) );
   iodata->log( "Generating ICs with peak amp. = " + stringify(A) );
 
@@ -178,10 +299,12 @@ void dust_ic_set_sphere(BSSN * bssn, Static * dust, IOData * iodata)
 
   // Angular fluctuations in shell described by spherical harmonic coeffs, a_lm's,
   complex_t * alms = new complex_t[m_idx(l,l)+1];
-  std::mt19937 gen(7);
-  std::normal_distribution<> normal_dist(0,1);
+  const real_t seed = stod(_config("mt19937_seed", "7"));
+  std::mt19937 gen(seed);
+  std::normal_distribution<> normal_dist(0.0, 1.0);
   std::uniform_real_distribution<> uniform_dist(0.0, 2.0*PI);
-std::cout << "normal_dist(gen) = " << normal_dist(gen) << ", uniform_dist(gen) = " << uniform_dist(gen) << "\n";
+
+  std::cout << "normal_dist(gen) = " << normal_dist(gen) << ", uniform_dist(gen) = " << uniform_dist(gen) << "\n";
 
   // zero mode:
   alms[m_idx(l, 0)].first = normal_dist(gen);
@@ -197,12 +320,16 @@ std::cout << "normal_dist(gen) = " << normal_dist(gen) << ", uniform_dist(gen) =
   // negative modes:
   for(int m = -l; m <= -1; m++)
   {
-    real_t Condon_Shortley_phase = std::abs(m) % 2 ? 1 : -1;
-    alms[m_idx(l,m)].first = alms[m_idx(l,-m)].first*Condon_Shortley_phase;
-    alms[m_idx(l,m)].second = -alms[m_idx(l,-m)].second*Condon_Shortley_phase;
+    real_t Condon_Shortley_phase = std::abs(m) % 2 ? -1.0 : 1.0; // 0 (false) if m even, 1 (true) if odd
+    alms[m_idx(l,m)].first = Condon_Shortley_phase*alms[m_idx(l,std::abs(m))].first;
+    alms[m_idx(l,m)].second = -Condon_Shortley_phase*alms[m_idx(l,std::abs(m))].second;
   }
 
-std::cout << "al-2_r = " << alms[m_idx(l,-2)].first << ", al-2_i = " << alms[m_idx(l,-2)].second << "\n";
+  for(int m = -l; m <= l; m++)
+  {
+    std::cout << "Amp. of a_{" << l << "," << m << "} = " << alms[m_idx(l,m)].first
+      << " + " << alms[m_idx(l,m)].second << "i\n";
+  }
 
   LOOP3(i,j,k) {
     idx_t idx = NP_INDEX(i,j,k);
@@ -222,8 +349,8 @@ std::cout << "al-2_r = " << alms[m_idx(l,-2)].first << ", al-2_i = " << alms[m_i
       real_t Y_r = boost::math::spherical_harmonic_r(l, m, theta, phi);
       real_t Y_i = boost::math::spherical_harmonic_i(l, m, theta, phi);
 
-      DIFFphi_r += alms[m_idx(l,m)].first * Y_r;
-      DIFFphi_i += alms[m_idx(l,m)].second * Y_i;
+      DIFFphi_r += alms[m_idx(l,m)].first*Y_r - alms[m_idx(l,m)].second*Y_i;
+      DIFFphi_i += alms[m_idx(l,m)].first*Y_i + alms[m_idx(l,m)].second*Y_r;
     }
     if(std::abs(DIFFphi_i) > 1e-6)
     {

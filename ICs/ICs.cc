@@ -10,7 +10,7 @@ ICsData cosmo_get_ICsData()
 
   icd.rho_K_matter = 3.0/PI/8.0; // matter density term from FRW equation
 
-  real_t rho_K_lambda_frac = (real_t) stold(_config["rho_K_lambda_frac"]); // DE density
+  real_t rho_K_lambda_frac = (real_t) stold(_config("rho_K_lambda_frac","0.0")); // DE density
   icd.rho_K_lambda = rho_K_lambda_frac*icd.rho_K_matter;
 
   // power spectrum amplitude as a fraction of the density
@@ -65,7 +65,8 @@ void set_gaussian_random_field(arr_t & field, Fourier *fourier, ICsData *icd)
 
   // populate "field" with random values
   std::random_device rd;
-  std::mt19937 gen(9.0 /*rd()*/);
+  const real_t seed = stod(_config("mt19937_seed", "9"));
+  std::mt19937 gen(seed);
   std::normal_distribution<real_t> gaussian_distribution;
   std::uniform_real_distribution<double> angular_distribution(0.0, 2.0*PI);
    // calling these here before looping suppresses a warning (bug)

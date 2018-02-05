@@ -18,7 +18,19 @@ protected:
 
 public:
   DustSim();
-  ~DustSim(){}
+  ~DustSim()
+  {
+    std::cout << "Cleaning up...";
+    delete iodata;
+    delete bssnSim;
+    delete fourier;
+    if(use_bardeen)
+    {
+      delete bardeen;
+    }
+
+    std::cout << std::flush;
+  }
 
   void init();
   void setICs();

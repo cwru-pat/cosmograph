@@ -14,11 +14,12 @@ template<typename IT, typename RT>
 class CosmoArray
 {
   public:
+<<<<<<< HEAD
     IT _nx, _ny, _nz;
     RT _lx, _ly, _lz;
     RT _dx, _dy, _dz;
 
-    IT pts;
+    IT pts = 0;
 
     std::string name;
 
@@ -62,7 +63,8 @@ class CosmoArray
     
     ~CosmoArray()
     {
-      delete [] _array;
+      if(pts > 0)
+        delete [] _array;
     }
 
     void setName(std::string name_in)
@@ -106,6 +108,7 @@ class CosmoArray
       _dy = ly_in / (RT) ny_in;
       _dz = lz_in / (RT) nz_in;
 
+<<<<<<< HEAD
       pts = _nx*_ny*_nz;
 
       _array = new RT[pts];
@@ -135,9 +138,8 @@ class CosmoArray
       pts = _nx*_ny*_nz;
 
       _array = new RT[pts];
-#ifdef USE_OPENMP
-#pragma omp parallel for
-#endif
+      #pragma omp parallel for
+
       for(IT i=0; i<pts; ++i)
       {
         _array[i] = 0.0;

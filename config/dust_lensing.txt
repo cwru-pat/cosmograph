@@ -1,0 +1,51 @@
+steps = 1600
+
+simulation_type = dust
+peak_amplitude_frac = 5.0
+rho_K_lambda_frac = 0.07008
+ic_spec_cut = 17
+IC_viol_amp = 0.0
+mt19937_seed = 7
+
+ray_integrate = 1
+ray_flip_step = 800
+IO_raytrace_interval = 1
+ray_ic_type = healpix
+healpix_vecs_file = ../config/healpix_vecs/nside_16.vecs
+
+output_dir = dust_lensing
+dump_file = calculated
+
+IO_constraint_interval = 10
+IO_bssnstats_interval = 10
+
+use_bardeen = 1
+
+IO_3D_grid_interval = 100
+
+IO_3D_DIFFphi_a = 1
+IO_3D_DIFFK_a = 1
+
+IO_3D_DIFFgamma11_a = 1
+IO_3D_DIFFgamma12_a = 1
+IO_3D_DIFFgamma13_a = 1
+IO_3D_DIFFgamma22_a = 1
+IO_3D_DIFFgamma23_a = 1
+IO_3D_DIFFgamma33_a = 1
+
+IO_3D_A11_a = 1
+IO_3D_A12_a = 1
+IO_3D_A13_a = 1
+IO_3D_A22_a = 1
+IO_3D_A23_a = 1
+IO_3D_A33_a = 1
+
+IO_3D_Bardeen_Phi = 1
+IO_3D_Bardeen_Psi = 1
+IO_3D_Bardeen_A = 1
+IO_3D_Bardeen_dt_A = 1
+IO_3D_Bardeen_d2t_A = 1
+IO_3D_Bardeen_B = 1
+IO_3D_Bardeen_dt_B = 1
+IO_3D_Bardeen_d2t_B = 1
+

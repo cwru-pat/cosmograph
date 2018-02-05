@@ -43,11 +43,6 @@ CosmoSim::CosmoSim()
   simulation_type = _config["simulation_type"];
 }
 
-CosmoSim::~CosmoSim()
-{
-  std::cout << std::flush;
-}
-
 /**
  * @brief      Initialize individual simulation class instances
  */
@@ -179,6 +174,9 @@ void CosmoSim::prepBSSNOutput()
     BSSNData b_data = {0}; // data structure associated with bssn sim
     bssnSim->set_bd_values(i, j, k, &b_data);
   }
+
+  if(use_bardeen)
+    bardeen->setPotentials();
 }
 
 void CosmoSim::outputStateInformation()

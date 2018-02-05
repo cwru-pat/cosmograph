@@ -8,14 +8,17 @@ if(COSMO_DEBUG)
   # add -g for valgrind
   message(STATUS "${Cyan} Debug build enabled (-g flag).${ColorReset}")
   set(PROFILING     "-g")
-  set(OPT_LEVEL     "-O1")
+  set(OPT_LEVEL     "-O0")
   set(CC_OPTS       "")
 else()
   set(PROFILING     "")
   set(OPT_LEVEL     "-O3")
   # try to use some GNU compiler special options
   if(CMAKE_COMPILER_IS_GNUCXX)
-    set(OPT_LEVEL     "${OPT_LEVEL} -ffast-math -march=native") # -flto
+    set(OPT_LEVEL     "${OPT_LEVEL} -ffast-math -march=native")
+    if(COSMO_LTO)
+      set(OPT_LEVEL     "${OPT_LEVEL} -flto")
+    endif()
   endif()
   # try to use some Intel compiler special options
   if(${CMAKE_CXX_COMPILER} MATCHES "icpc.*$") 

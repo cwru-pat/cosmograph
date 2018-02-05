@@ -645,8 +645,6 @@ inline real_t laplacian(idx_t i, idx_t j, idx_t k, arr_t & field)
   );
 }
 
-
-
 /**
  * @brief Compute the average of a field
  * 

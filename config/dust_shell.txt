@@ -1,12 +1,12 @@
-steps = 800
+steps = 1600
 
 simulation_type = dust
 ic_type = shell
-shell_angular_scale_l = 3
-shell_amplitude = 0.00001
+shell_angular_scale_l = 5
+shell_amplitude = 0.00005
 
 ray_integrate = 1
-ray_flip_step = 400
+ray_flip_step = 800
 IO_raytrace_interval = 1
 ray_ic_type = healpix
 healpix_vecs_file = ../config/healpix_vecs/nside_16.vecs
