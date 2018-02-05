@@ -14,7 +14,7 @@ template<typename IT, typename RT>
 class CosmoArray
 {
   public:
-<<<<<<< HEAD
+
     IT _nx, _ny, _nz;
     RT _lx, _ly, _lz;
     RT _dx, _dy, _dz;
@@ -108,7 +108,7 @@ class CosmoArray
       _dy = ly_in / (RT) ny_in;
       _dz = lz_in / (RT) nz_in;
 
-<<<<<<< HEAD
+
       pts = _nx*_ny*_nz;
 
       _array = new RT[pts];
