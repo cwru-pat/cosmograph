@@ -19,6 +19,8 @@ void SheetSim::init()
   iodata->log("Running phase space sheet type simulation.");
   sheetSim = new Sheet();
 
+
+  
   _timer["init"].stop();
 }
 
@@ -41,7 +43,8 @@ void SheetSim::initSheetStep()
     bssnSim->stepInit();
     sheetSim->stepInit();
     bssnSim->clearSrc();
-    sheetSim->addBSSNSource(bssnSim);
+    sheetSim->addBSSNSource(bssnSim, tot_mass);
+
   _timer["RK_steps"].stop();
 }
 
@@ -63,6 +66,8 @@ void SheetSim::outputSheetStep()
 
 void SheetSim::runSheetStep()
 {
+  std::cout<<"Stop here brefore evolve it\n";
+  throw(-1);
   _timer["RK_steps"].start();
     // First RK step
     bssnSim->RKEvolve();
@@ -74,7 +79,7 @@ void SheetSim::runSheetStep()
     
     // Second RK step source
     bssnSim->clearSrc();
-    sheetSim->addBSSNSource(bssnSim);
+    sheetSim->addBSSNSource(bssnSim, tot_mass);
     
     // Second RK step
     bssnSim->RKEvolve();
@@ -85,7 +90,7 @@ void SheetSim::runSheetStep()
 
     // Third RK step source
     bssnSim->clearSrc();
-    sheetSim->addBSSNSource(bssnSim);
+    sheetSim->addBSSNSource(bssnSim, tot_mass);
     
     // Third RK step
     bssnSim->RKEvolve();
@@ -96,7 +101,7 @@ void SheetSim::runSheetStep()
     
     // Fourth RK step source
     bssnSim->clearSrc();
-    sheetSim->addBSSNSource(bssnSim);
+    sheetSim->addBSSNSource(bssnSim, tot_mass);
     
     // Fourth RK step
     bssnSim->RKEvolve();

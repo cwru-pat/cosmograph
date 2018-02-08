@@ -1,20 +1,24 @@
-steps = 1
+steps = 0
 
 simulation_type = sheets
-scalar_ic_type = sinusoid
+ic_type = sinusoid
 
-ns1 = 16
-ns2 = 16
-ns3 = 16
+output_dir = phase_space_sheets_method_test
+
+ns1 = 192
+ns2 = 192
+ns3 = 192
 
 verbosity = 0
 
-deposit_scheme = 0
+deposit_scheme = 1
+carrier_count_scheme = 1
 
 carriers_per_dx = 1
 carriers_per_dy = 1
-carriers_per_dz = 1             
+carriers_per_dz = 1
 
 peak_amplitude = 0.001
 
-integration_interval = 0.001
+integration_interval = 0.0000001
+

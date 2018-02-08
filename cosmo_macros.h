@@ -10,7 +10,7 @@
 // simulation size
 // Code runs much slower with global N (slow indexing?)
 #ifndef COSMO_N
-  #define COSMO_N 16
+  #define COSMO_N 64
 #endif
 #ifndef NX
   #define NX COSMO_N
@@ -26,7 +26,7 @@
 // physical box size (eg., in hubble units)
 // eg; L = H_LEN_FRAC = N*dx
 #ifndef H_LEN_FRAC
-  #define H_LEN_FRAC 0.5
+  #define H_LEN_FRAC 1
 #endif
 
 // compile using reference integrator?
@@ -36,7 +36,7 @@
 
 // Stencil order
 #ifndef STENCIL_ORDER
-  #define STENCIL_ORDER 8
+  #define STENCIL_ORDER 4
 #endif
 
 // evolve shift as well? (if not, assumed to be zero)

@@ -4,6 +4,7 @@
 
 #include <string>
 #include <utility>
+#include <iostream>
 
 #include "TriCubicInterpolator.h"
 #include "../cosmo_macros.h"

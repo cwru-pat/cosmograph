@@ -80,8 +80,7 @@ int main(int argc, char **argv)
     std::cerr << "Invalid simulation type specified.";
     throw 2;
   }
-  std::cout<<"Finishing!\n";
-  throw 1;
+
   // Initialize simulation 
   cosmoSim->init();
 

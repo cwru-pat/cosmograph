@@ -15,6 +15,9 @@ Sheet::Sheet():
   nx(NX),
   ny(NY),
   nz(NZ),
+  lx(H_LEN_FRAC),
+  ly(H_LEN_FRAC),
+  lz(H_LEN_FRAC),
   verbosity(static_cast<Verbosity> (std::stoi(_config["verbosity"]))),
   carrier_count_scheme(static_cast<carrierCountScheme> (std::stoi(_config["carrier_count_scheme"]))),
   deposit(static_cast<depositScheme> (std::stoi(_config["deposit_scheme"]))),
@@ -58,7 +61,7 @@ Sheet::Sheet():
   d3beta2_a(nx, ny, nz),
   d3beta3_a(nx, ny, nz)
 {  
-  
+  //  std::cout<<"ns "<<Dx._array_p.nx<<"\n";
 }
 
 
@@ -126,6 +129,7 @@ void Sheet::_CICDeposit(real_t weight, real_t x_idx, real_t y_idx, real_t z_idx,
          +x_f*y_f*z_f << std::endl;
     }
 
+    
     rho(ix, iy, iz) += x_h*y_h*z_h*weight;
     rho(ix, iy, izp) += x_h*y_h*z_f*weight;
     rho(ix, iyp, iz) += x_h*y_f*z_h*weight;
@@ -135,6 +139,7 @@ void Sheet::_CICDeposit(real_t weight, real_t x_idx, real_t y_idx, real_t z_idx,
     rho(ixp, iy, izp) += x_f*y_h*z_f*weight;
     rho(ixp, iyp, iz) += x_f*y_f*z_h*weight;
     rho(ixp, iyp, izp) += x_f*y_f*z_f*weight;
+
   }
 
 void Sheet::_PCSDeposit(real_t weight, real_t x_idx, real_t y_idx, real_t z_idx,
@@ -220,7 +225,7 @@ real_t Sheet::_getXRangeInSVoxel(RK4_t & DX, idx_t s1_idx, idx_t s2_idx,
    * deposition scheme.
    * TODO: improve; consider higher-order or analytic versions of this
    */
-void Sheet::addBSSNSource(BSSN *bssn)
+void Sheet::addBSSNSource(BSSN *bssn, real_t tot_mass)
   {
     _timer["_pushsheetToStressTensor"].start();
 
@@ -252,7 +257,6 @@ void Sheet::addBSSNSource(BSSN *bssn)
       for(int s2=0; s2<ns2; ++s2)
         for(int s3=0; s3<ns3; ++s3)
         {
-
           switch(carrier_count_scheme)
           {
           case per_dx:
@@ -288,7 +292,8 @@ void Sheet::addBSSNSource(BSSN *bssn)
 
           real_t f_Dx[64], f_Dy[64], f_Dz[64];
           real_t a_Dx[64], a_Dy[64], a_Dz[64];
-          if(num_x_carriers == 1 && num_y_carriers == 1 && num_z_carriers == 1)
+
+          if(num_x_carriers != 1 || num_y_carriers != 1 || num_z_carriers != 1)
           {
           
             for(i=0; i<4; ++i)
@@ -299,13 +304,10 @@ void Sheet::addBSSNSource(BSSN *bssn)
                   f_Dy[i*16 + j*4 + k] = Dy(s1-1+i, s2-1+j, s3-1+k);
                   f_Dz[i*16 + j*4 + k] = Dz(s1-1+i, s2-1+j, s3-1+k);
                 }
-
-
             compute_tricubic_coeffs(a_Dx, f_Dx);
             compute_tricubic_coeffs(a_Dy, f_Dy);
             compute_tricubic_coeffs(a_Dz, f_Dz);
           }
-          
           // distribute mass from all carriers
           for(i=0; i<num_x_carriers; ++i)
             for(j=0; j<num_y_carriers; ++j)
@@ -350,8 +352,8 @@ void Sheet::addBSSNSource(BSSN *bssn)
                 // how to determine mass?
 
                 real_t u1 = vx._array_a.getTriCubicInterpolatedValue(carrier_s1, carrier_s2, carrier_s3);
-                real_t u2 = vx._array_a.getTriCubicInterpolatedValue(carrier_s1, carrier_s2, carrier_s3);
-                real_t u3 = vx._array_a.getTriCubicInterpolatedValue(carrier_s1, carrier_s2, carrier_s3);
+                real_t u2 = vy._array_a.getTriCubicInterpolatedValue(carrier_s1, carrier_s2, carrier_s3);
+                real_t u3 = vz._array_a.getTriCubicInterpolatedValue(carrier_s1, carrier_s2, carrier_s3);
 
                 real_t phi = DIFFphi_a.getTriCubicInterpolatedValue(
                   carrier_x_idx, carrier_y_idx, carrier_z_idx);
@@ -384,9 +386,9 @@ void Sheet::addBSSNSource(BSSN *bssn)
                                       + 2.0 * (gammai12 * u1 * u2 + gammai13 * u1 * u3 + gammai23 * u2 * u3 )
                 );
 
-                real_t mass = 1.0 / (real_t) num_carriers
-                  / DIFFr_a.dx/DIFFr_a.dy/DIFFr_a.dz / ns1/ns2/ns3;
-
+                real_t mass = tot_mass / (real_t) num_carriers
+                  /*/ DIFFr_a.dx/DIFFr_a.dy/DIFFr_a.dz*/ / ns1/ns2/ns3;
+               
                 
                 real_t MnA = mass / W / DIFFr_a.dx / DIFFr_a.dy / DIFFr_a.dz / rootdetg;
 
@@ -395,6 +397,7 @@ void Sheet::addBSSNSource(BSSN *bssn)
                 real_t S1 = MnA*W*u1;
                 real_t S2 = MnA*W*u2;
                 real_t S3 = MnA*W*u3;
+
 
                 // STF is not trace free yet
                 real_t STF11 = (MnA*u1*u1);
@@ -416,6 +419,7 @@ void Sheet::addBSSNSource(BSSN *bssn)
                   announce = true;
                 }
 
+                                
                 _MassDeposit(rho, carrier_x_idx, carrier_y_idx, carrier_z_idx, announce, DIFFr_a);
                 _MassDeposit(S, carrier_x_idx, carrier_y_idx, carrier_z_idx, announce, DIFFS_a);
                 _MassDeposit(S1, carrier_x_idx, carrier_y_idx, carrier_z_idx, announce, S1_a);
@@ -432,6 +436,12 @@ void Sheet::addBSSNSource(BSSN *bssn)
               }
           
         }
+    std::cout<<"After assigning rho we have\n";
+    for(int i =0; i < NX; i++)
+    {
+      std::cout<<DIFFr_a(i, 0, 0)<<"\n";
+    }
+
     _timer["_pushSheetMassToRho"].stop();
   }
 
@@ -455,28 +465,26 @@ void Sheet::RKStep(BSSN *bssn)
   arr_t & beta2_a = *bssn->fields["beta2_a"];
   arr_t & beta3_a = *bssn->fields["beta3_a"];
 
-  
+
   
   LOOP3(i, j, k)
   {
+#if USE_BSSN_SHIFT
     d1beta1_a(i, j, k) = derivative(i, j, k, 1, beta1_a);
     d1beta2_a(i, j, k) = derivative(i, j, k, 1, beta2_a);
     d1beta3_a(i, j, k) = derivative(i, j, k, 1, beta3_a);
-    
     d2beta1_a(i, j, k) = derivative(i, j, k, 2, beta1_a);
     d2beta2_a(i, j, k) = derivative(i, j, k, 2, beta2_a);
     d2beta3_a(i, j, k) = derivative(i, j, k, 2, beta3_a);
-
     d3beta1_a(i, j, k) = derivative(i, j, k, 3, beta1_a);
     d3beta2_a(i, j, k) = derivative(i, j, k, 3, beta2_a);
     d3beta3_a(i, j, k) = derivative(i, j, k, 3, beta3_a);
-
+#endif
     d1alpha_a(i, j, k) = derivative(i, j, k, 1, DIFFalpha_a);
     d2alpha_a(i, j, k) = derivative(i, j, k, 2, DIFFalpha_a);
     d3alpha_a(i, j, k) = derivative(i, j, k, 3, DIFFalpha_a);
 
     real_t phi = DIFFphi_a(i, j, k);
-
 
     real_t DIFFgamma11 = DIFFgamma11_a(i, j, k);
     real_t DIFFgamma22 = DIFFgamma22_a(i, j, k);
@@ -521,11 +529,14 @@ void Sheet::RKStep(BSSN *bssn)
           x_idx, y_idx, z_idx);
 
         real_t DIFFalpha = DIFFalpha_a.getTriCubicInterpolatedValue(x_idx, y_idx, z_idx);
-        
+
+#if USE_BSSN_SHIFT
         real_t beta1 = beta1_a.getTriCubicInterpolatedValue(x_idx, y_idx, z_idx);
         real_t beta2 = beta2_a.getTriCubicInterpolatedValue(x_idx, y_idx, z_idx);
         real_t beta3 = beta3_a.getTriCubicInterpolatedValue(x_idx, y_idx, z_idx);
-        
+#else
+        real_t beta1 = 0, beta2 = 0, beta3 =0;
+#endif
         real_t DIFFgamma11 = DIFFgamma11_a.getTriCubicInterpolatedValue(
           x_idx, y_idx, z_idx); 
         real_t DIFFgamma22 = DIFFgamma22_a.getTriCubicInterpolatedValue(

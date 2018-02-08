@@ -50,6 +50,12 @@ public:
   typedef RK4Register<idx_t, real_t> RK4_t;
   // internal types
 
+    // Simulation information
+  idx_t nx, ny, nz;
+  idx_t ns1, ns2, ns3; ///< Phase-space sheet resolution
+  real_t lx, ly, lz; ///< Metric grid physical dimensions
+
+  
   register_t Dx, Dy, Dz; ///< Metric-space density
   register_t vx, vy, vz; ///< Phase-space velocity fields
 
@@ -57,16 +63,12 @@ public:
   idx_t step;
 
   enum Verbosity { none = 0, minimal = 1, verbose = 2, debug = 3 };
-  enum carrierCountScheme { per_dx, per_ds };
+  enum carrierCountScheme { per_dx = 0, per_ds = 1};
   Verbosity verbosity;
   carrierCountScheme carrier_count_scheme;
 
   enum depositScheme { CIC = 0, PCS = 1 };
 
-  // Simulation information
-  idx_t nx, ny, nz;
-  idx_t ns1, ns2, ns3; ///< Phase-space sheet resolution
-  real_t lx, ly, lz; ///< Metric grid physical dimensions
 
   idx_t carriers_per_dx,
     carriers_per_dy,
@@ -84,9 +86,9 @@ public:
   /**
    * Functions to convert s-indices to non-displaced coordinates
    */
-  real_t _S1IDXtoX0(idx_t s1) { return (real_t)s1*lx/ns1; }
-  real_t _S2IDXtoY0(idx_t s2) { return (real_t)s2*ly/ns2; }
-  real_t _S3IDXtoZ0(idx_t s3) { return (real_t)s3*lz/ns3; }
+  real_t _S1IDXtoX0(idx_t s1) {  return (real_t)s1*lx/(real_t)ns1; }
+  real_t _S2IDXtoY0(idx_t s2) {  return (real_t)s2*ly/(real_t)ns2; }
+  real_t _S3IDXtoZ0(idx_t s3) {  return (real_t)s3*lz/(real_t)ns3; }
 
   void _MassDeposit(real_t weight, real_t x_idx, real_t y_idx, real_t z_idx,
                     bool announce, arr_t &rho);
@@ -129,7 +131,7 @@ public:
   real_t _getXRangeInSVoxel(RK4_t & DX, idx_t s1_idx, idx_t s2_idx,
                             idx_t s3_idx, real_t X0_lower, real_t X0_upper);
 
-  void addBSSNSource(BSSN *bssn);
+  void addBSSNSource(BSSN *bssn, real_t tot_mass);
 
   void RKStep(BSSN *bssn);
 

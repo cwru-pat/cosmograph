@@ -143,7 +143,7 @@ void CosmoSim::runCommonStepTasks()
   }
 
   // progress bar in terminal
-  io_show_progress(step, num_steps);
+  //  io_show_progress(step, num_steps);
 
 # if USE_COSMOTRACE
   // Evolve light rays when integrating backwards
