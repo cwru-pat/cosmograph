@@ -16,6 +16,7 @@
 #include "../components/bssn/bssn.h"
 #include "../components/bssn/bardeen.h"
 #include "../components/scalar/scalar.h"
+#include "../components/phase_space_sheet/sheets.h"
 #include "../components/particles/particles.h"
 #include "IOData.h"
 
@@ -41,7 +42,8 @@ void io_raytrace_dump(IOData *iodata, idx_t step,
 #endif
 
 void io_scalar_snapshot(IOData *iodata, idx_t step, Scalar * scalar);
-
+void io_sheets_snapshot(IOData *iodata, idx_t step, Sheet * sheets);
+ 
 void io_dump_2dslice(IOData *iodata, arr_t & field, std::string filename);
 void io_dump_3dslice(IOData *iodata, arr_t & field, std::string filename);
 void io_dump_strip(IOData *iodata, arr_t & field, std::string file,

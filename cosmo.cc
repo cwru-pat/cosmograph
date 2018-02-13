@@ -43,8 +43,8 @@ int main(int argc, char **argv)
   dt = stold(_config( "dt_frac", "0.1" ))*dx;
 
   // Set number of threads if specified
-  int num_threads = stoi(_config("omp_num_threads", "0"));
-  if(num_threads > 0)
+  int num_threads = stoi(_config("omp_num_threads", "1"));
+  if(num_threads >= 1)
     omp_set_num_threads(num_threads);
 
   // Create simulation according to simulation_type

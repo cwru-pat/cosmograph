@@ -37,6 +37,7 @@ void sheets_ic_sinusoid(
   arr_t & Dz = sheetSim->Dz._array_p;
   
   real_t A = std::stod(_config("peak_amplitude", "0.0001"));
+  real_t kx = std::stod(_config("kx","1")); // wave number along x axis
   iodata->log( "Generating ICs with peak amp. = " + stringify(A) );
 
   real_t rho_FRW = 3.0/PI/8.0;
@@ -46,7 +47,7 @@ void sheets_ic_sinusoid(
   // d^2 exp(\phi) = -2*pi exp(5\phi) * \delta_rho
   // generate random mode in \phi
   // delta_rho = -(lap e^\phi)/e^(4\phi)/2pi
-  real_t phix = 2.77;
+  real_t phix = /*2.77*/ 0;
   real_t twopi_L = 2.0*PI/H_LEN_FRAC;
   real_t pw2_twopi_L = twopi_L*twopi_L;
   
@@ -127,7 +128,9 @@ void sheets_ic_sinusoid(
             / mass_per_voxel + cur_x - sheetSim->_S1IDXtoX0(cur_s1);
         }
       std::cout<<"Assigning "<<integration_interval * (cur_mass - mass_per_voxel)
-        / mass_per_voxel + cur_x<<" to s"<<cur_s1<<"\n";
+        / mass_per_voxel + cur_x - sheetSim->_S1IDXtoX0(cur_s1)<<" to s"<<cur_s1<<" "
+               <<integration_interval * (cur_mass - mass_per_voxel)
+        / mass_per_voxel + cur_x<<" "<<Dx.nx<<"\n";
       cur_mass = cur_mass - mass_per_voxel;
       cur_s1++;
       if(cur_s1 == Dx.nx) break;
@@ -179,7 +182,6 @@ void sheets_ic_sinusoid(
   }
   std::cout<<"Mass in voxel "<<Dx.nx-1<<" is "<<temp<<"\n";
   
-
   // iodata->log( "Minimum fluid density: " + stringify(min) );
   // iodata->log( "Maximum fluid density: " + stringify(max) );
   // iodata->log( "Average fluctuation density: " + stringify(average(DIFFr_a)) );

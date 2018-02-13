@@ -308,6 +308,133 @@ void particle_ic_set_sinusoid(BSSN * bssnSim, Particles * particles, IOData * io
   }
 }
 
+void particle_ic_set_sinusoid_to_compare(BSSN * bssnSim, Particles * particles, IOData * iodata)
+{
+  iodata->log("Setting sinusoidal ICs.");
+  idx_t i, j, k;
+
+  // conformal factor
+  arr_t & DIFFphi_p = *bssnSim->fields["DIFFphi_p"];
+  // DIFFK is initially zero
+  arr_t & DIFFK_p = *bssnSim->fields["DIFFK_p"];
+  // matter sources
+  arr_t & DIFFr_a = *bssnSim->fields["DIFFr_a"];
+
+  real_t A = H_LEN_FRAC*H_LEN_FRAC*std::stod(_config("peak_amplitude_frac", "0.0001"));
+  iodata->log( "Generating ICs with peak amp. = " + stringify(A) );
+
+  real_t rho_FRW = 3.0/PI/8.0;
+  real_t K_FRW = -sqrt(24.0*PI*rho_FRW);
+
+  // the conformal factor in front of metric is the solution to
+  // d^2 exp(\phi) = -2*pi exp(5\phi) * \delta_rho
+  // generate random mode in \phi
+  // delta_rho = -(lap e^\phi)/e^(4\phi)/2pi
+  real_t phix = 0;
+  real_t twopi_L = 2.0*PI/H_LEN_FRAC;
+  real_t pw2_twopi_L = twopi_L*twopi_L;
+  // grid values
+  for(i=0; i<NX; ++i)
+    for(j=0; j<NY; ++j)
+      for(k=0; k<NZ; ++k)
+  {
+    idx_t idx = NP_INDEX(i,j,k);
+
+    real_t x = ((real_t) i / (real_t) NX);
+    real_t phi = A*sin(2.0*PI*x + phix);
+    real_t rho = rho_FRW + -exp(-4.0*phi)/PI/2.0*(
+        pw2(twopi_L*A*cos(2.0*PI*x + phix))
+        - pw2_twopi_L*A*sin(2.0*PI*x + phix)
+      );
+
+    // These aren't difference vars
+    DIFFphi_p[NP_INDEX(i,j,k)] = phi;
+    DIFFK_p[idx] = K_FRW;
+    DIFFr_a[idx] = rho;
+  }
+
+  // particle values
+  // parallelizing may break this, be careful
+  idx_t particles_per_dx = std::stoi(_config("particles_per_dx", "1"));
+  iodata->log("Particles per dx: " + stringify(particles_per_dx));
+  for(i=0; i<NX*particles_per_dx; ++i)
+    for(j=0; j<NY; ++j)
+      for(k=0; k<NZ; ++k)
+  {
+    real_t x = ((real_t) i / (real_t) NX / (real_t) particles_per_dx);
+
+    real_t phi = A*sin(2.0*PI*x + phix);
+
+    // \rho at a few/adjacent points
+    real_t rho = rho_FRW + -exp(-4.0*phi)/PI/2.0*(
+        pw2(twopi_L*A*cos(2.0*PI*x + phix))
+        - pw2_twopi_L*A*sin(2.0*PI*x + phix)
+      );
+    real_t xp = x + dx/particles_per_dx;
+    real_t xm = x - dx/particles_per_dx;
+    real_t rhop = rho_FRW + -exp(-4.0*phi)/PI/2.0*(
+        pw2(twopi_L*A*cos(2.0*PI*xp + phix))
+        - pw2_twopi_L*A*sin(2.0*PI*xp + phix)
+      );
+    real_t rhom = rho_FRW + -exp(-4.0*phi)/PI/2.0*(
+        pw2(twopi_L*A*cos(2.0*PI*xm + phix))
+        - pw2_twopi_L*A*sin(2.0*PI*xm + phix)
+      );
+    // deconvolution to get mass
+    // mass is distributed across nearby points;
+    // try to counteract this
+    // TODO: tune this?
+    real_t stren = std::stod(_config("deconvolution_strength", "1.0"));
+    rho = -stren*rhop + (1.0+2.0*stren)*rho - stren*rhom;
+
+
+    real_t rootdetg = std::exp(6.0*phi);
+    Particle<real_t> particle = {0};
+    particle.X[0] = ((real_t) i)/((real_t) particles_per_dx)*dx;
+    particle.X[1] = j*dx;
+    particle.X[2] = k*dx;
+    particle.M = rho*(dx/particles_per_dx)*dx*dx*rootdetg;
+    particles->addParticle( particle );
+  }
+
+
+  // find min/max density,
+  // Make sure min density value > 0
+  real_t min = rho_FRW;
+  real_t max = min;
+  LOOP3(i,j,k)
+  {
+    idx_t idx = NP_INDEX(i,j,k);
+
+    real_t rho = rho_FRW + DIFFr_a[idx];
+
+    if(rho < min)
+    {
+      min = rho;
+    }
+    if(rho > max)
+    {
+      max = rho;
+    }
+    if(rho != rho)
+    {
+      iodata->log("Error: NaN energy density.");
+      throw -1;
+    }
+  }
+
+  iodata->log( "Minimum fluid density: " + stringify(min) );
+  iodata->log( "Maximum fluid density: " + stringify(max) );
+  iodata->log( "Average fluctuation density: " + stringify(average(DIFFr_a)) );
+  iodata->log( "Std.dev fluctuation density: " + stringify(standard_deviation(DIFFr_a)) );
+  if(min < 0.0)
+  {
+    iodata->log("Error: negative density in some regions.");
+    throw -1;
+  }
+}
+
+  
 /**
  * @brief Initialize particles per vector mode ID
  */

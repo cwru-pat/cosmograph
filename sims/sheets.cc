@@ -35,6 +35,7 @@ void SheetSim::setICs()
     iodata->log("Unsupported IC type!");
     throw -1;
   }
+
 }
 
 void SheetSim::initSheetStep()
@@ -56,7 +57,7 @@ void SheetSim::outputSheetStep()
     io_bssn_fields_powerdump(iodata, step, bssnSim->fields, fourier);
     io_bssn_dump_statistics(iodata, step, bssnSim->fields, bssnSim->frw);
     io_bssn_constraint_violation(iodata, step, bssnSim);
-    //    io_print_particles(iodata, step, particles);
+    io_sheets_snapshot(iodata, step, sheetSim);
     if(step == 0)
     {
       outputStateInformation();
@@ -66,8 +67,6 @@ void SheetSim::outputSheetStep()
 
 void SheetSim::runSheetStep()
 {
-  std::cout<<"Stop here brefore evolve it\n";
-  throw(-1);
   _timer["RK_steps"].start();
     // First RK step
     bssnSim->RKEvolve();
@@ -75,7 +74,8 @@ void SheetSim::runSheetStep()
     
     bssnSim->K1Finalize();
     sheetSim->K1Finalize();
-    
+
+
     
     // Second RK step source
     bssnSim->clearSrc();

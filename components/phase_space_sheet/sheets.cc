@@ -253,6 +253,7 @@ void Sheet::addBSSNSource(BSSN *bssn, real_t tot_mass)
     idx_t num_x_carriers, num_y_carriers, num_z_carriers;
 
     //    int i, j, k;
+    #pragma omp parallel for collapse(2)        
     for(int s1=0; s1<ns1; ++s1)
       for(int s2=0; s2<ns2; ++s2)
         for(int s3=0; s3<ns3; ++s3)
@@ -385,13 +386,14 @@ void Sheet::addBSSNSource(BSSN *bssn, real_t tot_mass)
                                       gammai11 * u1 * u1 + gammai22 * u2 * u2 + gammai33 * u3 * u3
                                       + 2.0 * (gammai12 * u1 * u2 + gammai13 * u1 * u3 + gammai23 * u2 * u3 )
                 );
-
+                
                 real_t mass = tot_mass / (real_t) num_carriers
                   /*/ DIFFr_a.dx/DIFFr_a.dy/DIFFr_a.dz*/ / ns1/ns2/ns3;
-               
                 
                 real_t MnA = mass / W / DIFFr_a.dx / DIFFr_a.dy / DIFFr_a.dz / rootdetg;
 
+
+                
                 real_t rho = MnA*W*W;
                 real_t S = rho - MnA;
                 real_t S1 = MnA*W*u1;
@@ -419,7 +421,8 @@ void Sheet::addBSSNSource(BSSN *bssn, real_t tot_mass)
                   announce = true;
                 }
 
-                                
+#pragma omp critical
+              {
                 _MassDeposit(rho, carrier_x_idx, carrier_y_idx, carrier_z_idx, announce, DIFFr_a);
                 _MassDeposit(S, carrier_x_idx, carrier_y_idx, carrier_z_idx, announce, DIFFS_a);
                 _MassDeposit(S1, carrier_x_idx, carrier_y_idx, carrier_z_idx, announce, S1_a);
@@ -432,15 +435,37 @@ void Sheet::addBSSNSource(BSSN *bssn, real_t tot_mass)
                 _MassDeposit(STF12, carrier_x_idx, carrier_y_idx, carrier_z_idx, announce, STF12_a);
                 _MassDeposit(STF13, carrier_x_idx, carrier_y_idx, carrier_z_idx, announce, STF13_a);
                 _MassDeposit(STF23, carrier_x_idx, carrier_y_idx, carrier_z_idx, announce, STF23_a);
-
+              }
               }
           
         }
-    std::cout<<"After assigning rho we have\n";
-    for(int i =0; i < NX; i++)
+
+    idx_t i, j, k;
+# pragma omp parallel for default(shared) private(i, j, k)
+    LOOP3(i, j, k)
     {
-      std::cout<<DIFFr_a(i, 0, 0)<<"\n";
+      idx_t idx = NP_INDEX(i,j,k);
+
+      BSSNData bd = {0};
+      bssn->set_bd_values(i, j, k, &bd);
+      real_t trS = exp(-4.0*bd.phi)*(
+        STF11_a[idx]*bd.gammai11 + STF22_a[idx]*bd.gammai22 + STF33_a[idx]*bd.gammai33
+        + 2.0*(STF12_a[idx]*bd.gammai12 + STF13_a[idx]*bd.gammai13 + STF23_a[idx]*bd.gammai23)
+      );
+
+      STF11_a[idx] -= (1.0/3.0)*exp(4.0*bd.phi)*bd.gamma11*trS;
+      STF12_a[idx] -= (1.0/3.0)*exp(4.0*bd.phi)*bd.gamma12*trS;
+      STF13_a[idx] -= (1.0/3.0)*exp(4.0*bd.phi)*bd.gamma13*trS;
+      STF22_a[idx] -= (1.0/3.0)*exp(4.0*bd.phi)*bd.gamma22*trS;
+      STF23_a[idx] -= (1.0/3.0)*exp(4.0*bd.phi)*bd.gamma23*trS;
+      STF33_a[idx] -= (1.0/3.0)*exp(4.0*bd.phi)*bd.gamma33*trS;
     }
+
+    // std::cout<<"After assigning rho we have\n";
+    // for(int i =0; i < NX; i++)
+    // {
+    //   std::cout<<DIFFr_a(i, 0, 0)<<"\n";
+    // }
 
     _timer["_pushSheetMassToRho"].stop();
   }
@@ -466,7 +491,7 @@ void Sheet::RKStep(BSSN *bssn)
   arr_t & beta3_a = *bssn->fields["beta3_a"];
 
 
-  
+  # pragma omp parallel for default(shared) private(i, j, k)
   LOOP3(i, j, k)
   {
 #if USE_BSSN_SHIFT
@@ -507,6 +532,7 @@ void Sheet::RKStep(BSSN *bssn)
     SET_GAMMAI_DER(3);
   }
 
+  # pragma omp parallel for default(shared) private(i, j, k)
   for(i=0; i<ns1; ++i)
     for(j=0; j<ns2; ++j)
       for(k=0; k<ns3; ++k)
@@ -520,9 +546,9 @@ void Sheet::RKStep(BSSN *bssn)
         real_t z_idx = z_pt/DIFFphi_a.dz;
         
  
-        real_t u1 = vx._array_a.getTriCubicInterpolatedValue(i, j, k);
-        real_t u2 = vy._array_a.getTriCubicInterpolatedValue(i, j, k);
-        real_t u3 = vz._array_a.getTriCubicInterpolatedValue(i, j, k);
+        real_t u1 = vx._a(i, j, k);
+        real_t u2 = vy._a(i, j, k);
+        real_t u3 = vz._a(i, j, k);
 
         
         real_t phi = DIFFphi_a.getTriCubicInterpolatedValue(
@@ -561,43 +587,43 @@ void Sheet::RKStep(BSSN *bssn)
         
         
 
-        real_t d1alpha = d1alpha_a.getTriCubicInterpolatedValue(i, j, k);
-        real_t d2alpha = d2alpha_a.getTriCubicInterpolatedValue(i, j, k);
-        real_t d3alpha = d3alpha_a.getTriCubicInterpolatedValue(i, j, k);
+        real_t d1alpha = d1alpha_a.getTriCubicInterpolatedValue(x_idx, y_idx, z_idx);
+        real_t d2alpha = d2alpha_a.getTriCubicInterpolatedValue(x_idx, y_idx, z_idx);
+        real_t d3alpha = d3alpha_a.getTriCubicInterpolatedValue(x_idx, y_idx, z_idx);
 
-        real_t d1beta1 = d1beta1_a.getTriCubicInterpolatedValue(i, j, k);
-        real_t d1beta2 = d1beta2_a.getTriCubicInterpolatedValue(i, j, k);
-        real_t d1beta3 = d1beta3_a.getTriCubicInterpolatedValue(i, j, k);
+        real_t d1beta1 = d1beta1_a.getTriCubicInterpolatedValue(x_idx, y_idx, z_idx);
+        real_t d1beta2 = d1beta2_a.getTriCubicInterpolatedValue(x_idx, y_idx, z_idx);
+        real_t d1beta3 = d1beta3_a.getTriCubicInterpolatedValue(x_idx, y_idx, z_idx);
 
-        real_t d2beta1 = d1beta1_a.getTriCubicInterpolatedValue(i, j, k);
-        real_t d2beta2 = d1beta2_a.getTriCubicInterpolatedValue(i, j, k);
-        real_t d2beta3 = d1beta3_a.getTriCubicInterpolatedValue(i, j, k);
+        real_t d2beta1 = d1beta1_a.getTriCubicInterpolatedValue(x_idx, y_idx, z_idx);
+        real_t d2beta2 = d1beta2_a.getTriCubicInterpolatedValue(x_idx, y_idx, z_idx);
+        real_t d2beta3 = d1beta3_a.getTriCubicInterpolatedValue(x_idx, y_idx, z_idx);
 
-        real_t d3beta1 = d1beta1_a.getTriCubicInterpolatedValue(i, j, k);
-        real_t d3beta2 = d1beta2_a.getTriCubicInterpolatedValue(i, j, k);
-        real_t d3beta3 = d1beta3_a.getTriCubicInterpolatedValue(i, j, k);
+        real_t d3beta1 = d1beta1_a.getTriCubicInterpolatedValue(x_idx, y_idx, z_idx);
+        real_t d3beta2 = d1beta2_a.getTriCubicInterpolatedValue(x_idx, y_idx, z_idx);
+        real_t d3beta3 = d1beta3_a.getTriCubicInterpolatedValue(x_idx, y_idx, z_idx);
 
         
-        real_t d1gammai11 = d1gammai11_a.getTriCubicInterpolatedValue(i, j, k);
-        real_t d1gammai22 = d1gammai22_a.getTriCubicInterpolatedValue(i, j, k);
-        real_t d1gammai33 = d1gammai33_a.getTriCubicInterpolatedValue(i, j, k);
-        real_t d1gammai12 = d1gammai12_a.getTriCubicInterpolatedValue(i, j, k);
-        real_t d1gammai13 = d1gammai13_a.getTriCubicInterpolatedValue(i, j, k);
-        real_t d1gammai23 = d1gammai23_a.getTriCubicInterpolatedValue(i, j, k);
+        real_t d1gammai11 = d1gammai11_a.getTriCubicInterpolatedValue(x_idx, y_idx, z_idx);
+        real_t d1gammai22 = d1gammai22_a.getTriCubicInterpolatedValue(x_idx, y_idx, z_idx);
+        real_t d1gammai33 = d1gammai33_a.getTriCubicInterpolatedValue(x_idx, y_idx, z_idx);
+        real_t d1gammai12 = d1gammai12_a.getTriCubicInterpolatedValue(x_idx, y_idx, z_idx);
+        real_t d1gammai13 = d1gammai13_a.getTriCubicInterpolatedValue(x_idx, y_idx, z_idx);
+        real_t d1gammai23 = d1gammai23_a.getTriCubicInterpolatedValue(x_idx, y_idx, z_idx);
 
-        real_t d2gammai11 = d2gammai11_a.getTriCubicInterpolatedValue(i, j, k);
-        real_t d2gammai22 = d2gammai22_a.getTriCubicInterpolatedValue(i, j, k);
-        real_t d2gammai33 = d2gammai33_a.getTriCubicInterpolatedValue(i, j, k);
-        real_t d2gammai12 = d2gammai12_a.getTriCubicInterpolatedValue(i, j, k);
-        real_t d2gammai13 = d2gammai13_a.getTriCubicInterpolatedValue(i, j, k);
-        real_t d2gammai23 = d2gammai23_a.getTriCubicInterpolatedValue(i, j, k);
+        real_t d2gammai11 = d2gammai11_a.getTriCubicInterpolatedValue(x_idx, y_idx, z_idx);
+        real_t d2gammai22 = d2gammai22_a.getTriCubicInterpolatedValue(x_idx, y_idx, z_idx);
+        real_t d2gammai33 = d2gammai33_a.getTriCubicInterpolatedValue(x_idx, y_idx, z_idx);
+        real_t d2gammai12 = d2gammai12_a.getTriCubicInterpolatedValue(x_idx, y_idx, z_idx);
+        real_t d2gammai13 = d2gammai13_a.getTriCubicInterpolatedValue(x_idx, y_idx, z_idx);
+        real_t d2gammai23 = d2gammai23_a.getTriCubicInterpolatedValue(x_idx, y_idx, z_idx);
 
-        real_t d3gammai11 = d3gammai11_a.getTriCubicInterpolatedValue(i, j, k);
-        real_t d3gammai22 = d3gammai22_a.getTriCubicInterpolatedValue(i, j, k);
-        real_t d3gammai33 = d3gammai33_a.getTriCubicInterpolatedValue(i, j, k);
-        real_t d3gammai12 = d3gammai12_a.getTriCubicInterpolatedValue(i, j, k);
-        real_t d3gammai13 = d3gammai13_a.getTriCubicInterpolatedValue(i, j, k);
-        real_t d3gammai23 = d3gammai23_a.getTriCubicInterpolatedValue(i, j, k);
+        real_t d3gammai11 = d3gammai11_a.getTriCubicInterpolatedValue(x_idx, y_idx, z_idx);
+        real_t d3gammai22 = d3gammai22_a.getTriCubicInterpolatedValue(x_idx, y_idx, z_idx);
+        real_t d3gammai33 = d3gammai33_a.getTriCubicInterpolatedValue(x_idx, y_idx, z_idx);
+        real_t d3gammai12 = d3gammai12_a.getTriCubicInterpolatedValue(x_idx, y_idx, z_idx);
+        real_t d3gammai13 = d3gammai13_a.getTriCubicInterpolatedValue(x_idx, y_idx, z_idx);
+        real_t d3gammai23 = d3gammai23_a.getTriCubicInterpolatedValue(x_idx, y_idx, z_idx);
 
 
           
@@ -632,6 +658,14 @@ void Sheet::RKStep(BSSN *bssn)
             + 2.0 * (d3gammai12 * u1 * u2 + d3gammai13 * u1 * u3 + d3gammai23 * u2 * u3)
           ); 
 
+        // if( j == 0 && k == 0)
+        // {
+        //   std::cout<<i<<" "<<d1alpha<<" "<<vx._c(i,j,k)<<"\n";
+        // }
+
+        // if(i == 0 && j ==0 && k == 0)
+        //   std::cout<<"velocity is "<<vx._c(i, j, k)<<" "<<vy._c(i, j, k)<<" "<<vz._c(i, j, k)<<"\n";
+
         
         // for(int i=1; i<=3; i++)
         // {
@@ -648,6 +682,10 @@ void Sheet::RKStep(BSSN *bssn)
         //   p_f.U[iIDX(i)] += RK_sum_coeff*p_c.U[iIDX(i)];
         // }
       }
+  //        throw(-1);
+  // for(int i = 0; i < NX; i++)
+  //   std::cout<<d1alpha_a(i, 0, 0)<<" ";
+  // std::cout<<"\n";
   
 }
 

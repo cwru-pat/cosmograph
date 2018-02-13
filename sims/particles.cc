@@ -27,6 +27,10 @@ void ParticleSim::setICs()
   {
     particle_ic_set_sinusoid(bssnSim, particles, iodata);
   }
+  else if(_config("ic_type", "") == "sinusoid_to_compare")
+  {
+    particle_ic_set_sinusoid_to_compare(bssnSim, particles, iodata);
+  }
   else
   {
     particle_ic_set_random(bssnSim, particles, fourier, iodata);

@@ -1,24 +1,20 @@
-steps = 5000
+steps = 10000
 
-simulation_type = sheets
-ic_type = sinusoid
+simulation_type = particles
+ic_type = sinusoid_to_compare
 
 lapse = Harmonic
 
-output_dir = phase_space_sheets_method_test
+output_dir = particle_method_test
 
-ns1 = 64
-ns2 = 64
-ns3 = 64
 
 verbosity = 0
 
 deposit_scheme = 1
 carrier_count_scheme = 1
 
-particles_per_dx = 2
 
-peak_amplitude = 0.005
+peak_amplitude_frac = 0.005
 
 integration_interval = 0.0000001
 
@@ -36,8 +32,11 @@ IO_1D_DIFFS_a = 1
 IO_1D_DIFFalpha_a = 1
 IO_1D_DIFFK_a = 1   
 
-IO_sheets_displacement_x = 1
-IO_sheets_velocity_x = 1    
+IO_particles = 50000
+IO_particles_diagram = 5
+
+IO_particles_x = 1
+IO_particles_vx = 1      
 
 IO_constraint_interval = 5
 

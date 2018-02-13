@@ -10,7 +10,7 @@
 // simulation size
 // Code runs much slower with global N (slow indexing?)
 #ifndef COSMO_N
-  #define COSMO_N 64
+  #define COSMO_N 32
 #endif
 #ifndef NX
   #define NX COSMO_N
