@@ -16,7 +16,9 @@ verbosity = 0
 deposit_scheme = 1
 carrier_count_scheme = 1
 
-particles_per_dx = 2
+carriers_per_dx = 1
+carriers_per_dy = 1
+carriers_per_dz = 1
 
 peak_amplitude = 0.005
 
