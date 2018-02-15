@@ -4,21 +4,113 @@
 namespace cosmo
 {
 
+/**
+ * @brief      Compute Bardeen & vector potentials.
+ * Assumes no reference solultion is used (this should be checked in the
+ * constructor).
+ */
 void Bardeen::setPotentials()
 {
   idx_t i, j, k;
+
+  if( bssn->frw->get_K() != 0 || bssn->frw->get_phi() != 0)
+  {
+    std::cout << "Bardeen variables incompatible with use of reference metric."
+     << " SVT and Bardeen fields will not be computed.";
+    return;
+  }
 
   // compute conformal factor, time-derivatives (assumes dust universe)
   arr_t & DIFFphi_a = *bssn->fields["DIFFphi_a"];
   arr_t & DIFFalpha_a = *bssn->fields["DIFFalpha_a"];
   arr_t & DIFFK_a = *bssn->fields["DIFFK_a"];
-  real_t a = exp( 2.0*( bssn->frw->get_phi() + conformal_average(DIFFphi_a, DIFFphi_a, bssn->frw->get_phi()) ) );
-  // a' ~ -1/3*a*alpha*k
-  real_t dadt = -1.0/3.0*a*(1.0 + conformal_average(DIFFalpha_a, DIFFphi_a, bssn->frw->get_phi()))*(bssn->frw->get_K() + conformal_average(DIFFK_a, DIFFphi_a, bssn->frw->get_phi()));
-  real_t d2adt2 = -1.0/2.0/a/a; // reliant upon on dust universe
 
-  // construct h_ij components, time derivatives
-# pragma omp parallel for default(shared) private(i, j, k)
+  // TODO: set these differently? Explore different choices?
+  real_t alpha_avg = 1.0 + conformal_average(DIFFalpha_a, DIFFphi_a, 0.0);
+  real_t K_avg = conformal_average(DIFFK_a, DIFFphi_a, 0.0);
+  real_t phi_avg = conformal_average(DIFFphi_a, DIFFphi_a, 0.0);
+
+  // define a = e^(2<\phi>)
+  real_t a = exp( 2.0*phi_avg );
+
+  // a' ~ e^(2<\phi>)' ~ a*2\phi' ~ -1/3*a*<alpha>*<K>
+  real_t dadt = -1.0/3.0*a*alpha_avg*K_avg;
+
+  real_t H = dadt/a;
+
+  // a'' ~ -1/3*a*(a'/a*<alpha>*<K> + <alpha'>*<K> + <alpha>*<K'>)
+  // -> compute alpha' and K' below.
+  real_t d2adt2 = 1.0/a/a; // TODO: fix
+
+  // Store time-derivative of BSSN metric components for later differentiation
+#pragma omp parallel for default(shared) private(i, j, k)
+  LOOP3(i,j,k)
+  {
+    idx_t idx = NP_INDEX(i,j,k);
+
+    BSSNData bd = {0};
+    bssn->set_bd_values(i, j, k, &bd);
+
+    // stores d/dt \bar{\gamma}_ij
+    dt_g11[idx] = bssn->ev_DIFFgamma11(&bd);
+    dt_g12[idx] = bssn->ev_DIFFgamma12(&bd);
+    dt_g13[idx] = bssn->ev_DIFFgamma13(&bd);
+    dt_g22[idx] = bssn->ev_DIFFgamma22(&bd);
+    dt_g23[idx] = bssn->ev_DIFFgamma23(&bd);
+    dt_g33[idx] = bssn->ev_DIFFgamma33(&bd);
+
+    // stores d/dt \beta^i
+    dt_beta1[idx] = bssn->ev_beta1(&bd);
+    dt_beta2[idx] = bssn->ev_beta2(&bd);
+    dt_beta3[idx] = bssn->ev_beta3(&bd);
+
+    // stores d/dt phi
+    dt_phi[idx] = bssn->ev_DIFFphi(&bd);
+  }
+
+
+  // Construct d2t \bar{\gamma}_ij, d2t phi
+#pragma omp parallel for default(shared) private(i, j, k)
+  LOOP3(i,j,k)
+  {
+    idx_t idx = NP_INDEX(i,j,k);
+
+    BSSNData bd = {0};
+    bssn->set_bd_values(i, j, k, &bd);
+
+    real_t dkbetak = bd.d1beta1 + bd.d2beta2 + bd.d3beta3;
+    real_t dkdtbetak = derivative(i,j,k,1,dt_beta1) + derivative(i,j,k,2,dt_beta2) + derivative(i,j,k,3,dt_beta3);
+    real_t dtalpha = bssn->ev_DIFFalpha(&bd);
+
+    // stores d/dt \bar{\gamma}_ij, incl. Macro for calc.
+#define dt_g21 dt_g12
+#define dt_g31 dt_g13
+#define dt_g32 dt_g23
+#define D2T_g(I,J) -2.0*dtalpha*bd.A##I##J - 2.0*bd.alpha*bssn->ev_A##I##J(&bd) \
+      + dt_beta1[idx]*bd.d1g##I##J + dt_beta2[idx]*bd.d2g##I##J + dt_beta3[idx]*bd.d3g##I##J \
+      + bd.beta1*derivative(i,j,k,1,dt_g##I##J) + bd.beta2*derivative(i,j,k,2,dt_g##I##J) + bd.beta3*derivative(i,j,k,3,dt_g##I##J) \
+      + dt_g##I##1[idx]*bd.d##J##beta1 + dt_g##I##2[idx]*bd.d##J##beta2 + dt_g##I##3[idx]*bd.d##J##beta3 \
+      + dt_g##J##1[idx]*bd.d##I##beta1 + dt_g##J##2[idx]*bd.d##I##beta2 + dt_g##J##3[idx]*bd.d##I##beta3 \
+      + bd.gamma##I##1*derivative(i,j,k,J,dt_beta1) + bd.gamma##I##2*derivative(i,j,k,J,dt_beta2) + bd.gamma##I##3*derivative(i,j,k,J,dt_beta3) \
+      + bd.gamma##J##1*derivative(i,j,k,I,dt_beta1) + bd.gamma##J##2*derivative(i,j,k,I,dt_beta2) + bd.gamma##J##3*derivative(i,j,k,I,dt_beta3) \
+      - 2.0/3.0*( dt_g##I##J[idx]*dkbetak + bd.gamma##I##J*dkdtbetak )
+
+    d2t_g11[idx] = D2T_g(1, 1);
+    d2t_g12[idx] = D2T_g(1, 2);
+    d2t_g13[idx] = D2T_g(1, 3);
+    d2t_g22[idx] = D2T_g(2, 2);
+    d2t_g23[idx] = D2T_g(2, 3);
+    d2t_g33[idx] = D2T_g(3, 3);
+
+    // stores d/dt phi
+    d2t_phi[idx] = -1.0/6.0*( dtalpha*bd.K + bd.alpha*bssn->ev_DIFFK(&bd) )
+      + dt_beta1[idx]*bd.d1phi + dt_beta2[idx]*bd.d2phi + dt_beta3[idx]*bd.d3phi
+      + bd.beta1*derivative(i,j,k,1,dt_phi) + bd.beta2*derivative(i,j,k,2,dt_phi) + bd.beta3*derivative(i,j,k,3,dt_phi)
+      + 1.0/6.0*dkdtbetak;
+  }
+
+  // construct h_ij, h_0i components, time derivatives
+#pragma omp parallel for default(shared) private(i, j, k)
   LOOP3(i,j,k)
   {
     idx_t idx = NP_INDEX(i,j,k);
@@ -27,6 +119,8 @@ void Bardeen::setPotentials()
     bssn->set_bd_values(i, j, k, &bd); // TODO: remove redundant computations here?
 
     real_t e4phi = std::exp(4.0*bd.phi);
+
+    // h_ij
     h11[idx] = e4phi*bd.gamma11 - a*a;
     h22[idx] = e4phi*bd.gamma22 - a*a;
     h33[idx] = e4phi*bd.gamma33 - a*a;
@@ -34,38 +128,50 @@ void Bardeen::setPotentials()
     h13[idx] = e4phi*bd.gamma13;
     h23[idx] = e4phi*bd.gamma23;
 
-    // dt gamma_ij = -2.0*K_ij
-    // K_{ij} = e^{4\phi} * A_{ij} + gamma_{ij}*K/3
-    dt_h11[idx] = -2.0*e4phi*(bd.A11 + bd.gamma11*bd.K/3.0) - 2.0*a*dadt;
-    dt_h22[idx] = -2.0*e4phi*(bd.A22 + bd.gamma22*bd.K/3.0) - 2.0*a*dadt;
-    dt_h33[idx] = -2.0*e4phi*(bd.A33 + bd.gamma33*bd.K/3.0) - 2.0*a*dadt;
-    dt_h12[idx] = -2.0*e4phi*(bd.A12 + bd.gamma12*bd.K/3.0);
-    dt_h13[idx] = -2.0*e4phi*(bd.A13 + bd.gamma13*bd.K/3.0);
-    dt_h23[idx] = -2.0*e4phi*(bd.A23 + bd.gamma23*bd.K/3.0);
+    // dt h_ij
+#define DT_h(I,J) e4phi*(4.0*dt_phi[idx]*bd.gamma##I##J + dt_g##I##J[idx])
+    dt_h11[idx] = DT_h(1,1) - 2.0*a*dadt;
+    dt_h22[idx] = DT_h(2,2) - 2.0*a*dadt;
+    dt_h33[idx] = DT_h(3,3) - 2.0*a*dadt;
+    dt_h12[idx] = DT_h(1,2);
+    dt_h13[idx] = DT_h(1,3);
+    dt_h23[idx] = DT_h(2,3);
 
-    // dt K_{ij}
-    real_t ev_phi = bssn->ev_DIFFK(&bd) + -bd.K_FRW/6.0;
-    real_t ev_K = bssn->ev_DIFFK(&bd) + bd.K_FRW*bd.K_FRW/3.0 + 4.0*PI*bd.rho_FRW;
-    d2t_h11[idx] = -2.0*( 4.0*(ev_phi)*e4phi*(bd.A11 + bd.gamma11*bd.K/3.0)
-                    + e4phi*( bssn->ev_A11(&bd) + bssn->ev_DIFFgamma11(&bd)*bd.K/3.0 + bd.gamma11*ev_K/3.0 )
-                    + dadt*dadt + a*d2adt2 );
-    d2t_h22[idx] = -2.0*( 4.0*(ev_phi)*e4phi*(bd.A22 + bd.gamma22*bd.K/3.0)
-                    + e4phi*( bssn->ev_A22(&bd) + bssn->ev_DIFFgamma22(&bd)*bd.K/3.0 + bd.gamma22*ev_K/3.0 )
-                    + dadt*dadt + a*d2adt2 );
-    d2t_h33[idx] = -2.0*( 4.0*(ev_phi)*e4phi*(bd.A33 + bd.gamma33*bd.K/3.0)
-                    + e4phi*( bssn->ev_A33(&bd) + bssn->ev_DIFFgamma33(&bd)*bd.K/3.0 + bd.gamma33*ev_K/3.0 )
-                    + dadt*dadt + a*d2adt2 );
-    d2t_h12[idx] = -2.0*( 4.0*(ev_phi)*e4phi*(bd.A12 + bd.gamma12*bd.K/3.0)
-                    + e4phi*( bssn->ev_A12(&bd) + bssn->ev_DIFFgamma12(&bd)*bd.K/3.0 + bd.gamma12*ev_K/3.0 ) );
-    d2t_h13[idx] = -2.0*( 4.0*(ev_phi)*e4phi*(bd.A13 + bd.gamma13*bd.K/3.0)
-                    + e4phi*( bssn->ev_A13(&bd) + bssn->ev_DIFFgamma13(&bd)*bd.K/3.0 + bd.gamma13*ev_K/3.0 ) );
-    d2t_h23[idx] = -2.0*( 4.0*(ev_phi)*e4phi*(bd.A23 + bd.gamma23*bd.K/3.0)
-                    + e4phi*( bssn->ev_A23(&bd) + bssn->ev_DIFFgamma23(&bd)*bd.K/3.0 + bd.gamma23*ev_K/3.0 ) );
+    // d2t h_ij
+#define D2T_h(I,J) e4phi*(std::pow(4.0*dt_phi[idx],2)*bd.gamma##I##J \
+        + 8.0*dt_phi[idx]*dt_g##I##J[idx] + 4.0*d2t_phi[idx]*bd.gamma##I##J \
+        + d2t_g##I##J[idx])
+    d2t_h11[idx] = D2T_h(1,1) - 2.0*(dadt*dadt + a*d2adt2);
+    d2t_h22[idx] = D2T_h(2,2) - 2.0*(dadt*dadt + a*d2adt2);
+    d2t_h33[idx] = D2T_h(3,3) - 2.0*(dadt*dadt + a*d2adt2);
+    d2t_h12[idx] = D2T_h(1,2);
+    d2t_h13[idx] = D2T_h(1,3);
+    d2t_h23[idx] = D2T_h(2,3);
+
+    // h0i
+#define h0I(I) e4phi*(bd.gamma##I##1*bd.beta1 + bd.gamma##I##2*bd.beta2 + bd.gamma##I##3*bd.beta3)
+    h01[idx] = h0I(1);
+    h02[idx] = h0I(2);
+    h03[idx] = h0I(3);
+
+    // d/dt h0i
+#define DT_h0I(I) 4.0*dt_phi[idx]*(h0I(I)) + e4phi*( \
+        dt_g##I##1[idx]*bd.beta1 + dt_g##I##2[idx]*bd.beta2 + dt_g##I##3[idx]*bd.beta3 \
+        + bd.gamma##I##1*dt_beta1[idx] + bd.gamma##I##2*dt_beta2[idx] + bd.gamma##I##3*dt_beta3[idx])
+    h01[idx] = DT_h0I(1);
+    h02[idx] = DT_h0I(2);
+    h03[idx] = DT_h0I(3);
+
+    // "E" SVT scalar
+    E[idx] = bd.alpha*bd.alpha
+      + bd.gamma11*bd.beta1*bd.beta1 + bd.gamma22*bd.beta2*bd.beta2 + bd.gamma33*bd.beta3*bd.beta3
+      + 2.0*(bd.gamma12*bd.beta1*bd.beta2 + bd.gamma13*bd.beta1*bd.beta3 + bd.gamma23*bd.beta2*bd.beta3 );
   }
+
 
   // construct A (and its time derivatives) in increments:
   // (A.1) construct d_i d_j h_{ij}
-# pragma omp parallel for default(shared) private(i, j, k)
+#pragma omp parallel for default(shared) private(i, j, k)
   LOOP3(i,j,k)
   {
     idx_t idx = NP_INDEX(i,j,k);
@@ -87,7 +193,7 @@ void Bardeen::setPotentials()
   fourier->inverseLaplacian <idx_t, real_t> (dt_A._array);
   fourier->inverseLaplacian <idx_t, real_t> (d2t_A._array);
   // (A.3) subtract from trace and /(2a^2)
-# pragma omp parallel for default(shared) private(i, j, k)
+#pragma omp parallel for default(shared) private(i, j, k)
   LOOP3(i,j,k)
   {
     idx_t idx = NP_INDEX(i,j,k);
@@ -103,8 +209,8 @@ void Bardeen::setPotentials()
     
     // final values
     A[idx] = ( h_tr - djdk_d2_hjk )/a/a/2.0;
-    dt_A[idx] = -2.0*A[idx]*dadt/a + ( dt_h_tr - dt_djdk_d2_hjk )/a/a/2.0;
-    d2t_A[idx] =  -2.0*A[idx]*( pw2(dadt/a) + d2adt2/a ) - 4.0*dadt/a*dt_A[idx]
+    dt_A[idx] = -2.0*A[idx]*H + ( dt_h_tr - dt_djdk_d2_hjk )/a/a/2.0;
+    d2t_A[idx] =  -2.0*A[idx]*( pw2(H) + d2adt2/a ) - 4.0*H*dt_A[idx]
                   + ( d2t_h_tr - d2t_djdk_d2_hjk )/a/a/2.0;
   }
   // fix monopoles: <h_tr> / a^2 = <3A> + <d^2 B> = <3A> (periodic spacetime)
@@ -134,9 +240,10 @@ void Bardeen::setPotentials()
      - avg_d2t_A;
   }
 
+
   // construct B (and its time derivatives) in increments:
   // (B.1) trace - 3A
-# pragma omp parallel for default(shared) private(i, j, k)
+#pragma omp parallel for default(shared) private(i, j, k)
   LOOP3(i,j,k)
   {
     idx_t idx = NP_INDEX(i,j,k);
@@ -155,58 +262,81 @@ void Bardeen::setPotentials()
   fourier->inverseLaplacian <idx_t, real_t> (dt_B._array);
   fourier->inverseLaplacian <idx_t, real_t> (d2t_B._array);
 
-  // scalar metric fields obtained... get Bardeen potentials:
-# pragma omp parallel for default(shared) private(i, j, k)
+
+  // Construct F, dt_F
+#pragma omp parallel for default(shared) private(i, j, k)
   LOOP3(i,j,k)
   {
     idx_t idx = NP_INDEX(i,j,k);
 
-    Phi[idx] = -a/2.0*( 2.0*dadt*dt_B[idx] + a*d2t_B[idx] );
-    Psi[idx] = -1.0/2.0*A[idx] + a*dadt*dt_B[idx]/2.0;
+    // d^2 F
+    F[idx] = ( derivative(i,j,k,1,h01) + derivative(i,j,k,2,h02) + derivative(i,j,k,3,h03) ) / a;
+    // d^2 F'
+    dt_F[idx] = ( derivative(i,j,k,1,dt_h01) + derivative(i,j,k,2,dt_h02) + derivative(i,j,k,3,dt_h03) ) / a
+      - H*F[idx];
+  }
+  fourier->inverseLaplacian <idx_t, real_t> (F._array);
+  fourier->inverseLaplacian <idx_t, real_t> (dt_F._array);
+
+
+  // All scalar metric fields have been obtained, so compute Bardeen potentials:
+#pragma omp parallel for default(shared) private(i, j, k)
+  LOOP3(i,j,k)
+  {
+    idx_t idx = NP_INDEX(i,j,k);
+
+    Psi[idx] = -1.0/2.0*( A[idx] + 2.0*H*(a*F[idx] - 0.5*a*a*dt_B[idx]) );
+    Phi[idx] = 1.0/2.0*( E[idx]
+      + 2.0*(dadt*F[idx] + a*dt_F[idx])
+      - 2.0*a*dadt*dt_B[idx] - a*a*d2t_B[idx]
+    );
   }
 
-  // // Consistency checks / debugging
-  // idx_t pt = 4;
-  // real_t tr_h = h11[pt] + h22[pt] + h33[pt];
-  // real_t dt_tr_h = dt_h11[pt] + dt_h22[pt] + dt_h33[pt];
-  // real_t d2t_tr_h = d2t_h11[pt] + d2t_h22[pt] + d2t_h33[pt];
-  
-  // std::cout << "\na = " << a << "; dadt = " << dadt << "; 1/sqrt(a) = " << 1.0/std::sqrt(a) << "; A = "
-  //   << A[pt] << "; DIFFalpha=" << DIFFalpha_a[pt] << ";\n";
 
-  // std::cout << "3A + lap(B) - tr_h/a^2 = '0' = " << 3*A[pt] + laplacian(0,0,pt,B) - tr_h/a/a << ";\n";
-  // std::cout << "3 dtA + lap(dtB) - dt_tr_h/a^2 + 2 dadt / a^3 * tr_h = '0' = "
-  //   << 3*dt_A[pt] + laplacian(0,0,pt,dt_B) - dt_tr_h/a/a + 2*dadt/a/a/a*tr_h << ";\n";
-  // std::cout << "3 d2tA + lap(d2tB) - tr_d2t_h/a^2 + 2 dadt dt_tr_h/a^3 + 2 dadt / a^3 * dt_tr_h - 6 dadt*dadt / a^4 * tr_h + 2 d2adt2 / a^3 * tr_h = '0' = "
-  //   << 3*d2t_A[pt] + laplacian(0,0,pt,d2t_B) - d2t_tr_h/a/a + 4*dadt/a/a/a*dt_tr_h - 6*dadt*dadt/a/a/a/a*tr_h + 2*d2adt2/a/a/a*tr_h << ";\n";
+  // Construct vector potentials.
+#pragma omp parallel for default(shared) private(i, j, k)
+  LOOP3(i,j,k)
+  {
+    idx_t idx = NP_INDEX(i,j,k);
 
-  // std::cout << "Average field values: <A>=" << 3.0*average(A) << ", <h>/a^2=" << avg_h_tr/a/a << ";\n";
+    // G components
+    G1[idx] = derivative(i,j,k,1,F) - h01[idx]/a;
+    G2[idx] = derivative(i,j,k,2,F) - h02[idx]/a;
+    G3[idx] = derivative(i,j,k,3,F) - h03[idx]/a;
 
-  // // di dj h_ij ?= lap(A) + lap^2(B)
-  // real_t didjhij =       double_derivative(i, j, k, 1, 1, h11) + double_derivative(i, j, k, 2, 2, h22) + double_derivative(i, j, k, 3, 3, h33)
-  //     + 2.0*(double_derivative(i, j, k, 1, 2, h12) + double_derivative(i, j, k, 1, 3, h13) + double_derivative(i, j, k, 2, 3, h23));
-  // real_t dt_didjhij =       double_derivative(i, j, k, 1, 1, dt_h11) + double_derivative(i, j, k, 2, 2, dt_h22) + double_derivative(i, j, k, 3, 3, dt_h33)
-  //     + 2.0*(double_derivative(i, j, k, 1, 2, dt_h12) + double_derivative(i, j, k, 1, 3, dt_h13) + double_derivative(i, j, k, 2, 3, dt_h23));
-  // real_t d2t_didjhij =       double_derivative(i, j, k, 1, 1, d2t_h11) + double_derivative(i, j, k, 2, 2, d2t_h22) + double_derivative(i, j, k, 3, 3, d2t_h33)
-  //     + 2.0*(double_derivative(i, j, k, 1, 2, d2t_h12) + double_derivative(i, j, k, 1, 3, d2t_h13) + double_derivative(i, j, k, 2, 3, d2t_h23));
-
-  // LOOP3(i,j,k) { tmp[NP_INDEX(i,j,k)] = laplacian(i,j,k,B); }
-  // std::cout << "di dj hij / a^2 = " << didjhij/a/a
-  //   << "; lap(A) + lap^2(B) = " << laplacian(0,0,pt,A) + laplacian(0,0,pt,tmp) << "; \n";
-  // //time-der;
-  // LOOP3(i,j,k) { tmp[NP_INDEX(i,j,k)] = laplacian(i,j,k,dt_B); }
-  // std::cout << "dt_didjhij / a^2 -2dadt*didjhij/a^3  = " << dt_didjhij/a/a - 2.0/a/a/a*dadt*didjhij
-  //   << "; lap(dt_A) + lap^2(dt_B) = " << laplacian(0,0,pt,dt_A) + laplacian(0,0,pt,tmp) << "; \n";
-  // // 2nd time-der
-  // LOOP3(i,j,k) { tmp[NP_INDEX(i,j,k)] = laplacian(i,j,k,d2t_B); }
-  // std::cout << "d2t_didjhij / a^2 -2*dadt*dt_didjhij / a^3 -2d2adt2*didjhij/a^3 - 2dadt*dt_didjhij/a^3 + 6 dadt^2*didjhij/a^4  = "
-  //   << d2t_didjhij/a/a - 2.0*dadt*dt_didjhij/a/a/a - 2.0/a/a/a*d2adt2*didjhij + 6.0/a/a/a/a*dadt*dadt*didjhij - 2.0/a/a/a*dadt*dt_didjhij
-  //   << "; lap(d2t_A) + lap^2(d2t_B) = " << laplacian(0,0,pt,d2t_A) + laplacian(0,0,pt,tmp) << "; \n";
-
-  // std::cout << "Linear constraint: "
-  //   << A[pt] - a*a*d2t_B[pt] - 3*dadt*a*dt_B[pt] << "\n";
+    // d^2 C_i
+    C1[idx] = ( derivative(i,j,k,2,h12) + derivative(i,j,k,3,h13)
+      - derivative(i,j,k,1,h22) - derivative(i,j,k,1,h33) )/a/a 
+      + 2.0*derivative(i,j,k,1,A);
+    C2[idx] = ( derivative(i,j,k,1,h12) + derivative(i,j,k,3,h23)
+      - derivative(i,j,k,2,h11) - derivative(i,j,k,2,h33) )/a/a 
+      + 2.0*derivative(i,j,k,2,A);
+    C3[idx] = ( derivative(i,j,k,1,h13) + derivative(i,j,k,2,h23)
+      - derivative(i,j,k,3,h11) - derivative(i,j,k,3,h22) )/a/a 
+      + 2.0*derivative(i,j,k,3,A);
+  }
+  fourier->inverseLaplacian <idx_t, real_t> (C1._array);
+  fourier->inverseLaplacian <idx_t, real_t> (C2._array);
+  fourier->inverseLaplacian <idx_t, real_t> (C3._array);
 
 
-}
+  // Construct tensor potentials.
+#pragma omp parallel for default(shared) private(i, j, k)
+  LOOP3(i,j,k)
+  {
+    idx_t idx = NP_INDEX(i,j,k);
 
-}
+#define DIJ(I,J) h##I##J[idx]/a/a - (I==J?1.0:0.0)*A[idx] - double_derivative(i,j,k,I,J,B) \
+          - derivative(i,j,k,I,C##J) - derivative(i,j,k,J,C##I)
+    D11[idx] = DIJ(1,1);
+    D12[idx] = DIJ(1,2);
+    D13[idx] = DIJ(1,3);
+    D22[idx] = DIJ(2,2);
+    D23[idx] = DIJ(2,3);
+    D33[idx] = DIJ(3,3);
+  }
+
+
+} // Bardeen class
+
+} // namespace
