@@ -28,7 +28,7 @@ public:
     {
       delete bardeen;
     }
-
+    std::cout << "done.\n";
     std::cout << std::flush;
   }
 

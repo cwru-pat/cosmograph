@@ -57,6 +57,9 @@ public:
   // Bardeen potentials
   arr_t Phi, Psi;
 
+  // constraint violation
+  arr_t lin_viol, lin_viol_der_mag, lin_viol_der;
+
   Bardeen(BSSN * bssn_in, Fourier * fourier_in)
   {
     bssn = bssn_in;
@@ -95,6 +98,10 @@ public:
     D33.init(NX, NY, NZ);
 
     Phi.init(NX, NY, NZ); Psi.init(NX, NY, NZ);
+
+    lin_viol.init(NX, NY, NZ);
+    lin_viol_der_mag.init(NX, NY, NZ);
+    lin_viol_der.init(NX, NY, NZ);
 
     // add Bardeen potentials to BSSN fields map
     bssn->fields["Bardeen_Phi"] = & Phi;

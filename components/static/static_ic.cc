@@ -32,8 +32,6 @@ void dust_ic_set_random(BSSN * bssn, Static * dust, Fourier * fourier,
 
   arr_t & DIFFD_a = *dust->fields["DIFFD_a"];
 
-  auto & frw = bssn->frw;
-
   ICsData icd = cosmo_get_ICsData();
   iodata->log( "Generating ICs with peak at k = " + stringify(icd.peak_k) );
   iodata->log( "Generating ICs with peak amp. = " + stringify(icd.peak_amplitude) );
@@ -112,6 +110,7 @@ void dust_ic_set_random(BSSN * bssn, Static * dust, Fourier * fourier,
   real_t rho_FRW = icd.rho_K_matter;
   real_t K_frw = -sqrt(24.0*PI*rho_FRW);
 
+  auto & frw = bssn->frw;
   frw->set_phi(0.0);
   frw->set_K(K_frw);
   frw->addFluid(rho_FRW, 0.0 /* w=0 */);
@@ -152,10 +151,7 @@ void dust_ic_set_sinusoid(BSSN * bssn, Static * dust, Fourier * fourier,
   arr_t & DIFFphi_p = *bssn->fields["DIFFphi_p"];
   arr_t & DIFFD_a = *dust->fields["DIFFD_a"];
 
-  auto & frw = bssn->frw;
-
   real_t rho_FRW = 3.0/PI/8.0;
-  real_t K_FRW = -sqrt(24.0*PI*rho_FRW);
   real_t A = H_LEN_FRAC*H_LEN_FRAC*std::stod(_config("peak_amplitude_frac", "0.001"));
 
   // the conformal factor in front of metric is the solution to
@@ -233,6 +229,8 @@ void dust_ic_set_sinusoid(BSSN * bssn, Static * dust, Fourier * fourier,
 
 # if USE_REFERENCE_FRW
   // Set values in reference FRW integrator
+  auto & frw = bssn->frw;
+  real_t K_FRW = -sqrt(24.0*PI*rho_FRW);
   frw->set_phi(0.0);
   frw->set_K(K_FRW);
   frw->addFluid(rho_FRW, 0.0 /* w=0 */);
@@ -275,8 +273,6 @@ void dust_ic_set_sphere(BSSN * bssn, Static * dust, IOData * iodata)
   arr_t & DIFFphi_f = *bssn->fields["DIFFphi_f"];
 
   arr_t & DIFFD_a = *dust->fields["DIFFD_a"];
-
-  auto & frw = bssn->frw;
 
   // shell amplitude
   const real_t A = stod(_config("shell_amplitude", "1e-5"));
@@ -445,6 +441,7 @@ void dust_ic_set_sphere(BSSN * bssn, Static * dust, IOData * iodata)
   real_t rho_FRW = 3.0/PI/8.0;
   real_t K_frw = -sqrt(24.0*PI*rho_FRW);
 
+  auto & frw = bssn->frw;
   frw->set_phi(0.0);
   frw->set_K(K_frw);
   frw->addFluid(rho_FRW, 0.0 /* w=0 */);
@@ -459,7 +456,7 @@ void dust_ic_set_sphere(BSSN * bssn, Static * dust, IOData * iodata)
   LOOP3(i,j,k)
   {
     idx_t idx = NP_INDEX(i,j,k);
-    real_t rho_FRW = icd.rho_K_matter;
+    real_t rho_FRW = 3.0/PI/8.0;
     real_t D_FRW = rho_FRW; // on initial slice
 
     DIFFr_a[idx] += rho_FRW;

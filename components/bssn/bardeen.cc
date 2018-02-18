@@ -4,6 +4,16 @@
 namespace cosmo
 {
 
+real_t abs_dder(idx_t i, idx_t j, idx_t k, arr_t & field)
+{
+  return std::abs(double_derivative(i,j,k,1,1,field))
+   + std::abs(double_derivative(i,j,k,1,2,field))
+   + std::abs(double_derivative(i,j,k,1,3,field))
+   + std::abs(double_derivative(i,j,k,2,2,field))
+   + std::abs(double_derivative(i,j,k,2,3,field))
+   + std::abs(double_derivative(i,j,k,3,3,field));
+}
+
 /**
  * @brief      Compute Bardeen & vector potentials.
  * Assumes no reference solultion is used (this should be checked in the
@@ -35,12 +45,11 @@ void Bardeen::setPotentials()
 
   // a' ~ e^(2<\phi>)' ~ a*2\phi' ~ -1/3*a*<alpha>*<K>
   real_t dadt = -1.0/3.0*a*alpha_avg*K_avg;
-
   real_t H = dadt/a;
 
-  // a'' ~ -1/3*a*(a'/a*<alpha>*<K> + <alpha'>*<K> + <alpha>*<K'>)
-  // -> compute alpha' and K' below.
-  real_t d2adt2 = 1.0/a/a; // TODO: fix
+  // a'' ~ H*a' + a*2\phi''
+  real_t d2adt2; // Set after \phi'' is computed
+                 // Don't use this until then. (valgrind can catch.)
 
   // Store time-derivative of BSSN metric components for later differentiation
 #pragma omp parallel for default(shared) private(i, j, k)
@@ -82,7 +91,7 @@ void Bardeen::setPotentials()
     real_t dkdtbetak = derivative(i,j,k,1,dt_beta1) + derivative(i,j,k,2,dt_beta2) + derivative(i,j,k,3,dt_beta3);
     real_t dtalpha = bssn->ev_DIFFalpha(&bd);
 
-    // stores d/dt \bar{\gamma}_ij, incl. Macro for calc.
+    // stores d^2/dt^2 \bar{\gamma}_ij, incl. Macro for calc.
 #define dt_g21 dt_g12
 #define dt_g31 dt_g13
 #define dt_g32 dt_g23
@@ -102,12 +111,15 @@ void Bardeen::setPotentials()
     d2t_g23[idx] = D2T_g(2, 3);
     d2t_g33[idx] = D2T_g(3, 3);
 
-    // stores d/dt phi
+    // stores d^2/dt^2 phi
     d2t_phi[idx] = -1.0/6.0*( dtalpha*bd.K + bd.alpha*bssn->ev_DIFFK(&bd) )
       + dt_beta1[idx]*bd.d1phi + dt_beta2[idx]*bd.d2phi + dt_beta3[idx]*bd.d3phi
       + bd.beta1*derivative(i,j,k,1,dt_phi) + bd.beta2*derivative(i,j,k,2,dt_phi) + bd.beta3*derivative(i,j,k,3,dt_phi)
       + 1.0/6.0*dkdtbetak;
   }
+  // set second derivative of a
+  // a'' ~ H*a' + a*2\phi''
+  d2adt2 = H*dadt + 2.0*a*conformal_average(d2t_phi, DIFFphi_a, 0.0);
 
   // construct h_ij, h_0i components, time derivatives
 #pragma omp parallel for default(shared) private(i, j, k)
@@ -163,7 +175,7 @@ void Bardeen::setPotentials()
     h03[idx] = DT_h0I(3);
 
     // "E" SVT scalar
-    E[idx] = bd.alpha*bd.alpha
+    E[idx] = bd.alpha*bd.alpha - 1.0
       + bd.gamma11*bd.beta1*bd.beta1 + bd.gamma22*bd.beta2*bd.beta2 + bd.gamma33*bd.beta3*bd.beta3
       + 2.0*(bd.gamma12*bd.beta1*bd.beta2 + bd.gamma13*bd.beta1*bd.beta3 + bd.gamma23*bd.beta2*bd.beta3 );
   }
@@ -336,7 +348,40 @@ void Bardeen::setPotentials()
     D33[idx] = DIJ(3,3);
   }
 
+  // linearized constraint violation
+#pragma omp parallel for default(shared) private(i, j, k)
+  LOOP3(i,j,k)
+  {
+    idx_t idx = NP_INDEX(i,j,k);
+    
+    lin_viol[idx] = E[idx] + A[idx] - a*a*d2t_B[idx] - 3.0*a*dadt*dt_B[idx]
+      + 2.0*a*dt_F[idx] + 4.0*dadt*F[idx];
 
-} // Bardeen class
+    lin_viol_der_mag[idx] = abs_dder(i,j,k,E) + abs_dder(i,j,k,A)
+      + a*a*abs_dder(i,j,k,d2t_B) + std::abs(3.0*a*dadt)*abs_dder(i,j,k,dt_B)
+      + 2.0*a*abs_dder(i,j,k,dt_F) + std::abs(4.0*dadt)*abs_dder(i,j,k,F);
+  }
+#pragma omp parallel for default(shared) private(i, j, k)
+  LOOP3(i,j,k)
+  {
+    idx_t idx = NP_INDEX(i,j,k);
+    lin_viol_der[idx] = abs_dder(i,j,k,lin_viol);
+  }
+
+  real_t mean_viol = average(lin_viol_der);
+  real_t viol_scale = average(lin_viol_der_mag);
+  real_t max_viol = max(lin_viol_der);
+  real_t std_viol = standard_deviation(lin_viol_der, mean_viol);
+
+  arr_t & DIFFr_a = *bssn->fields["DIFFr_a"];
+  real_t delta = standard_deviation(DIFFr_a) / average(DIFFr_a);
+
+  // std::cout << " Viol. is (mean/std/max/scale/%): ("
+  //   << mean_viol << " / " << std_viol << " / " << max_viol
+  //   << " / " << viol_scale << " / " << max_viol/viol_scale
+  //   << ") when a=" << a << ", delta~" << delta << " \n";
+
+  // Does ( G - a*dt_C ) ~ 1/a^2 ?
+}
 
 } // namespace
