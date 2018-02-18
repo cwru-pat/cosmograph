@@ -48,19 +48,19 @@ void sheets_ic_sinusoid(
   // generate random mode in \phi
   // delta_rho = -(lap e^\phi)/e^(4\phi)/2pi
   real_t phix = /*2.77*/ 0;
-  real_t twopi_L = 2.0*PI/H_LEN_FRAC;
+  real_t twopi_L = 2.0*PI/Lx;
   real_t pw2_twopi_L = twopi_L*twopi_L;
   
   std::cout<<"Initial rho distribution is\n";
   // grid values
-  for(i=0; i<NX; ++i)
+  for(i=0; i<Nx; ++i)
   {
-    for(j=0; j<NY; ++j)
-      for(k=0; k<NZ; ++k)
+    for(j=0; j<Ny; ++j)
+      for(k=0; k<Nz; ++k)
       {
         idx_t idx = NP_INDEX(i,j,k);
 
-        real_t x = ((real_t) i / (real_t) NX);
+        real_t x = ((real_t) i / (real_t) Nx);
         real_t phi = A*sin(2.0*PI*x + phix);
         real_t rho = rho_FRW + -exp(-4.0*phi)/PI/2.0*(
           pw2(twopi_L*A*cos(2.0*PI*x + phix))
@@ -85,7 +85,7 @@ void sheets_ic_sinusoid(
 
   tot_mass = 0;
 
-  for(real_t cur_x = 0; cur_x < H_LEN_FRAC; cur_x += integration_interval)  
+  for(real_t cur_x = 0; cur_x < Lx; cur_x += integration_interval)  
   {
     real_t x = cur_x;
 
@@ -106,7 +106,7 @@ void sheets_ic_sinusoid(
 
   std::cout<<"Total mass and mass_per_voxel are "<<tot_mass<<" "<<mass_per_voxel<<"\n";
 
-  for(real_t cur_x = 0; cur_x < H_LEN_FRAC; cur_x += integration_interval)
+  for(real_t cur_x = 0; cur_x < Lx; cur_x += integration_interval)
   {
     real_t x = cur_x;
     real_t phi = A*sin(2.0*PI*x + phix);
@@ -166,7 +166,7 @@ void sheets_ic_sinusoid(
   }
 
   real_t temp = 0;
-  for(real_t cur_x = sheetSim->_S1IDXtoX0(Dx.nx-1) + Dx(Dx.nx-1, 0, 0); cur_x <= H_LEN_FRAC; cur_x+= integration_interval)
+  for(real_t cur_x = sheetSim->_S1IDXtoX0(Dx.nx-1) + Dx(Dx.nx-1, 0, 0); cur_x <= Lx; cur_x+= integration_interval)
   {
     real_t x = cur_x;
     real_t phi = A*sin(2.0*PI*x + phix);
@@ -180,6 +180,10 @@ void sheets_ic_sinusoid(
     temp += rootdetg * integration_interval * rho;
 
   }
+  
+  tot_mass *= Ly * Lz;
+  
+
   std::cout<<"Mass in voxel "<<Dx.nx-1<<" is "<<temp<<"\n";
   
   // iodata->log( "Minimum fluid density: " + stringify(min) );

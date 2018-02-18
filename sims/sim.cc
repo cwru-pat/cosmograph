@@ -53,7 +53,7 @@ void CosmoSim::simInit()
 
   // FFT helper
   fourier = new Fourier();
-  fourier->Initialize(NX, NY, NZ,
+  fourier->Initialize(NX, Ny, Nz,
     bssnSim->fields["DIFFphi_a"]->_array /* arbitrary array for planning */);
 
 # if USE_COSMOTRACE
@@ -143,7 +143,7 @@ void CosmoSim::runCommonStepTasks()
   }
 
   // progress bar in terminal
-  //    io_show_progress(step, num_steps);
+  io_show_progress(step, num_steps);
 
 # if USE_COSMOTRACE
   // Evolve light rays when integrating backwards

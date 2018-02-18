@@ -1,4 +1,4 @@
-steps = 10000
+steps = 10
 
 simulation_type = particles
 ic_type = sinusoid_to_compare
@@ -6,6 +6,14 @@ ic_type = sinusoid_to_compare
 lapse = Harmonic
 
 output_dir = particle_method_test
+
+Lx = 1
+Ly = 0.03125
+Lz = 0.03125
+
+Nx = 32
+Ny = 1
+Nz = 1
 
 
 verbosity = 0

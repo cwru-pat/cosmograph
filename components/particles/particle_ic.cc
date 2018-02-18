@@ -208,13 +208,13 @@ void particle_ic_set_sinusoid(BSSN * bssnSim, Particles * particles, IOData * io
   real_t twopi_L = 2.0*PI/H_LEN_FRAC;
   real_t pw2_twopi_L = twopi_L*twopi_L;
   // grid values
-  for(i=0; i<NX; ++i)
-    for(j=0; j<NY; ++j)
-      for(k=0; k<NZ; ++k)
+  for(i=0; i<Nx; ++i)
+    for(j=0; j<Ny; ++j)
+      for(k=0; k<Nz; ++k)
   {
     idx_t idx = NP_INDEX(i,j,k);
 
-    real_t x = ((real_t) i / (real_t) NX);
+    real_t x = ((real_t) i / (real_t) Nx);
     real_t phi = A*sin(2.0*PI*x + phix);
     real_t rho = rho_FRW + -exp(-4.0*phi)/PI/2.0*(
         pw2(twopi_L*A*cos(2.0*PI*x + phix))
@@ -231,11 +231,11 @@ void particle_ic_set_sinusoid(BSSN * bssnSim, Particles * particles, IOData * io
   // parallelizing may break this, be careful
   idx_t particles_per_dx = std::stoi(_config("particles_per_dx", "1"));
   iodata->log("Particles per dx: " + stringify(particles_per_dx));
-  for(i=0; i<NX*particles_per_dx; ++i)
-    for(j=0; j<NY; ++j)
-      for(k=0; k<NZ; ++k)
+  for(i=0; i<Nx*particles_per_dx; ++i)
+    for(j=0; j<Ny; ++j)
+      for(k=0; k<Nz; ++k)
   {
-    real_t x = ((real_t) i / (real_t) NX / (real_t) particles_per_dx);
+    real_t x = ((real_t) i / (real_t) Nx / (real_t) particles_per_dx);
 
     real_t phi = A*sin(2.0*PI*x + phix);
 
@@ -334,13 +334,13 @@ void particle_ic_set_sinusoid_to_compare(BSSN * bssnSim, Particles * particles, 
   real_t twopi_L = 2.0*PI/H_LEN_FRAC;
   real_t pw2_twopi_L = twopi_L*twopi_L;
   // grid values
-  for(i=0; i<NX; ++i)
-    for(j=0; j<NY; ++j)
-      for(k=0; k<NZ; ++k)
+  for(i=0; i<Nx; ++i)
+    for(j=0; j<Ny; ++j)
+      for(k=0; k<Nz; ++k)
   {
     idx_t idx = NP_INDEX(i,j,k);
 
-    real_t x = ((real_t) i / (real_t) NX);
+    real_t x = ((real_t) i / (real_t) Nx);
     real_t phi = A*sin(2.0*PI*x + phix);
     real_t rho = rho_FRW + -exp(-4.0*phi)/PI/2.0*(
         pw2(twopi_L*A*cos(2.0*PI*x + phix))
@@ -357,11 +357,11 @@ void particle_ic_set_sinusoid_to_compare(BSSN * bssnSim, Particles * particles, 
   // parallelizing may break this, be careful
   idx_t particles_per_dx = std::stoi(_config("particles_per_dx", "1"));
   iodata->log("Particles per dx: " + stringify(particles_per_dx));
-  for(i=0; i<NX*particles_per_dx; ++i)
-    for(j=0; j<NY; ++j)
-      for(k=0; k<NZ; ++k)
+  for(i=0; i<Nx*particles_per_dx; ++i)
+    for(j=0; j<Ny; ++j)
+      for(k=0; k<Nz; ++k)
   {
-    real_t x = ((real_t) i / (real_t) NX / (real_t) particles_per_dx);
+    real_t x = ((real_t) i / (real_t) Nx / (real_t) particles_per_dx);
 
     real_t phi = A*sin(2.0*PI*x + phix);
 
@@ -471,9 +471,9 @@ void particle_ic_set_vectorpert(BSSN * bssnSim, Particles * particles,
   real_t phase = 2.0*PI*0.5*dx/L;
 
   // grid values
-  for(i=0; i<NX; ++i)
-    for(j=0; j<NY; ++j)
-      for(k=0; k<NZ; ++k)
+  for(i=0; i<Nx; ++i)
+    for(j=0; j<Ny; ++j)
+      for(k=0; k<Nz; ++k)
   {
     idx_t idx = NP_INDEX(i,j,k);
     real_t y = j*dx;
@@ -495,9 +495,9 @@ void particle_ic_set_vectorpert(BSSN * bssnSim, Particles * particles,
   iodata->log("Particles per dx: " + stringify(particles_per_dy));
 
 
-  for(i=0; i<NX; ++i)
-    for(j=0; j<NY; ++j)
-      for(k=0; k<NZ; ++k)
+  for(i=0; i<Nx; ++i)
+    for(j=0; j<Ny; ++j)
+      for(k=0; k<Nz; ++k)
         for(int p=0; p<particles_per_dy; ++p)
   {
     real_t p_frac = dx/particles_per_dy;

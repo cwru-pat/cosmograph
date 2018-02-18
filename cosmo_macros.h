@@ -21,7 +21,7 @@
 #ifndef NZ
   #define NZ COSMO_N
 #endif
-#define POINTS ((NX)*(NY)*(NZ))
+#define POINTS ((Nx)*(Ny)*(Nz))
 
 // physical box size (eg., in hubble units)
 // eg; L = H_LEN_FRAC = N*dx
@@ -103,13 +103,13 @@
 #define RESTRICT __restrict__
 
 // standard index, implementing periodic boundary conditions
-#define INDEX(i,j,k) ( ((i+NX)%(NX))*(NY)*(NZ) + ((j+NY)%(NY))*(NZ) + (k+NZ)%(NZ) )
+#define INDEX(i,j,k) ( ((i+Nx)%(Nx))*(Ny)*(Nz) + ((j+Ny)%(Ny))*(Nz) + (k+Nz)%(Nz) )
 // indexing without periodicity
-#define NP_INDEX(i,j,k) ((NZ)*(NY)*(i) + (NZ)*(j) + (k))
+#define NP_INDEX(i,j,k) ((Nz)*(Ny)*(i) + (Nz)*(j) + (k))
 // indexing of flux arrays; indexes cell boundaries with 'd' = 1,2,3, using periodic BCs
-#define F_INDEX(i,j,k,d) ( ((i+NX)%(NX))*(NY)*(NZ)*3 + ((j+NY)%(NY))*(NZ)*3 + (k+NZ)%(NZ)*3 + (d+2)%3 )
+#define F_INDEX(i,j,k,d) ( ((i+Nx)%(Nx))*(Ny)*(Nz)*3 + ((j+Ny)%(Ny))*(Nz)*3 + (k+Nz)%(Nz)*3 + (d+2)%3 )
 // non-periodic indexing of flux arrays; indexes cell boundaries with 'd' = 1,2,3
-#define F_NP_INDEX(i,j,k,d) ( (NZ)*(NY)*(i)*3 + (NZ)*(j)*3 + (k)*3 + (d+2)%3 )
+#define F_NP_INDEX(i,j,k,d) ( (Nz)*(Ny)*(i)*3 + (Nz)*(j)*3 + (k)*3 + (d+2)%3 )
 
 // index with designated grid number
 #define H_INDEX(i,j,k,nx,ny,nz) (((i+nx)%(nx))*(ny)*(nz) + ((j+ny)%(ny))*(nz) + (k+(nz))%(nz))
@@ -121,13 +121,13 @@
 
 
 #define LOOP3(i,j,k) \
-  for(i=0; i<NX; ++i) \
-    for(j=0; j<NY; ++j) \
-      for(k=0; k<NZ; ++k)
+  for(i=0; i<Nx; ++i) \
+    for(j=0; j<Ny; ++j) \
+      for(k=0; k<Nz; ++k)
 
 #define AREA_LOOP(j,k) \
-  for(j=0; j<NY; ++j) \
-    for(k=0; k<NZ; ++k)
+  for(j=0; j<Ny; ++j) \
+    for(k=0; k<Nz; ++k)
 
 #define DECLARE_REAL_T(name) real_t name
 
@@ -152,7 +152,7 @@
 
 #define RK4_ARRAY_ALLOC(name) \
         name = new register_t(); \
-        name->init(NX, NY, NZ, dt)
+        name->init(Nx, Ny, Nz, dt)
 
 #define RK4_ARRAY_DELETE(name) \
         delete name
@@ -169,7 +169,7 @@
         arr_t name##_a
 
 #define GEN1_ARRAY_ALLOC(name) \
-        name##_a.init(NX, NY, NZ)
+        name##_a.init(Nx, Ny, Nz)
 
 #define GEN1_ARRAY_DELETE(name)
 

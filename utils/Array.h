@@ -8,6 +8,10 @@
 
 #include "TriCubicInterpolator.h"
 #include "../cosmo_macros.h"
+#include "../cosmo_globals.h"
+
+//#include "../cosmo_macros.h"
+//#include "../cosmo_globals.h"
 namespace cosmo
 {
 
@@ -50,7 +54,7 @@ class CosmoArray
     lx(_lx), ly(_ly), lz(_lz),
     dx(_dx), dy(_dy), dz(_dz)
     {
-      init(nx_in, ny_in, nz_in, H_LEN_FRAC, H_LEN_FRAC, H_LEN_FRAC);
+      init(nx_in, ny_in, nz_in, Lx, Ly, Lz);
     }
 
     CosmoArray(IT nx_in, IT ny_in, IT nz_in, RT lx_in, RT ly_in, RT lz_in):
@@ -128,9 +132,9 @@ class CosmoArray
       _ny = ny_in;
       _nz = nz_in;
 
-      _lx = H_LEN_FRAC;
-      _ly = H_LEN_FRAC;
-      _lz = H_LEN_FRAC;
+      _lx = Lx;
+      _ly = Ly;
+      _lz = Lz;
 
       _dx = _lx / (RT) nx_in;
       _dy = _ly / (RT) ny_in;

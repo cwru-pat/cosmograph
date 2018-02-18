@@ -12,12 +12,12 @@ Sheet::Sheet():
   ns1(std::stoi(_config["ns1"])),
   ns2(std::stoi(_config["ns2"])),
   ns3(std::stoi(_config["ns3"])),
-  nx(NX),
-  ny(NY),
-  nz(NZ),
-  lx(H_LEN_FRAC),
-  ly(H_LEN_FRAC),
-  lz(H_LEN_FRAC),
+  nx(Nx),
+  ny(Ny),
+  nz(Nz),
+  lx(Lx),
+  ly(Ly),
+  lz(Lz),
   verbosity(static_cast<Verbosity> (std::stoi(_config["verbosity"]))),
   carrier_count_scheme(static_cast<carrierCountScheme> (std::stoi(_config["carrier_count_scheme"]))),
   deposit(static_cast<depositScheme> (std::stoi(_config["deposit_scheme"]))),
@@ -60,8 +60,8 @@ Sheet::Sheet():
   d3beta1_a(nx, ny, nz),
   d3beta2_a(nx, ny, nz),
   d3beta3_a(nx, ny, nz)
-{  
-  //  std::cout<<"ns "<<Dx._array_p.nx<<"\n";
+{
+  //  std::cout<<"ns "<<Dx._array_p.ny<<" "<<lx<<" "<<" "<<ly<<" "<<lz<<"\n";
 }
 
 
@@ -129,15 +129,22 @@ void Sheet::_CICDeposit(real_t weight, real_t x_idx, real_t y_idx, real_t z_idx,
          +x_f*y_f*z_f << std::endl;
     }
 
-    
+#pragma omp atomic    
     rho(ix, iy, iz) += x_h*y_h*z_h*weight;
+#pragma omp atomic
     rho(ix, iy, izp) += x_h*y_h*z_f*weight;
+#pragma omp atomic
     rho(ix, iyp, iz) += x_h*y_f*z_h*weight;
+#pragma omp atomic
     rho(ix, iyp, izp) += x_h*y_f*z_f*weight;
 
+#pragma omp atomic
     rho(ixp, iy, iz) += x_f*y_h*z_h*weight;
+#pragma omp atomic
     rho(ixp, iy, izp) += x_f*y_h*z_f*weight;
+#pragma omp atomic
     rho(ixp, iyp, iz) += x_f*y_f*z_h*weight;
+#pragma omp atomic
     rho(ixp, iyp, izp) += x_f*y_f*z_f*weight;
 
   }
@@ -180,11 +187,13 @@ void Sheet::_PCSDeposit(real_t weight, real_t x_idx, real_t y_idx, real_t z_idx,
           if(s<1.0)
           {
             pcs = (4.0 - 6.0*s*s + 3.0*std::pow(std::abs(s), 3))/6.0;
+            #pragma omp atomic
             rho(ix+i, iy+j, iz+k) += pcs*weight/norm;
           }
           else if(s<2.0 && s>=1.0)
           {
             pcs = std::pow(2.0 - std::abs(s), 3)/6.0;
+            #pragma omp atomic
             rho(ix+i, iy+j, iz+k) += pcs*weight/norm;
           }
         }
@@ -421,7 +430,6 @@ void Sheet::addBSSNSource(BSSN *bssn, real_t tot_mass)
                   announce = true;
                 }
 
-#pragma omp critical
               {
                 _MassDeposit(rho, carrier_x_idx, carrier_y_idx, carrier_z_idx, announce, DIFFr_a);
                 _MassDeposit(S, carrier_x_idx, carrier_y_idx, carrier_z_idx, announce, DIFFS_a);
@@ -467,7 +475,7 @@ void Sheet::addBSSNSource(BSSN *bssn, real_t tot_mass)
     //   std::cout<<DIFFr_a(i, 0, 0)<<"\n";
     // }
 
-    _timer["_pushSheetMassToRho"].stop();
+    _timer["_pushsheetToStressTensor"].stop();
   }
 
 

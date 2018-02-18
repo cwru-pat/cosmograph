@@ -1,4 +1,4 @@
-steps = 5000
+steps = 10
 
 simulation_type = sheets
 ic_type = sinusoid
@@ -7,9 +7,17 @@ lapse = Harmonic
 
 output_dir = phase_space_sheets_method_test
 
-ns1 = 64
-ns2 = 64
-ns3 = 64
+Lx = 1
+Ly = 0.0078125
+Lz = 0.0078125
+
+Nx = 128
+Ny = 1
+Nz = 1
+
+ns1 = 256
+ns2 = 1
+ns3 = 1
 
 verbosity = 0
 

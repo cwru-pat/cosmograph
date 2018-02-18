@@ -24,9 +24,9 @@ namespace cosmo
 
 void log_defines(IOData *iodata)
 {
-  iodata->log( "Running with NX = " + stringify(NX)
-                        + ", NY = " + stringify(NY)
-                        + ", NZ = " + stringify(NZ) );
+  iodata->log( "Running with NX = " + stringify(Nx)
+                        + ", NY = " + stringify(Ny)
+                        + ", NZ = " + stringify(Nz) );
   iodata->log( "Running with dt = " + stringify(dt) );
   iodata->log( "Running with dx = " + stringify(dx) );
 
