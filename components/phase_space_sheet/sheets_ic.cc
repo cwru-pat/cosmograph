@@ -80,7 +80,7 @@ void sheets_ic_sinusoid(
   real_t integration_interval = std::stod(_config("integration_interval", "0.01"));
 
 
-  int cur_s1 = 1;
+  idx_t cur_s1 = 1;
   real_t cur_mass = 0;
 
   tot_mass = 0;
@@ -127,10 +127,10 @@ void sheets_ic_sinusoid(
           Dx(cur_s1, j, k) = integration_interval * (cur_mass - mass_per_voxel)
             / mass_per_voxel + cur_x - sheetSim->_S1IDXtoX0(cur_s1);
         }
-      std::cout<<"Assigning "<<integration_interval * (cur_mass - mass_per_voxel)
-        / mass_per_voxel + cur_x - sheetSim->_S1IDXtoX0(cur_s1)<<" to s"<<cur_s1<<" "
-               <<integration_interval * (cur_mass - mass_per_voxel)
-        / mass_per_voxel + cur_x<<" "<<Dx.nx<<"\n";
+      // std::cout<<"Assigning "<<integration_interval * (cur_mass - mass_per_voxel)
+      //   / mass_per_voxel + cur_x - sheetSim->_S1IDXtoX0(cur_s1)<<" to s"<<cur_s1<<" "
+      //          <<integration_interval * (cur_mass - mass_per_voxel)
+      //   / mass_per_voxel + cur_x<<" "<<Dx.nx<<"\n";
       cur_mass = cur_mass - mass_per_voxel;
       cur_s1++;
       if(cur_s1 == Dx.nx) break;
@@ -143,27 +143,27 @@ void sheets_ic_sinusoid(
     throw(-1);
   }
 
-  for(int i = 0; i < Dx.nx - 1; i++)
-  {
-    real_t temp = 0;
-    for(real_t cur_x = sheetSim->_S1IDXtoX0(i) + Dx(i, 0, 0);
-        cur_x <= sheetSim->_S1IDXtoX0(i+1) + Dx((i+1)%Dx.nx, 0, 0); cur_x+= integration_interval)
-    {
-      real_t x = cur_x;
-      real_t phi = A*sin(2.0*PI*x + phix);
-      real_t rho = rho_FRW + -exp(-4.0*phi)/PI/2.0*(
-        pw2(twopi_L*A*cos(2.0*PI*x + phix))
-        - pw2_twopi_L*A*sin(2.0*PI*x + phix)
-      );
+  // for(idx_t i = 0; i < Dx.nx - 1; i++)
+  // {
+  //   real_t temp = 0;
+  //   for(real_t cur_x = sheetSim->_S1IDXtoX0(i) + Dx(i, 0, 0);
+  //       cur_x <= sheetSim->_S1IDXtoX0(i+1) + Dx((i+1)%Dx.nx, 0, 0); cur_x+= integration_interval)
+  //   {
+  //     real_t x = cur_x;
+  //     real_t phi = A*sin(2.0*PI*x + phix);
+  //     real_t rho = rho_FRW + -exp(-4.0*phi)/PI/2.0*(
+  //       pw2(twopi_L*A*cos(2.0*PI*x + phix))
+  //       - pw2_twopi_L*A*sin(2.0*PI*x + phix)
+  //     );
 
-      real_t rootdetg = std::exp(6.0*phi);
+  //     real_t rootdetg = std::exp(6.0*phi);
 
-      temp += rootdetg * integration_interval * rho;
+  //     temp += rootdetg * integration_interval * rho;
 
-    }
-    std::cout<<"Mass in voxel "<<i<<" is "<<temp<<"\n";
+  //   }
+  //   std::cout<<"Mass in voxel "<<i<<" is "<<temp<<"\n";
           
-  }
+  // }
 
   real_t temp = 0;
   for(real_t cur_x = sheetSim->_S1IDXtoX0(Dx.nx-1) + Dx(Dx.nx-1, 0, 0); cur_x <= Lx; cur_x+= integration_interval)

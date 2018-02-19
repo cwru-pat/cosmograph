@@ -263,9 +263,9 @@ void Sheet::addBSSNSource(BSSN *bssn, real_t tot_mass)
 
     //    int i, j, k;
     #pragma omp parallel for collapse(2)        
-    for(int s1=0; s1<ns1; ++s1)
-      for(int s2=0; s2<ns2; ++s2)
-        for(int s3=0; s3<ns3; ++s3)
+    for(idx_t s1=0; s1<ns1; ++s1)
+      for(idx_t s2=0; s2<ns2; ++s2)
+        for(idx_t s3=0; s3<ns3; ++s3)
         {
           switch(carrier_count_scheme)
           {

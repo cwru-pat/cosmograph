@@ -86,9 +86,12 @@ public:
   /**
    * Functions to convert s-indices to non-displaced coordinates
    */
-  real_t _S1IDXtoX0(idx_t s1) {  return (real_t)s1*lx/(real_t)ns1; }
-  real_t _S2IDXtoY0(idx_t s2) {  return (real_t)s2*ly/(real_t)ns2; }
-  real_t _S3IDXtoZ0(idx_t s3) {  return (real_t)s3*lz/(real_t)ns3; }
+  real_t _S1IDXtoX0(idx_t s1) { return (real_t)s1*lx/ns1; }
+  real_t _S2IDXtoY0(idx_t s2) { return (real_t)s2*ly/ns2; }
+  real_t _S3IDXtoZ0(idx_t s3) { return (real_t)s3*lz/ns3; }
+  real_t _S1IDXtoX0(real_t s1) {  return (real_t)s1*lx/(real_t)ns1; }
+  real_t _S2IDXtoY0(real_t s2) {  return (real_t)s2*ly/(real_t)ns2; }
+  real_t _S3IDXtoZ0(real_t s3) {  return (real_t)s3*lz/(real_t)ns3; }
 
   void _MassDeposit(real_t weight, real_t x_idx, real_t y_idx, real_t z_idx,
                     bool announce, arr_t &rho);
