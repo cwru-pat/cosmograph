@@ -18,8 +18,6 @@ void SheetSim::init()
 
   iodata->log("Running phase space sheet type simulation.");
   sheetSim = new Sheet();
-
-
   
   _timer["init"].stop();
 }

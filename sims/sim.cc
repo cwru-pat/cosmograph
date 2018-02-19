@@ -53,7 +53,7 @@ void CosmoSim::simInit()
 
   // FFT helper
   fourier = new Fourier();
-  fourier->Initialize(NX, Ny, Nz,
+  fourier->Initialize(NX, NY, NZ,
     bssnSim->fields["DIFFphi_a"]->_array /* arbitrary array for planning */);
 
 # if USE_COSMOTRACE

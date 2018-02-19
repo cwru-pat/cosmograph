@@ -18,7 +18,6 @@ namespace cosmo
 void particle_ic_set_random(BSSN * bssnSim, Particles * particles, Fourier * fourier,
   IOData * iodata);
 void particle_ic_set_sinusoid(BSSN * bssnSim, Particles * particles, IOData * iodata);
-void particle_ic_set_sinusoid_to_compare(BSSN * bssnSim, Particles * particles, IOData * iodata);
 void particle_ic_set_vectorpert(BSSN * bssnSim, Particles * particles, IOData * iodata);
 
 }

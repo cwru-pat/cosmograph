@@ -1,8 +1,6 @@
-steps = 0
+steps = 10
 
 lapse = Harmonic
-
-ic_type = sinusoid
 
 KO_damping_coefficient = 1.0
 k_damping_amp = 0
@@ -10,8 +8,9 @@ a_adj_amp = 0
 normalize_metric = 1
 
 simulation_type = particles
-particles_per_dx = 2
+particles_per_dy = 1
 
+peak_amplitude_frac = 5000.0
 rho_K_lambda_frac = 0.0
 ic_spec_cut = 1
 IC_viol_amp = 0.0

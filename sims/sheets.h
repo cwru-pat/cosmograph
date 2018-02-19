@@ -16,9 +16,20 @@ class SheetSim : public CosmoSim
 protected:
   Sheet * sheetSim;
   real_t tot_mass;
+  
 public:
   SheetSim();
-  ~SheetSim(){}
+  ~SheetSim()
+  {
+    delete iodata;
+    delete bssnSim;
+    delete fourier;
+    if(use_bardeen)
+    {
+      delete bardeen;
+    }
+    delete sheetSim;
+  }
 
   void init();
   void setICs();

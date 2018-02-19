@@ -1,6 +1,6 @@
 /** @file sheet.h
  * @brief Class implementing a "sheet" / interpolated phase-space
- * method for solving the Vlasov equation in Newtonian gravity.
+ * method for solving the Vlasov equation.
  *  Vocabulary:
  *   - Phase-space: Reference to 6-d (x, y, z, vx, vy, vz) space in which
  *     matter lives.
@@ -14,11 +14,10 @@
  *  - Sheet coordinates
  *    position and velocity fields live on these coordinates
  *  - Metric coordinates
- *    Density and metric (Newtonian potential)
+ *    Density and metric
  */
-
-#ifndef SHEET
-#define SHEET
+#ifndef COSMO_SHEET_H
+#define COSMO_SHEET_H
 
 #include "../../utils/RK4Register.h"
 #include "../../utils/Array.h"
@@ -46,39 +45,27 @@ namespace cosmo
 class Sheet
 {
 public:
-
-  typedef RK4Register<idx_t, real_t> RK4_t;
-  // internal types
-
-    // Simulation information
+  // Simulation information
   idx_t nx, ny, nz;
   idx_t ns1, ns2, ns3; ///< Phase-space sheet resolution
   real_t lx, ly, lz; ///< Metric grid physical dimensions
-
+  real_t dx, dy, dz; ///< Metric grid physical spacing
   
   register_t Dx, Dy, Dz; ///< Metric-space density
   register_t vx, vy, vz; ///< Phase-space velocity fields
-
   
   idx_t step;
 
-  enum Verbosity { none = 0, minimal = 1, verbose = 2, debug = 3 };
+  // internal types
   enum carrierCountScheme { per_dx = 0, per_ds = 1};
-  Verbosity verbosity;
   carrierCountScheme carrier_count_scheme;
 
   enum depositScheme { CIC = 0, PCS = 1 };
-
-
-  idx_t carriers_per_dx,
-    carriers_per_dy,
-    carriers_per_dz;
-
   depositScheme deposit;
 
-
-  //  Specs specs = {0};
-  idx_t s1_dbg = 0, s2_dbg = 0, s3_dbg = 0;
+  idx_t carriers_per_dx,
+        carriers_per_dy,
+        carriers_per_dz;
 
   Sheet();
   ~Sheet();
@@ -94,13 +81,13 @@ public:
   real_t _S3IDXtoZ0(real_t s3) {  return (real_t)s3*lz/(real_t)ns3; }
 
   void _MassDeposit(real_t weight, real_t x_idx, real_t y_idx, real_t z_idx,
-                    bool announce, arr_t &rho);
+                    arr_t &rho);
 
   void _CICDeposit(real_t weight, real_t x_idx, real_t y_idx, real_t z_idx,
-                   bool announce, arr_t &rho);
+                   arr_t &rho);
 
   void _PCSDeposit(real_t weight, real_t x_idx, real_t y_idx, real_t z_idx,
-                   bool announce, arr_t &rho);
+                   arr_t &rho);
 
 
   /**
@@ -131,7 +118,7 @@ public:
 
   void _K4Finalize();
 
-  real_t _getXRangeInSVoxel(RK4_t & DX, idx_t s1_idx, idx_t s2_idx,
+  real_t _getXRangeInSVoxel(register_t & DX, idx_t s1_idx, idx_t s2_idx,
                             idx_t s3_idx, real_t X0_lower, real_t X0_upper);
 
   void addBSSNSource(BSSN *bssn, real_t tot_mass);

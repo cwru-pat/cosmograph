@@ -24,9 +24,9 @@ namespace cosmo
 
 void log_defines(IOData *iodata)
 {
-  iodata->log( "Running with NX = " + stringify(Nx)
-                        + ", NY = " + stringify(Ny)
-                        + ", NZ = " + stringify(Nz) );
+  iodata->log( "Running with NX = " + stringify(NX)
+                        + ", NY = " + stringify(NY)
+                        + ", NZ = " + stringify(NZ) );
   iodata->log( "Running with dt = " + stringify(dt) );
   iodata->log( "Running with dx = " + stringify(dx) );
 
@@ -798,24 +798,26 @@ void io_print_particles(IOData *iodata, idx_t step, Particles *particles)
     gzwrite(datafile, data, strlen(data));
     gzclose(datafile);
   }
+
   if( output_step  && output_phase_diagram)
   {
+    const real_t TOL = 0.01;
     std::vector<double> x_cache, y_cache, z_cache, vx_cache, vy_cache, vz_cache;
     particle_vec * p_vec = particles->getParticleVec();
     for(particle_vec::iterator it = p_vec->begin(); it != p_vec->end(); ++it)
     {
-      if(output_x && std::fabs(pw2(it->p_a.X[1]) + pw2(it->p_a.X[2])) < 0.01 )
+      if(output_x && std::fabs(pw2(it->p_a.X[1]) + pw2(it->p_a.X[2])) < TOL)
         x_cache.push_back(it->p_a.X[0]);
-      if(output_y&& fabs(pw2(it->p_a.X[0]) + pw2(it->p_a.X[2])) < 0.01)
+      if(output_y && std::fabs(pw2(it->p_a.X[0]) + pw2(it->p_a.X[2])) < TOL)
         y_cache.push_back(it->p_a.X[1]);
-      if(output_z&& fabs(pw2(it->p_a.X[1]) + pw2(it->p_a.X[0])) < 0.01)
+      if(output_z && std::fabs(pw2(it->p_a.X[1]) + pw2(it->p_a.X[0])) < TOL)
         z_cache.push_back(it->p_a.X[2]);
 
-      if(output_vx && std::fabs(pw2(it->p_a.X[1]) + pw2(it->p_a.X[2])) < 0.01)
+      if(output_vx && std::fabs(pw2(it->p_a.X[1]) + pw2(it->p_a.X[2])) < TOL)
         vx_cache.push_back(it->p_a.U[0]);
-      if(output_vy&& fabs(pw2(it->p_a.X[0]) + pw2(it->p_a.X[2])) < 0.01)
+      if(output_vy && std::fabs(pw2(it->p_a.X[0]) + pw2(it->p_a.X[2])) < TOL)
         vy_cache.push_back(it->p_a.U[1]);
-      if(output_vz&& fabs(pw2(it->p_a.X[1]) + pw2(it->p_a.X[0])) < 0.01)
+      if(output_vz && std::fabs(pw2(it->p_a.X[1]) + pw2(it->p_a.X[0])) < TOL)
         vz_cache.push_back(it->p_a.U[2]);
     }
 
@@ -830,7 +832,7 @@ void io_print_particles(IOData *iodata, idx_t step, Particles *particles)
         return;
       }
 
-      for(idx_t i=0; i<x_cache.size(); i++)
+      for(uint i=0; i<x_cache.size(); i++)
       {
         sprintf(data, "%.15g\t", x_cache[i]);
         gzwrite(datafile, data, strlen(data));
@@ -838,7 +840,6 @@ void io_print_particles(IOData *iodata, idx_t step, Particles *particles)
       gzwrite(datafile, "\n", strlen("\n"));
 
       gzclose(datafile);
-
     }
 
     if(output_y)
@@ -852,7 +853,7 @@ void io_print_particles(IOData *iodata, idx_t step, Particles *particles)
         return;
       }
 
-      for(idx_t i=0; i<y_cache.size(); i++)
+      for(uint i=0; i<y_cache.size(); i++)
       {
         sprintf(data, "%.15g\t", y_cache[i]);
         gzwrite(datafile, data, strlen(data));
@@ -860,7 +861,6 @@ void io_print_particles(IOData *iodata, idx_t step, Particles *particles)
       gzwrite(datafile, "\n", strlen("\n"));
 
       gzclose(datafile);
-
     }
 
     if(output_z)
@@ -874,7 +874,7 @@ void io_print_particles(IOData *iodata, idx_t step, Particles *particles)
         return;
       }
 
-      for(idx_t i=0; i<z_cache.size(); i++)
+      for(uint i=0; i<z_cache.size(); i++)
       {
         sprintf(data, "%.15g\t", z_cache[i]);
         gzwrite(datafile, data, strlen(data));
@@ -896,7 +896,7 @@ void io_print_particles(IOData *iodata, idx_t step, Particles *particles)
         return;
       }
 
-      for(idx_t i=0; i<vx_cache.size(); i++)
+      for(uint i=0; i<vx_cache.size(); i++)
       {
         sprintf(data, "%.15g\t", vx_cache[i]);
         gzwrite(datafile, data, strlen(data));
@@ -918,7 +918,7 @@ void io_print_particles(IOData *iodata, idx_t step, Particles *particles)
         return;
       }
 
-      for(idx_t i=0; i<vy_cache.size(); i++)
+      for(uint i=0; i<vy_cache.size(); i++)
       {
         sprintf(data, "%.15g\t", vy_cache[i]);
         gzwrite(datafile, data, strlen(data));
@@ -940,7 +940,7 @@ void io_print_particles(IOData *iodata, idx_t step, Particles *particles)
         return;
       }
 
-      for(idx_t i=0; i<vz_cache.size(); i++)
+      for(uint i=0; i<vz_cache.size(); i++)
       {
         sprintf(data, "%.15g\t", vz_cache[i]);
         gzwrite(datafile, data, strlen(data));
@@ -949,8 +949,7 @@ void io_print_particles(IOData *iodata, idx_t step, Particles *particles)
 
       gzclose(datafile);
 
-    }
-    
+    } 
   }
 }
 

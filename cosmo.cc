@@ -23,27 +23,6 @@ ConfigParser _config;
   real_t dx;
 #endif
 
-#ifndef Lx
-  real_t Lx;
-#endif
-#ifndef Ly
-  real_t Ly;
-#endif
-#ifndef Lz
-  real_t Lz;
-#endif
-
-#ifndef Nx
-  int Nx;
-#endif
-#ifndef Ny
-  int Ny;
-#endif
-#ifndef Nz
-  int Nz;
-#endif
-
-
 int main(int argc, char **argv)
 {
   // read in config file
@@ -59,33 +38,13 @@ int main(int argc, char **argv)
   // TODO: set other things (and check for performance hits)
   //       set these in config file?
   //       big performance hit setting N dynamically, should deal with BCs separately.
-  
-  
-  Lx = stod(_config( "Lx", "1" ));
-  Ly = stod(_config( "Ly", "1" ));
-  Lz = stod(_config( "Lz", "1" ));
-
-  Nx = stoi(_config( "Nx", "32" ));
-  Ny = stoi(_config( "Ny", "32" ));
-  Nz = stoi(_config( "Nz", "32" ));
-
-  if( fabs(H_LEN_FRAC/(1.0*COSMO_N) - Lx / (double)Nx) > 1E-9
-      || fabs(H_LEN_FRAC/(1.0*COSMO_N) - Ly / (double)Ny) > 1E-9
-      || fabs(H_LEN_FRAC/(1.0*COSMO_N) - Lz / (double)Nz) > 1E-9)
-  {
-    std::cout << "Macro setting is not equal to parameter setting!\n";
-    return EXIT_FAILURE;
-  }
-    
-  
   dx = stold(_config( "dx", stringify(H_LEN_FRAC/(1.0*COSMO_N)) ));
   dt = stold(_config( "dt_frac", "0.1" ))*dx;
 
-  
-  
-  // Set number of threads if specified
-  int num_threads = stoi(_config("omp_num_threads", "1"));
-  if(num_threads >= 1)
+  // Set number of threads - only if specified
+  // Otherwise, OMP_NUM_THREADS or openmp default should be used.
+  int num_threads = stoi(_config("omp_num_threads", "0"));
+  if(num_threads > 0)
     omp_set_num_threads(num_threads);
 
   // Create simulation according to simulation_type
@@ -113,7 +72,6 @@ int main(int argc, char **argv)
   }
   else if( simulation_type == "sheets")
   {
-   
     cosmoSim = new SheetSim();
   }
   else
