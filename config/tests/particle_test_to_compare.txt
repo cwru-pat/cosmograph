@@ -1,0 +1,27 @@
+steps = 10
+
+simulation_type = particles
+ic_type = sinusoid
+sinusoid_phix = 0
+
+lapse = Harmonic
+
+output_dir = particle_method_test
+
+dt_frac = 0.1
+
+IO_1D_grid_interval = 5
+
+IO_1D_DIFFr_a = 1
+IO_1D_DIFFphi_a = 1
+IO_1D_DIFFS_a = 1
+IO_1D_DIFFalpha_a = 1
+IO_1D_DIFFK_a = 1   
+
+IO_particles = 50000
+IO_particles_diagram = 5
+
+IO_particles_x = 1
+IO_particles_vx = 1
+
+IO_constraint_interval = 5

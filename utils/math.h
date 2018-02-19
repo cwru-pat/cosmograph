@@ -884,7 +884,7 @@ inline real_t derivative_Odx2(idx_t i, idx_t j, idx_t k, idx_t nx, idx_t ny, idx
 
 inline real_t derivative_Odx4(idx_t i, idx_t j, idx_t k, idx_t nx, idx_t ny, idx_t nz, int d, arr_t & field)
 {
-  real_t dx = H_LEN_FRAC / nx, dy = H_LEN_FRAC / ny, dz = H_LEN_FRAC / dz;
+  real_t dx = H_LEN_FRAC / nx, dy = H_LEN_FRAC / ny, dz = H_LEN_FRAC / nz;
   switch (d) {
     case 1:
       return (

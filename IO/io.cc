@@ -1,5 +1,6 @@
 #include "io.h"
 #include <hdf5.h>
+#include <math.h>
 #include <zlib.h>
 #include <sys/stat.h>
 #include <sstream>
@@ -132,6 +133,7 @@ void io_bssn_fields_snapshot(IOData *iodata, idx_t step,
   
   output_step = ( std::stoi(_config("IO_1D_grid_interval", "0")) > 0 );
   output_this_step = ( 0 == step % std::stoi(_config("IO_1D_grid_interval", "1")) );
+   
   if( output_step && output_this_step )
   {
     for ( const auto &field_reg : bssn_fields ) {
@@ -435,6 +437,7 @@ void io_scalar_snapshot(IOData *iodata, idx_t step, Scalar * scalar)
   
   output_step = ( std::stoi(_config("IO_1D_grid_interval", "0")) > 0 );
   output_this_step = ( 0 == step % std::stoi(_config("IO_1D_grid_interval", "1")) );
+
   if( output_step && output_this_step )
   {
     io_dump_strip(iodata, scalar->phi._array_a, "1D_scalar_phi", 1, NY/2, NZ/2);
@@ -442,6 +445,96 @@ void io_scalar_snapshot(IOData *iodata, idx_t step, Scalar * scalar)
   }
 }
 
+void io_sheets_snapshot(IOData *iodata, idx_t step, Sheet * sheets)
+{
+  std::string step_str = std::to_string(step);
+  bool output_step = false;
+  bool output_this_step = false;
+
+  output_step = ( std::stoi(_config("IO_3D_grid_interval", "0")) > 0 );
+  output_this_step = ( 0 == step % std::stoi(_config("IO_3D_grid_interval", "1")) );
+  bool output_Dx = (std::stoi(_config("IO_sheets_displacement_x", "0")) > 0);
+  bool output_Dy = (std::stoi(_config("IO_sheets_displacement_y", "0")) > 0);
+  bool output_Dz = (std::stoi(_config("IO_sheets_displacement_z", "0")) > 0);
+
+  bool output_vx = (std::stoi(_config("IO_sheets_velocity_x", "0")) > 0);
+  bool output_vy = (std::stoi(_config("IO_sheets_velocity_y", "0")) > 0);
+  bool output_vz = (std::stoi(_config("IO_sheets_velocity_z", "0")) > 0);
+
+  
+  if( output_step && output_this_step )
+  {
+    if(output_Dx)
+      io_dump_3dslice(iodata, sheets->Dx._array_a, "3D_sheets_Dx." + step_str);
+    if(output_Dy)
+      io_dump_3dslice(iodata, sheets->Dy._array_a, "3D_sheets_Dy." + step_str);
+    if(output_Dz)
+      io_dump_3dslice(iodata, sheets->Dz._array_a, "3D_sheets_Dz." + step_str);
+
+    if(output_vx)
+      io_dump_3dslice(iodata, sheets->vx._array_a, "3D_sheets_vx." + step_str);
+    if(output_vy)
+      io_dump_3dslice(iodata, sheets->vy._array_a, "3D_sheets_vy." + step_str);
+    if(output_vz)
+      io_dump_3dslice(iodata, sheets->vz._array_a, "3D_sheets_vz." + step_str);
+  }
+  
+  output_step = ( std::stoi(_config("IO_2D_grid_interval", "0")) > 0 );
+  output_this_step = ( 0 == step % std::stoi(_config("IO_2D_grid_interval", "1")) );
+  if( output_step && output_this_step )
+  {
+    if(output_Dx)
+      io_dump_2dslice(iodata, sheets->Dx._array_a, "2D_sheets_Dx." + step_str);
+    if(output_Dy)
+      io_dump_2dslice(iodata, sheets->Dy._array_a, "2D_sheets_Dy." + step_str);
+    if(output_Dz)
+      io_dump_2dslice(iodata, sheets->Dz._array_a, "2D_sheets_Dz." + step_str);
+
+    if(output_vx)
+      io_dump_2dslice(iodata, sheets->vx._array_a, "2D_sheets_vx." + step_str);
+    if(output_vy)
+      io_dump_2dslice(iodata, sheets->vy._array_a, "2D_sheets_vy." + step_str);
+    if(output_vz)
+      io_dump_2dslice(iodata, sheets->vz._array_a, "2D_sheets_vz." + step_str);
+
+  }
+  
+  output_step = ( std::stoi(_config("IO_1D_grid_interval", "0")) > 0 );
+  output_this_step = ( 0 == step % std::stoi(_config("IO_1D_grid_interval", "1")) );
+
+  if( output_step && output_this_step )
+  {
+    int _axis = std::stoi(_config("axis", "1"));
+    int _xoffset = std::stoi(_config("xoffset", "0"));
+    int _yoffset = std::stoi(_config("yoffset", "0"));
+
+
+    if(output_Dx)
+      io_dump_strip(iodata, sheets->Dx._array_a,
+                    "1D_sheets_Dx", _axis, _xoffset, _yoffset);
+    if(output_Dy)
+      io_dump_strip(iodata, sheets->Dy._array_a,
+                    "1D_sheets_Dy", _axis, _xoffset, _yoffset);
+    if(output_Dz)
+      io_dump_strip(iodata, sheets->Dz._array_a,
+                    "1D_sheets_Dz", _axis, _xoffset, _yoffset);
+
+    if(output_vx)
+      io_dump_strip(iodata, sheets->vx._array_a,
+                    "1D_sheets_vx", _axis, _xoffset, _yoffset);
+    if(output_vy)
+      io_dump_strip(iodata, sheets->vy._array_a,
+                    "1D_sheets_vy", _axis, _xoffset, _yoffset);
+    if(output_vz)
+      io_dump_strip(iodata, sheets->vz._array_a,
+                    "1D_sheets_vz", _axis, _xoffset, _yoffset);
+
+
+  }
+
+}
+
+  
 /**
  * @brief      Write full 3D slice to a file.
  *
@@ -456,7 +549,7 @@ void io_dump_3dslice(IOData *iodata, arr_t & field, std::string filename)
 
   hid_t       file, space, dset, dcpl;  /* Handles */
   herr_t      status;
-  hsize_t     dims[3] = {(hsize_t) NX, (hsize_t) NY, (hsize_t) NZ},
+  hsize_t     dims[3] = {(hsize_t) field.nx, (hsize_t) field.ny, (hsize_t) field.nz},
               maxdims[3] = {H5S_UNLIMITED, H5S_UNLIMITED, H5S_UNLIMITED},
               chunk[3] = {6, 6, 6};
 
@@ -492,7 +585,7 @@ void io_dump_2dslice(IOData *iodata, arr_t & field, std::string filename)
 
   hid_t       file, space, dset, dcpl;  /* Handles */
   herr_t      status;
-  hsize_t     dims[2] = {(hsize_t) NY, (hsize_t) NZ},
+  hsize_t     dims[2] = {(hsize_t) field.ny, (hsize_t) field.nz},
               maxdims[2] = {H5S_UNLIMITED, H5S_UNLIMITED},
               chunk[2] = {6, 6};
 
@@ -539,23 +632,23 @@ void io_dump_strip(IOData *iodata, arr_t & field, std::string file,
   switch (axis)
   {
     case 1:
-      for(idx_t i=0; i<NX; i++)
+      for(idx_t i=0; i<field.nx; i++)
       {
-        sprintf(data, "%.15g\t", (double) field[INDEX(i,n1,n2)]);
+        sprintf(data, "%.15g\t", (double) field(i,n1,n2));
         gzwrite(datafile, data, strlen(data));
       }
       break;
     case 2:
-      for(idx_t j=0; j<NY; j++)
+      for(idx_t j=0; j<field.ny; j++)
       {
-        sprintf(data, "%.15g\t", (double) field[INDEX(n1,j,n2)]);
+        sprintf(data, "%.15g\t", (double) field(n1,j,n2));
         gzwrite(datafile, data, strlen(data));
       }
       break;
     case 3:
-      for(idx_t k=0; k<NZ; k++)
+      for(idx_t k=0; k<field.nz; k++)
       {
-        sprintf(data, "%.15g\t", (double) field[INDEX(n1,n2,k)]);
+        sprintf(data, "%.15g\t", (double) field(n1,n2,k));
         gzwrite(datafile, data, strlen(data));
       }
       break;
@@ -575,19 +668,19 @@ void io_print_strip(IOData *iodata, arr_t & field,
   switch (axis)
   {
     case 1:
-      for(idx_t i=0; i<NX; i++)
+      for(idx_t i=0; i<field.nx; i++)
       {
         std::cout << std::setprecision(19) << field[INDEX(i,n1,n2)] << ", ";
       }
       break;
     case 2:
-      for(idx_t j=0; j<NY; j++)
+      for(idx_t j=0; j<field.ny; j++)
       {
         std::cout << std::setprecision(19) << field[INDEX(n1,j,n2)] << ", ";
       }
       break;
     case 3:
-      for(idx_t k=0; k<NZ; k++)
+      for(idx_t k=0; k<field.nz; k++)
       {
         std::cout << std::setprecision(19) << field[INDEX(n1,n2,k)] << ", ";
       }
@@ -669,6 +762,16 @@ void io_print_particles(IOData *iodata, idx_t step, Particles *particles)
 {
   bool output_step = ( std::stoi(_config("IO_particles", "0")) > 0 );
   bool output_this_step = (0 == step % std::stoi(_config("IO_particles", "1")));
+  bool output_phase_diagram = (0 == step % std::stoi(_config("IO_particles_diagram", "1")));
+
+  bool output_x = (std::stoi(_config("IO_particles_x", "0")) > 0);
+  bool output_y = (std::stoi(_config("IO_particles_y", "0")) > 0);
+  bool output_z = (std::stoi(_config("IO_particles_z", "0")) > 0);
+
+  bool output_vx = (std::stoi(_config("IO_particles_vx", "0")) > 0);
+  bool output_vy = (std::stoi(_config("IO_particles_vy", "0")) > 0);
+  bool output_vz = (std::stoi(_config("IO_particles_vz", "0")) > 0);
+
   if( output_step && output_this_step )
   {
     // output misc. info about simulation here.
@@ -694,6 +797,159 @@ void io_print_particles(IOData *iodata, idx_t step, Particles *particles)
     sprintf(data, "\n");
     gzwrite(datafile, data, strlen(data));
     gzclose(datafile);
+  }
+
+  if( output_step  && output_phase_diagram)
+  {
+    const real_t TOL = 0.01;
+    std::vector<double> x_cache, y_cache, z_cache, vx_cache, vy_cache, vz_cache;
+    particle_vec * p_vec = particles->getParticleVec();
+    for(particle_vec::iterator it = p_vec->begin(); it != p_vec->end(); ++it)
+    {
+      if(output_x && std::fabs(pw2(it->p_a.X[1]) + pw2(it->p_a.X[2])) < TOL)
+        x_cache.push_back(it->p_a.X[0]);
+      if(output_y && std::fabs(pw2(it->p_a.X[0]) + pw2(it->p_a.X[2])) < TOL)
+        y_cache.push_back(it->p_a.X[1]);
+      if(output_z && std::fabs(pw2(it->p_a.X[1]) + pw2(it->p_a.X[0])) < TOL)
+        z_cache.push_back(it->p_a.X[2]);
+
+      if(output_vx && std::fabs(pw2(it->p_a.X[1]) + pw2(it->p_a.X[2])) < TOL)
+        vx_cache.push_back(it->p_a.U[0]);
+      if(output_vy && std::fabs(pw2(it->p_a.X[0]) + pw2(it->p_a.X[2])) < TOL)
+        vy_cache.push_back(it->p_a.U[1]);
+      if(output_vz && std::fabs(pw2(it->p_a.X[1]) + pw2(it->p_a.X[0])) < TOL)
+        vz_cache.push_back(it->p_a.U[2]);
+    }
+
+    if(output_x)
+    {
+      std::string filename = iodata->dir() + "particle_x.dat.gz";
+      char data[35];
+
+      gzFile datafile = gzopen(filename.c_str(), "ab");
+      if(datafile == Z_NULL) {
+        iodata->log("Error opening file: " + filename);
+        return;
+      }
+
+      for(uint i=0; i<x_cache.size(); i++)
+      {
+        sprintf(data, "%.15g\t", x_cache[i]);
+        gzwrite(datafile, data, strlen(data));
+      }
+      gzwrite(datafile, "\n", strlen("\n"));
+
+      gzclose(datafile);
+    }
+
+    if(output_y)
+    {
+      std::string filename = iodata->dir() + "particle_y.dat.gz";
+      char data[35];
+
+      gzFile datafile = gzopen(filename.c_str(), "ab");
+      if(datafile == Z_NULL) {
+        iodata->log("Error opening file: " + filename);
+        return;
+      }
+
+      for(uint i=0; i<y_cache.size(); i++)
+      {
+        sprintf(data, "%.15g\t", y_cache[i]);
+        gzwrite(datafile, data, strlen(data));
+      }
+      gzwrite(datafile, "\n", strlen("\n"));
+
+      gzclose(datafile);
+    }
+
+    if(output_z)
+    {
+      std::string filename = iodata->dir() + "particle_z.dat.gz";
+      char data[35];
+
+      gzFile datafile = gzopen(filename.c_str(), "ab");
+      if(datafile == Z_NULL) {
+        iodata->log("Error opening file: " + filename);
+        return;
+      }
+
+      for(uint i=0; i<z_cache.size(); i++)
+      {
+        sprintf(data, "%.15g\t", z_cache[i]);
+        gzwrite(datafile, data, strlen(data));
+      }
+      gzwrite(datafile, "\n", strlen("\n"));
+
+      gzclose(datafile);
+
+    }
+
+    if(output_vx)
+    {
+      std::string filename = iodata->dir() + "particle_vx.dat.gz";
+      char data[35];
+
+      gzFile datafile = gzopen(filename.c_str(), "ab");
+      if(datafile == Z_NULL) {
+        iodata->log("Error opening file: " + filename);
+        return;
+      }
+
+      for(uint i=0; i<vx_cache.size(); i++)
+      {
+        sprintf(data, "%.15g\t", vx_cache[i]);
+        gzwrite(datafile, data, strlen(data));
+      }
+      gzwrite(datafile, "\n", strlen("\n"));
+
+      gzclose(datafile);
+
+    }
+
+    if(output_vy)
+    {
+      std::string filename = iodata->dir() + "particle_vy.dat.gz";
+      char data[35];
+
+      gzFile datafile = gzopen(filename.c_str(), "ab");
+      if(datafile == Z_NULL) {
+        iodata->log("Error opening file: " + filename);
+        return;
+      }
+
+      for(uint i=0; i<vy_cache.size(); i++)
+      {
+        sprintf(data, "%.15g\t", vy_cache[i]);
+        gzwrite(datafile, data, strlen(data));
+      }
+      gzwrite(datafile, "\n", strlen("\n"));
+
+      gzclose(datafile);
+
+    }
+
+    if(output_vz)
+    {
+      std::string filename = iodata->dir() + "particle_vz.dat.gz";
+      char data[35];
+
+      gzFile datafile = gzopen(filename.c_str(), "ab");
+      if(datafile == Z_NULL) {
+        iodata->log("Error opening file: " + filename);
+        return;
+      }
+
+      for(uint i=0; i<vz_cache.size(); i++)
+      {
+        sprintf(data, "%.15g\t", vz_cache[i]);
+        gzwrite(datafile, data, strlen(data));
+      }
+      gzwrite(datafile, "\n", strlen("\n"));
+
+      gzclose(datafile);
+
+    } 
   }
 }
 

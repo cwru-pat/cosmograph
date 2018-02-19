@@ -193,6 +193,7 @@ public:
       throw -1;
     }
 
+    
     if ( shift_gauge_map.find(name) == shift_gauge_map.end() )
     {
       std::cout << "Error: Shift gauge not found: `" << name << "`!\n";

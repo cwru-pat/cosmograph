@@ -8,6 +8,7 @@
 #include "sims/particles.h"
 #include "sims/scalar.h"
 #include "sims/vacuum.h"
+#include "sims/sheets.h"
 
 using namespace std;
 using namespace cosmo;
@@ -37,11 +38,11 @@ int main(int argc, char **argv)
   // TODO: set other things (and check for performance hits)
   //       set these in config file?
   //       big performance hit setting N dynamically, should deal with BCs separately.
-  
   dx = stold(_config( "dx", stringify(H_LEN_FRAC/(1.0*COSMO_N)) ));
   dt = stold(_config( "dt_frac", "0.1" ))*dx;
 
-  // Set number of threads if specified
+  // Set number of threads - only if specified
+  // Otherwise, OMP_NUM_THREADS or openmp default should be used.
   int num_threads = stoi(_config("omp_num_threads", "0"));
   if(num_threads > 0)
     omp_set_num_threads(num_threads);
@@ -68,6 +69,10 @@ int main(int argc, char **argv)
   else if( simulation_type == "vacuum" )
   {
     cosmoSim = new VacuumSim();
+  }
+  else if( simulation_type == "sheets")
+  {
+    cosmoSim = new SheetSim();
   }
   else
   {

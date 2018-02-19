@@ -204,7 +204,7 @@ void particle_ic_set_sinusoid(BSSN * bssnSim, Particles * particles, IOData * io
   // d^2 exp(\phi) = -2*pi exp(5\phi) * \delta_rho
   // generate random mode in \phi
   // delta_rho = -(lap e^\phi)/e^(4\phi)/2pi
-  real_t phix = 2.77;
+  real_t phix = std::stod(_config("sinusoid_phix", "2.77"));
   real_t twopi_L = 2.0*PI/H_LEN_FRAC;
   real_t pw2_twopi_L = twopi_L*twopi_L;
   // grid values
@@ -307,7 +307,7 @@ void particle_ic_set_sinusoid(BSSN * bssnSim, Particles * particles, IOData * io
     throw -1;
   }
 }
-
+ 
 /**
  * @brief Initialize particles per vector mode ID
  */
@@ -366,7 +366,6 @@ void particle_ic_set_vectorpert(BSSN * bssnSim, Particles * particles,
   // particle values
   idx_t particles_per_dy = std::stoi(_config("particles_per_dy", "1"));
   iodata->log("Particles per dx: " + stringify(particles_per_dy));
-
 
   for(i=0; i<NX; ++i)
     for(j=0; j<NY; ++j)

@@ -1,0 +1,128 @@
+(* Content-type: application/vnd.wolfram.mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Mathematica 11.2' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       158,          7]
+NotebookDataLength[      3960,        120]
+NotebookOptionsPosition[      3491,        101]
+NotebookOutlinePosition[      3841,        116]
+CellTagsIndexPosition[      3798,        113]
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"SetDirectory", "[", 
+   RowBox[{"NotebookDirectory", "[", "]"}], "]"}], ";"}]], "Input",ExpressionU\
+UID->"c5f48365-98dc-4baa-885f-cf2f34e09ed0"],
+
+Cell[BoxData[
+ RowBox[{"directories", " ", "=", " ", 
+  RowBox[{"DirectoryName", "/@", 
+   RowBox[{"FileNames", "[", 
+    RowBox[{"\"\<log.txt\>\"", ",", "\"\<\>\"", ",", "\[Infinity]"}], 
+    "]"}]}]}]], "Input",
+ CellChangeTimes->{3.727200418514103*^9, 
+  3.727539863449656*^9},ExpressionUUID->"88b52db5-1b8a-407a-b7e4-\
+c0447e25094e"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{
+  "directories", "=", "\"\<build/phase_space_sheets_method_test.5\>\""}], 
+  ";"}]], "Input",
+ CellChangeTimes->{{3.7275398740805597`*^9, 
+  3.7275398792466583`*^9}},ExpressionUUID->"12946daa-ebe6-47cf-8b84-\
+f88fd34658b9"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"\[Rho]1Dfiles", "=", 
+   RowBox[{"FileNames", "[", 
+    RowBox[{
+    "\"\<1D_DIFFr_a.strip.dat.gz\>\"", ",", "directories", ",", 
+     "\[Infinity]"}], "]"}]}], ";"}]], "Input",
+ CellChangeTimes->{{3.7272004653023033`*^9, 
+  3.7272004878208923`*^9}},ExpressionUUID->"550ee894-3534-4fc8-a905-\
+19dcf2b11e68"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"\[Rho]1D", "=", 
+   RowBox[{
+    RowBox[{
+     RowBox[{"Import", "[", "#", "]"}], "&"}], "/@", "\[Rho]1Dfiles"}]}], 
+  ";"}]], "Input",
+ CellChangeTimes->{{3.727200526937677*^9, 3.727200546593936*^9}, {
+  3.7272064025368557`*^9, 
+  3.727206411000614*^9}},ExpressionUUID->"936edb49-6f5f-4089-9fa4-\
+36c37007700e"],
+
+Cell[BoxData[
+ RowBox[{"Length", "[", 
+  RowBox[{"\[Rho]1D", "\[LeftDoubleBracket]", 
+   RowBox[{"1", ",", ";;", ",", "1"}], "\[RightDoubleBracket]"}], 
+  "]"}]], "Input",
+ CellChangeTimes->{{3.727351326270891*^9, 
+  3.727351334846899*^9}},ExpressionUUID->"61d7ea14-d15c-41fc-875d-\
+fc4f2186fa22"],
+
+Cell[BoxData[
+ RowBox[{"Manipulate", "[", 
+  RowBox[{
+   RowBox[{"GraphicsGrid", "[", 
+    RowBox[{
+     RowBox[{"{", "\[IndentingNewLine]", 
+      RowBox[{"ListPlot", "/@", 
+       RowBox[{"\[Rho]1D", "\[LeftDoubleBracket]", 
+        RowBox[{";;", ",", "i", ",", ";;"}], "\[RightDoubleBracket]"}]}], 
+      "\[IndentingNewLine]", "}"}], ",", 
+     RowBox[{"ImageSize", "\[Rule]", "500"}]}], "]"}], ",", 
+   RowBox[{"{", 
+    RowBox[{"i", ",", "1", ",", "900", ",", "10"}], "}"}]}], "]"}]], "Input",
+ CellChangeTimes->{{3.727200559504922*^9, 3.727200587813837*^9}, {
+   3.727206415177128*^9, 3.727206450640767*^9}, {3.727206613382161*^9, 
+   3.727206661073132*^9}, {3.727206733908102*^9, 3.7272067340151167`*^9}, {
+   3.7273513386076355`*^9, 3.7273513388960238`*^9}, 3.7273699229538765`*^9, {
+   3.727386220241564*^9, 3.7273862214481435`*^9}, {3.727480542289263*^9, 
+   3.727480542521541*^9}, {3.7275392495447397`*^9, 3.727539251292592*^9}, {
+   3.7275393914935493`*^9, 3.727539428597816*^9}, {3.727539894830243*^9, 
+   3.727539909275968*^9}, {3.727543022162343*^9, 
+   3.727543024249331*^9}},ExpressionUUID->"eee91446-9ea3-474f-a8c7-\
+2efcf9f53bf9"]
+},
+WindowSize->{1447, 764},
+WindowMargins->{{Automatic, -98}, {117, Automatic}},
+FrontEndVersion->"11.0 for Microsoft Windows (64-bit) (September 21, 2016)",
+StyleDefinitions->"Default.nb"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[558, 20, 180, 4, 30, "Input"],
+Cell[741, 26, 337, 8, 30, "Input"],
+Cell[1081, 36, 258, 7, 30, "Input"],
+Cell[1342, 45, 342, 9, 30, "Input"],
+Cell[1687, 56, 347, 10, 30, "Input"],
+Cell[2037, 68, 297, 7, 30, "Input"],
+Cell[2337, 77, 1150, 22, 69, "Input"]
+}
+]
+*)
+
