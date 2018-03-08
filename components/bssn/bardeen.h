@@ -25,6 +25,8 @@ class Bardeen
   BSSN * bssn;
   Fourier * fourier;
 
+  bool use_matter_scale_factor;
+
 public:  
   // perturbed metric & time derivatives
   arr_t h11, h12, h13, h22, h23, h33;
@@ -64,6 +66,8 @@ public:
   {
     bssn = bssn_in;
     fourier = fourier_in;
+
+    use_matter_scale_factor = true;
 
     h11.init(NX, NY, NZ); h12.init(NX, NY, NZ); h13.init(NX, NY, NZ);
     h22.init(NX, NY, NZ); h23.init(NX, NY, NZ); h33.init(NX, NY, NZ);
@@ -137,7 +141,12 @@ public:
     // anything to do?
   }
 
-  void setPotentials();
+  void setPotentials(real_t elapsed_sim_time);
+
+  void setUseMatterScaleFactor(bool use)
+  {
+    use_matter_scale_factor = use;
+  }
 
 }; // Bardeen class
 

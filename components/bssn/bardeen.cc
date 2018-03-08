@@ -19,7 +19,7 @@ real_t abs_dder(idx_t i, idx_t j, idx_t k, arr_t & field)
  * Assumes no reference solultion is used (this should be checked in the
  * constructor).
  */
-void Bardeen::setPotentials()
+void Bardeen::setPotentials(real_t elapsed_sim_time)
 {
   idx_t i, j, k;
 
@@ -40,16 +40,27 @@ void Bardeen::setPotentials()
   real_t K_avg = conformal_average(DIFFK_a, DIFFphi_a, 0.0);
   real_t phi_avg = conformal_average(DIFFphi_a, DIFFphi_a, 0.0);
 
-  // define a = e^(2<\phi>)
-  real_t a = exp( 2.0*phi_avg );
-
-  // a' ~ e^(2<\phi>)' ~ a*2\phi' ~ -1/3*a*<alpha>*<K>
-  real_t dadt = -1.0/3.0*a*alpha_avg*K_avg;
-  real_t H = dadt/a;
-
-  // a'' ~ H*a' + a*2\phi''
-  real_t d2adt2; // Set after \phi'' is computed
-                 // Don't use this until then. (valgrind can catch.)
+  real_t a, dadt, H, d2adt2;
+  if(use_matter_scale_factor)
+  {
+    real_t tI = 2.0/3.0; // t_I = 2/(3H) = 2/3 in units where H_I = 1 (sim units)
+    real_t t = tI + elapsed_sim_time;
+    a = std::pow(t/tI, 2.0/3.0);
+    H = 2.0/3.0/t;
+    dadt = H*a;
+    d2adt2 = a*(H*H - 2.0/3.0/t/t);
+  }
+  else
+  {
+    // define a = e^(2<\phi>)
+    a = exp( 2.0*phi_avg );
+    // a' ~ e^(2<\phi>)' ~ a*2\phi' ~ -1/3*a*<alpha>*<K>
+    dadt = -1.0/3.0*a*alpha_avg*K_avg;
+    H = dadt/a;
+    // a'' ~ H*a' + a*2\phi''
+    // Set after \phi'' is computed,
+    // Don't use d2adt2 this until then. (valgrind can catch.)
+  }
 
   // Store time-derivative of BSSN metric components for later differentiation
 #pragma omp parallel for default(shared) private(i, j, k)
@@ -119,7 +130,8 @@ void Bardeen::setPotentials()
   }
   // set second derivative of a
   // a'' ~ H*a' + a*2\phi''
-  d2adt2 = H*dadt + 2.0*a*conformal_average(d2t_phi, DIFFphi_a, 0.0);
+  if(!use_matter_scale_factor)
+    d2adt2 = H*dadt + 2.0*a*conformal_average(d2t_phi, DIFFphi_a, 0.0);
 
   // construct h_ij, h_0i components, time derivatives
 #pragma omp parallel for default(shared) private(i, j, k)
@@ -376,10 +388,18 @@ void Bardeen::setPotentials()
   arr_t & DIFFr_a = *bssn->fields["DIFFr_a"];
   real_t delta = standard_deviation(DIFFr_a) / average(DIFFr_a);
 
-  // std::cout << " Viol. is (mean/std/max/scale/%): ("
-  //   << mean_viol << " / " << std_viol << " / " << max_viol
-  //   << " / " << viol_scale << " / " << max_viol/viol_scale
-  //   << ") when a=" << a << ", delta~" << delta << " \n";
+  std::cout << " Viol. is (mean/std/max/scale/%): ("
+    << mean_viol << " / " << std_viol << " / " << max_viol
+    << " / " << viol_scale << " / " << max_viol/viol_scale
+    << ") when a=" << a << ", delta~" << delta << " \n";
+  if(use_matter_scale_factor)
+  {
+    std::cout << "   scale factor ratios were "
+      << a  / exp( 2.0*phi_avg ) << ", "
+      << dadt / (-1.0/3.0*a*alpha_avg*K_avg) << ", "
+      << d2adt2 / ( H*dadt + 2.0*a*conformal_average(d2t_phi, DIFFphi_a, 0.0) )
+      << ".\n";
+  }
 
   // Does ( G - a*dt_C ) ~ 1/a^2 ?
 }

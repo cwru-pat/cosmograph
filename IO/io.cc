@@ -955,9 +955,10 @@ void io_print_particles(IOData *iodata, idx_t step, Particles *particles)
 
 #if USE_COSMOTRACE
 void io_raytrace_bardeen_dump(IOData *iodata, idx_t step,
-  std::vector<RayTrace<real_t, idx_t> *> const * rays, Bardeen * bardeen)
+  std::vector<RayTrace<real_t, idx_t> *> const * rays, Bardeen * bardeen,
+  double t)
 {
-  bardeen->setPotentials();
+  bardeen->setPotentials(t);
 
   idx_t num_rays = rays->size();
   

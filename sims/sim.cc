@@ -15,6 +15,7 @@ CosmoSim::CosmoSim()
 
   // fix number of simulation steps
   step = 0;
+  t = 0;
   num_steps = stoi(_config["steps"]);
 
 # if USE_COSMOTRACE
@@ -88,6 +89,7 @@ void CosmoSim::run()
   {
     runStep();
     step++;
+    t += dt;
   }
   _timer["loop"].stop();
 
@@ -127,7 +129,7 @@ void CosmoSim::outputRayTraceStep()
   io_raytrace_dump(iodata, step, &rays);
   
   if(use_bardeen)
-    io_raytrace_bardeen_dump(iodata, step, &rays, bardeen);
+    io_raytrace_bardeen_dump(iodata, step, &rays, bardeen, t);
 
   _timer["output"].stop();
 }
@@ -176,7 +178,7 @@ void CosmoSim::prepBSSNOutput()
   }
 
   if(use_bardeen)
-    bardeen->setPotentials();
+    bardeen->setPotentials(t);
 }
 
 void CosmoSim::outputStateInformation()

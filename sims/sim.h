@@ -21,6 +21,7 @@ protected:
   idx_t num_steps;
   bool dt_flip;
   idx_t dt_flip_step;
+  real_t t; ///< Time @ current step
 
   std::string simulation_type;
   IOData * iodata;
