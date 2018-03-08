@@ -80,9 +80,15 @@ void Bardeen::setPotentials(real_t elapsed_sim_time)
     dt_g33[idx] = bssn->ev_DIFFgamma33(&bd);
 
     // stores d/dt \beta^i
+#if USE_BSSN_SHIFT
     dt_beta1[idx] = bssn->ev_beta1(&bd);
     dt_beta2[idx] = bssn->ev_beta2(&bd);
     dt_beta3[idx] = bssn->ev_beta3(&bd);
+#else
+    dt_beta1[idx] = 0.0;
+    dt_beta2[idx] = 0.0;
+    dt_beta3[idx] = 0.0;
+#endif
 
     // stores d/dt phi
     dt_phi[idx] = bssn->ev_DIFFphi(&bd);
