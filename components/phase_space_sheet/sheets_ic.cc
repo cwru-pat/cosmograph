@@ -34,120 +34,105 @@ void sheets_ic_sinusoid(
 
   arr_t & Dx = sheetSim->Dx._array_p;
   
-  real_t A = std::stod(_config("peak_amplitude", "0.0001"));
+  real_t A = sheetSim->lx*sheetSim->lx*std::stod(_config("peak_amplitude", "0.0001"));
   iodata->log( "Generating ICs with peak amp. = " + stringify(A) );
 
   real_t rho_FRW = 3.0/PI/8.0;
   real_t K_FRW = -sqrt(24.0*PI*rho_FRW);
+  iodata->log( "FRW density is " + stringify(rho_FRW) + ", and mass is "
+    + stringify(rho_FRW*sheetSim->lx*sheetSim->ly*sheetSim->lz));
 
   // the conformal factor in front of metric is the solution to
   // d^2 exp(\phi) = -2*pi exp(5\phi) * \delta_rho
   // generate random mode in \phi
   // delta_rho = -(lap e^\phi)/e^(4\phi)/2pi
   real_t phix = 0;
-  real_t twopi_L = 2.0*PI/H_LEN_FRAC;
+  real_t twopi_L = 2.0*PI/sheetSim->lx;
   real_t pw2_twopi_L = twopi_L*twopi_L;
   
   // grid values
-  for(i=0; i<NX; ++i)
+#pragma omp parallel for
+  LOOP3(i,j,k)
   {
-    for(j=0; j<NY; ++j)
-      for(k=0; k<NZ; ++k)
-      {
-        idx_t idx = NP_INDEX(i,j,k);
+    idx_t idx = NP_INDEX(i,j,k);
 
-        real_t x = ((real_t) i / (real_t) NX);
-        real_t phi = A*sin(2.0*PI*x + phix);
-        real_t rho = rho_FRW + -exp(-4.0*phi)/PI/2.0*(
-          pw2(twopi_L*A*cos(2.0*PI*x + phix))
-          - pw2_twopi_L*A*sin(2.0*PI*x + phix)
-        );
+    real_t x_frac = ((real_t) i / (real_t) NX);
+    real_t phi = A*sin(2.0*PI*x_frac + phix);
+    real_t rho = rho_FRW + -exp(-4.0*phi)/PI/2.0*(
+      pw2(twopi_L*A*cos(2.0*PI*x_frac + phix))
+      - pw2_twopi_L*A*sin(2.0*PI*x_frac + phix)
+    );
 
-        // These aren't difference vars
-        DIFFphi_p[NP_INDEX(i,j,k)] = phi;
-        DIFFK_p[idx] = K_FRW;
-        DIFFr_a[idx] = rho;
-      }
+    // These aren't difference vars
+    DIFFphi_p[NP_INDEX(i,j,k)] = phi;
+    DIFFK_p[idx] = K_FRW;
+    DIFFr_a[idx] = rho;
   }
 
-  real_t integration_interval = std::stod(_config("integration_interval", "0.01"));
-  idx_t cur_s1 = 1;
-  real_t cur_mass = 0;
-
+  real_t integration_points = sheetSim->ns1 * std::stod(_config("integration_points_per_dx", "1000"));
+  std::cout << "Setting initial conditions using " << integration_points << " integration_points" << std::endl;
+  real_t integration_interval = sheetSim->lx / integration_points;
   tot_mass = 0;
 
-  for(real_t cur_x = 0; cur_x < H_LEN_FRAC; cur_x += integration_interval)  
+  // compute total mass in simulation, mass per tracer particle
+  for(idx_t i=0; i<integration_points; ++i)
   {
-    real_t x = cur_x;
+    real_t x_frac = i/(real_t) integration_points;
 
-    real_t phi = A*sin(2.0*PI*x + phix);
+    real_t phi = A*sin(2.0*PI*x_frac + phix);
     real_t rho = rho_FRW + -exp(-4.0*phi)/PI/2.0*(
-      pw2(twopi_L*A*cos(2.0*PI*x + phix))
-      - pw2_twopi_L*A*sin(2.0*PI*x + phix)
+      pw2(twopi_L*A*cos(2.0*PI*x_frac + phix))
+      - pw2_twopi_L*A*sin(2.0*PI*x_frac + phix)
     );
 
     real_t rootdetg = std::exp(6.0*phi);
 
-    tot_mass += rho * rootdetg * integration_interval;
+    tot_mass += rho * rootdetg * integration_interval * sheetSim->ly * sheetSim->lz;
   }
 
-  real_t mass_per_voxel = tot_mass / (double)Dx.nx;
+  real_t mass_per_tracer = tot_mass / (real_t) (sheetSim->ns1*sheetSim->ns2*sheetSim->ns3);
 
-  std::cout << "Total mass and mass_per_voxel are " << tot_mass
-    << ", " << mass_per_voxel << ".\n";
+  std::cout << "Total mass and mass_per_tracer are " << tot_mass
+    << ", " << mass_per_tracer << ".\n";
 
-  for(real_t cur_x = 0; cur_x < H_LEN_FRAC; cur_x += integration_interval)
+
+  // Cumulatively integrate density, deposit particles when integral reaches a particle mass
+  idx_t cur_s1 = 1; // (boundary condition: Dx(x=0) = 0, so start positioning s1=1 particle
+  real_t cur_mass = 0;
+  for(i=0; i<=integration_points; ++i)
   {
-    real_t x = cur_x;
-    real_t phi = A*sin(2.0*PI*x + phix);
+    real_t x_frac = i/(real_t) integration_points;
+    real_t x = sheetSim->lx * x_frac;
+
+    real_t phi = A*sin(2.0*PI*x_frac + phix);
     real_t rho = rho_FRW + -exp(-4.0*phi)/PI/2.0*(
-      pw2(twopi_L*A*cos(2.0*PI*x + phix))
-      - pw2_twopi_L*A*sin(2.0*PI*x + phix)
+      pw2(twopi_L*A*cos(2.0*PI*x_frac + phix))
+      - pw2_twopi_L*A*sin(2.0*PI*x_frac + phix)
     );
 
     real_t rootdetg = std::exp(6.0*phi);
     
-    cur_mass += rootdetg * integration_interval * rho;
+    cur_mass += rho * rootdetg * integration_interval * sheetSim->ly * sheetSim->lz;
 
-    if(cur_mass >= mass_per_voxel)
+    if(cur_mass >= mass_per_tracer)
     {
-      for(j=0; j<Dx.ny; ++j)
-        for(k=0; k<Dx.nz; ++k)
+      for(j=0; j<sheetSim->ns2; ++j)
+        for(k=0; k<sheetSim->ns3; ++k)
         {
-          Dx(cur_s1, j, k) = integration_interval * (cur_mass - mass_per_voxel)
-            / mass_per_voxel + cur_x - sheetSim->_S1IDXtoX0(cur_s1);
+          Dx(cur_s1, j, k) = x - sheetSim->_S1IDXtoX0(cur_s1)
+           + integration_interval * (cur_mass - mass_per_tracer) / mass_per_tracer;
         }
-      cur_mass = cur_mass - mass_per_voxel;
+      cur_mass = cur_mass - mass_per_tracer;
       cur_s1++;
-      if(cur_s1 == Dx.nx) break;
+      if(cur_s1 == sheetSim->ns1) break;
     }
   }
 
-  if(cur_s1 < Dx.nx - 1)
+  if(cur_s1 < sheetSim->ns1 - 1)
   {
     std::cout<<"Error in setting initial distribution!\n";
     throw(-1);
   }
-
-  real_t temp = 0;
-  for(real_t cur_x = sheetSim->_S1IDXtoX0(Dx.nx-1) + Dx(Dx.nx-1, 0, 0);
-    cur_x <= H_LEN_FRAC; cur_x+= integration_interval)
-  {
-    real_t x = cur_x;
-    real_t phi = A*sin(2.0*PI*x + phix);
-    real_t rho = rho_FRW + -exp(-4.0*phi)/PI/2.0*(
-      pw2(twopi_L*A*cos(2.0*PI*x + phix))
-      - pw2_twopi_L*A*sin(2.0*PI*x + phix)
-    );
-
-    real_t rootdetg = std::exp(6.0*phi);
-
-    temp += rootdetg * integration_interval * rho;
-
-  }
-  
-  tot_mass *= H_LEN_FRAC*H_LEN_FRAC;
-  // std::cout<<"Mass in voxel "<<Dx.nx-1<<" is "<<temp<<"\n";
 }
 
 } // namespace cosmo

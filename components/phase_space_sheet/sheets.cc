@@ -48,13 +48,16 @@ Sheet::Sheet():
   d3beta2_a(NX, NY, NZ),
   d3beta3_a(NX, NY, NZ)
 {
-  lx = H_LEN_FRAC;
-  ly = H_LEN_FRAC;
-  lz = H_LEN_FRAC;
+  dx = H_LEN_FRAC / (real_t) COSMO_N;
+  dy = dx;
+  dz = dx;
 
-  dx = lx/NX;
-  dy = ly/NY;
-  dz = lz/NZ;
+  lx = NX * dx;
+  ly = NY * dx;
+  lz = NZ * dx;
+
+  std::cout << "Initiaizing sheet class with lx,ly,lz = " << lx << "," << ly << "," << lz
+    << ", dx,dy,dz = " << dx << "," << dy << "," << dz << std::endl;
 
   carrier_count_scheme = static_cast<carrierCountScheme> (std::stoi(_config["carrier_count_scheme"]));
   deposit = static_cast<depositScheme> (std::stoi(_config["deposit_scheme"]));

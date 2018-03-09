@@ -23,7 +23,7 @@
 #endif
 #define POINTS ((NX)*(NY)*(NZ))
 
-// physical box size (eg., in hubble units)
+// physical box size (in units of the initial Hubble^-1 scale)
 // eg; L = H_LEN_FRAC = N*dx
 #ifndef H_LEN_FRAC
   #define H_LEN_FRAC 0.5

@@ -1,4 +1,5 @@
 steps = 10
+dt_frac = 0.1
 
 simulation_type = sheets
 ic_type = sinusoid
@@ -22,9 +23,7 @@ carriers_per_dz = 1
 
 peak_amplitude = 0.005
 
-integration_interval = 0.0000001
-
-dt_frac = 0.1
+integration_points_per_dx = 10
 
 
 IO_1D_grid_interval = 5
