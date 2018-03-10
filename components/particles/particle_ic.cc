@@ -280,7 +280,7 @@ void particle_ic_set_sinusoid(BSSN * bssnSim, Particles * particles, IOData * io
   {
     idx_t idx = NP_INDEX(i,j,k);
 
-    real_t rho = rho_FRW + DIFFr_a[idx];
+    real_t rho =  DIFFr_a[idx];
 
     if(rho < min)
     {
