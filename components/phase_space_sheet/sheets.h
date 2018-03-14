@@ -54,13 +54,15 @@ public:
   register_t Dx, Dy, Dz; ///< Metric-space density
   register_t vx, vy, vz; ///< Phase-space velocity fields
   
+  arr_t tmp; ///< Array for misc. tmp storage (such as deconvolving)
+
   idx_t step;
 
   // internal types
   enum carrierCountScheme { per_dx = 0, per_ds = 1};
   carrierCountScheme carrier_count_scheme;
 
-  enum depositScheme { CIC = 0, PCS = 1 };
+  enum depositScheme { CIC = 0, PCS = 1, CINT = 2 };
   depositScheme deposit;
 
   idx_t carriers_per_dx,
@@ -89,6 +91,10 @@ public:
   void _PCSDeposit(real_t weight, real_t x_idx, real_t y_idx, real_t z_idx,
                    arr_t &rho);
 
+  void _CINTDeposit(real_t weight, real_t x_idx, real_t y_idx, real_t z_idx,
+                   arr_t &rho);
+
+  void _deconvolve(arr_t &field);
 
   /**
    * Compute conribution to rho(x) from data in a phase-space

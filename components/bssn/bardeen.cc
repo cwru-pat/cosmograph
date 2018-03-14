@@ -394,18 +394,18 @@ void Bardeen::setPotentials(real_t elapsed_sim_time)
   arr_t & DIFFr_a = *bssn->fields["DIFFr_a"];
   real_t delta = standard_deviation(DIFFr_a) / average(DIFFr_a);
 
-  std::cout << " Viol. is (mean/std/max/scale/%): ("
-    << mean_viol << " / " << std_viol << " / " << max_viol
-    << " / " << viol_scale << " / " << max_viol/viol_scale
-    << ") when a=" << a << ", delta~" << delta << " \n";
-  if(use_matter_scale_factor)
-  {
-    std::cout << "   scale factor ratios were "
-      << a  / exp( 2.0*phi_avg ) << ", "
-      << dadt / (-1.0/3.0*a*alpha_avg*K_avg) << ", "
-      << d2adt2 / ( H*dadt + 2.0*a*conformal_average(d2t_phi, DIFFphi_a, 0.0) )
-      << ".\n";
-  }
+  // std::cout << " Viol. is (mean/std/max/scale/%): ("
+  //   << mean_viol << " / " << std_viol << " / " << max_viol
+  //   << " / " << viol_scale << " / " << max_viol/viol_scale
+  //   << ") when a=" << a << ", delta~" << delta << " \n";
+  // if(use_matter_scale_factor)
+  // {
+  //   std::cout << "   scale factor ratios were "
+  //     << a  / exp( 2.0*phi_avg ) << ", "
+  //     << dadt / (-1.0/3.0*a*alpha_avg*K_avg) << ", "
+  //     << d2adt2 / ( H*dadt + 2.0*a*conformal_average(d2t_phi, DIFFphi_a, 0.0) )
+  //     << ".\n";
+  // }
 
   // Does ( G - a*dt_C ) ~ 1/a^2 ?
 }

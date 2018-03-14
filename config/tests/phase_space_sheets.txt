@@ -1,5 +1,5 @@
-steps = 10
-dt_frac = 0.1
+steps = 4000
+dt_frac = 0.5
 
 simulation_type = sheets
 ic_type = sinusoid
@@ -8,25 +8,25 @@ lapse = Harmonic
 
 output_dir = phase_space_sheets_method_test
 
-ns1 = 256
+ns1 = 64
 ns2 = 1
 ns3 = 1
 
 verbosity = 0
 
-deposit_scheme = 1
-carrier_count_scheme = 1
+deposit_scheme = 2
+carrier_count_scheme = 0
 
-carriers_per_dx = 1
+carriers_per_dx = 4
 carriers_per_dy = 1
 carriers_per_dz = 1
 
 peak_amplitude = 0.005
 
-integration_points_per_dx = 10
+integration_points_per_dx = 10000000
 
 
-IO_1D_grid_interval = 5
+IO_1D_grid_interval = 1000
 
 IO_1D_DIFFr_a = 1
 IO_1D_DIFFphi_a = 1
@@ -34,9 +34,9 @@ IO_1D_DIFFS_a = 1
 IO_1D_DIFFalpha_a = 1
 IO_1D_DIFFK_a = 1   
 
+
+IO_3D_grid_interval = 1000
 IO_sheets_displacement_x = 1
 IO_sheets_velocity_x = 1    
 
-IO_constraint_interval = 5
-
-
+IO_constraint_interval = 1000

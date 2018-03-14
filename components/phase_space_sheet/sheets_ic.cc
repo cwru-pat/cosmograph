@@ -90,8 +90,7 @@ void sheets_ic_sinusoid(
     tot_mass += rho * rootdetg * integration_interval * sheetSim->ly * sheetSim->lz;
   }
 
-  // since it's 1D test
-  real_t mass_per_tracer = tot_mass / (real_t) sheetSim->ns1;
+  real_t mass_per_tracer = tot_mass / (real_t) (sheetSim->ns1);
 
   std::cout << "Total mass and mass_per_tracer are " << tot_mass
     << ", " << mass_per_tracer << ".\n";

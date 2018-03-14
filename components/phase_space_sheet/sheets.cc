@@ -81,6 +81,9 @@ void Sheet::_MassDeposit(real_t weight, real_t x_idx, real_t y_idx,
     case PCS:
       _PCSDeposit(weight, x_idx, y_idx, z_idx, rho);
       break;
+    case CINT:
+      _CINTDeposit(weight, x_idx, y_idx, z_idx, rho);
+      break;
     case CIC:
     default:
       _CICDeposit(weight, x_idx, y_idx, z_idx, rho);
@@ -133,6 +136,9 @@ void Sheet::_CICDeposit(real_t weight, real_t x_idx, real_t y_idx,
 
 }
 
+/**
+ * @brief      Piecewise cubic spline deposition
+ */
 void Sheet::_PCSDeposit(real_t weight, real_t x_idx, real_t y_idx,
   real_t z_idx, arr_t &rho)
 {
@@ -182,6 +188,41 @@ void Sheet::_PCSDeposit(real_t weight, real_t x_idx, real_t y_idx,
         }
       }
 }
+
+
+/**
+ * @brief      Deposition based on cubic interoplation (CINT)
+ */
+void Sheet::_CINTDeposit(real_t weight, real_t x_idx, real_t y_idx,
+  real_t z_idx, arr_t &rho)
+{
+  // gridpoint index "left" of x_idx
+  idx_t ix = (x_idx < 0 ? (idx_t) x_idx - 1 : (idx_t) x_idx );
+  real_t x_f = x_idx - (real_t) ix;
+
+  idx_t iy = (y_idx < 0 ? (idx_t) y_idx - 1 : (idx_t) y_idx );
+  real_t y_f = y_idx - (real_t) iy;
+
+  idx_t iz = (z_idx < 0 ? (idx_t) z_idx - 1 : (idx_t) z_idx );
+  real_t z_f = z_idx - (real_t) iz;
+
+  real_t x_wts[4] = { x_f*x_f*(2.0-x_f)-x_f, x_f*x_f*(3.0*x_f-5.0)+2.0,
+         x_f*x_f*(4.0-3.0*x_f)+x_f, x_f*x_f*(x_f-1.0) };
+  real_t y_wts[4] = { y_f*y_f*(2.0-y_f)-y_f, y_f*y_f*(3.0*y_f-5.0)+2.0,
+         y_f*y_f*(4.0-3.0*y_f)+y_f, y_f*y_f*(y_f-1.0) };
+  real_t z_wts[4] = { z_f*z_f*(2.0-z_f)-z_f, z_f*z_f*(3.0*z_f-5.0)+2.0,
+         z_f*z_f*(4.0-3.0*z_f)+z_f, z_f*z_f*(z_f-1.0) };
+
+  for(idx_t i=-1; i<=2; ++i)
+    for(idx_t j=-1; j<=2; ++j)
+      for(idx_t k=-1; k<=2; ++k)
+      {        
+#pragma omp atomic
+          rho(ix+i, iy+j, iz+k) += weight*x_wts[i+1]*y_wts[j+1]*z_wts[k+1]/2.0/2.0/2.0;
+      }
+
+}
+
 
 /**
 * Get Min/max x/y/z coordinates at voxel corners
