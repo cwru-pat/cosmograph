@@ -62,6 +62,8 @@ public:
   // constraint violation
   arr_t lin_viol, lin_viol_der_mag, lin_viol_der;
 
+  real_t * viols;
+
   Bardeen(BSSN * bssn_in, Fourier * fourier_in)
   {
     bssn = bssn_in;
@@ -107,6 +109,10 @@ public:
     lin_viol_der_mag.init(NX, NY, NZ);
     lin_viol_der.init(NX, NY, NZ);
 
+    viols = new real_t[7];
+    for(int i=0; i<7; ++i)
+      viols[0] = 0;
+
     // add Bardeen potentials to BSSN fields map
     bssn->fields["Bardeen_Phi"] = & Phi;
     bssn->fields["Bardeen_Psi"] = & Psi;
@@ -141,12 +147,14 @@ public:
     // anything to do?
   }
 
-  void setPotentials(real_t elapsed_sim_time);
-
   void setUseMatterScaleFactor(bool use)
   {
     use_matter_scale_factor = use;
   }
+
+  void setPotentials(real_t elapsed_sim_time);
+
+  void getSVTViolations(real_t * viols_copyto);
 
 }; // Bardeen class
 

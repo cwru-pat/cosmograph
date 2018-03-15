@@ -103,7 +103,7 @@
 #define RESTRICT __restrict__
 
 // standard index, implementing periodic boundary conditions
-#define INDEX(i,j,k) ( ((i+NX)%(NX))*(NY)*(NZ) + ((j+NY)%(NY))*(NZ) + (k+NZ)%(NZ) )
+#define INDEX(i,j,k) ( ((i+4*NX)%(NX))*(NY)*(NZ) + ((j+4*NY)%(NY))*(NZ) + (k+4*NZ)%(NZ) )
 // indexing without periodicity
 #define NP_INDEX(i,j,k) ((NZ)*(NY)*(i) + (NZ)*(j) + (k))
 // indexing of flux arrays; indexes cell boundaries with 'd' = 1,2,3, using periodic BCs
@@ -111,7 +111,7 @@
 // non-periodic indexing of flux arrays; indexes cell boundaries with 'd' = 1,2,3
 #define F_NP_INDEX(i,j,k,d) ( (NZ)*(NY)*(i)*3 + (NZ)*(j)*3 + (k)*3 + (d+2)%3 )
 
-// index with designated grid number
+// index with variable grid resolution
 #define H_INDEX(i,j,k,nx,ny,nz) (((i+nx)%(nx))*(ny)*(nz) + ((j+ny)%(ny))*(nz) + (k+(nz))%(nz))
 
 // map spatial (i,j) to array index

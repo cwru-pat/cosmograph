@@ -39,7 +39,7 @@ void sheets_ic_sinusoid(
 
   real_t rho_FRW = 3.0/PI/8.0;
   real_t K_FRW = -sqrt(24.0*PI*rho_FRW);
-  iodata->log( "FRW density is " + stringify(rho_FRW) + ", and mass is "
+  iodata->log( "FRW density is " + stringify(rho_FRW) + ", total mass in simulation volume is "
     + stringify(rho_FRW*sheetSim->lx*sheetSim->ly*sheetSim->lz));
 
   // the conformal factor in front of metric is the solution to
@@ -47,7 +47,7 @@ void sheets_ic_sinusoid(
   // generate random mode in \phi
   // delta_rho = -(lap e^\phi)/e^(4\phi)/2pi
   real_t phix = 0;
-  real_t twopi_L = 2.0*PI/sheetSim->lx;
+  real_t twopi_L = 2.0*PI / sheetSim->lx;
   real_t pw2_twopi_L = twopi_L*twopi_L;
   
   // grid values

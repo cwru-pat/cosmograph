@@ -391,23 +391,23 @@ void Bardeen::setPotentials(real_t elapsed_sim_time)
   real_t max_viol = max(lin_viol_der);
   real_t std_viol = standard_deviation(lin_viol_der, mean_viol);
 
-  arr_t & DIFFr_a = *bssn->fields["DIFFr_a"];
-  real_t delta = standard_deviation(DIFFr_a) / average(DIFFr_a);
+  viols[0] = mean_viol / viol_scale;
+  viols[1] = std_viol / viol_scale;
+  viols[2] = max_viol / viol_scale;
+  viols[3] = max_viol;
+  viols[4] = a / exp( 2.0*phi_avg );
+  viols[5] = dadt / (-1.0/3.0*a*alpha_avg*K_avg);
+  viols[6] = d2adt2 / ( H*dadt + 2.0*a*conformal_average(d2t_phi, DIFFphi_a, 0.0) );
 
-  // std::cout << " Viol. is (mean/std/max/scale/%): ("
-  //   << mean_viol << " / " << std_viol << " / " << max_viol
-  //   << " / " << viol_scale << " / " << max_viol/viol_scale
-  //   << ") when a=" << a << ", delta~" << delta << " \n";
-  // if(use_matter_scale_factor)
-  // {
-  //   std::cout << "   scale factor ratios were "
-  //     << a  / exp( 2.0*phi_avg ) << ", "
-  //     << dadt / (-1.0/3.0*a*alpha_avg*K_avg) << ", "
-  //     << d2adt2 / ( H*dadt + 2.0*a*conformal_average(d2t_phi, DIFFphi_a, 0.0) )
-  //     << ".\n";
-  // }
-
-  // Does ( G - a*dt_C ) ~ 1/a^2 ?
+  // TODO: Does ( G - a*dt_C ) ~ 1/a^2 ? (vector modes)
 }
+
+
+void Bardeen::getSVTViolations(real_t * viols_copyto)
+{
+  for(int i=0; i<7; ++i)
+    viols_copyto[i] = viols[i];
+}
+
 
 } // namespace

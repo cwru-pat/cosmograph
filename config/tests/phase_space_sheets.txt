@@ -1,5 +1,5 @@
 steps = 4000
-dt_frac = 0.5
+dt_frac = 0.1
 
 simulation_type = sheets
 ic_type = sinusoid
@@ -23,20 +23,22 @@ carriers_per_dz = 1
 
 peak_amplitude = 0.005
 
-integration_points_per_dx = 10000000
+integration_points_per_dx = 50000
 
+IO_bssnstats_interval = 100
+dump_file = calculated
 
 IO_1D_grid_interval = 1000
-
 IO_1D_DIFFr_a = 1
 IO_1D_DIFFphi_a = 1
 IO_1D_DIFFS_a = 1
 IO_1D_DIFFalpha_a = 1
-IO_1D_DIFFK_a = 1   
-
+IO_1D_DIFFK_a = 1
 
 IO_3D_grid_interval = 1000
 IO_sheets_displacement_x = 1
-IO_sheets_velocity_x = 1    
+IO_sheets_velocity_x = 1
 
 IO_constraint_interval = 1000
+use_bardeen = 1
+SVT_constraint_interval = 1000

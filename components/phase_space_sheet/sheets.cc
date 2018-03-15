@@ -142,51 +142,94 @@ void Sheet::_CICDeposit(real_t weight, real_t x_idx, real_t y_idx,
 void Sheet::_PCSDeposit(real_t weight, real_t x_idx, real_t y_idx,
   real_t z_idx, arr_t &rho)
 {
-  idx_t ix = (x_idx < 0 ? (idx_t) x_idx - 1 : (idx_t) x_idx );
-  idx_t iy = (y_idx < 0 ? (idx_t) y_idx - 1 : (idx_t) y_idx );
-  idx_t iz = (z_idx < 0 ? (idx_t) z_idx - 1 : (idx_t) z_idx );
+  if(ns2 == 1 && NY == 1 && ns3 == 1 && NZ == 1)
+  {
+    idx_t ix = (x_idx < 0 ? (idx_t) x_idx - 1 : (idx_t) x_idx );
 
-  real_t norm = 0.0;
-  for(idx_t i=-1; i<=2; ++i)
-    for(idx_t j=-1; j<=2; ++j)
-      for(idx_t k=-1; k<=2; ++k)
+    real_t norm = 0.0;
+    for(idx_t i=-1; i<=2; ++i)
+    {
+      real_t s = std::abs( ix+i-x_idx );
+      
+      if(s<1.0)
       {
-        real_t s = std::sqrt( std::pow(ix+i-x_idx, 2)
-          + std::pow(iy+j-y_idx, 2)
-          + std::pow(iz+k-z_idx, 2) );
-        
-        if(s<1.0)
-        {
-          norm += (4.0 - 6.0*s*s + 3.0*std::pow(std::abs(s), 3))/6.0;
-        }
-        else if(s<2.0 && s>=1.0)
-        {
-          norm += std::pow(2.0 - std::abs(s), 3)/6.0;
-        }
+        norm += (4.0 - 6.0*s*s + 3.0*std::pow(std::abs(s), 3))/6.0;
       }
+      else if(s<2.0 && s>=1.0)
+      {
+        norm += std::pow(2.0 - std::abs(s), 3)/6.0;
+      }
+    }
 
-  real_t pcs;
-  for(idx_t i=-1; i<=2; ++i)
-    for(idx_t j=-1; j<=2; ++j)
-      for(idx_t k=-1; k<=2; ++k)
+    real_t pcs;
+    for(idx_t i=-1; i<=2; ++i)
+    {
+      real_t s = std::abs( ix+i-x_idx );
+          
+      if(s<1.0)
       {
-        real_t s = std::sqrt( std::pow(ix+i-x_idx, 2)
-          + std::pow(iy+j-y_idx, 2)
-          + std::pow(iz+k-z_idx, 2) );
-        
-        if(s<1.0)
-        {
-          pcs = (4.0 - 6.0*s*s + 3.0*std::pow(std::abs(s), 3))/6.0;
+        pcs = (4.0 - 6.0*s*s + 3.0*std::pow(std::abs(s), 3))/6.0;
 #pragma omp atomic
-          rho(ix+i, iy+j, iz+k) += pcs*weight/norm;
-        }
-        else if(s<2.0 && s>=1.0)
-        {
-          pcs = std::pow(2.0 - std::abs(s), 3)/6.0;
-#pragma omp atomic
-          rho(ix+i, iy+j, iz+k) += pcs*weight/norm;
-        }
+        rho(ix+i, 0, 0) += pcs*weight/norm;
       }
+      else if(s<2.0 && s>=1.0)
+      {
+        pcs = std::pow(2.0 - std::abs(s), 3)/6.0;
+#pragma omp atomic
+        rho(ix+i, 0, 0) += pcs*weight/norm;
+      }
+    }
+
+  }
+  else
+  {
+    idx_t ix = (x_idx < 0 ? (idx_t) x_idx - 1 : (idx_t) x_idx );
+    idx_t iy = (y_idx < 0 ? (idx_t) y_idx - 1 : (idx_t) y_idx );
+    idx_t iz = (z_idx < 0 ? (idx_t) z_idx - 1 : (idx_t) z_idx );
+
+    real_t norm = 0.0;
+    for(idx_t i=-1; i<=2; ++i)
+      for(idx_t j=-1; j<=2; ++j)
+        for(idx_t k=-1; k<=2; ++k)
+        {
+          real_t s = std::sqrt( std::pow(ix+i-x_idx, 2)
+            + std::pow(iy+j-y_idx, 2)
+            + std::pow(iz+k-z_idx, 2) );
+          
+          if(s<1.0)
+          {
+            norm += (4.0 - 6.0*s*s + 3.0*std::pow(std::abs(s), 3))/6.0;
+          }
+          else if(s<2.0 && s>=1.0)
+          {
+            norm += std::pow(2.0 - std::abs(s), 3)/6.0;
+          }
+        }
+
+    real_t pcs;
+    for(idx_t i=-1; i<=2; ++i)
+      for(idx_t j=-1; j<=2; ++j)
+        for(idx_t k=-1; k<=2; ++k)
+        {
+          real_t s = std::sqrt( std::pow(ix+i-x_idx, 2)
+            + std::pow(iy+j-y_idx, 2)
+            + std::pow(iz+k-z_idx, 2) );
+          
+          if(s<1.0)
+          {
+            pcs = (4.0 - 6.0*s*s + 3.0*std::pow(std::abs(s), 3))/6.0;
+#pragma omp atomic
+            rho(ix+i, iy+j, iz+k) += pcs*weight/norm;
+          }
+          else if(s<2.0 && s>=1.0)
+          {
+            pcs = std::pow(2.0 - std::abs(s), 3)/6.0;
+#pragma omp atomic
+            rho(ix+i, iy+j, iz+k) += pcs*weight/norm;
+          }
+        }
+  }
+
 }
 
 

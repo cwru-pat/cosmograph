@@ -956,7 +956,7 @@ void io_print_particles(IOData *iodata, idx_t step, Particles *particles)
 #if USE_COSMOTRACE
 void io_raytrace_bardeen_dump(IOData *iodata, idx_t step,
   std::vector<RayTrace<real_t, idx_t> *> const * rays, Bardeen * bardeen,
-  double t)
+  real_t t)
 {
   bardeen->setPotentials(t);
 
@@ -999,5 +999,27 @@ void io_raytrace_bardeen_dump(IOData *iodata, idx_t step,
   return;
 }
 #endif
+
+
+void io_svt_violation(IOData *iodata, idx_t step, Bardeen * bardeen, real_t t)
+{
+  // potentials should be set per sim call to prepBSSNOutput
+  bool output_step = ( std::stoi(_config("SVT_constraint_interval", "0")) > 0 );
+  bool output_this_step = (0 == step % std::stoi(_config("SVT_constraint_interval", "1")));
+  if( output_step && output_this_step )
+  {
+    real_t SVT_calcs[7] = {0};
+    bardeen->getSVTViolations(SVT_calcs);
+
+    io_dump_value(iodata, SVT_calcs[0], "SVT_violations", "\t");
+    io_dump_value(iodata, SVT_calcs[1], "SVT_violations", "\t");
+    io_dump_value(iodata, SVT_calcs[2], "SVT_violations", "\t");
+    io_dump_value(iodata, SVT_calcs[3], "SVT_violations", "\t");
+    io_dump_value(iodata, SVT_calcs[4], "SVT_violations", "\t");
+    io_dump_value(iodata, SVT_calcs[5], "SVT_violations", "\t");
+    io_dump_value(iodata, SVT_calcs[6], "SVT_violations", "\n");
+  }
+}
+
 
 } /* namespace cosmo */

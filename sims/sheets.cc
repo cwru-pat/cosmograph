@@ -51,6 +51,8 @@ void SheetSim::outputSheetStep()
 {
   _timer["output"].start();
     prepBSSNOutput();
+    if(use_bardeen)
+      io_svt_violation(iodata, step, bardeen, t);
     io_bssn_fields_snapshot(iodata, step, bssnSim->fields);
     io_bssn_fields_powerdump(iodata, step, bssnSim->fields, fourier);
     io_bssn_dump_statistics(iodata, step, bssnSim->fields, bssnSim->frw);
