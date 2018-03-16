@@ -630,13 +630,13 @@ void Sheet::RKStep(BSSN *bssn)
         real_t d1beta2 = d1beta2_a.getTriCubicInterpolatedValue(x_idx, y_idx, z_idx);
         real_t d1beta3 = d1beta3_a.getTriCubicInterpolatedValue(x_idx, y_idx, z_idx);
 
-        real_t d2beta1 = d1beta1_a.getTriCubicInterpolatedValue(x_idx, y_idx, z_idx);
-        real_t d2beta2 = d1beta2_a.getTriCubicInterpolatedValue(x_idx, y_idx, z_idx);
-        real_t d2beta3 = d1beta3_a.getTriCubicInterpolatedValue(x_idx, y_idx, z_idx);
+        real_t d2beta1 = d2beta1_a.getTriCubicInterpolatedValue(x_idx, y_idx, z_idx);
+        real_t d2beta2 = d2beta2_a.getTriCubicInterpolatedValue(x_idx, y_idx, z_idx);
+        real_t d2beta3 = d2beta3_a.getTriCubicInterpolatedValue(x_idx, y_idx, z_idx);
 
-        real_t d3beta1 = d1beta1_a.getTriCubicInterpolatedValue(x_idx, y_idx, z_idx);
-        real_t d3beta2 = d1beta2_a.getTriCubicInterpolatedValue(x_idx, y_idx, z_idx);
-        real_t d3beta3 = d1beta3_a.getTriCubicInterpolatedValue(x_idx, y_idx, z_idx);
+        real_t d3beta1 = d3beta1_a.getTriCubicInterpolatedValue(x_idx, y_idx, z_idx);
+        real_t d3beta2 = d3beta2_a.getTriCubicInterpolatedValue(x_idx, y_idx, z_idx);
+        real_t d3beta3 = d3beta3_a.getTriCubicInterpolatedValue(x_idx, y_idx, z_idx);
 #else
         real_t d1beta1 = 0, d1beta2 = 0, d1beta3 = 0;
         real_t d2beta1 = 0, d2beta2 = 0, d2beta3 = 0;
@@ -671,9 +671,9 @@ void Sheet::RKStep(BSSN *bssn)
 
         real_t U0 = W/(DIFFalpha + 1.0);
         
-        Dx._c(i,j,k) = gammai11 * u1 + gammai12 * u2 + gammai13 * u3 - beta1;
-        Dy._c(i,j,k) = gammai12 * u1 + gammai22 * u2 + gammai23 * u3 - beta2;
-        Dz._c(i,j,k) = gammai13 * u1 + gammai23 * u2 + gammai33 * u3 - beta3;
+        Dx._c(i,j,k) = (gammai11 * u1 + gammai12 * u2 + gammai13 * u3) / U0 - beta1;
+        Dy._c(i,j,k) = (gammai12 * u1 + gammai22 * u2 + gammai23 * u3) / U0 - beta2;
+        Dz._c(i,j,k) = (gammai13 * u1 + gammai23 * u2 + gammai33 * u3) / U0 - beta3;
 
         vx._c(i,j,k) = -1.0*W*d1alpha + u1*d1beta1 + u2*d1beta2 + u3*d1beta3
           -0.5 / U0 * (
