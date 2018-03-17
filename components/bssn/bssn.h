@@ -42,6 +42,7 @@ public:
   FRW<real_t> * frw; ///< FRW reference metric instance
   // Average K, rho for reference
   real_t K_avg, rho_avg;
+  real_t K_min;
 
   BSSN(ConfigParser * config);
   ~BSSN();
@@ -137,6 +138,9 @@ public:
 #   endif
 
   /* constraint violation calculations */
+    void set1DConstraintOutput(
+      real_t H_values[], real_t M_values[], int axis, idx_t n1, idx_t n2);
+
     void setConstraintCalcs(real_t H_values[7], real_t M_values[7],
       real_t G_values[7], real_t A_values[7], real_t S_values[7]);
 

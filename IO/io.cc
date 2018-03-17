@@ -176,9 +176,61 @@ void io_bssn_constraint_violation(IOData *iodata, idx_t step, BSSN * bssnSim)
 {
   bool output_step = ( std::stoi(_config("IO_constraint_interval", "0")) > 0 );
   bool output_this_step = (0 == step % std::stoi(_config("IO_constraint_interval", "1")));
+
+  // whether dump 1D constraint everywhere
+  //  bool dump_1d_hamiltonian_constraint = ( std::stoi(_config("IO_1D_hamiltonian_constraint", "0")) > 0 );
+  bool output_constraint_snapshot = (0 == step % std::stoi(_config("IO_constraint_snapshot_interval", "999999999")));
+
+  if(output_step && output_constraint_snapshot)
+  {
+      real_t *H_values, *M_values;
+      H_values = new real_t[NX];
+      M_values = new real_t[NX];
+      
+      bssnSim->set1DConstraintOutput(
+        H_values, M_values, 1, 0, 0);
+
+
+      std::string hfile = "1D_hamiltonian_constraints";
+      std::string hfilename = iodata->dir() + hfile + ".strip.dat.gz";
+      char hdata[35];
+
+      gzFile hdatafile = gzopen(hfilename.c_str(), "ab");
+      if(hdatafile == Z_NULL) {
+        iodata->log("Error opening file: " + hfilename);
+        return;
+      }
+
+      std::string mfile = "1D_momentum_constraints";
+      std::string mfilename = iodata->dir() + mfile + ".strip.dat.gz";
+      char mdata[35];
+
+      gzFile mdatafile = gzopen(mfilename.c_str(), "ab");
+      if(mdatafile == Z_NULL) {
+        iodata->log("Error opening file: " + mfilename);
+        return;
+      }
+
+      for(idx_t i=0; i<NX; i++)
+      {
+        sprintf(hdata, "%.15g\t", (double) H_values[i]);
+        gzwrite(hdatafile, hdata, strlen(hdata));
+
+        sprintf(mdata, "%.15g\t", (double) M_values[i]);
+        gzwrite(mdatafile, mdata, strlen(mdata));
+
+      }
+      gzwrite(hdatafile, "\n", strlen("\n"));
+      gzwrite(mdatafile, "\n", strlen("\n"));
+
+      gzclose(hdatafile);
+      gzclose(mdatafile);
+
+  }
+  
   if( output_step && output_this_step )
   {
-    real_t H_calcs[7] = {0}, M_calcs[7] = {0}, G_calcs[7] = {0},
+    real_t H_calcs[8] = {0}, M_calcs[8] = {0}, G_calcs[7] = {0},
            A_calcs[7] = {0}, S_calcs[7] = {0};
 
     // Constraint Violation Calculations
@@ -188,12 +240,14 @@ void io_bssn_constraint_violation(IOData *iodata, idx_t step, BSSN * bssnSim)
     io_dump_value(iodata, H_calcs[4], "H_violations", "\t"); // mean(H/[H])
     io_dump_value(iodata, H_calcs[5], "H_violations", "\t"); // stdev(H/[H])
     io_dump_value(iodata, H_calcs[6], "H_violations", "\t"); // max(H/[H])
-    io_dump_value(iodata, H_calcs[2], "H_violations", "\n"); // max(H)
+    io_dump_value(iodata, H_calcs[2], "H_violations", "\t"); // max(H)
+    io_dump_value(iodata, H_calcs[7], "H_violations", "\n"); // H_L2_norm
 
     io_dump_value(iodata, M_calcs[4], "M_violations", "\t"); // mean(M/[M])
     io_dump_value(iodata, M_calcs[5], "M_violations", "\t"); // stdev(M/[M])
     io_dump_value(iodata, M_calcs[6], "M_violations", "\t"); // max(M/[M])
-    io_dump_value(iodata, M_calcs[2], "M_violations", "\n"); // max(M)
+    io_dump_value(iodata, M_calcs[2], "M_violations", "\t"); // max(M)
+    io_dump_value(iodata, M_calcs[7], "M_violations", "\n"); // M_L2_norm
 
     io_dump_value(iodata, G_calcs[4], "G_violations", "\t"); // mean(G/[G])
     io_dump_value(iodata, G_calcs[5], "G_violations", "\t"); // stdev(G/[G])
@@ -209,7 +263,11 @@ void io_bssn_constraint_violation(IOData *iodata, idx_t step, BSSN * bssnSim)
     io_dump_value(iodata, S_calcs[5], "S_violations", "\t"); // stdev(S/[S])
     io_dump_value(iodata, S_calcs[6], "S_violations", "\t"); // max(S/[S])
     io_dump_value(iodata, S_calcs[2], "S_violations", "\n"); // max(S)
+
+
+
   }
+
 
   bool output_g11m1 = ( std::stoi(_config("IO_constraint_g11m1", "0")) > 0 );
   if( output_step && output_this_step && output_g11m1 )
@@ -247,7 +305,7 @@ void io_bssn_constraint_violation(IOData *iodata, idx_t step, BSSN * bssnSim)
  */
 void io_print_constraint_violation(IOData *iodata, BSSN * bssnSim)
 {
-  real_t H_calcs[7] = {0}, M_calcs[7] = {0}, G_calcs[7] = {0},
+  real_t H_calcs[8] = {0}, M_calcs[8] = {0}, G_calcs[7] = {0},
          A_calcs[7] = {0}, S_calcs[7] = {0};
   bssnSim->setConstraintCalcs(H_calcs, M_calcs, G_calcs,
                               A_calcs, S_calcs);
@@ -529,9 +587,9 @@ void io_sheets_snapshot(IOData *iodata, idx_t step, Sheet * sheets)
       io_dump_strip(iodata, sheets->vz._array_a,
                     "1D_sheets_vz", _axis, _xoffset, _yoffset);
 
-
   }
 
+  
 }
 
   

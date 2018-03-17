@@ -127,7 +127,7 @@ private:
     dw_mu_l = std::stod((*config)("dw_mu_l", "0.0"));
     dw_mu_s = std::stod((*config)("dw_mu_s", "0.0"));
     dw_p = std::stod((*config)("dw_p", "0.0"));
-    gd_c = std::stod((*config)("gd_c", "0.0"));
+    gd_c = std::stod((*config)("gd_c", "1.0"));
 
     k_driver_coeff = std::stod((*config)("k_driver_coeff", "0.04"));
   }

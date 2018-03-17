@@ -99,6 +99,135 @@ inline real_t derivative_Odx2(idx_t i, idx_t j, idx_t k, int d,
   return 0;
 }
 
+inline real_t forward_derivative_Odx2(idx_t i, idx_t j, idx_t k, int d,
+    arr_t & field)
+{
+  switch (d) {
+    case 1:
+      return ((
+        - 1.0/2.0*field[INDEX(i+2,j,k)]
+        + 2.0*field[INDEX(i+1,j,k)]
+        - 3.0/2.0*field[INDEX(i,j,k)]
+      )/dx);
+      break;
+    case 2:
+      return ((
+        - 1.0/2.0*field[INDEX(i,j+2,k)]
+        + 2.0*field[INDEX(i,j+1,k)]
+        - 3.0/2.0*field[INDEX(i,j,k)]
+      )/dx);
+      break;
+    case 3:
+      return ((
+        - 1.0/2.0*field[INDEX(i,j,k+2)]
+        + 2.0*field[INDEX(i,j,k+1)]
+        - 3.0/2.0*field[INDEX(i,j,k)]
+      )/dx);
+      break;
+  }
+
+  /* XXX */
+  return 0;
+}
+
+
+
+inline real_t backward_derivative_Odx2(idx_t i, idx_t j, idx_t k, int d,
+    arr_t & field)
+{
+  switch (d) {
+    case 1:
+      return ((
+        + 1.0/2.0*field[INDEX(i-2,j,k)]
+        - 2.0*field[INDEX(i-1,j,k)]
+        + 3.0/2.0*field[INDEX(i,j,k)]
+      )/dx);
+      break;
+    case 2:
+      return ((
+        + 1.0/2.0*field[INDEX(i,j-2,k)]
+        - 2.0*field[INDEX(i,j-1,k)]
+        + 3.0/2.0*field[INDEX(i,j,k)]
+      )/dx);
+      break;
+    case 3:
+      return ((
+        + 1.0/2.0*field[INDEX(i,j,k-2)]
+        - 2.0*field[INDEX(i,j,k-1)]
+        + 3.0/2.0*field[INDEX(i,j,k)]
+      )/dx);
+      break;
+  }
+
+  /* XXX */
+  return 0;
+}
+
+inline real_t lop_forward_derivative_Odx2(idx_t i, idx_t j, idx_t k, int d,
+    arr_t & field)
+{
+  switch (d) {
+    case 1:
+      return ((
+        - 1.0/2.0*field[INDEX(i+2,j,k)]
+        + 2.0*field[INDEX(i+1,j,k)]
+        - 3.0/2.0*field[INDEX(i,j,k)]
+      )/dx);
+      break;
+    case 2:
+      return ((
+        - 1.0/2.0*field[INDEX(i,j+2,k)]
+        + 2.0*field[INDEX(i,j+1,k)]
+        - 3.0/2.0*field[INDEX(i,j,k)]
+      )/dx);
+      break;
+    case 3:
+      return ((
+        - 1.0/2.0*field[INDEX(i,j,k+2)]
+        + 2.0*field[INDEX(i,j,k+1)]
+        - 3.0/2.0*field[INDEX(i,j,k)]
+      )/dx);
+      break;
+  }
+
+  /* XXX */
+  return 0;
+}
+
+
+
+inline real_t lop_backward_derivative_Odx2(idx_t i, idx_t j, idx_t k, int d,
+    arr_t & field)
+{
+  switch (d) {
+    case 1:
+      return ((
+        + 1.0/2.0*field[INDEX(i-2,j,k)]
+        - 2.0*field[INDEX(i-1,j,k)]
+        + 3.0/2.0*field[INDEX(i,j,k)]
+      )/dx);
+      break;
+    case 2:
+      return ((
+        + 1.0/2.0*field[INDEX(i,j-2,k)]
+        - 2.0*field[INDEX(i,j-1,k)]
+        + 3.0/2.0*field[INDEX(i,j,k)]
+      )/dx);
+      break;
+    case 3:
+      return ((
+        + 1.0/2.0*field[INDEX(i,j,k-2)]
+        - 2.0*field[INDEX(i,j,k-1)]
+        + 3.0/2.0*field[INDEX(i,j,k)]
+      )/dx);
+      break;
+  }
+
+  /* XXX */
+  return 0;
+}
+
+ 
 inline real_t derivative_Odx4(idx_t i, idx_t j, idx_t k, int d,
     arr_t & field)
 {
@@ -133,6 +262,153 @@ inline real_t derivative_Odx4(idx_t i, idx_t j, idx_t k, int d,
   return 0;
 }
 
+inline real_t lop_forward_derivative_Odx4(idx_t i, idx_t j, idx_t k, int d,
+    arr_t & field)
+{
+  switch (d) {
+    case 1:
+      return (
+        + 1.0/12.0*field[INDEX(i+3,j,k)]
+        - 1.0/2.0*field[INDEX(i+2,j,k)]
+        + 3.0/2.0*field[INDEX(i+1,j,k)]
+        - 5.0/6.0*field[INDEX(i,j,k)]
+        - 1.0/4.0*field[INDEX(i-1,j,k)]
+      )/dx;
+      break;
+    case 2:
+      return (
+        + 1.0/12.0*field[INDEX(i,j+3,k)]
+        - 1.0/2.0*field[INDEX(i,j+2,k)]
+        + 3.0/2.0*field[INDEX(i,j+1,k)]
+        - 5.0/6.0*field[INDEX(i,j,k)]
+        - 1.0/4.0*field[INDEX(i,j-1,k)]
+      )/dx;
+      break;
+    case 3:
+      return (
+        + 1.0/12.0*field[INDEX(i,j,k+3)]
+        - 1.0/2.0*field[INDEX(i,j,k+2)]
+        + 3.0/2.0*field[INDEX(i,j,k+1)]
+        - 5.0/6.0*field[INDEX(i,j,k)]
+        - 1.0/4.0*field[INDEX(i,j,k-1)]
+      )/dx;
+      break;
+  }
+
+  /* XXX */
+  return 0;
+}
+ 
+inline real_t lop_backward_derivative_Odx4(idx_t i, idx_t j, idx_t k, int d,
+    arr_t & field)
+{
+  switch (d) {
+    case 1:
+      return (
+        - 1.0/12.0*field[INDEX(i-3,j,k)]
+        + 1.0/2.0*field[INDEX(i-2,j,k)]
+        - 3.0/2.0*field[INDEX(i-1,j,k)]
+        + 5.0/6.0*field[INDEX(i,j,k)]
+        + 1.0/4.0*field[INDEX(i+1,j,k)]
+      )/dx;
+      break;
+    case 2:
+      return (
+        - 1.0/12.0*field[INDEX(i,j-3,k)]
+        + 1.0/2.0*field[INDEX(i,j-2,k)]
+        - 3.0/2.0*field[INDEX(i,j-1,k)]
+        + 5.0/6.0*field[INDEX(i,j,k)]
+        + 1.0/4.0*field[INDEX(i,j+1,k)]
+      )/dx;
+      break;
+    case 3:
+      return (
+        - 1.0/12.0*field[INDEX(i,j,k-3)]
+        + 1.0/2.0*field[INDEX(i,j,k-2)]
+        - 3.0/2.0*field[INDEX(i,j,k-1)]
+        + 5.0/6.0*field[INDEX(i,j,k)]
+        + 1.0/4.0*field[INDEX(i,j,k+1)]
+      )/dx;
+      break;
+  }
+
+  /* XXX */
+  return 0;
+
+}
+inline real_t forward_derivative_Odx4(idx_t i, idx_t j, idx_t k, int d,
+    arr_t & field)
+{
+  switch (d) {
+    case 1:
+      return (
+        - 1.0/4.0*field[INDEX(i+4,j,k)]
+        + 4.0/3.0*field[INDEX(i+3,j,k)]
+        - 3.0*field[INDEX(i+2,j,k)]
+        + 4.0*field[INDEX(i+1,j,k)]
+        - 25.0/12.0*field[INDEX(i,j,k)]
+      )/dx;
+      break;
+    case 2:
+      return (
+        - 1.0/4.0*field[INDEX(i,j+4,k)]
+        + 4.0/3.0*field[INDEX(i,j+3,k)]
+        - 3.0*field[INDEX(i,j+2,k)]
+        + 4.0*field[INDEX(i,j+1,k)]
+        - 25.0/12.0*field[INDEX(i,j,k)]
+      )/dx;
+      break;
+    case 3:
+      return (
+        - 1.0/4.0*field[INDEX(i,j,k+4)]
+        + 4.0/3.0*field[INDEX(i,j,k+3)]
+        - 3.0*field[INDEX(i,j,k+2)]
+        + 4.0*field[INDEX(i,j,k+1)]
+        - 25.0/12.0*field[INDEX(i,j,k)]
+      )/dx;
+      break;
+  }
+
+  /* XXX */
+  return 0;
+}
+
+inline real_t backward_derivative_Odx4(idx_t i, idx_t j, idx_t k, int d,
+    arr_t & field)
+{
+  switch (d) {
+    case 1:
+      return (
+        + 1.0/4.0*field[INDEX(i-4,j,k)]
+        - 4.0/3.0*field[INDEX(i-3,j,k)]
+        + 3.0*field[INDEX(i-2,j,k)]
+        - 4.0*field[INDEX(i-1,j,k)]
+        + 25.0/12.0*field[INDEX(i,j,k)]
+      )/dx;
+      break;
+    case 2:
+      return (
+        + 1.0/4.0*field[INDEX(i,j-4,k)]
+        - 4.0/3.0*field[INDEX(i,j-3,k)]
+        + 3.0*field[INDEX(i,j-2,k)]
+        - 4.0*field[INDEX(i,j-1,k)]
+        + 25.0/12.0*field[INDEX(i,j,k)]
+      )/dx;
+      break;
+    case 3:
+      return (
+        + 1.0/4.0*field[INDEX(i,j,k-4)]
+        - 4.0/3.0*field[INDEX(i,j,k-3)]
+        + 3.0*field[INDEX(i,j,k-2)]
+        - 4.0*field[INDEX(i,j,k-1)]
+        + 25.0/12.0*field[INDEX(i,j,k)]
+      )/dx;
+      break;
+  }
+  return 0;
+}
+
+              
 inline real_t derivative_Odx6(idx_t i, idx_t j, idx_t k, int d,
     arr_t & field)
 {
@@ -173,6 +449,108 @@ inline real_t derivative_Odx6(idx_t i, idx_t j, idx_t k, int d,
   return 0;
 }
 
+ 
+inline real_t forward_derivative_Odx6(idx_t i, idx_t j, idx_t k, int d,
+    arr_t & field)
+{
+  switch (d) {
+    case 1:
+      return (
+        - 49.0/20.0*field[INDEX(i,j,k)]
+        + 6.0*field[INDEX(i+1,j,k)]
+        - 15.0/2.0*field[INDEX(i+2,j,k)]
+        + 20.0/3.0*field[INDEX(i+3,j,k)]
+        - 15.0/4.0*field[INDEX(i+4,j,k)]
+        + 6.0/5.0*field[INDEX(i+5,j,k)]
+        - 1.0/6.0*field[INDEX(i+6,j,k)]
+      )/dx;
+      break;
+    case 2:
+      return (
+        - 49.0/20.0*field[INDEX(i,j,k)]
+        + 6.0*field[INDEX(i,j+1,k)]
+        - 15.0/2.0*field[INDEX(i,j+2,k)]
+        + 20.0/3.0*field[INDEX(i,j+3,k)]
+        - 15.0/4.0*field[INDEX(i,j+4,k)]
+        + 6.0/5.0*field[INDEX(i,j+5,k)]
+        - 1.0/6.0*field[INDEX(i,j+6,k)]
+      )/dx;
+      break;
+    case 3:
+      return (
+        - 49.0/20.0*field[INDEX(i,j,k)]
+        + 6.0*field[INDEX(i,j,k+1)]
+        - 15.0/2.0*field[INDEX(i,j,k+2)]
+        + 20.0/3.0*field[INDEX(i,j,k+3)]
+        - 15.0/4.0*field[INDEX(i,j,k+4)]
+        + 6.0/5.0*field[INDEX(i,j,k+5)]
+        - 1.0/6.0*field[INDEX(i,j,k+6)]
+      )/dx;
+      break;
+  }
+
+  /* XXX */
+  return 0;
+}
+
+inline real_t backward_derivative_Odx6(idx_t i, idx_t j, idx_t k, int d,
+    arr_t & field)
+{
+  switch (d) {
+    case 1:
+      return (
+        + 49.0/20.0*field[INDEX(i,j,k)]
+        - 6.0*field[INDEX(i-1,j,k)]
+        + 15.0/2.0*field[INDEX(i-2,j,k)]
+        - 20.0/3.0*field[INDEX(i-3,j,k)]
+        + 15.0/4.0*field[INDEX(i-4,j,k)]
+        - 6.0/5.0*field[INDEX(i-5,j,k)]
+        + 1.0/6.0*field[INDEX(i-6,j,k)]
+      )/dx;
+      break;
+    case 2:
+      return (
+        + 49.0/20.0*field[INDEX(i,j,k)]
+        - 6.0*field[INDEX(i,j-1,k)]
+        + 15.0/2.0*field[INDEX(i,j-2,k)]
+        - 20.0/3.0*field[INDEX(i,j-3,k)]
+        + 15.0/4.0*field[INDEX(i,j-4,k)]
+        - 6.0/5.0*field[INDEX(i,j-5,k)]
+        + 1.0/6.0*field[INDEX(i,j-6,k)]
+      )/dx;
+      break;
+    case 3:
+      return (
+        + 49.0/20.0*field[INDEX(i,j,k)]
+        - 6.0*field[INDEX(i,j,k-1)]
+        + 15.0/2.0*field[INDEX(i,j,k-2)]
+        - 20.0/3.0*field[INDEX(i,j,k-3)]
+        + 15.0/4.0*field[INDEX(i,j,k-4)]
+        - 6.0/5.0*field[INDEX(i,j,k-5)]
+        + 1.0/6.0*field[INDEX(i,j,k-6)]
+      )/dx;
+      break;
+  }
+
+  /* XXX */
+  return 0;
+}
+
+inline real_t lop_forward_derivative_Odx6(idx_t i, idx_t j, idx_t k, int d,
+    arr_t & field)
+{
+  /* XXX */
+  return 0;
+}
+inline real_t lop_backward_derivative_Odx6(idx_t i, idx_t j, idx_t k, int d,
+    arr_t & field)
+{
+  return 0;
+}
+
+ 
+
+              
 inline real_t derivative_Odx8(idx_t i, idx_t j, idx_t k, int d,
     arr_t & field)
 {
@@ -206,6 +584,94 @@ inline real_t derivative_Odx8(idx_t i, idx_t j, idx_t k, int d,
   /* XXX */
   return 0;
 }
+
+inline real_t forward_derivative_Odx8(idx_t i, idx_t j, idx_t k, int d,
+    arr_t & field)
+{
+  switch (d) {
+    case 1:
+      return (
+        - 761.0/280.0*field[INDEX(i,j,k)] + 8.0*field[INDEX(i+1,j,k)] 
+        - 14.0*field[INDEX(i+2,j,k)] + 56.0/3.0*field[INDEX(i+3,j,k)] 
+        - 35.0/2.0*field[INDEX(i+4,j,k)] + 56.0/5.0*field[INDEX(i+5,j,k)] 
+        - 14.0/3.0*field[INDEX(i+6,j,k)] + 8.0/7.0*field[INDEX(i+7,j,k)]
+        - 1.0/8.0*field[INDEX(i+8,j,k)]
+      )/dx;
+      break;
+    case 2:
+      return (
+        - 761.0/280.0*field[INDEX(i,j,k)] + 8.0*field[INDEX(i,j+1,k)] 
+        - 14.0*field[INDEX(i,j+2,k)] + 56.0/3.0*field[INDEX(i,j+3,k)] 
+        - 35.0/2.0*field[INDEX(i,j+4,k)] + 56.0/5.0*field[INDEX(i,j+5,k)] 
+        - 14.0/3.0*field[INDEX(i,j+6,k)] + 8.0/7.0*field[INDEX(i,j+7,k)]
+        - 1.0/8.0*field[INDEX(i,j+8,k)]
+      )/dx;
+      break;
+    case 3:
+      return (
+        - 761.0/280.0*field[INDEX(i,j,k)] + 8.0*field[INDEX(i,j,k+1)] 
+        - 14.0*field[INDEX(i,j,k+2)] + 56.0/3.0*field[INDEX(i,j,k+3)] 
+        - 35.0/2.0*field[INDEX(i,j,k+4)] + 56.0/5.0*field[INDEX(i,j,k+5)] 
+        - 14.0/3.0*field[INDEX(i,j,k+6)] + 8.0/7.0*field[INDEX(i,j,k+7)]
+        - 1.0/8.0*field[INDEX(i,j,k+8)]
+      )/dx;
+      break;
+  }
+
+  /* XXX */
+  return 0;
+}
+
+inline real_t backward_derivative_Odx8(idx_t i, idx_t j, idx_t k, int d,
+    arr_t & field)
+{
+  switch (d) {
+    case 1:
+      return (
+        + 761.0/280.0*field[INDEX(i,j,k)] - 8.0*field[INDEX(i-1,j,k)] 
+        + 14.0*field[INDEX(i-2,j,k)] - 56.0/3.0*field[INDEX(i-3,j,k)] 
+        + 35.0/2.0*field[INDEX(i-4,j,k)] - 56.0/5.0*field[INDEX(i-5,j,k)] 
+        + 14.0/3.0*field[INDEX(i-6,j,k)] - 8.0/7.0*field[INDEX(i-7,j,k)]
+        + 1.0/8.0*field[INDEX(i-8,j,k)]
+      )/dx;
+      break;
+    case 2:
+      return (
+        + 761.0/280.0*field[INDEX(i,j,k)] - 8.0*field[INDEX(i,j-1,k)] 
+        + 14.0*field[INDEX(i,j-2,k)] - 56.0/3.0*field[INDEX(i,j-3,k)] 
+        + 35.0/2.0*field[INDEX(i,j-4,k)] - 56.0/5.0*field[INDEX(i,j-5,k)] 
+        + 14.0/3.0*field[INDEX(i,j-6,k)] - 8.0/7.0*field[INDEX(i,j-7,k)]
+        + 1.0/8.0*field[INDEX(i,j-8,k)]
+      )/dx;
+      break;
+    case 3:
+      return (
+        + 761.0/280.0*field[INDEX(i,j,k)] - 8.0*field[INDEX(i,j,k-1)] 
+        + 14.0*field[INDEX(i,j,k-2)] - 56.0/3.0*field[INDEX(i,j,k-3)] 
+        + 35.0/2.0*field[INDEX(i,j,k-4)] - 56.0/5.0*field[INDEX(i,j,k-5)] 
+        + 14.0/3.0*field[INDEX(i,j,k-6)] - 8.0/7.0*field[INDEX(i,j,k-7)]
+        + 1.0/8.0*field[INDEX(i,j,k-8)]
+      )/dx;
+      break;
+  }
+
+  /* XXX */
+  return 0;
+}
+inline real_t lop_forward_derivative_Odx8(idx_t i, idx_t j, idx_t k, int d,
+    arr_t & field)
+{
+
+  /* XXX */
+  return 0;
+}
+inline real_t lop_backward_derivative_Odx8(idx_t i, idx_t j, idx_t k, int d,
+    arr_t & field)
+{
+
+  return 0;
+}
+ 
 
 inline real_t mixed_derivative_stencil_Odx2(idx_t i, idx_t j, idx_t k, int d1, int d2, arr_t & field)
 {
@@ -419,6 +885,76 @@ inline real_t double_derivative_stencil_Odx2(idx_t i, idx_t j, idx_t k, int d,
   return 0;
 }
 
+inline real_t forward_double_derivative_stencil_Odx2(idx_t i, idx_t j, idx_t k, int d,
+    arr_t & field)
+{
+  switch (d) {
+    case 1:
+      return (
+          2.0*field[INDEX(i,j,k)]
+          - 5.0*field[INDEX(i+1,j,k)]
+          + 4.0*field[INDEX(i+2,j,k)]
+          - 1.0*field[INDEX(i+3,j,k)]
+        )/dx/dx;
+      break;
+    case 2:
+      return (
+          2.0*field[INDEX(i,j,k)]
+          - 5.0*field[INDEX(i,j+1,k)]
+          + 4.0*field[INDEX(i,j+2,k)]
+          - 1.0*field[INDEX(i,j+3,k)]
+        )/dx/dx;
+      break;
+    case 3:
+      return (
+          2.0*field[INDEX(i,j,k)]
+          - 5.0*field[INDEX(i,j,k+1)]
+          + 4.0*field[INDEX(i,j,k+2)]
+          - 1.0*field[INDEX(i,j,k+3)]
+        )/dx/dx;
+      break;
+  }
+
+  /* XXX */
+  return 0;
+}
+
+
+inline real_t backward_double_derivative_stencil_Odx2(idx_t i, idx_t j, idx_t k, int d,
+    arr_t & field)
+{
+  switch (d) {
+    case 1:
+      return (
+          2.0*field[INDEX(i,j,k)]
+          - 5.0*field[INDEX(i-1,j,k)]
+          + 4.0*field[INDEX(i-2,j,k)]
+          - 1.0*field[INDEX(i-3,j,k)]
+        )/dx/dx;
+      break;
+    case 2:
+      return (
+          2.0*field[INDEX(i,j,k)]
+          - 5.0*field[INDEX(i,j-1,k)]
+          + 4.0*field[INDEX(i,j-2,k)]
+          - 1.0*field[INDEX(i,j-3,k)]
+        )/dx/dx;
+      break;
+    case 3:
+      return (
+          2.0*field[INDEX(i,j,k)]
+          - 5.0*field[INDEX(i,j,k-1)]
+          + 4.0*field[INDEX(i,j,k-2)]
+          - 1.0*field[INDEX(i,j,k-3)]
+        )/dx/dx;
+      break;
+  }
+
+  /* XXX */
+  return 0;
+}
+
+ 
 inline real_t double_derivative_stencil_Odx4(idx_t i, idx_t j, idx_t k, int d,
     arr_t & field)
 {
@@ -548,6 +1084,113 @@ inline real_t double_derivative_stencil_Odx8(idx_t i, idx_t j, idx_t k, int d,
   return 0;
 }
 
+inline real_t forward_dissipation_stencil_Odx2(idx_t i, idx_t j, idx_t k, int d,
+    arr_t & field)
+{
+  switch (d) {
+    case 1:
+      return -1.0/2.0*dx*
+        forward_double_derivative_stencil_Odx2(i,j,k,d,field);
+      break;
+    case 2:
+      return -1.0/2.0*dx*
+        forward_double_derivative_stencil_Odx2(i,j,k,d,field);
+      break;
+    case 3:
+      return -1.0/2.0*dx*
+        forward_double_derivative_stencil_Odx2(i,j,k,d,field);
+      break;
+  }
+
+  /* XXX */
+  return 0;
+}
+
+
+inline real_t backward_dissipation_stencil_Odx2(idx_t i, idx_t j, idx_t k, int d,
+    arr_t & field)
+{
+  switch (d) {
+    case 1:
+      return +1.0/2.0*dx*
+        backward_double_derivative_stencil_Odx2(i,j,k,d,field);
+      break;
+    case 2:
+      return +1.0/2.0*dx*
+        backward_double_derivative_stencil_Odx2(i,j,k,d,field);
+      break;
+    case 3:
+      return +1.0/2.0*dx*
+        backward_double_derivative_stencil_Odx2(i,j,k,d,field);
+      break;
+  }
+
+  /* XXX */
+  return 0;
+}
+
+inline real_t forward_dissipation_stencil_Odx4(idx_t i, idx_t j, idx_t k, int d,
+    arr_t & field)
+{
+  /* XXX */
+  return 0;
+}
+
+
+inline real_t backward_dissipation_stencil_Odx4(idx_t i, idx_t j, idx_t k, int d,
+    arr_t & field)
+{
+  /* XXX */
+  return 0;
+}
+
+
+inline real_t forward_dissipation_stencil_Odx6(idx_t i, idx_t j, idx_t k, int d,
+    arr_t & field)
+{
+  /* XXX */
+  return 0;
+}
+
+
+inline real_t backward_dissipation_stencil_Odx6(idx_t i, idx_t j, idx_t k, int d,
+    arr_t & field)
+{
+  /* XXX */
+  return 0;
+}
+
+
+inline real_t forward_dissipation_stencil_Odx8(idx_t i, idx_t j, idx_t k, int d,
+    arr_t & field)
+{
+  /* XXX */
+  return 0;
+}
+
+
+inline real_t backward_dissipation_stencil_Odx8(idx_t i, idx_t j, idx_t k, int d,
+    arr_t & field)
+{
+  /* XXX */
+  return 0;
+}
+
+ 
+inline real_t forward_dissipation(idx_t i, idx_t j, idx_t k, int d,
+    arr_t & field)
+{
+  return STENCIL_ORDER_FUNCTION(forward_dissipation_stencil_Odx)(i, j, k, d, field);
+}
+
+
+inline real_t backward_dissipation(idx_t i, idx_t j, idx_t k, int d,
+    arr_t & field)
+{
+  return STENCIL_ORDER_FUNCTION(backward_dissipation_stencil_Odx)(i, j, k, d, field);
+}
+
+              
 /**
  * @brief Compute a derivative using a stencil order defined by a
  * preprocessor directive
@@ -565,6 +1208,41 @@ inline real_t derivative(idx_t i, idx_t j, idx_t k, int d,
   return STENCIL_ORDER_FUNCTION(derivative_Odx)(i, j, k, d, field);
 }
 
+inline real_t lop_forward_derivative(idx_t i, idx_t j, idx_t k, int d,
+    arr_t & field)
+{
+  return STENCIL_ORDER_FUNCTION(lop_forward_derivative_Odx)(i, j, k, d, field)
+    + STENCIL_ORDER_FUNCTION(forward_dissipation_stencil_Odx)(i, j, k, d, field);
+}
+
+inline real_t lop_backward_derivative(idx_t i, idx_t j, idx_t k, int d,
+    arr_t & field)
+{
+  return STENCIL_ORDER_FUNCTION(lop_backward_derivative_Odx)(i, j, k, d, field)
+    + STENCIL_ORDER_FUNCTION(backward_dissipation_stencil_Odx)(i, j, k, d, field);
+}
+inline real_t forward_derivative(idx_t i, idx_t j, idx_t k, int d,
+    arr_t & field)
+{
+  return STENCIL_ORDER_FUNCTION(forward_derivative_Odx)(i, j, k, d, field)
+    + STENCIL_ORDER_FUNCTION(forward_dissipation_stencil_Odx)(i, j, k, d, field);
+}
+
+inline real_t backward_derivative(idx_t i, idx_t j, idx_t k, int d,
+    arr_t & field)
+{
+  return STENCIL_ORDER_FUNCTION(backward_derivative_Odx)(i, j, k, d, field)
+    + STENCIL_ORDER_FUNCTION(backward_dissipation_stencil_Odx)(i, j, k, d, field);
+}
+
+inline real_t upwind_derivative(idx_t i, idx_t j, idx_t k, int d,
+    arr_t & field, real_t c)
+{
+  if( c > 0) return c * lop_forward_derivative(i,j,k,d,field);
+  else return c * lop_backward_derivative(i,j,k,d,field);
+}
+
+ 
 /**
  * @brief Compute a mixed derivative using a stencil order defined by a
  * preprocessor directive
@@ -785,6 +1463,7 @@ inline real_t max(arr_t & field)
 {
   idx_t i=0, j=0, k=0;
   real_t max_val = field[0];
+#pragma omp parallel for default(shared) private(i, j, k) reduction(max:max_val)
   LOOP3(i, j, k)
   {
     if(field[INDEX(i,j,k)] > max_val) {
@@ -801,6 +1480,7 @@ inline real_t min(arr_t & field)
 {
   idx_t i=0, j=0, k=0;
   real_t min_val = field[0];
+#pragma omp parallel for default(shared) private(i, j, k) reduction(min:min_val)
   LOOP3(i, j, k)
   {
     if(field[INDEX(i,j,k)] < min_val) {

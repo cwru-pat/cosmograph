@@ -420,7 +420,7 @@ void Particles::RKStep(ParticleRegister<real_t> * pr, real_t h, real_t RK_sum_co
 
   for(int i=1; i<=3; i++)
   {
-    p_c.X[iIDX(i)] = p_p.X[iIDX(i)] + h*(pp_a.gi[aIDX(i,1)]*p_a.U[iIDX(1)] + pp_a.gi[aIDX(i,2)]*p_a.U[iIDX(2)] + pp_a.gi[aIDX(i,3)]*p_a.U[iIDX(3)] - pp_a.beta[iIDX(i)]);
+    p_c.X[iIDX(i)] = p_p.X[iIDX(i)] + h*( (pp_a.gi[aIDX(i,1)]*p_a.U[iIDX(1)] + pp_a.gi[aIDX(i,2)]*p_a.U[iIDX(2)] + pp_a.gi[aIDX(i,3)]*p_a.U[iIDX(3)]) / U0 - pp_a.beta[iIDX(i)]);
     p_c.U[iIDX(i)] = p_p.U[iIDX(i)] + h*(
       -1.0*W*pp_a.dalpha[iIDX(i)] + p_a.U[iIDX(1)]*pp_a.dbeta[iIDX(i)][iIDX(1)] + p_a.U[iIDX(2)]*pp_a.dbeta[iIDX(i)][iIDX(2)] + p_a.U[iIDX(3)]*pp_a.dbeta[iIDX(i)][iIDX(3)]
       -1.0/2.0/U0*(
