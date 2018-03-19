@@ -343,11 +343,11 @@ ParticleMetricPrimitives<real_t> Particles::getInterpolatedPrimitives(Particle<r
 #         endif
 
           pp.dgi[a][aIDX(1,1)] = -4.0*DER(DIFFphi_a)*pp.gi[aIDX(1,1)]
-            + std::exp(-4.0*DIFFphi_a[idx])*(DER(DIFFgamma22_a) + DER(DIFFgamma33_a) - 2.0*DER(DIFFgamma23_a) + DER(DIFFgamma22_a)*DIFFgamma33_a[idx] + DIFFgamma22_a[idx]*DER(DIFFgamma33_a));
+            + std::exp(-4.0*DIFFphi_a[idx])*(DER(DIFFgamma22_a) + DER(DIFFgamma33_a) - 2.0*DIFFgamma23_a[idx]*DER(DIFFgamma23_a) + DER(DIFFgamma22_a)*DIFFgamma33_a[idx] + DIFFgamma22_a[idx]*DER(DIFFgamma33_a));
           pp.dgi[a][aIDX(2,2)] = -4.0*DER(DIFFphi_a)*pp.gi[aIDX(2,2)]
-            + std::exp(-4.0*DIFFphi_a[idx])*(DER(DIFFgamma11_a) + DER(DIFFgamma33_a) - 2.0*DER(DIFFgamma13_a) + DER(DIFFgamma11_a)*DIFFgamma33_a[idx] + DIFFgamma11_a[idx]*DER(DIFFgamma33_a));
+            + std::exp(-4.0*DIFFphi_a[idx])*(DER(DIFFgamma11_a) + DER(DIFFgamma33_a) - 2.0*DIFFgamma13_a[idx]*DER(DIFFgamma13_a) + DER(DIFFgamma11_a)*DIFFgamma33_a[idx] + DIFFgamma11_a[idx]*DER(DIFFgamma33_a));
           pp.dgi[a][aIDX(3,3)] = -4.0*DER(DIFFphi_a)*pp.gi[aIDX(3,3)]
-            + std::exp(-4.0*DIFFphi_a[idx])*(DER(DIFFgamma11_a) + DER(DIFFgamma22_a) - 2.0*DER(DIFFgamma12_a) + DER(DIFFgamma11_a)*DIFFgamma22_a[idx] + DIFFgamma11_a[idx]*DER(DIFFgamma22_a));
+            + std::exp(-4.0*DIFFphi_a[idx])*(DER(DIFFgamma11_a) + DER(DIFFgamma22_a) - 2.0*DIFFgamma12_a[idx]*DER(DIFFgamma12_a) + DER(DIFFgamma11_a)*DIFFgamma22_a[idx] + DIFFgamma11_a[idx]*DER(DIFFgamma22_a));
           pp.dgi[a][aIDX(1,2)] = -4.0*DER(DIFFphi_a)*pp.gi[aIDX(1,2)]
             + std::exp(-4.0*DIFFphi_a[idx])*(DER(DIFFgamma13_a)*DIFFgamma23_a[idx] + DIFFgamma13_a[idx]*DER(DIFFgamma23_a) - DER(DIFFgamma12_a)*(1.0 + DIFFgamma33_a[idx]) - DIFFgamma12_a[idx]*DER(DIFFgamma33_a));
           pp.dgi[a][aIDX(1,3)] = -4.0*DER(DIFFphi_a)*pp.gi[aIDX(1,3)]
