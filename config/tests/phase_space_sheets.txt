@@ -23,7 +23,7 @@ carriers_per_dz = 1
 
 peak_amplitude = 0.005
 
-integration_points_per_dx = 50000
+integration_points_per_dx = 1000000
 
 IO_bssnstats_interval = 100
 dump_file = calculated

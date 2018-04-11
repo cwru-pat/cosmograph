@@ -142,6 +142,7 @@ void Sheet::_CICDeposit(real_t weight, real_t x_idx, real_t y_idx,
 void Sheet::_PCSDeposit(real_t weight, real_t x_idx, real_t y_idx,
   real_t z_idx, arr_t &rho)
 {
+
   if(ns2 == 1 && NY == 1 && ns3 == 1 && NZ == 1)
   {
     idx_t ix = (x_idx < 0 ? (idx_t) x_idx - 1 : (idx_t) x_idx );
@@ -489,29 +490,18 @@ void Sheet::addBSSNSource(BSSN *bssn, real_t tot_mass)
 # pragma omp parallel for default(shared) private(i, j, k)
   LOOP3(i, j, k)
   {
-    idx_t idx = NP_INDEX(i,j,k);
-
     BSSNData bd = {0};
     bssn->set_bd_values(i, j, k, &bd);
-    real_t trS = exp(-4.0*bd.phi)*(
-      STF11_a[idx]*bd.gammai11 + STF22_a[idx]*bd.gammai22 + STF33_a[idx]*bd.gammai33
-      + 2.0*(STF12_a[idx]*bd.gammai12 + STF13_a[idx]*bd.gammai13 + STF23_a[idx]*bd.gammai23)
-    );
-
-    STF11_a[idx] -= (1.0/3.0)*exp(4.0*bd.phi)*bd.gamma11*trS;
-    STF12_a[idx] -= (1.0/3.0)*exp(4.0*bd.phi)*bd.gamma12*trS;
-    STF13_a[idx] -= (1.0/3.0)*exp(4.0*bd.phi)*bd.gamma13*trS;
-    STF22_a[idx] -= (1.0/3.0)*exp(4.0*bd.phi)*bd.gamma22*trS;
-    STF23_a[idx] -= (1.0/3.0)*exp(4.0*bd.phi)*bd.gamma23*trS;
-    STF33_a[idx] -= (1.0/3.0)*exp(4.0*bd.phi)*bd.gamma33*trS;
+    bssn->enforceTFSIJ(&bd);
   }
 
   _timer["_pushsheetToStressTensor"].stop();
 }
 
+
 void Sheet::RKStep(BSSN *bssn)
 {
-  idx_t i ,j, k;
+  idx_t i, j, k;
 
   arr_t & DIFFphi_a = *bssn->fields["DIFFphi_a"];
   arr_t & DIFFgamma11_a = *bssn->fields["DIFFgamma11_a"];
@@ -598,14 +588,14 @@ void Sheet::RKStep(BSSN *bssn)
         real_t beta2 = beta2_a.getTriCubicInterpolatedValue(x_idx, y_idx, z_idx);
         real_t beta3 = beta3_a.getTriCubicInterpolatedValue(x_idx, y_idx, z_idx);
 #else
-        real_t beta1 = 0, beta2 = 0, beta3 =0;
+        real_t beta1 = 0, beta2 = 0, beta3 = 0;
 #endif
         real_t DIFFgamma11 = DIFFgamma11_a.getTriCubicInterpolatedValue(
-          x_idx, y_idx, z_idx); 
+          x_idx, y_idx, z_idx);
         real_t DIFFgamma22 = DIFFgamma22_a.getTriCubicInterpolatedValue(
-          x_idx, y_idx, z_idx) ; 
+          x_idx, y_idx, z_idx);
         real_t DIFFgamma33 = DIFFgamma33_a.getTriCubicInterpolatedValue(
-          x_idx, y_idx, z_idx) ; 
+          x_idx, y_idx, z_idx);
 
         real_t DIFFgamma12 = DIFFgamma12_a.getTriCubicInterpolatedValue(
           x_idx, y_idx, z_idx); 
@@ -679,20 +669,20 @@ void Sheet::RKStep(BSSN *bssn)
           -0.5 / U0 * (
             d1gammai11 * u1 * u1 + d1gammai22 * u2 * u2 + d1gammai33 * u3 * u3
             + 2.0 * (d1gammai12 * u1 * u2 + d1gammai13 * u1 * u3 + d1gammai23 * u2 * u3)
-          ); 
+          );
 
         vy._c(i,j,k) = -1.0*W*d2alpha + u1*d2beta1 + u2*d2beta2 + u3*d2beta3
           -0.5 / U0 * (
             d2gammai11 * u1 * u1 + d2gammai22 * u2 * u2 + d2gammai33 * u3 * u3
             + 2.0 * (d2gammai12 * u1 * u2 + d2gammai13 * u1 * u3 + d2gammai23 * u2 * u3)
-          ); 
+          );
 
         vz._c(i,j,k) = -1.0*W*d3alpha + u1*d3beta1 + u2*d3beta2 + u3*d3beta3
           -0.5 / U0 * (
             d3gammai11 * u1 * u1 + d3gammai22 * u2 * u2 + d3gammai33 * u3 * u3
             + 2.0 * (d3gammai12 * u1 * u2 + d3gammai13 * u1 * u3 + d3gammai23 * u2 * u3)
           );
-      }  
+      }
 }
 
 void Sheet::stepInit()
