@@ -28,6 +28,10 @@ void SheetSim::setICs()
   {
     sheets_ic_sinusoid(bssnSim, sheetSim, iodata, tot_mass);
   }
+  else if(_config("ic_type", "") == "sinusoid_3d")
+  {
+    sheets_ic_sinusoid_3d(bssnSim, sheetSim, iodata, tot_mass);
+  }
   else
   {
     iodata->log("Unsupported IC type!");

@@ -16,6 +16,8 @@ namespace cosmo
   void sheets_ic_sinusoid(
     BSSN *bssnSim, Sheet *sheetSim, IOData * iodata, real_t & tot_mass);
 
+  void sheets_ic_sinusoid_3d(
+    BSSN *bssnSim, Sheet *sheetSim, IOData * iodata, real_t & tot_mass);
 
 }
 
