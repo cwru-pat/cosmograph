@@ -501,7 +501,7 @@ void sheets_ic_sinusoid(
 
   arr_t & Dx = sheetSim->Dx._array_p;
   
-  real_t A = sheetSim->lx*sheetSim->lx*std::stod(_config("peak_amplitude", "0.0001"));
+  real_t A = std::stod(_config("peak_amplitude", "0.0001"));
   iodata->log( "Generating ICs with peak amp. = " + stringify(A) );
 
   real_t rho_FRW = 3.0/PI/8.0;
