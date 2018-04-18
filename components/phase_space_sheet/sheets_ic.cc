@@ -501,7 +501,7 @@ void sheets_ic_sinusoid(
 
   arr_t & Dx = sheetSim->Dx._array_p;
   
-  real_t A = sheetSim->lx * sheetSim->lx * std::stod(_config("peak_amplitude", "0.0001"));
+  real_t A = sheetSim->lx*sheetSim->lx*std::stod(_config("peak_amplitude", "0.0001"));
   iodata->log( "Generating ICs with peak amp. = " + stringify(A) );
 
   real_t rho_FRW = 3.0/PI/8.0;
@@ -536,7 +536,7 @@ void sheets_ic_sinusoid(
     DIFFr_a[idx] = rho;
   }
 
-  int integration_points = sheetSim->ns1 * std::stod(_config("integration_points_per_dx", "1000"));
+  real_t integration_points = sheetSim->ns1 * std::stod(_config("integration_points_per_dx", "1000"));
   std::cout << "Setting initial conditions using " << integration_points << " integration_points" << std::endl;
   real_t integration_interval = sheetSim->lx / integration_points;
   tot_mass = 0;
@@ -555,8 +555,6 @@ void sheets_ic_sinusoid(
     real_t rootdetg = std::exp(6.0*phi);
 
     tot_mass += rho * integration_interval * sheetSim->ly * sheetSim->lz;
-    if(i%(integration_points/sheetSim->ns1) == 0)
-      std::cout<<x_frac<<" "<<rho<<" "<<phi<<" "<<A<<" "<<sin(2.0*PI*x_frac + phix)<<"\n";
   }
 
   real_t mass_per_tracer = tot_mass / (real_t) (sheetSim->ns1);
