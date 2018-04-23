@@ -554,7 +554,7 @@ void sheets_ic_sinusoid(
 
     real_t rootdetg = std::exp(6.0*phi);
 
-    tot_mass += rho * integration_interval * sheetSim->ly * sheetSim->lz;
+    tot_mass += rho * rootdetg * integration_interval * sheetSim->ly * sheetSim->lz;
   }
 
   real_t mass_per_tracer = tot_mass / (real_t) (sheetSim->ns1);
@@ -579,7 +579,7 @@ void sheets_ic_sinusoid(
 
     real_t rootdetg = std::exp(6.0*phi);
     
-    cur_mass += rho *  integration_interval * sheetSim->ly * sheetSim->lz;
+    cur_mass += rho * rootdetg *  integration_interval * sheetSim->ly * sheetSim->lz;
 
     if(cur_mass >= mass_per_tracer)
     {
