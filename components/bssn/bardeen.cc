@@ -142,7 +142,7 @@ void Bardeen::setPotentials(real_t elapsed_sim_time)
       + bd.beta1*derivative(i,j,k,1,dt_phi) + bd.beta2*derivative(i,j,k,2,dt_phi) + bd.beta3*derivative(i,j,k,3,dt_phi)
       + 1.0/6.0*dkdtbetak;
     #else
-    d2t_phi[idx] = -1.0/6.0*( dtalpha*(bd.K + 2.0 * bd.theta) + bd.alpha*(bssn->ev_DIFFK(&bd))
+    d2t_phi[idx] = -1.0/6.0*( dtalpha*(bd.K + 2.0 * bd.theta) + bd.alpha*(bssn->ev_DIFFK(&bd)))
       + dt_beta1[idx]*bd.d1phi + dt_beta2[idx]*bd.d2phi + dt_beta3[idx]*bd.d3phi
       + bd.beta1*derivative(i,j,k,1,dt_phi) + bd.beta2*derivative(i,j,k,2,dt_phi) + bd.beta3*derivative(i,j,k,3,dt_phi)
       + 1.0/6.0*dkdtbetak;    
