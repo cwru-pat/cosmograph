@@ -136,10 +136,18 @@ void Bardeen::setPotentials(real_t elapsed_sim_time)
     d2t_g33[idx] = D2T_g(3, 3);
 
     // stores d^2/dt^2 phi
+    #if USE_Z4c_DAMPING
     d2t_phi[idx] = -1.0/6.0*( dtalpha*(bd.K + 2.0 * bd.theta) + bd.alpha*(bssn->ev_DIFFK(&bd) + 2.0 * bssn->ev_theta(&bd)))
       + dt_beta1[idx]*bd.d1phi + dt_beta2[idx]*bd.d2phi + dt_beta3[idx]*bd.d3phi
       + bd.beta1*derivative(i,j,k,1,dt_phi) + bd.beta2*derivative(i,j,k,2,dt_phi) + bd.beta3*derivative(i,j,k,3,dt_phi)
       + 1.0/6.0*dkdtbetak;
+    #else
+    d2t_phi[idx] = -1.0/6.0*( dtalpha*(bd.K + 2.0 * bd.theta) + bd.alpha*(bssn->ev_DIFFK(&bd))
+      + dt_beta1[idx]*bd.d1phi + dt_beta2[idx]*bd.d2phi + dt_beta3[idx]*bd.d3phi
+      + bd.beta1*derivative(i,j,k,1,dt_phi) + bd.beta2*derivative(i,j,k,2,dt_phi) + bd.beta3*derivative(i,j,k,3,dt_phi)
+      + 1.0/6.0*dkdtbetak;    
+    #endif
+    
   }
   // set second derivative of a
   // a'' ~ H*a' + a*2\phi''
