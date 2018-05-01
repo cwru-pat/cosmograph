@@ -6,6 +6,8 @@ ic_type = sinusoid
 
 lapse = Harmonic
 
+KO_damping_coefficient = 0.0
+
 output_dir = phase_space_sheets_method_test
 
 ns1 = 64
