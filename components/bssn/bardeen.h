@@ -109,8 +109,8 @@ public:
     lin_viol_der_mag.init(NX, NY, NZ);
     lin_viol_der.init(NX, NY, NZ);
 
-    viols = new real_t[7];
-    for(int i=0; i<7; ++i)
+    viols = new real_t[10];
+    for(int i=0; i<10; ++i)
       viols[0] = 0;
 
     // add Bardeen potentials to BSSN fields map

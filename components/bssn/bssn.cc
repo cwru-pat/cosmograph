@@ -157,6 +157,48 @@ void BSSN::setKODampingCoefficient(real_t coefficient)
   KO_damping_coefficient = coefficient;
 }
 
+void BSSN::setExtraFieldData()
+{
+
+  K_min = min(DIFFK->_array_a);
+  K_avg = conformal_average(DIFFK->_array_p, DIFFphi->_array_p, frw->get_phi());
+  rho_avg = conformal_average(DIFFr_a, DIFFphi->_array_p, frw->get_phi());
+
+#if USE_GENERALIZED_NEWTON
+  idx_t i, j, k;
+
+  // real_t GN_eta = gaugeHandler->GN_eta;
+  // real_t GN_xi = gaugeHandler->GN_xi;
+ 
+# pragma omp parallel for default(shared) private(i, j, k)
+  LOOP3(i, j, k)
+  {
+    BSSNData bd = {0};
+    set_bd_values(i, j, k, &bd);
+    idx_t idx = bd.idx;
+
+    GNTensor11_a[idx] = GN_TENSOR(1, 1);
+    GNTensor12_a[idx] = GN_TENSOR(1, 2);
+    GNTensor13_a[idx] = GN_TENSOR(1, 3);
+    GNTensor22_a[idx] = GN_TENSOR(2, 2);
+    GNTensor23_a[idx] = GN_TENSOR(2, 3);
+    GNTensor33_a[idx] = GN_TENSOR(3, 3);
+  }
+
+# pragma omp parallel for default(shared) private(i, j, k)
+  LOOP3(i, j, k)
+  {
+    BSSNData bd = {0};
+    set_bd_values(i, j, k, &bd);
+    idx_t idx = bd.idx;
+    GNvar1_a[idx] = COSMO_SUMMATION_2_ARGS(SET_GN_VARIABLES, 1);
+    GNvar2_a[idx] = COSMO_SUMMATION_2_ARGS(SET_GN_VARIABLES, 2);
+    GNvar3_a[idx] = COSMO_SUMMATION_2_ARGS(SET_GN_VARIABLES, 3);
+  }
+#endif
+
+}
+
 /**
  * @brief Call RK4Register class step initialization; normalize Aij and DIFFgammaIJ fields
  * @details See RK4Register::stepInit() method.
@@ -164,10 +206,7 @@ void BSSN::setKODampingCoefficient(real_t coefficient)
 void BSSN::stepInit()
 {
   BSSN_RK_INITIALIZE; // macro calls stepInit for all fields
-
-  K_min = min(DIFFK->_array_a);
-  K_avg = conformal_average(DIFFK->_array_p, DIFFphi->_array_p, frw->get_phi());
-  rho_avg = conformal_average(DIFFr_a, DIFFphi->_array_p, frw->get_phi());
+  setExtraFieldData(); // Set extra field information (eg. derived field data for gauge conditions)
 
   if(normalize_metric)
     set_DIFFgamma_Aij_norm(); // norms metric in _a register
@@ -214,9 +253,7 @@ void BSSN::K1Finalize()
 {
   frw->P1_step(dt);
   BSSN_FINALIZE_K(1);
-  K_avg = conformal_average(DIFFK->_array_a, DIFFphi->_array_a, frw->get_phi());
-  K_min = min(DIFFK->_array_a);
-  rho_avg = conformal_average(DIFFr_a, DIFFphi->_array_p, frw->get_phi());
+  setExtraFieldData();
 }
 
 /**
@@ -227,9 +264,7 @@ void BSSN::K2Finalize()
 {
   frw->P2_step(dt);
   BSSN_FINALIZE_K(2);
-  K_avg = conformal_average(DIFFK->_array_a, DIFFphi->_array_a, frw->get_phi());
-  K_min = min(DIFFK->_array_a);
-  rho_avg = conformal_average(DIFFr_a, DIFFphi->_array_p, frw->get_phi());
+  setExtraFieldData();
 }
 
 /**
@@ -240,9 +275,7 @@ void BSSN::K3Finalize()
 {
   frw->P3_step(dt);
   BSSN_FINALIZE_K(3);
-  K_avg = conformal_average(DIFFK->_array_a, DIFFphi->_array_a, frw->get_phi());
-  K_min = min(DIFFK->_array_a);
-  rho_avg = conformal_average(DIFFr_a, DIFFphi->_array_p, frw->get_phi());
+  setExtraFieldData();
 }
 
 /**
@@ -253,9 +286,7 @@ void BSSN::K4Finalize()
 {
   frw->RK_total_step(dt);
   BSSN_FINALIZE_K(4);
-  K_avg = conformal_average(DIFFK->_array_f, DIFFphi->_array_f, frw->get_phi());
-  K_min = min(DIFFK->_array_a);
-  rho_avg = conformal_average(DIFFr_a, DIFFphi->_array_p, frw->get_phi());
+  setExtraFieldData();
 }
 
 /**
@@ -718,6 +749,16 @@ real_t BSSN::ev_Gamma3(BSSNData *bd) { return BSSN_DT_GAMMAI(3) - KO_dissipation
 
 real_t BSSN::ev_DIFFK(BSSNData *bd)
 {
+
+#if EXCLUDE_SECOND_ORDER_SMALL
+  return (
+    - bd->DDaTR
+    + bd->alpha/3.0*bd->DIFFK*(bd->DIFFK + 2.0*bd->K_FRW)
+    + 4.0*PI*(bd->DIFFr + bd->DIFFS)
+    + 4.0*PI*bd->DIFFalpha*(bd->rho_FRW + bd->S_FRW)
+  );
+#endif
+
   return (
     - bd->DDaTR
     + bd->alpha*(
@@ -726,13 +767,11 @@ real_t BSSN::ev_DIFFK(BSSNData *bd)
     )
     + 4.0*PI*bd->alpha*(bd->DIFFr + bd->DIFFS)
     + 4.0*PI*bd->DIFFalpha*(bd->rho_FRW + bd->S_FRW)
-    //    + bd->beta1*bd->d1K + bd->beta2*bd->d2K + bd->beta3*bd->d3K
 #if USE_BSSN_SHIFT
     + upwind_derivative(bd->i, bd->j, bd->k, 1, DIFFK->_array_a,  bd->beta1)
     + upwind_derivative(bd->i, bd->j, bd->k, 2, DIFFK->_array_a,  bd->beta2)
     + upwind_derivative(bd->i, bd->j, bd->k, 3, DIFFK->_array_a,  bd->beta3)
 #endif
-
     - 1.0*k_damping_amp*bd->H*exp(-5.0*bd->phi)
     + Z4c_K1_DAMPING_AMPLITUDE*(1.0 - Z4c_K2_DAMPING_AMPLITUDE)*bd->theta
     - KO_dissipation_Q(bd->i, bd->j, bd->k, DIFFK->_array_a, KO_damping_coefficient)
@@ -741,6 +780,13 @@ real_t BSSN::ev_DIFFK(BSSNData *bd)
 
 real_t BSSN::ev_DIFFphi(BSSNData *bd)
 {
+#if EXCLUDE_SECOND_ORDER_SMALL
+  return -1.0/6.0*(
+      bd->alpha*bd->DIFFK
+      + bd->DIFFalpha*bd->K_FRW
+    );
+#endif
+
   return (
     0.1*a_adj_amp*dt*bd->H
     -1.0/6.0*(
@@ -748,13 +794,11 @@ real_t BSSN::ev_DIFFphi(BSSNData *bd)
       + bd->DIFFalpha*bd->K_FRW
       - ( bd->d1beta1 + bd->d2beta2 + bd->d3beta3 )
     )
-    //    + bd->beta1*bd->d1phi + bd->beta2*bd->d2phi + bd->beta3*bd->d3phi
 #if USE_BSSN_SHIFT
     + upwind_derivative(bd->i, bd->j, bd->k, 1, DIFFphi->_array_a,  bd->beta1)
     + upwind_derivative(bd->i, bd->j, bd->k, 2, DIFFphi->_array_a,  bd->beta2)
     + upwind_derivative(bd->i, bd->j, bd->k, 3, DIFFphi->_array_a,  bd->beta3)
 #endif
-
     - KO_dissipation_Q(bd->i, bd->j, bd->k, DIFFphi->_array_a, KO_damping_coefficient)
   );
 }
@@ -767,7 +811,6 @@ real_t BSSN::ev_DIFFalpha(BSSNData *bd)
     + upwind_derivative(bd->i, bd->j, bd->k, 2, DIFFalpha->_array_a, bd->beta2)
     + upwind_derivative(bd->i, bd->j, bd->k, 3, DIFFalpha->_array_a, bd->beta3)
 #endif
-
     - KO_dissipation_Q(bd->i, bd->j, bd->k, DIFFalpha->_array_a, KO_damping_coefficient);
 }
 

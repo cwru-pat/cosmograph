@@ -54,6 +54,7 @@ public:
   void setKODampingCoefficient(real_t KO_damping_coefficient_in);
 
   /* RK integrator functions */
+    void setExtraFieldData();
     void stepInit();
     void RKEvolve();
     void RKEvolvePt(idx_t i, idx_t j, idx_t k, BSSNData * bd);

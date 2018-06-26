@@ -414,13 +414,17 @@ void Bardeen::setPotentials(real_t elapsed_sim_time)
   viols[5] = dadt / (-1.0/3.0*a*alpha_avg*K_avg);
   viols[6] = d2adt2 / ( H*dadt + 2.0*a*conformal_average(d2t_phi, DIFFphi_a, 0.0) );
 
+  viols[7] = a / exp( 2.0*average(DIFFphi_a) );
+  viols[8] = dadt / (-1.0/3.0*a*alpha_avg*average(DIFFK_a));
+  viols[9] = d2adt2 / ( H*dadt + 2.0*a*average(d2t_phi) );
+
   // TODO: Does ( G - a*dt_C ) ~ 1/a^2 ? (vector modes)
 }
 
 
 void Bardeen::getSVTViolations(real_t * viols_copyto)
 {
-  for(int i=0; i<7; ++i)
+  for(int i=0; i<10; ++i)
     viols_copyto[i] = viols[i];
 }
 

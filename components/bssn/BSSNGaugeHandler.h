@@ -37,7 +37,7 @@ private:
 
   // defining vector term in the bracket, see notes
 #if USE_GENERALIZED_NEWTON
-  arr_t *t_in1, *t_in2, *t_in3;
+  arr_t *GNvar1, *GNvar2, *GNvar3;
 #endif
 
   // Generic, not evolving gauge
@@ -177,7 +177,6 @@ public:
 #if USE_GENERALIZED_NEWTON
     _initGeneralizedNewtonParameters(config);
 #endif
-    std::cout<<"here!\n";
     setLapseFn((*config)("lapse", "Static"));
     setShiftFn((*config)("shift", "Static"));
 

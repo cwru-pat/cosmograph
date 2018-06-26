@@ -49,7 +49,7 @@
   #define USE_GAMMA_DRIVER false
 #endif
 
-// Gamma-driver gauge settings (must turn on bssn_shift as well)
+// Generalized Newtonian gauge setting
 #ifndef USE_GENERALIZED_NEWTON
   #define USE_GENERALIZED_NEWTON false
 #endif

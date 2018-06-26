@@ -168,6 +168,7 @@ class RK4Register
       for(IT i=0; i<points; ++i)
       {
         _array_f[i] += sim_dt*_array_c[i]/6.0 + _array_p[i];
+        _array_c[i] = _array_f[i];
         _array_p[i] = _array_f[i];
       }
 

@@ -17,19 +17,3 @@
     d##I##gammai23_a(i, j, k) = -4.0*derivative(i, j, k, I, DIFFphi_a)*gammai23 \
   + std::exp(-4.0*DIFFphi_a(i, j, k))*(derivative(i, j, k, I, DIFFgamma12_a)*DIFFgamma13_a(i, j, k) + DIFFgamma12_a(i, j, k)*derivative(i, j, k, I, DIFFgamma13_a) - derivative(i, j, k, I, DIFFgamma23_a)*(1.0 + DIFFgamma11_a(i, j, k)) - DIFFgamma23_a(i, j, k)*derivative(i, j, k, I, DIFFgamma11_a)) 
 
-#define GN_TENSOR(I, J)                                     \
-  (bd.alpha * bd.ricciTF##I##J - bd.D##I##D##J##aTF          \
-   + GN_xi * bd.A##I##J  * exp(4.0 * bd.phi))
-
-#define SET_GN_VARIABLES(J, K, I)               \
-  exp(-4.0 * bd.phi) * bd.gammai##J##K *        \
-  (derivative(i, j, k, K, GNTensor##I##J##_a)                           \
-   -                                                                    \
-   (bd.G1##K##I * bd.GNTensor1##J                                       \
-    + bd.G2##K##I * bd.GNTensor2##J                                     \
-    + bd.G3##K##I * bd.GNTensor3##J)                                    \
-   -                                                                    \
-   (bd.G1##K##J * bd.GNTensor##I##1                                     \
-    + bd.G2##K##J * bd.GNTensor##I##2                                   \
-    + bd.G3##K##J * bd.GNTensor##I##3))                        
-  

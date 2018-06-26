@@ -158,7 +158,7 @@ void dust_ic_set_sinusoid(BSSN * bssn, Static * dust, Fourier * fourier,
   // d^2 exp(\phi) = -2*pi exp(5\phi) * \delta_rho
   // generate random mode in \phi
   // delta_rho = -(lap e^\phi)/e^(4\phi)/2pi
-  real_t phix = 2.77;
+  real_t phix = 1.77;
   real_t twopi_L = 2.0*PI/H_LEN_FRAC;
   real_t pw2_twopi_L = twopi_L*twopi_L;
   // grid values
