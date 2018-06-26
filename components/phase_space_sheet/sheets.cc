@@ -327,6 +327,19 @@ void Sheet::addBSSNSource(BSSN *bssn, real_t tot_mass)
   arr_t & DIFFgamma12_a = *bssn->fields["DIFFgamma12_a"];
   arr_t & DIFFgamma13_a = *bssn->fields["DIFFgamma13_a"];
   arr_t & DIFFgamma23_a = *bssn->fields["DIFFgamma23_a"];
+
+#if USE_GENERALIZED_NEWTON
+  arr_t & GNTensor11_a = *bssn->fields["GNTensor11_a"];
+  arr_t & GNTensor12_a = *bssn->fields["GNTensor12_a"];
+  arr_t & GNTensor13_a = *bssn->fields["GNTensor13_a"];
+  arr_t & GNTensor22_a = *bssn->fields["GNTensor22_a"];
+  arr_t & GNTensor23_a = *bssn->fields["GNTensor23_a"];
+  arr_t & GNTensor33_a = *bssn->fields["GNTensor33_a"];
+
+  arr_t & GNvar1_a = *bssn->fields["GNvar1_a"];
+  arr_t & GNvar2_a = *bssn->fields["GNvar2_a"];
+  arr_t & GNvar3_a = *bssn->fields["GNvar3_a"];
+#endif
   
   idx_t num_x_carriers, num_y_carriers, num_z_carriers;
 
@@ -487,13 +500,46 @@ void Sheet::addBSSNSource(BSSN *bssn, real_t tot_mass)
       }
 
   idx_t i, j, k;
+
+#if USE_GENERALIZED_NEWTON
+  real_t GN_eta = bssn->gaugeHandler->GN_eta;
+  real_t GN_xi = bssn->gaugeHandler->GN_xi;
+#endif
+  
 # pragma omp parallel for default(shared) private(i, j, k)
   LOOP3(i, j, k)
   {
     BSSNData bd = {0};
     bssn->set_bd_values(i, j, k, &bd);
     bssn->enforceTFSIJ(&bd);
+
+#if USE_GENERALIZED_NEWTON
+  idx_t idx = bd.idx;
+
+  GNTensor11_a[idx] = GN_TENSOR(1, 1);
+  GNTensor12_a[idx] = GN_TENSOR(1, 2);
+  GNTensor13_a[idx] = GN_TENSOR(1, 3);
+  GNTensor22_a[idx] = GN_TENSOR(2, 2);
+  GNTensor23_a[idx] = GN_TENSOR(2, 3);
+  GNTensor33_a[idx] = GN_TENSOR(3, 3);
+  
+#endif
   }
+
+
+#if USE_GENERALIZED_NEWTON
+
+# pragma omp parallel for default(shared) private(i, j, k)
+  LOOP3(i, j, k)
+  {
+    BSSNData bd = {0};
+    bssn->set_bd_values(i, j, k, &bd);
+    idx_t idx = bd.idx;
+    GNvar1_a[idx] = COSMO_SUMMATION_2_ARGS(SET_GN_VARIABLES, 1);
+    GNvar2_a[idx] = COSMO_SUMMATION_2_ARGS(SET_GN_VARIABLES, 2);
+    GNvar3_a[idx] = COSMO_SUMMATION_2_ARGS(SET_GN_VARIABLES, 3);
+  }
+#endif
 
   _timer["_pushsheetToStressTensor"].stop();
 }

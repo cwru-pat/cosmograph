@@ -12,8 +12,6 @@ namespace cosmo
  */
 BSSN::BSSN(ConfigParser * config)
 {
-  gaugeHandler = new BSSNGaugeHandler(config, this);
-
   KO_damping_coefficient = std::stod((*config)("KO_damping_coefficient", "0.0"));
   a_adj_amp = std::stod((*config)("a_adj_amp", "0.0"));
   k_damping_amp = std::stod((*config)("k_damping_amp", "0.0"));
@@ -36,6 +34,8 @@ BSSN::BSSN(ConfigParser * config)
   BSSN_APPLY_TO_GEN1_EXTRAS(GEN1_ARRAY_ADDMAP)
 
   init();
+
+  gaugeHandler = new BSSNGaugeHandler(config, this);
 }
 
 BSSN::~BSSN()
@@ -622,7 +622,7 @@ void BSSN::calculateRicciTF(BSSNData *bd)
   bd->ricciTF22 = bd->ricci22 - (1.0/3.0)*exp(4.0*bd->phi)*bd->gamma22*bd->ricci;
   bd->ricciTF23 = bd->ricci23 - (1.0/3.0)*exp(4.0*bd->phi)*bd->gamma23*bd->ricci;
   bd->ricciTF33 = bd->ricci33 - (1.0/3.0)*exp(4.0*bd->phi)*bd->gamma33*bd->ricci;
-
+  
   return;
 }
 

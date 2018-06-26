@@ -4,6 +4,7 @@
 #include "../../cosmo_globals.h"
 #include <map>
 #include <cmath>
+#include "../../utils/math.h"
 
 namespace cosmo
 {
@@ -26,6 +27,35 @@ real_t BSSNGaugeHandler::HarmonicLapse(BSSNData *bd)
   return -1.0*pw2(bd->alpha)*( bd->K - bd->K_avg );
 }
 
+/**
+ * @brief Generalized Newton, see notes
+ */
+#if USE_GENERALIZED_NEWTON
+real_t BSSNGaugeHandler::GeneralizedNewton(BSSNData *bd)
+{
+  return GN_eta * exp(-4.0 * bd->phi) * (bd->gammai11 * (derivative(bd->i, bd->j, bd->k, 1, (*t_in1))
+         - (bd->G111 * (*t_in1)[bd->idx] + bd->G211 * (*t_in2)[bd->idx] + bd->G311 * (*t_in3)[bd->idx] ))
+    + bd->gammai22 * (derivative(bd->i, bd->j, bd->k, 2, (*t_in2))
+         - (bd->G122 * (*t_in1)[bd->idx] + bd->G222 * (*t_in2)[bd->idx] + bd->G322 * (*t_in3)[bd->idx] ))
+    + bd->gammai33 * (derivative(bd->i, bd->j, bd->k, 3, (*t_in3))
+         - (bd->G133 * (*t_in1)[bd->idx] + bd->G233 * (*t_in2)[bd->idx] + bd->G333 * (*t_in3)[bd->idx] ))
+    
+    + bd->gammai12 * (derivative(bd->i, bd->j, bd->k, 1, (*t_in2))
+         - (bd->G112 * (*t_in1)[bd->idx] + bd->G212 * (*t_in2)[bd->idx] + bd->G312 * (*t_in3)[bd->idx] ))
+    + bd->gammai13 * (derivative(bd->i, bd->j, bd->k, 1, (*t_in3))
+         - (bd->G113 * (*t_in1)[bd->idx] + bd->G213 * (*t_in2)[bd->idx] + bd->G313 * (*t_in3)[bd->idx] ))
+    + bd->gammai23 * (derivative(bd->i, bd->j, bd->k, 2, (*t_in3))
+         - (bd->G123 * (*t_in1)[bd->idx] + bd->G223 * (*t_in2)[bd->idx] + bd->G323 * (*t_in3)[bd->idx] ))
+    
+    + bd->gammai21 * (derivative(bd->i, bd->j, bd->k, 2, (*t_in1))
+         - (bd->G121 * (*t_in1)[bd->idx] + bd->G221 * (*t_in2)[bd->idx] + bd->G321 * (*t_in3)[bd->idx] ))
+    + bd->gammai31 * (derivative(bd->i, bd->j, bd->k, 3, (*t_in1))
+         - (bd->G131 * (*t_in1)[bd->idx] + bd->G231 * (*t_in2)[bd->idx] + bd->G331 * (*t_in3)[bd->idx] ))
+    + bd->gammai32 * (derivative(bd->i, bd->j, bd->k, 3, (*t_in2))
+                      - (bd->G132 * (*t_in1)[bd->idx] + bd->G232 * (*t_in2)[bd->idx] + bd->G332 * (*t_in3)[bd->idx] )) );
+}
+#endif
+  
 
 /**
  * @brief Experimental gauge choice, quasi-newtonian
@@ -49,6 +79,13 @@ real_t BSSNGaugeHandler::OnePlusLogLapse(BSSNData *bd)
     //      + bd->beta1*bd->d1a + bd->beta2*bd->d2a + bd->beta3*bd->d3a;
 }
 
+#if USE_MAXIMAL_SLICING
+real_t BSSNGaugeHandler::MaximalSlicingLapse(BSSNData *bd)
+{
+  return m_alpha
+}    
+#endif
+  
 
 /**
  * @brief Untested/experimental gauge choice; conformal synchronous gauge
@@ -244,5 +281,17 @@ real_t BSSNGaugeHandler::AijDriverShift3(BSSNData *bd)
 {
   return -k_driver_coeff*( std::abs(bssn->ev_A13(bd) + bd->A13) + std::abs(bssn->ev_A23(bd) + bd->A23) + std::abs(bssn->ev_A33(bd) + bd->A33) );
 }
+
+#if USE_GENERALIZED_NEWTON
+void BSSNGaugeHandler::_initGeneralizedNewtonParameters(ConfigParser *config)
+{
+  GN_eta = std::stod((*config)("GN_eta", "0.001"));
+  GN_xi = std::stod((*config)("GN_xi", "0.1"));
+  t_in1 = bssn->fields["GNvar1_a"];
+  t_in2 = bssn->fields["GNvar2_a"];
+  t_in3 = bssn->fields["GNvar3_a"];
+}
+#endif
+
 
 } // namespace cosmo

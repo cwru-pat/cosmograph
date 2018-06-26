@@ -35,6 +35,11 @@ private:
   bssn_gauge_func_t shift_fn2; ///< Shift evolution function
   bssn_gauge_func_t shift_fn3; ///< Shift evolution function
 
+  // defining vector term in the bracket, see notes
+#if USE_GENERALIZED_NEWTON
+  arr_t *t_in1, *t_in2, *t_in3;
+#endif
+
   // Generic, not evolving gauge
   real_t Static(BSSNData *bd);
 
@@ -44,7 +49,10 @@ private:
   // 1+log gauge slicing
   real_t gd_c; ///< Tunable gauge parameter
   real_t OnePlusLogLapse(BSSNData *bd);
-
+#if USE_GENERALIZED_NEWTON
+  real_t GeneralizedNewton(BSSNData *bd);
+#endif
+  
   // Untested/experimental lapses
   real_t AnharmonicLapse(BSSNData *bd);
   real_t ConformalSyncLapse(BSSNData *bd);
@@ -87,6 +95,9 @@ private:
     // Lapse functions
     lapse_gauge_map["Static"] = &BSSNGaugeHandler::Static;
     lapse_gauge_map["Harmonic"] = &BSSNGaugeHandler::HarmonicLapse;
+#if USE_GENERALIZED_NEWTON
+    lapse_gauge_map["GeneralizedNewton"] = &BSSNGaugeHandler::GeneralizedNewton;
+#endif
     lapse_gauge_map["Anharmonic"] = &BSSNGaugeHandler::AnharmonicLapse;
     lapse_gauge_map["OnePlusLog"] = &BSSNGaugeHandler::OnePlusLogLapse;
     lapse_gauge_map["DampedWave"] = &BSSNGaugeHandler::DampedWaveLapse;
@@ -132,8 +143,13 @@ private:
     k_driver_coeff = std::stod((*config)("k_driver_coeff", "0.04"));
   }
 
+#if USE_GENERALIZED_NEWTON
+  void _initGeneralizedNewtonParameters(ConfigParser *config);
+#endif
+  
 public:
 
+  real_t GN_eta, GN_xi;
   /**
    * @brief Initialize with static, non-evolving gauge
    */
@@ -142,6 +158,9 @@ public:
     ConfigParser emptyConfig;
     _initGaugeMaps();
     _initDefaultParameters(&emptyConfig);
+#if USE_GENERALIZED_NEWTON
+    _initGeneralizedNewtonParameters(&emptyConfig);
+#endif
     setLapseFn("Static");
     setShiftFn("Static");
   }
@@ -151,12 +170,17 @@ public:
    */
   BSSNGaugeHandler(ConfigParser *config, BSSN *bssnSim)
   {
+    bssn = bssnSim;
+        
     _initGaugeMaps();
     _initDefaultParameters(config);
+#if USE_GENERALIZED_NEWTON
+    _initGeneralizedNewtonParameters(config);
+#endif
+    std::cout<<"here!\n";
     setLapseFn((*config)("lapse", "Static"));
     setShiftFn((*config)("shift", "Static"));
 
-    bssn = bssnSim;
   }
 
   /**
@@ -172,8 +196,10 @@ public:
 
     std::cout << "Using lapse: `" << name << "`.\n";
     lapse_fn = lapse_gauge_map[name];
-  }
 
+  }
+  
+  
   /**
    * @brief Set the shift function
    */

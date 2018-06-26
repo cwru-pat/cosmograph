@@ -49,6 +49,12 @@
   #define USE_GAMMA_DRIVER false
 #endif
 
+// Gamma-driver gauge settings (must turn on bssn_shift as well)
+#ifndef USE_GENERALIZED_NEWTON
+  #define USE_GENERALIZED_NEWTON false
+#endif
+
+
 // Optionally exclude some second-order terms
 #ifndef EXCLUDE_SECOND_ORDER_SMALL
   #define EXCLUDE_SECOND_ORDER_SMALL false

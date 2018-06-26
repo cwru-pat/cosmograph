@@ -81,6 +81,13 @@ if(DEFINED COSMO_USE_Z4c_DAMPING)
   message(STATUS "${Cyan}Setting USE_Z4c_DAMPING=${COSMO_USE_Z4c_DAMPING}.${ColorReset}")
 endif()
 
+# Generalized Newton gauge? see notes
+if(DEFINED COSMO_USE_GENERALIZED_NEWTON)
+  add_definitions(-DUSE_Z4c_DAMPING=${COSMO_USE_GENERALIZED_NEWTON})
+  message(STATUS "${Cyan}Setting USE_GENERALIZED_NEWTON=${COSMO_USE_GENERALIZED_NEWTON}.${ColorReset}")
+endif()
+
+
 # Remove these from cache
 unset(COSMO_N CACHE)
 unset(COSMO_NX CACHE)

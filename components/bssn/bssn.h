@@ -27,7 +27,6 @@ class BSSN
   BSSN_APPLY_TO_SOURCES(GEN1_ARRAY_CREATE)
   BSSN_APPLY_TO_GEN1_EXTRAS(GEN1_ARRAY_CREATE)
 
-  BSSNGaugeHandler * gaugeHandler;
 
   real_t KO_damping_coefficient; ///< KO_dissipation coefficient amplitude (default 0)
   real_t k_damping_amp; ///< Additional "K"-damping (default 0)
@@ -35,7 +34,9 @@ class BSSN
   real_t gd_eta; ///< Gamma driver "eta" parameter
   int normalize_metric; ///< Normalize A_ij and \gamma_ij? Default: 1 (true)
 
+  
 public:
+  BSSNGaugeHandler * gaugeHandler;
   map_t fields; ///< Public map from names to internal arrays
 
   // Standard FRW spacetime integrator - for a reference metric
