@@ -19,6 +19,7 @@ class CosmoSim
 protected:
   idx_t step;
   idx_t num_steps;
+  real_t avg_vol_i;
   bool dt_flip;
   idx_t dt_flip_step;
   real_t t; ///< Time @ current step

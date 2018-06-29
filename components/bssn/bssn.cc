@@ -168,7 +168,8 @@ void BSSN::stepInit()
   K_min = min(DIFFK->_array_a);
   K_avg = conformal_average(DIFFK->_array_p, DIFFphi->_array_p, frw->get_phi());
   rho_avg = conformal_average(DIFFr_a, DIFFphi->_array_p, frw->get_phi());
-
+  avg_vol = volume_average(DIFFphi->_array_p, frw->get_phi());
+  
   if(normalize_metric)
     set_DIFFgamma_Aij_norm(); // norms metric in _a register
 }
