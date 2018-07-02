@@ -1,6 +1,8 @@
 steps = 2560000
 dt_frac = 0.4
 
+KO_damping_coefficient = 0.01
+
 simulation_type = dust
 ic_type = sinusoid
 peak_amplitude_frac = 0.000025

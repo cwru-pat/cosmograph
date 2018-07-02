@@ -43,14 +43,16 @@ do_runs () {
   sed -i -E "s/SVT_constraint_interval = [0-9]+/SVT_constraint_interval = $IO_INT/g" $TMP_CONFIG_FILE
   sed -i -E "s/peak_amplitude = [\.0-9]+/peak_amplitude = $MODE_AMPLITUDE/g" $TMP_CONFIG_FILE
   sed -i -E "s/lapse = [a-zA-Z]+/lapse = $GAUGE/g" $TMP_CONFIG_FILE
-  sed -i -E "s/dt_frac = [\.0-9]+/dt_frac = 0.05/g" $TMP_CONFIG_FILE
+  sed -i -E "s/dt_frac = [\.0-9]+/dt_frac = 0.001/g" $TMP_CONFIG_FILE
 
   DIR="sheet_run-L_$BOX_LENGTH-r_$RES_STR-Odx_$METHOD_ORDER-cpdx_$CARRIERS_PER_DX-ccs_$CARRIER_COUNT_SCHEME-ds_$DEPOSIT_SCHEME-A_$MODE_AMPLITUDE_$GAUGE"
   sed -i -E "s,output_dir = [[:alnum:]_-\./]+,output_dir = $DIR,g" $TMP_CONFIG_FILE
   mkdir -p $DIR
   printf "Performing run with settings in dir $DIR.\n"
 
-  cmake .. -DCOSMO_N=$RES_INT -DCOSMO_NY=1 -DCOSMO_NZ=1 -DCOSMO_USE_GENERALIZED_NEWTON=1 -DCOSMO_STENCIL_ORDER=$METHOD_ORDER -DCOSMO_USE_REFERENCE_FRW=0 -DCOSMO_H_LEN_FRAC=$BOX_LENGTH && make -j24
+  cmake .. -DCOSMO_N=$RES_INT -DCOSMO_NY=1 -DCOSMO_NZ=1 -DCOSMO_USE_GENERALIZED_NEWTON=1\
+     -DCOSMO_STENCIL_ORDER=$METHOD_ORDER -DCOSMO_USE_REFERENCE_FRW=0 -DCOSMO_H_LEN_FRAC=$BOX_LENGTH\
+     -DCOSMO_USE_Z4c_DAMPING=1 && make -j24
   if [ $? -ne 0 ]; then
     echo "Error: compilation failed!"
   else
@@ -60,5 +62,7 @@ do_runs () {
 
 do_runs 0.5 "0016" 4 1 1 4 0.002 GeneralizedNewton
 do_runs 0.5 "0032" 8 1 1 4 0.002 GeneralizedNewton
+do_runs 0.5 "0064" 16 1 1 4 0.002 GeneralizedNewton
+do_runs 0.5 "0128" 32 1 1 4 0.002 GeneralizedNewton
 
 rm $TMP_CONFIG_FILE
