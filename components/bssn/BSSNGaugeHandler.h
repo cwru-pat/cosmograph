@@ -43,7 +43,9 @@ private:
 
   // 1+log gauge slicing
   real_t gd_c; ///< Tunable gauge parameter
+  real_t exp_sync_gauge_c;
   real_t OnePlusLogLapse(BSSNData *bd);
+  real_t ExpansionSyncLapse(BSSNData *bd);
 
   // Untested/experimental lapses
   real_t AnharmonicLapse(BSSNData *bd);
@@ -87,6 +89,7 @@ private:
     // Lapse functions
     lapse_gauge_map["Static"] = &BSSNGaugeHandler::Static;
     lapse_gauge_map["Harmonic"] = &BSSNGaugeHandler::HarmonicLapse;
+    lapse_gauge_map["ExpansionLapse"] = &BSSNGaugeHandler::ExpansionSyncLapse;
     lapse_gauge_map["Anharmonic"] = &BSSNGaugeHandler::AnharmonicLapse;
     lapse_gauge_map["OnePlusLog"] = &BSSNGaugeHandler::OnePlusLogLapse;
     lapse_gauge_map["DampedWave"] = &BSSNGaugeHandler::DampedWaveLapse;
@@ -129,6 +132,8 @@ private:
     dw_p = std::stod((*config)("dw_p", "0.0"));
     gd_c = std::stod((*config)("gd_c", "1.0"));
 
+    exp_sync_gauge_c = std::stod((*config)("exp_sync_gauge_c", "1.0"));
+    
     k_driver_coeff = std::stod((*config)("k_driver_coeff", "0.04"));
   }
 

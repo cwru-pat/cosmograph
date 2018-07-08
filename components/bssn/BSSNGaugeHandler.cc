@@ -49,6 +49,15 @@ real_t BSSNGaugeHandler::OnePlusLogLapse(BSSNData *bd)
     //      + bd->beta1*bd->d1a + bd->beta2*bd->d2a + bd->beta3*bd->d3a;
 }
 
+/**
+ * @brief 1 + log slicing
+ */
+real_t BSSNGaugeHandler::ExpansionSyncLapse(BSSNData *bd)
+{
+  return exp_sync_gauge_c * pow(3.0 * bssn->cur_t / 2.0, -1.0/3.0); 
+    //      + bd->beta1*bd->d1a + bd->beta2*bd->d2a + bd->beta3*bd->d3a;
+}
+
 
 /**
  * @brief Untested/experimental gauge choice; conformal synchronous gauge

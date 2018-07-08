@@ -44,6 +44,8 @@ public:
   real_t K_avg, rho_avg;
   real_t K_min;
 
+  real_t cur_t;
+  
   real_t avg_vol;
 
   BSSN(ConfigParser * config);

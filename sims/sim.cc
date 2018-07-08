@@ -179,6 +179,8 @@ void CosmoSim::prepBSSNOutput()
 
   if(use_bardeen)
     bardeen->setPotentials(t);
+
+  bssnSim->cur_t = t;
 }
 
 void CosmoSim::outputStateInformation()
