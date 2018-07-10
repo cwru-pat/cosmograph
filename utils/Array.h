@@ -116,6 +116,36 @@ class CosmoArray
       return max_res;
     }
 
+    RT abs_max()
+    {
+      RT max_res = 0;
+#pragma omp parallel for
+      for(IT i = 0; i<pts; i++)
+      {
+#pragma omp critical
+        {
+          if(fabs(_array[i]) > max_res)
+            max_res = fabs(_array[i]);
+        }
+      }
+
+      return max_res;
+    }
+
+  
+  RT L2_norm()
+  {
+    RT L2 = 0;
+#pragma omp parallel for reduction(+:L2)
+    for(IT i=0; i<pts; ++i)
+    {
+      L2 += _array[i] * _array[i];
+    }
+
+    return sqrt(L2);
+  }
+
+  
     IT idx(IT i_in, IT j_in, IT k_in)
     {
       IT i=i_in, j=j_in, k=k_in;

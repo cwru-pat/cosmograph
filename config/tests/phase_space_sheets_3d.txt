@@ -1,0 +1,57 @@
+steps = 1
+
+simulation_type = sheets
+ic_type = sinusoid_3d
+
+lapse = Static
+
+output_dir = phase_space_sheets_method_test_3d
+
+dt_frac = 0.2
+
+ns1 = 32
+ns2 = 32
+ns3 = 32
+
+verbosity = 0
+
+damping_coef = 0.01
+precision_goal = 0.000001
+
+deposit_scheme = 1
+carrier_count_scheme = 1
+
+carriers_per_dx = 4
+carriers_per_dy = 4
+carriers_per_dz = 4
+
+peak_amplitude = 0.005
+a_adj_amp = 0.0
+
+integration_points_per_dx = 64
+
+IO_bssnstats_interval = 100
+dump_file = calculated
+
+omp_num_threads = 10
+
+IO_1D_grid_interval = 100
+IO_1D_DIFFr_a = 1
+IO_1D_DIFFphi_a = 1
+IO_1D_DIFFS_a = 1
+IO_1D_S1_a = 1       
+IO_1D_Gamma1_a = 1
+IO_1D_DIFFK_a = 1
+IO_1D_ricci_a = 1
+IO_1D_A11_a = 1
+IO_1D_AijAij_a = 1
+IO_1D_DIFFgamma11_a = 1
+
+IO_3D_grid_interval = 1000
+IO_sheets_displacement_x = 1
+IO_sheets_velocity_x = 1
+
+IO_constraint_interval = 10
+IO_constraint_snapshot_interval = 100
+use_bardeen = 1
+SVT_constraint_interval = 1000
