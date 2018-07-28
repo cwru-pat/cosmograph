@@ -44,3 +44,6 @@ IO_sheets_velocity_x = 1
 IO_constraint_interval = 1000
 use_bardeen = 1
 SVT_constraint_interval = 1000
+
+
+GN_eta = 0.000001
