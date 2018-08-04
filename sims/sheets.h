@@ -3,6 +3,7 @@
 
 #include "sim.h"
 #include "../components/phase_space_sheet/sheets.h"
+#include "../components/Lambda/lambda.h"
 
 
 namespace cosmo
@@ -15,6 +16,7 @@ class SheetSim : public CosmoSim
 {
 protected:
   Sheet * sheetSim;
+  Lambda * lambda;
   real_t tot_mass;
   
 public:
@@ -29,6 +31,7 @@ public:
       delete bardeen;
     }
     delete sheetSim;
+    delete lambda;
   }
 
   void init();

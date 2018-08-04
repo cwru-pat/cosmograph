@@ -495,6 +495,7 @@ void Sheet::addBSSNSource(BSSN *bssn, real_t tot_mass)
     bssn->enforceTFSIJ(&bd);
   }
 
+
   _timer["_pushsheetToStressTensor"].stop();
 }
 

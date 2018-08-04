@@ -487,7 +487,7 @@ void sheets_ic_sinusoid_3d(
 }
 
 void sheets_ic_sinusoid(
-  BSSN *bssnSim, Sheet *sheetSim, IOData * iodata, real_t & tot_mass)
+  BSSN *bssnSim, Sheet *sheetSim, Lambda * lambda, IOData * iodata, real_t & tot_mass)
 {
   iodata->log("Setting sinusoidal ICs.");
   idx_t i, j, k;
@@ -504,10 +504,17 @@ void sheets_ic_sinusoid(
   real_t A = sheetSim->lx*sheetSim->lx*std::stod(_config("peak_amplitude", "0.0001"));
   iodata->log( "Generating ICs with peak amp. = " + stringify(A) );
 
+  real_t K_FRW = -3.0;
   real_t rho_FRW = 3.0/PI/8.0;
-  real_t K_FRW = -sqrt(24.0*PI*rho_FRW);
-  iodata->log( "FRW density is " + stringify(rho_FRW) + ", total mass in simulation volume is "
-    + stringify(rho_FRW*sheetSim->lx*sheetSim->ly*sheetSim->lz));
+  
+  real_t Omega_L = std::stod(_config("Omega_L", "0.0"));
+  real_t rho_m = (1.0 - Omega_L) * rho_FRW;
+  real_t rho_L = Omega_L * rho_FRW;
+  lambda->setLambda(rho_L);
+
+  iodata->log( "Total density is " + stringify(rho_FRW) + ". Matter density is "
+    + stringify(rho_m) + ", total matter mass in simulation volume is "
+    + stringify(rho_m*sheetSim->lx*sheetSim->ly*sheetSim->lz));
 
   // the conformal factor in front of metric is the solution to
   // d^2 exp(\phi) = -2*pi exp(5\phi) * \delta_rho
@@ -525,7 +532,7 @@ void sheets_ic_sinusoid(
 
     real_t x_frac = ((real_t) i / (real_t) NX);
     real_t phi = A*sin(2.0*PI*x_frac + phix);
-    real_t rho = rho_FRW + -exp(-4.0*phi)/PI/2.0*(
+    real_t rho = rho_m + -exp(-4.0*phi)/PI/2.0*(
       pw2(twopi_L*A*cos(2.0*PI*x_frac + phix))
       - pw2_twopi_L*A*sin(2.0*PI*x_frac + phix)
     );
@@ -547,7 +554,7 @@ void sheets_ic_sinusoid(
     real_t x_frac = i/(real_t) integration_points;
 
     real_t phi = A*sin(2.0*PI*x_frac + phix);
-    real_t rho = rho_FRW + -exp(-4.0*phi)/PI/2.0*(
+    real_t rho = rho_m + -exp(-4.0*phi)/PI/2.0*(
       pw2(twopi_L*A*cos(2.0*PI*x_frac + phix))
       - pw2_twopi_L*A*sin(2.0*PI*x_frac + phix)
     );
@@ -572,14 +579,14 @@ void sheets_ic_sinusoid(
     real_t x = sheetSim->lx * x_frac;
 
     real_t phi = A*sin(2.0*PI*x_frac + phix);
-    real_t rho = rho_FRW + -exp(-4.0*phi)/PI/2.0*(
+    real_t rho = rho_m + -exp(-4.0*phi)/PI/2.0*(
       pw2(twopi_L*A*cos(2.0*PI*x_frac + phix))
       - pw2_twopi_L*A*sin(2.0*PI*x_frac + phix)
     );
 
+
     real_t rootdetg = std::exp(6.0*phi);
-    
-    cur_mass += rho * rootdetg *  integration_interval * sheetSim->ly * sheetSim->lz;
+    cur_mass += rho * rootdetg * integration_interval * sheetSim->ly * sheetSim->lz;
 
     if(cur_mass >= mass_per_tracer)
     {

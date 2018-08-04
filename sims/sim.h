@@ -39,6 +39,7 @@ protected:
   bool ray_integrate;
   idx_t ray_flip_step;
   std::vector<RayTrace<real_t, idx_t> *> rays;
+  bool simple_raytrace;
 # endif
 
 public:

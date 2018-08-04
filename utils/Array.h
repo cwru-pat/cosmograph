@@ -152,9 +152,9 @@ class CosmoArray
 
       // indexing only works down to negative 100*(nx, ny, nz)?
       // Using this is slow. Use a macro instead.
-      if(i_in < 0 || i_in >= nx) i = (i_in+100*nx)%nx;
-      if(j_in < 0 || j_in >= ny) j = (j_in+100*ny)%ny;
-      if(k_in < 0 || k_in >= nz) k = (k_in+100*nz)%nz;
+      if(i_in < 0 || i_in >= nx) i = (i_in%nx + nx)%nx;
+      if(j_in < 0 || j_in >= ny) j = (j_in%ny + ny)%ny;
+      if(k_in < 0 || k_in >= nz) k = (k_in%nz + nz)%nz;
       return ( i*ny*nz + j*nz + k );
     }
 

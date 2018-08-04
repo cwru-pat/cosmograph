@@ -29,6 +29,15 @@ CosmoSim::CosmoSim()
   {
     ray_integrate = false;
   }
+
+  if( stoi(_config("simple_raytrace", "0")) )
+  {
+    simple_raytrace = true;
+  }
+  else
+  {
+    simple_raytrace = false;
+  }
 # endif
 
   if( stoi(_config("use_bardeen", "0")) )
@@ -117,7 +126,14 @@ void CosmoSim::runRayTraceStep()
     bssnSim->setRaytracePrimitives(ray);
     // evolve ray
     ray->setDerivedQuantities();
-    ray->evolveRay();
+    if(simple_raytrace)
+    {
+      ray->evolveRayBasic();
+    }
+    else
+    {
+      ray->evolveRay();
+    }
   }
   _timer["Raytrace_step"].stop();
 }
@@ -145,7 +161,8 @@ void CosmoSim::runCommonStepTasks()
   }
 
   // progress bar in terminal
-  io_show_progress(step, num_steps);
+  if(step % 100 == 0)
+    io_show_progress(step, num_steps);
 
 # if USE_COSMOTRACE
   // Evolve light rays when integrating backwards
