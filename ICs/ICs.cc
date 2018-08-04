@@ -14,17 +14,17 @@ ICsData cosmo_get_ICsData()
   icd.rho_K_lambda = rho_K_lambda_frac*icd.rho_K_matter;
 
   // power spectrum amplitude as a fraction of the density
-  real_t peak_amplitude_frac = (real_t) stold(_config["peak_amplitude_frac"]); // fluctuation amplitude
+  real_t peak_amplitude_frac = (real_t) stold(_config("peak_amplitude_frac", "0.0")); // fluctuation amplitude
   real_t peak_amplitude = peak_amplitude_frac*(1.0e-15); // scaling in arb. units
 
-  real_t ic_spec_cut = (real_t) stold(_config["ic_spec_cut"]); // power spectrum cutoff parameter
+  real_t ic_spec_cut = (real_t) stold(_config("ic_spec_cut", "1.0")); // power spectrum cutoff parameter
 
   /* (peak scale in hubble units) * (to pixel scale) */
   icd.peak_k = (1.0/0.07)*H_LEN_FRAC;
   icd.peak_amplitude = peak_amplitude;
   icd.ic_spec_cut = ic_spec_cut; // cut spectrum off around p ~ ic_spec_cut
 
-  icd.viol_amp = stold(_config["IC_viol_amp"]);
+  icd.viol_amp = stold(_config("IC_viol_amp", "0.0"));
 
   return icd;
 }

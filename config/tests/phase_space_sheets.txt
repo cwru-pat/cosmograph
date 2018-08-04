@@ -6,29 +6,26 @@ ic_type = sinusoid
 
 lapse = Harmonic
 
-KO_damping_coefficient = 0.0
-
-output_dir = phase_space_sheets_method_test
+peak_amplitude = 0.005
+Omega_L = 0.000001
 
 ns1 = 64
 ns2 = 1
 ns3 = 1
-
-verbosity = 0
-
-deposit_scheme = 2
 carrier_count_scheme = 0
-
 carriers_per_dx = 4
 carriers_per_dy = 1
 carriers_per_dz = 1
 
-peak_amplitude = 0.005
+verbosity = 0
 
+deposit_scheme = 2
+KO_damping_coefficient = 0.0
 integration_points_per_dx = 1000000
 
 IO_bssnstats_interval = 100
 dump_file = calculated
+output_dir = phase_space_sheets_method_test
 
 IO_1D_grid_interval = 1000
 IO_1D_DIFFr_a = 1
