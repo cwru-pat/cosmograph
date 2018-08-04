@@ -19,7 +19,7 @@ void sheets_ic_sinusoid_3d(
 }
 
 void sheets_ic_sinusoid(
-  BSSN *bssnSim, Sheet *sheetSim, IOData * iodata, real_t & tot_mass)
+  BSSN *bssnSim, Sheet *sheetSim, Lambda * lambda, IOData * iodata, real_t & tot_mass)
 {
   iodata->log("Setting sinusoidal ICs.");
   idx_t i, j, k;
@@ -84,8 +84,9 @@ void sheets_ic_sinusoid(
       - pw2_twopi_L*A*sin(2.0*PI*x_frac + phix)
     );
 
+    real_t rootdetg = std::exp(6.0*phi);
 
-    tot_mass += rho  * integration_interval * sheetSim->ly * sheetSim->lz;
+    tot_mass += rho * rootdetg * integration_interval * sheetSim->ly * sheetSim->lz;
   }
 
   real_t mass_per_tracer = tot_mass / (real_t) (sheetSim->ns1);
@@ -108,8 +109,9 @@ void sheets_ic_sinusoid(
       - pw2_twopi_L*A*sin(2.0*PI*x_frac + phix)
     );
 
-    
-    cur_mass += rho *  integration_interval * sheetSim->ly * sheetSim->lz;
+
+    real_t rootdetg = std::exp(6.0*phi);
+    cur_mass += rho * rootdetg * integration_interval * sheetSim->ly * sheetSim->lz;
 
     if(cur_mass >= mass_per_tracer)
     {

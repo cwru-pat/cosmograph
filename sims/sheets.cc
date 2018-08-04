@@ -18,6 +18,7 @@ void SheetSim::init()
 
   iodata->log("Running phase space sheet type simulation.");
   sheetSim = new Sheet();
+  lambda = new Lambda();
   
   _timer["init"].stop();
 }
@@ -26,7 +27,7 @@ void SheetSim::setICs()
 {
   if(_config("ic_type", "") == "sinusoid")
   {
-    sheets_ic_sinusoid(bssnSim, sheetSim, iodata, tot_mass);
+    sheets_ic_sinusoid(bssnSim, sheetSim, lambda, iodata, tot_mass);
   }
   else if(_config("ic_type", "") == "sinusoid_3d")
   {
@@ -47,6 +48,7 @@ void SheetSim::initSheetStep()
     sheetSim->stepInit();
     bssnSim->clearSrc();
     sheetSim->addBSSNSource(bssnSim, tot_mass);
+    lambda->addBSSNSource(bssnSim);
 
   _timer["RK_steps"].stop();
 }
@@ -84,6 +86,7 @@ void SheetSim::runSheetStep()
     // Second RK step source
     bssnSim->clearSrc();
     sheetSim->addBSSNSource(bssnSim, tot_mass);
+    lambda->addBSSNSource(bssnSim);
     
     // Second RK step
     bssnSim->RKEvolve();
@@ -95,6 +98,7 @@ void SheetSim::runSheetStep()
     // Third RK step source
     bssnSim->clearSrc();
     sheetSim->addBSSNSource(bssnSim, tot_mass);
+    lambda->addBSSNSource(bssnSim);
     
     // Third RK step
     bssnSim->RKEvolve();
@@ -106,6 +110,7 @@ void SheetSim::runSheetStep()
     // Fourth RK step source
     bssnSim->clearSrc();
     sheetSim->addBSSNSource(bssnSim, tot_mass);
+    lambda->addBSSNSource(bssnSim);
     
     // Fourth RK step
     bssnSim->RKEvolve();

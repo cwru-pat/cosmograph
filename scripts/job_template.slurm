@@ -11,7 +11,9 @@
 JOBDIR="job-$SLURM_JOBID"
 JOBPATH="$TMPDIR/$JOBDIR"
 mkdir -p $JOBPATH
-cp -r * $JOBPATH
+cp -r cosmo $JOBPATH
+cp -r config.txt $JOBPATH
+cp -r nside_* $JOBPATH
 cd $JOBPATH
 
 rm job.out
