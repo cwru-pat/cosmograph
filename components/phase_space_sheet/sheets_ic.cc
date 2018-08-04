@@ -118,7 +118,7 @@ void sheets_ic_sinusoid_3d(
           throw(-1);
         }
         
-        tot_mass += rho * 
+        tot_mass += rho * rootdetg *
           integration_interval_x * integration_interval_y * integration_interval_z;
         
         tot_vol += rootdetg * integration_interval_x * integration_interval_y * integration_interval_z;
@@ -653,6 +653,10 @@ void sheets_ic_sinusoid_3d_diffusion(
   arr_t rho(NX, NY, NZ), rho_err(NX, NY, NZ);
   // variables to store gradiant of delta \rho
   arr_t drhodx(NX, NY, NZ), drhody(NX, NY, NZ), drhodz(NX, NY, NZ);
+
+  arr_t fourier_temp(NX, NY, NZ);
+
+  arr_t d1phi(NX, NY, NZ), d2phi(NX, NY, NZ), d3phi(NX, NY, NZ);
   
   // grid values
   //#pragma omp parallel for
@@ -680,6 +684,9 @@ void sheets_ic_sinusoid_3d_diffusion(
     DIFFK_p[idx] = K_FRW;
     // set target \rho to rho temperarily
     rho[idx] = rho_c;
+
+    //    real_t rootdetg = std::exp(6.0*phi);
+    
   }
   
 
@@ -729,7 +736,7 @@ void sheets_ic_sinusoid_3d_diffusion(
           throw(-1);
         }
         
-        tot_mass += rho_c * 
+        tot_mass += rho_c * rootdetg * 
           integration_interval_x * integration_interval_y * integration_interval_z;
         
         tot_vol += rootdetg * integration_interval_x * integration_interval_y * integration_interval_z;
@@ -737,11 +744,199 @@ void sheets_ic_sinusoid_3d_diffusion(
 
   std::cout<<"Total mass is "<<tot_mass<<"\n";
 
+  // setting proper initial guess
+
+#pragma omp parallel for collapse(2)
+  for(idx_t i = 0; i < NX; i++)
+    for(idx_t j = 0; j < NY; j++)
+      for(idx_t k = 0; k < NZ; k++)
+      {
+        idx_t idx = NP_INDEX(i,j,k);
+
+        real_t x_frac = ((real_t) i / (real_t) NX),
+          y_frac = ((real_t) j / (real_t) NY), z_frac = ((real_t) k / (real_t) NZ);
+    
+        real_t phi = A*
+          (sin(2.0*PI*x_frac + phix) + sin(2.0*PI*y_frac + phiy) + sin(2.0*PI*z_frac + phiz));
+
+        real_t rho_c = rho_FRW -exp(-4.0*phi)/PI/2.0*(
+          pw2(A*2.0*PI / sheetSim->lx * cos(2.0*PI*x_frac + phix))
+          + pw2(A*2.0*PI / sheetSim->ly * cos(2.0*PI*y_frac + phiy))
+          + pw2(A*2.0*PI / sheetSim->lz * cos(2.0*PI*z_frac + phiz))
+          -  ( A * pw2(2.0*PI / sheetSim->lx) * sin(2.0*PI*x_frac + phix)
+               + A * pw2(2.0*PI / sheetSim->ly) * sin(2.0*PI*y_frac + phiy)
+               + A * pw2(2.0*PI / sheetSim->lz) * sin(2.0*PI*z_frac + phiz))
+        );
+        real_t rootdetg = std::exp(6.0*phi);
+        fourier_temp[idx] = sheetSim->lx * sheetSim->ly * sheetSim->lz * rho_c * rootdetg / tot_mass - 1.0;
+      }
+
+    // trying to set better initial guess, but not working very well 
+
+  Fourier * fourier;
+  fourier = new Fourier();
+  fourier->Initialize(NX, NY, NZ,
+    bssnSim->fields["DIFFphi_a"]->_array);
+
+  fourier->inverseLaplacian <idx_t, real_t> (fourier_temp._array);
+
+  // generating arrays of derivative of phi
+
+  #pragma omp parallel for collapse(2)
+  for(idx_t i = 0; i < NX; i++)
+    for(idx_t j = 0; j < NY; j++)
+      for(idx_t k = 0; k < NZ; k++)
+      {
+        idx_t idx = NP_INDEX(i,j,k);
+        d1phi[idx] = derivative(i, j, k, 1, fourier_temp);
+        d2phi[idx] = derivative(i, j, k, 2, fourier_temp);
+        d3phi[idx] = derivative(i, j, k, 3, fourier_temp);
+      }
+
+  // staring inverse process
+  const int b_search_interation_limit = 20;
+  real_t max_inverse_deviation = 0;
+
+  // reverse to get s3
+#pragma omp parallel for
+  for(int k =0; k < sheetSim->ns3; k++)
+  {
+    real_t cur_s3 = ((real_t)k / sheetSim->ns3) * sheetSim->lz;
+
+    real_t z = cur_s3;
+
+    real_t dz_cur = 0;
+
+    real_t dz_lower = -z, dz_upper = (real_t)sheetSim->lz - z;
+        
+    int iter_cnt = 0;
+    real_t x_idx, y_idx, z_idx;
+    while(iter_cnt <= b_search_interation_limit)
+    {
+      dz_cur = (dz_lower + dz_upper) / 2.0;
+
+      z_idx = (z + dz_cur) / dx;
+
+      if(z+dz_cur + d3phi.getTriCubicInterpolatedValue(0,0,z_idx) < cur_s3)
+      {
+        dz_lower = dz_cur;
+      }
+      else
+      {
+        dz_upper = dz_cur;
+      }
+      iter_cnt++;
+    }
+
+    for(int i = 0; i < sheetSim->ns1; i++)
+      for(int j = 0; j < sheetSim->ns2; j++)
+        Dz_p(i, j, k) = dz_cur;
+
+  }
+
+  // reverse to get s2
+#pragma omp parallel for collapse(2)
+  for(int j =0; j < sheetSim->ns2; j++)
+  {
+    for(int k =0; k < sheetSim->ns3; k++)
+    {
+      real_t cur_s2 = ((real_t)j / sheetSim->ns2) * sheetSim->ly;
+      real_t cur_s3 = ((real_t)k / sheetSim->ns3) * sheetSim->lz;
+
+      real_t z = cur_s3 + Dz_p(0, 0, k);
+      real_t y = cur_s2;
+
+      real_t dy_cur = 0;
+
+      real_t dy_lower = -y, dy_upper = (real_t)sheetSim->ly - y;
+        
+      int iter_cnt = 0;
+      real_t x_idx, y_idx, z_idx;
+      while(iter_cnt <= b_search_interation_limit)
+      {
+        dy_cur = (dy_lower + dy_upper) / 2.0;
+
+        y_idx = (y + dy_cur) / dx;
+        z_idx = z / dx;
+
+        if(y+dy_cur + d2phi.getTriCubicInterpolatedValue(0,y_idx,z_idx) < cur_s2)
+        {
+          dy_lower = dy_cur;
+        }
+        else
+        {
+          dy_upper = dy_cur;
+        }
+        iter_cnt++;
+      }
+
+      for(int i = 0; i < sheetSim->ns1; i++)
+          Dy_p(i, j, k) = dy_cur;
+
+    }
+  }
+
+  // reverset to get s1
+#pragma omp parallel for collapse(2) reduction(max:max_inverse_deviation)
+  for(int i =0; i < sheetSim->ns1; i++)
+  {
+    for(int j = 0; j < sheetSim->ns2; j++)
+    {
+      for(int k =0; k < sheetSim->ns3; k ++)
+      {
+        real_t cur_s1 = ((real_t)i / sheetSim->ns1) * sheetSim->lx;
+        real_t cur_s2 = ((real_t)j / sheetSim->ns2) * sheetSim->ly;
+        real_t cur_s3 = ((real_t)k / sheetSim->ns3) * sheetSim->lz;
+
+        real_t x = cur_s1;
+        real_t y = cur_s2 + Dy_p(0, j, k);
+        real_t z = cur_s3 + Dz_p(0 , 0, k);
+
+        real_t dx_cur = 0;
+
+        real_t dx_lower = -x, dx_upper = (real_t)sheetSim->lx - x;
+        
+        int iter_cnt = 0;
+        real_t x_idx, y_idx, z_idx;
+        while(iter_cnt <= b_search_interation_limit)
+        {
+          dx_cur = (dx_lower + dx_upper) / 2.0;
+          x_idx = (x + dx_cur) / dx;
+          y_idx = y / dx;
+          z_idx = z / dx;
+
+          if(x+dx_cur + d1phi.getTriCubicInterpolatedValue(x_idx,y_idx,z_idx) < cur_s1)
+          {
+            dx_lower = dx_cur;
+          }
+          else
+          {
+            dx_upper = dx_cur;
+          }
+          iter_cnt++;
+        }
+        Dx_p(i, j, k) = dx_cur;
+        max_inverse_deviation = std::max(max_inverse_deviation,
+                                         fabs(x+dx_cur+d1phi.getTriCubicInterpolatedValue(x_idx,y_idx,z_idx) - cur_s1));
+        max_inverse_deviation = std::max(max_inverse_deviation,
+                                         fabs(y+d2phi.getTriCubicInterpolatedValue(x_idx,y_idx,z_idx) - cur_s2));
+        max_inverse_deviation = std::max(max_inverse_deviation,
+                                         fabs(z+d3phi.getTriCubicInterpolatedValue(x_idx,y_idx,z_idx) - cur_s3));
+
+      }
+    }
+  }
+  
+
+  std::cout<<"The inversion of function brings an deviation of "<<max_inverse_deviation<<"\n";
+
+
+
   // setting DIFFr_a as array to store differences
   // difference equals to rho for now!
 
-  real_t max_err = 1e100;
-
+  real_t max_err = 1e99;
+  real_t previous_err = 1e100;
   idx_t ns1 = Dx_a.nx;
   idx_t ns2 = Dx_a.ny;
   idx_t ns3 = Dx_a.nz;
@@ -749,8 +944,15 @@ void sheets_ic_sinusoid_3d_diffusion(
   idx_t iter_cnt = 0;
   
   // doing iteration
-  while(max_err >= precision_goal)
+  // stop when max_err increase 
+  while(max_err <= previous_err)
   {
+    previous_err = max_err;
+    if(iter_cnt >= 2000)
+    {
+      std::cout<<"Jump out since iteration counts are too many!\n";
+      break;
+    }
     Dx_a = Dx_p;
     Dy_a = Dy_p;
     Dz_a = Dz_p;
@@ -813,6 +1015,10 @@ void sheets_ic_sinusoid_3d_diffusion(
 
   }
 
+  // dump the result
+  io_dump_3dslice(iodata, Dx_p, "Dx");
+  io_dump_3dslice(iodata, Dy_p, "Dy");
+  io_dump_3dslice(iodata, Dz_p, "Dz");  
   
 }
 
@@ -900,7 +1106,7 @@ void sheets_ic_sinusoid_1d_diffusion(
 
     real_t rootdetg = std::exp(6.0*phi);
 
-    tot_mass += rho_c * integration_interval * sheetSim->ly * sheetSim->lz;
+    tot_mass += rho_c * rootdetg * integration_interval * sheetSim->ly * sheetSim->lz;
   }
 
   real_t mass_per_tracer = tot_mass / (real_t) (sheetSim->ns1);
@@ -978,6 +1184,7 @@ void sheets_ic_sinusoid_1d_diffusion(
       }
 
   }
+
   
 }
 

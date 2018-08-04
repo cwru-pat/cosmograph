@@ -15,7 +15,7 @@ ns3 = 32
 
 verbosity = 0
 
-damping_coef = 0.01
+damping_coef = 0.005
 precision_goal = 0.000001
 
 deposit_scheme = 1
@@ -25,7 +25,7 @@ carriers_per_dx = 4
 carriers_per_dy = 4
 carriers_per_dz = 4
 
-peak_amplitude = 0.005
+peak_amplitude = 0.00000635
 a_adj_amp = 0.0
 
 integration_points_per_dx = 64
