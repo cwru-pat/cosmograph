@@ -31,7 +31,7 @@ void SheetSim::setICs()
   }
   else if(_config("ic_type", "") == "sinusoid_3d")
   {
-    sheets_ic_sinusoid_3d_diffusion(bssnSim, sheetSim, iodata, tot_mass);
+    sheets_ic_sinusoid_3d_diffusion(bssnSim, sheetSim, lambda, iodata, tot_mass);
   }
   else
   {
