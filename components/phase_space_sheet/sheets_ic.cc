@@ -42,8 +42,6 @@ void sheets_ic_sinusoid_3d(
   // generate random mode in \phi
   // delta_rho = -(lap e^\phi)/e^(5\phi)/2pi
   real_t phix = 0, phiy = 0, phiz = 0;
-  real_t twopi_L = 2.0*PI / sheetSim->lx;
-  real_t pw2_twopi_L = twopi_L*twopi_L;
   
   // grid values
   //#pragma omp parallel for
@@ -85,10 +83,10 @@ void sheets_ic_sinusoid_3d(
 
   tot_mass = 0;
 
-  real_t tot_vol = 0;
   // compute total mass in simulation, mass per tracer particle
-
-#pragma omp parallel for collapse(2) reduction(+:tot_mass, tot_vol)
+  real_t tot_vol = 0;
+  real_t tot_mass_tmp = 0;
+#pragma omp parallel for collapse(2) reduction(+:tot_mass_tmp, tot_vol)
   for(idx_t i=0; i<integration_points_x; ++i)
     for(idx_t j=0; j<integration_points_y; ++j)
       for(idx_t k=0; k<integration_points_z; ++k)
@@ -118,11 +116,13 @@ void sheets_ic_sinusoid_3d(
           throw(-1);
         }
         
-        tot_mass += rho * rootdetg *
+        tot_mass_tmp += rho * rootdetg *
           integration_interval_x * integration_interval_y * integration_interval_z;
         
         tot_vol += rootdetg * integration_interval_x * integration_interval_y * integration_interval_z;
       }
+
+  tot_mass = tot_mass_tmp;
 
   // density on the sheets
   // NOT mass in each voxel
@@ -141,7 +141,7 @@ void sheets_ic_sinusoid_3d(
   for(int k = 0; k < integration_points_z; k++)
   {
     real_t cur_xy = 0;
-    #pragma omp parallel for collapse(2) reduction(+:cur_xy)
+#   pragma omp parallel for collapse(2) reduction(+:cur_xy)
     for(int i = 0; i < integration_points_x; i++)
       for(int j = 0; j < integration_points_y; j++)
       {
@@ -184,7 +184,7 @@ void sheets_ic_sinusoid_3d(
     real_t cur_xy_num = 0;
     real_t cur_xy_den = 0;
     
-    #pragma omp parallel for collapse(2) reduction(+:cur_xy_den)
+#   pragma omp parallel for collapse(2) reduction(+:cur_xy_den)
     for(int j = 0; j < integration_points_y; j++)
     {
       for(int i = 0; i < integration_points_x; i++)
@@ -339,7 +339,7 @@ void sheets_ic_sinusoid_3d(
     real_t dz_lower = -z, dz_upper = (real_t)sheetSim->lz - z;
         
     int iter_cnt = 0;
-    real_t x_idx, y_idx, z_idx;
+    idx_t z_idx;
     while(iter_cnt <= b_search_interation_limit)
     {
       dz_cur = (dz_lower + dz_upper) / 2.0;
@@ -380,7 +380,7 @@ void sheets_ic_sinusoid_3d(
       real_t dy_lower = -y, dy_upper = (real_t)sheetSim->ly - y;
         
       int iter_cnt = 0;
-      real_t x_idx, y_idx, z_idx;
+      real_t y_idx, z_idx;
       while(iter_cnt <= b_search_interation_limit)
       {
         dy_cur = (dy_lower + dy_upper) / 2.0;
@@ -460,11 +460,9 @@ void sheets_ic_sinusoid_3d(
   std::cout<<"The inversion of function brings an deviation of "<<max_inverse_deviation<<"\n";
     
   real_t max_dev = 0;
-  int maxi, maxj, maxk;
+
   LOOP3(i,j,k)
   {
-    idx_t idx = NP_INDEX(i,j,k);
-
     real_t x_frac = ((real_t) i / (real_t) NX),
       y_frac = ((real_t) j / (real_t) NY), z_frac = ((real_t) k / (real_t) NZ);
     
@@ -483,7 +481,7 @@ void sheets_ic_sinusoid_3d(
     // These aren't difference vars
     max_dev = std::max(max_dev, fabs(DIFFr_a[NP_INDEX(i,j,k)] - rho));
   }
-  std::cout<<"max dev is "<<max_dev<<" at "<<maxi<<" "<<maxj<<" "<<maxk<<"\n";
+  std::cout<<"max dev is "<<max_dev<<"\n";
 }
 
 void sheets_ic_sinusoid(
@@ -638,7 +636,6 @@ void sheets_ic_sinusoid_3d_diffusion(
   real_t A = sheetSim->lx*sheetSim->lx*std::stod(_config("peak_amplitude", "0.0001"));
 
   // setting iteration stuff
-  real_t precision_goal = sheetSim->lx * sheetSim->lx * std::stod(_config("precision_goal", "1e-5"));
   real_t damping_coef = sheetSim->lx * sheetSim->lx * std::stod(_config("damping_coef", "0.1"));
   
   iodata->log( "Generating ICs with peak amp. = " + stringify(A) );
@@ -662,8 +659,6 @@ void sheets_ic_sinusoid_3d_diffusion(
   // generate random mode in \phi
   // delta_rho = -(lap e^\phi)/e^(5\phi)/2pi
   real_t phix = 0, phiy = 0, phiz = 0;
-  real_t twopi_L = 2.0*PI / sheetSim->lx;
-  real_t pw2_twopi_L = twopi_L*twopi_L;
 
   // defining difference of \rho
   arr_t rho(NX, NY, NZ), rho_err(NX, NY, NZ);
@@ -710,8 +705,8 @@ void sheets_ic_sinusoid_3d_diffusion(
   idx_t integration_points_per_dy = integration_points_per_dx;
   idx_t integration_points_per_dz = integration_points_per_dx;
   idx_t integration_points_x = NX * integration_points_per_dx;
-  idx_t integration_points_y = NY * integration_points_per_dx;
-  idx_t integration_points_z = NZ * integration_points_per_dx;
+  idx_t integration_points_y = NY * integration_points_per_dy;
+  idx_t integration_points_z = NZ * integration_points_per_dz;
   std::cout << "Setting initial conditions using " << integration_points_x << " integration_points" << std::endl;
   real_t integration_interval_x = sheetSim->lx / integration_points_x;
   real_t integration_interval_y = sheetSim->ly / integration_points_y;
@@ -720,9 +715,10 @@ void sheets_ic_sinusoid_3d_diffusion(
   tot_mass = 0;
 
   real_t tot_vol = 0;
+  real_t tot_mass_tmp = 0;
   // compute total mass in simulation, mass per tracer particle
 
-#pragma omp parallel for collapse(2) reduction(+:tot_mass, tot_vol)
+#pragma omp parallel for collapse(2) reduction(+:tot_mass_tmp, tot_vol)
   for(idx_t i=0; i<integration_points_x; ++i)
     for(idx_t j=0; j<integration_points_y; ++j)
       for(idx_t k=0; k<integration_points_z; ++k)
@@ -752,12 +748,12 @@ void sheets_ic_sinusoid_3d_diffusion(
           throw(-1);
         }
         
-        tot_mass += rho_c * rootdetg * 
+        tot_mass_tmp += rho_c * rootdetg * 
           integration_interval_x * integration_interval_y * integration_interval_z;
         
         tot_vol += rootdetg * integration_interval_x * integration_interval_y * integration_interval_z;
       }
-
+  tot_mass = tot_mass_tmp;
   std::cout<<"Total mass is "<<tot_mass<<"\n";
 
   // setting proper initial guess
@@ -826,7 +822,7 @@ void sheets_ic_sinusoid_3d_diffusion(
     real_t dz_lower = -z, dz_upper = (real_t)sheetSim->lz - z;
         
     int iter_cnt = 0;
-    real_t x_idx, y_idx, z_idx;
+    real_t z_idx;
     while(iter_cnt <= b_search_interation_limit)
     {
       dz_cur = (dz_lower + dz_upper) / 2.0;
@@ -867,7 +863,7 @@ void sheets_ic_sinusoid_3d_diffusion(
       real_t dy_lower = -y, dy_upper = (real_t)sheetSim->ly - y;
         
       int iter_cnt = 0;
-      real_t x_idx, y_idx, z_idx;
+      real_t y_idx, z_idx;
       while(iter_cnt <= b_search_interation_limit)
       {
         dy_cur = (dy_lower + dy_upper) / 2.0;

@@ -73,7 +73,7 @@ done
 
 # derived vars
 RES_INT=$(echo $RES_STR | sed 's/^0*//')
-STEPS=$(bc <<< "$RES_INT*8000/$BOX_LENGTH")
+STEPS=$(bc <<< "$RES_INT*6000/$BOX_LENGTH")
 IO_INT=$((STEPS/1000))
 IO_INT_1D=$((STEPS/10))
 IO_INT_3D=$((STEPS/10))
@@ -147,7 +147,7 @@ fi
 if "$USE_CLUSTER"; then
   cp ../../../scripts/job_template.slurm job.slurm
   # Adjust job name
-  sed -i.bak "s/JOBNAME/1d-$RES_STR-$BOX_LENGTH-$MODE_AMPLITUDE" job.slurm
+  sed -i.bak "s/JOBNAME/1d-$RES_STR-$BOX_LENGTH-$MODE_AMPLITUDE/" job.slurm
 fi
 
 # Run job, go back up a dir

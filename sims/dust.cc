@@ -63,15 +63,6 @@ void DustSim::initDustStep()
     bssnSim->stepInit();
     bssnSim->clearSrc();
     staticSim->addBSSNSrc(bssnSim->fields, bssnSim->frw);
-    if(step == 0)
-      avg_vol_i = bssnSim->avg_vol;
-    else if( pow(bssnSim->avg_vol / avg_vol_i,1.0/3.0) >= 100 )
-    {
-      iodata->log("Get target expasion, stop running!");
-      throw(-1);
-    }
-    if(step % 100 == 0)
-      std::cout<<"Step is "<<step<<", Scale is "<<pow(bssnSim->avg_vol / avg_vol_i,1.0/3.0)<<"\n";
   _timer["RK_steps"].stop();
 }
 

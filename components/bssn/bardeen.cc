@@ -1,5 +1,6 @@
 #include "bardeen.h"
 #include "../../utils/math.h"
+#include <iomanip>
 
 namespace cosmo
 {
@@ -48,14 +49,12 @@ void Bardeen::setPotentials(real_t elapsed_sim_time)
 #endif
   
   real_t a, dadt, H, d2adt2;
-  if(use_matter_scale_factor)
+  if(use_mL_scale_factor)
   {
-    real_t tI = 2.0/3.0; // t_I = 2/(3H) = 2/3 in units where H_I = 1 (sim units)
-    real_t t = tI + elapsed_sim_time;
-    a = std::pow(t/tI, 2.0/3.0);
-    H = 2.0/3.0/t;
+    a = getMLScaleFactor(elapsed_sim_time);
+    H = getMLHubbleFactor(elapsed_sim_time);
     dadt = H*a;
-    d2adt2 = a*(H*H - 2.0/3.0/t/t);
+    d2adt2 = getMLd2adt2Factor(elapsed_sim_time);
   }
   else
   {
@@ -151,7 +150,7 @@ void Bardeen::setPotentials(real_t elapsed_sim_time)
   }
   // set second derivative of a
   // a'' ~ H*a' + a*2\phi''
-  if(!use_matter_scale_factor)
+  if(!use_mL_scale_factor)
     d2adt2 = H*dadt + 2.0*a*conformal_average(d2t_phi, DIFFphi_a, 0.0);
 
   // construct h_ij, h_0i components, time derivatives

@@ -7,7 +7,7 @@ ic_type = sinusoid
 lapse = Harmonic
 
 peak_amplitude = 0.005
-Omega_L = 0.000001
+Omega_L = 1.0e-6
 
 ns1 = 64
 ns2 = 1

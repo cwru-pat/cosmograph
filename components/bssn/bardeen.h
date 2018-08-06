@@ -25,7 +25,8 @@ class Bardeen
   BSSN * bssn;
   Fourier * fourier;
 
-  bool use_matter_scale_factor;
+  bool use_mL_scale_factor; ///< Use FLRW matter+Lambda scale factor?
+  real_t Omega_L_I; ///< Initial Omega_Lambda
 
 public:  
   // perturbed metric & time derivatives
@@ -69,7 +70,8 @@ public:
     bssn = bssn_in;
     fourier = fourier_in;
 
-    use_matter_scale_factor = true;
+    use_mL_scale_factor = false;
+    Omega_L_I = 0;
 
     h11.init(NX, NY, NZ); h12.init(NX, NY, NZ); h13.init(NX, NY, NZ);
     h22.init(NX, NY, NZ); h23.init(NX, NY, NZ); h33.init(NX, NY, NZ);
@@ -147,9 +149,71 @@ public:
     // anything to do?
   }
 
-  void setUseMatterScaleFactor(bool use)
+
+  void useMLScaleFactor(real_t Omega_L_I_in)
   {
-    use_matter_scale_factor = use;
+    if(Omega_L_I_in < 0 || Omega_L_I_in > 1)
+    {
+      std::cout << "Invalid Omega_Lambda specified." << std::endl;
+      throw -1;
+    }
+
+    Omega_L_I = Omega_L_I_in;
+    use_mL_scale_factor = true;
+  }
+
+  void setUseMLScaleFactor(bool use)
+  {
+    use_mL_scale_factor = use;
+  }
+
+  /**
+   * @brief      Gets the matter+Lambda universe initial time.
+   *  Assumes units H_I = 1, a_I = 1.
+   */
+  real_t getMLInitialTime()
+  {
+    if(Omega_L_I == 0)
+    {
+      return 2.0/3.0;
+    }
+    else
+    {
+      real_t sqrt_Omega_L_I = std::sqrt(Omega_L_I);
+      return std::log1p(
+          2.0/(1.0 - sqrt_Omega_L_I) * sqrt_Omega_L_I
+        ) / (3.0*sqrt_Omega_L_I);
+    }
+  }
+
+  real_t getMLScaleFactor(real_t elapsed_sim_time)
+  {
+    if(Omega_L_I == 0)
+    {
+      real_t tI = getMLInitialTime();
+      real_t t = tI + elapsed_sim_time;
+      return std::pow(t/tI, 2.0/3.0);
+    }
+    else
+    {
+      return std::pow(
+          std::cosh(3.0*std::sqrt(Omega_L_I) * elapsed_sim_time / 2.0 )
+          + (std::sinh(3.0*std::sqrt(Omega_L_I) * elapsed_sim_time / 2.0 ) / std::sqrt(Omega_L_I))
+        , 2.0/3.0);
+    }
+  }
+
+  real_t getMLHubbleFactor(real_t elapsed_sim_time)
+  {
+    real_t a = getMLScaleFactor(elapsed_sim_time);
+    return std::sqrt( (1 - Omega_L_I)*std::pow(a, 3) + Omega_L_I );
+  }
+
+  real_t getMLd2adt2Factor(real_t elapsed_sim_time)
+  {
+    real_t a = getMLScaleFactor(elapsed_sim_time);
+    real_t H = getMLHubbleFactor(elapsed_sim_time);
+    return a*H*H - (1.0 - Omega_L_I)*3.0/2.0/a/a;
   }
 
   void setPotentials(real_t elapsed_sim_time);

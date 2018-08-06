@@ -83,6 +83,16 @@ void CosmoSim::simInit()
   if(use_bardeen)
   {
     bardeen = new Bardeen(bssnSim, fourier);
+    bool use_ML_scale_factor = !!std::stoi(_config("use_ML_scale_factor", "1"));
+    bardeen->setUseMLScaleFactor(use_ML_scale_factor);
+    if(use_ML_scale_factor)
+    {
+      real_t Omega_L = std::stod(_config("Omega_L", "0.0"));
+      bardeen->useMLScaleFactor(Omega_L);
+      iodata->log("Using Matter+Lambda FLRW scale factor for Bardeen calculations with Omega_L = "
+        + stringify(Omega_L) + ".");
+    }
+
   }
 }
 
@@ -94,11 +104,23 @@ void CosmoSim::run()
   iodata->log("Running simulation...");
 
   _timer["loop"].start();
+  real_t avg_vol_i = 0.0;
   while(step <= num_steps)
   {
     runStep();
     step++;
     t += dt;
+      
+    if(step == 0)
+    {
+      avg_vol_i = bssnSim->avg_vol;
+    }
+    else if( !!std::stod(_config("stop_at_expansion_goal", "0"))
+      && pow(bssnSim->avg_vol / avg_vol_i, 1.0/3.0) >= std::stod(_config("expansion_goal", "100.0")) )
+    {
+      iodata->log("Target expasion reached, run ending.");
+      break;
+    }
   }
   _timer["loop"].stop();
 

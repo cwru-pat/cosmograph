@@ -48,16 +48,7 @@ void SheetSim::initSheetStep()
     sheetSim->stepInit();
     bssnSim->clearSrc();
     sheetSim->addBSSNSource(bssnSim, tot_mass);
-    lambda->addBSSNSource(bssnSim);
-
-    if(step == 0)
-      avg_vol_i = bssnSim->avg_vol;
-    else if( pow(bssnSim->avg_vol / avg_vol_i,1.0/3.0) >= 100 )
-    {
-      iodata->log("Get target expasion, stop running!");
-      throw(-1);
-    }
-    
+    lambda->addBSSNSource(bssnSim);    
   _timer["RK_steps"].stop();
 }
 
