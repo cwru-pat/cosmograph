@@ -350,19 +350,39 @@ void Bardeen::setPotentials(real_t elapsed_sim_time)
 
     // d^2 C_i
     C1[idx] = ( derivative(i,j,k,2,h12) + derivative(i,j,k,3,h13)
-      - derivative(i,j,k,1,h22) - derivative(i,j,k,1,h33) )/a/a 
+      - derivative(i,j,k,1,h22) - derivative(i,j,k,1,h33) )/a/a
       + 2.0*derivative(i,j,k,1,A);
     C2[idx] = ( derivative(i,j,k,1,h12) + derivative(i,j,k,3,h23)
-      - derivative(i,j,k,2,h11) - derivative(i,j,k,2,h33) )/a/a 
+      - derivative(i,j,k,2,h11) - derivative(i,j,k,2,h33) )/a/a
       + 2.0*derivative(i,j,k,2,A);
     C3[idx] = ( derivative(i,j,k,1,h13) + derivative(i,j,k,2,h23)
-      - derivative(i,j,k,3,h11) - derivative(i,j,k,3,h22) )/a/a 
+      - derivative(i,j,k,3,h11) - derivative(i,j,k,3,h22) )/a/a
       + 2.0*derivative(i,j,k,3,A);
+
+    // d^2 C_i
+    dt_C1[idx] = ( derivative(i,j,k,2,dt_h12) + derivative(i,j,k,3,dt_h13)
+        - derivative(i,j,k,1,dt_h22) - derivative(i,j,k,1,dt_h33) )/a/a
+      - 2.0*H*C1[idx] + 2.0*derivative(i,j,k,1,dt_A);
+    dt_C2[idx] = ( derivative(i,j,k,1,dt_h12) + derivative(i,j,k,3,dt_h23)
+        - derivative(i,j,k,2,dt_h11) - derivative(i,j,k,2,dt_h33) )/a/a
+      - 2.0*H*C2[idx] + 2.0*derivative(i,j,k,2,dt_A);
+    dt_C3[idx] = ( derivative(i,j,k,1,dt_h13) + derivative(i,j,k,2,dt_h23)
+        - derivative(i,j,k,3,dt_h11) - derivative(i,j,k,3,dt_h22) )/a/a
+      - 2.0*H*C3[idx] + 2.0*derivative(i,j,k,3,dt_A);
   }
   fourier->inverseLaplacian <idx_t, real_t> (C1._array);
   fourier->inverseLaplacian <idx_t, real_t> (C2._array);
   fourier->inverseLaplacian <idx_t, real_t> (C3._array);
-
+  fourier->inverseLaplacian <idx_t, real_t> (dt_C1._array);
+  fourier->inverseLaplacian <idx_t, real_t> (dt_C2._array);
+  fourier->inverseLaplacian <idx_t, real_t> (dt_C3._array);
+#pragma omp parallel for default(shared) private(i, j, k)
+  LOOP3(i,j,k)
+  {
+    idx_t idx = NP_INDEX(i,j,k);
+    // G - a \dot{C}
+    Vmag[idx] = std::sqrt( pw2(G1[idx] - a*dt_C1[idx]) + pw2(G2[idx] - a*dt_C2[idx]) + pw2(G3[idx] - a*dt_C3[idx]) );
+  }
 
   // Construct tensor potentials.
 #pragma omp parallel for default(shared) private(i, j, k)
@@ -409,13 +429,18 @@ void Bardeen::setPotentials(real_t elapsed_sim_time)
   viols[1] = std_viol / viol_scale;
   viols[2] = max_viol / viol_scale;
   viols[3] = max_viol;
+  // conformally-weighted averaging
   viols[4] = a / exp( 2.0*phi_avg );
   viols[5] = dadt / (-1.0/3.0*a*alpha_avg*K_avg);
   viols[6] = d2adt2 / ( H*dadt + 2.0*a*conformal_average(d2t_phi, DIFFphi_a, 0.0) );
-
+  // coordinate-weighted averaging
   viols[7] = a / exp( 2.0*average(DIFFphi_a) );
   viols[8] = dadt / (-1.0/3.0*a*alpha_avg*average(DIFFK_a));
   viols[9] = d2adt2 / ( H*dadt + 2.0*a*average(d2t_phi) );
+  // vector mode behavior
+  viols[10] = average(Vmag);
+  viols[11] = standard_deviation(Vmag, viols[10]);
+  viols[12] = max(Vmag);
 
   // TODO: Does ( G - a*dt_C ) ~ 1/a^2 ? (vector modes)
 }
@@ -423,7 +448,7 @@ void Bardeen::setPotentials(real_t elapsed_sim_time)
 
 void Bardeen::getSVTViolations(real_t * viols_copyto)
 {
-  for(int i=0; i<10; ++i)
+  for(int i=0; i<13; ++i)
     viols_copyto[i] = viols[i];
 }
 

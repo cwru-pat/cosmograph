@@ -1066,7 +1066,7 @@ void io_svt_violation(IOData *iodata, idx_t step, Bardeen * bardeen, real_t t)
   bool output_this_step = (0 == step % std::stoi(_config("SVT_constraint_interval", "1")));
   if( output_step && output_this_step )
   {
-    real_t SVT_calcs[10] = {0};
+    real_t SVT_calcs[13] = {0};
     bardeen->getSVTViolations(SVT_calcs);
 
     io_dump_value(iodata, SVT_calcs[0], "SVT_violations", "\t");
@@ -1078,7 +1078,11 @@ void io_svt_violation(IOData *iodata, idx_t step, Bardeen * bardeen, real_t t)
     io_dump_value(iodata, SVT_calcs[6], "SVT_violations", "\t");
     io_dump_value(iodata, SVT_calcs[7], "SVT_violations", "\t");
     io_dump_value(iodata, SVT_calcs[8], "SVT_violations", "\t");
-    io_dump_value(iodata, SVT_calcs[9], "SVT_violations", "\n");
+    io_dump_value(iodata, SVT_calcs[8], "SVT_violations", "\t");
+    io_dump_value(iodata, SVT_calcs[9], "SVT_violations", "\t");
+    io_dump_value(iodata, SVT_calcs[10], "SVT_violations", "\t");
+    io_dump_value(iodata, SVT_calcs[11], "SVT_violations", "\t");
+    io_dump_value(iodata, SVT_calcs[12], "SVT_violations", "\n");
   }
 }
 

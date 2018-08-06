@@ -53,6 +53,8 @@ public:
   // Vector potentials
   arr_t G1, G2, G3;
   arr_t C1, C2, C3;
+  arr_t dt_C1, dt_C2, dt_C3;
+  arr_t Vmag;
 
   // Tensor
   arr_t D11, D12, D13, D22, D23, D33;
@@ -97,6 +99,8 @@ public:
 
     G1.init(NX, NY, NZ); G2.init(NX, NY, NZ); G3.init(NX, NY, NZ);
     C1.init(NX, NY, NZ); C2.init(NX, NY, NZ); C3.init(NX, NY, NZ);
+    dt_C1.init(NX, NY, NZ); dt_C2.init(NX, NY, NZ); dt_C3.init(NX, NY, NZ);
+    Vmag.init(NX, NY, NZ);
 
     D11.init(NX, NY, NZ);
     D12.init(NX, NY, NZ);
@@ -111,8 +115,8 @@ public:
     lin_viol_der_mag.init(NX, NY, NZ);
     lin_viol_der.init(NX, NY, NZ);
 
-    viols = new real_t[10];
-    for(int i=0; i<10; ++i)
+    viols = new real_t[13];
+    for(int i=0; i<13; ++i)
       viols[0] = 0;
 
     // add Bardeen potentials to BSSN fields map
@@ -131,10 +135,13 @@ public:
     bssn->fields["Bardeen_G1"] = & G1;
     bssn->fields["Bardeen_G2"] = & G2;
     bssn->fields["Bardeen_G3"] = & G3;
-    
     bssn->fields["Bardeen_C1"] = & C1;
     bssn->fields["Bardeen_C2"] = & C2;
     bssn->fields["Bardeen_C3"] = & C3;
+    bssn->fields["Bardeen_dt_C1"] = & dt_C1;
+    bssn->fields["Bardeen_dt_C2"] = & dt_C2;
+    bssn->fields["Bardeen_dt_C3"] = & dt_C3;
+    bssn->fields["Bardeen_Vmag"] = & Vmag;
 
     bssn->fields["Bardeen_D11"] = & D11;
     bssn->fields["Bardeen_D12"] = & D12;
@@ -206,14 +213,14 @@ public:
   real_t getMLHubbleFactor(real_t elapsed_sim_time)
   {
     real_t a = getMLScaleFactor(elapsed_sim_time);
-    return std::sqrt( (1 - Omega_L_I)*std::pow(a, 3) + Omega_L_I );
+    return std::sqrt( (1 - Omega_L_I)*std::pow(a, -3.0) + Omega_L_I );
   }
 
   real_t getMLd2adt2Factor(real_t elapsed_sim_time)
   {
     real_t a = getMLScaleFactor(elapsed_sim_time);
     real_t H = getMLHubbleFactor(elapsed_sim_time);
-    return a*H*H - (1.0 - Omega_L_I)*3.0/2.0/a/a;
+    return a*H*H - (1.0 - Omega_L_I)*3.0/2.0/H/a/a/a;
   }
 
   void setPotentials(real_t elapsed_sim_time);
