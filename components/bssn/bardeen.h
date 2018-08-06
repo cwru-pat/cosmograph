@@ -220,7 +220,7 @@ public:
   {
     real_t a = getMLScaleFactor(elapsed_sim_time);
     real_t H = getMLHubbleFactor(elapsed_sim_time);
-    return a*H*H - (1.0 - Omega_L_I)*3.0/2.0/H/a/a/a;
+    return a*H*H - (1.0 - Omega_L_I)*3.0/2.0/a/a;
   }
 
   void setPotentials(real_t elapsed_sim_time);
