@@ -770,6 +770,7 @@ void sheets_ic_sinusoid_3d_diffusion(
       std::cout<<"File does not exist!\n";
       throw(-1);
     }
+    return;
   }  
   // setting proper initial guess
 
