@@ -41,6 +41,8 @@ void io_raytrace_dump(IOData *iodata, idx_t step,
   std::vector<RayTrace<real_t, idx_t> *> const * rays);
 #endif
 
+bool io_read_3dslice(IOData *iodata, arr_t & field, std::string filename);
+ 
 void io_scalar_snapshot(IOData *iodata, idx_t step, Scalar * scalar);
 void io_sheets_snapshot(IOData *iodata, idx_t step, Sheet * sheets);
  

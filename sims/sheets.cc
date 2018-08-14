@@ -33,6 +33,10 @@ void SheetSim::setICs()
   {
     sheets_ic_sinusoid_3d_diffusion(bssnSim, sheetSim, lambda, iodata, tot_mass);
   }
+  else if(_config("ic_type", "") == "sinusoid_diffusion")
+  {
+    sheets_ic_sinusoid_1d_diffusion(bssnSim, sheetSim, lambda, iodata, tot_mass);
+  }
   else
   {
     iodata->log("Unsupported IC type!");

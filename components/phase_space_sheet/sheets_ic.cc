@@ -615,6 +615,7 @@ void sheets_ic_sinusoid_3d_diffusion(
   BSSN *bssnSim, Sheet *sheetSim, Lambda * lambda, IOData * iodata, real_t & tot_mass)
 {
   iodata->log("Setting sinusoidal 3D ICs with diffusion method");
+
   idx_t i, j, k;
 
 
@@ -756,6 +757,20 @@ void sheets_ic_sinusoid_3d_diffusion(
   tot_mass = tot_mass_tmp;
   std::cout<<"Total mass is "<<tot_mass<<"\n";
 
+  int read_from_file = std::stoi(_config("set_initial_from_file", "0"));
+
+  if(read_from_file)
+  {
+    bool read_flag1 = io_read_3dslice(iodata, Dx_p, "Dx");
+    bool read_flag2 = io_read_3dslice(iodata, Dy_p, "Dy");
+    bool read_flag3 = io_read_3dslice(iodata, Dz_p, "Dz");
+
+    if(!read_flag1 || ! read_flag2 || !read_flag3)
+    {
+      std::cout<<"File does not exist!\n";
+      throw(-1);
+    }
+  }  
   // setting proper initial guess
 
 #pragma omp parallel for collapse(2)
@@ -957,7 +972,8 @@ void sheets_ic_sinusoid_3d_diffusion(
   
   // doing iteration
   // stop when max_err increase 
-  while(max_err <= previous_err)
+  //  while(max_err <= previous_err)
+  while(1)
   {
     previous_err = max_err;
     if(iter_cnt >= 2000)
@@ -1035,7 +1051,7 @@ void sheets_ic_sinusoid_3d_diffusion(
 }
 
 void sheets_ic_sinusoid_1d_diffusion(
-  BSSN *bssnSim, Sheet *sheetSim, IOData * iodata, real_t & tot_mass)
+  BSSN *bssnSim, Sheet *sheetSim, Lambda * lambda, IOData * iodata, real_t & tot_mass)
 {
   iodata->log("Setting sinusoidal 3D ICs with diffusion method");
   idx_t i, j, k;
@@ -1061,6 +1077,13 @@ void sheets_ic_sinusoid_1d_diffusion(
 
   real_t rho_FRW = 3.0/PI/8.0;
   real_t K_FRW = -sqrt(24.0*PI*rho_FRW);
+
+  real_t Omega_L = std::stod(_config("Omega_L", "0.0"));
+  real_t rho_m = (1.0 - Omega_L) * rho_FRW;
+  real_t rho_L = Omega_L * rho_FRW;
+  lambda->setLambda(rho_L);
+
+  
   iodata->log( "FRW density is " + stringify(rho_FRW) + ", total mass in simulation volume is "
     + stringify(rho_FRW*sheetSim->lx*sheetSim->ly*sheetSim->lz));
 
@@ -1071,7 +1094,7 @@ void sheets_ic_sinusoid_1d_diffusion(
   real_t phix = 0;
   real_t twopi_L = 2.0*PI / sheetSim->lx;
   real_t pw2_twopi_L = twopi_L*twopi_L;
-
+  
   // defining difference of \rho
   arr_t rho(NX, NY, NZ), rho_err(NX, NY, NZ);
   // variables to store gradiant of delta \rho
@@ -1087,7 +1110,7 @@ void sheets_ic_sinusoid_1d_diffusion(
     
     real_t phi = A*(sin(2.0*PI*x_frac + phix));
 
-    real_t rho_c = rho_FRW + -exp(-4.0*phi)/PI/2.0*(
+    real_t rho_c = rho_m + -exp(-4.0*phi)/PI/2.0*(
       pw2(twopi_L*A*cos(2.0*PI*x_frac + phix))
       - pw2_twopi_L*A*sin(2.0*PI*x_frac + phix)
     );
@@ -1111,7 +1134,7 @@ void sheets_ic_sinusoid_1d_diffusion(
     real_t x_frac = i/(real_t) integration_points;
 
     real_t phi = A*sin(2.0*PI*x_frac + phix);
-    real_t rho_c = rho_FRW + -exp(-4.0*phi)/PI/2.0*(
+    real_t rho_c = rho_m + -exp(-4.0*phi)/PI/2.0*(
       pw2(twopi_L*A*cos(2.0*PI*x_frac + phix))
       - pw2_twopi_L*A*sin(2.0*PI*x_frac + phix)
     );

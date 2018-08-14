@@ -592,6 +592,45 @@ void io_sheets_snapshot(IOData *iodata, idx_t step, Sheet * sheets)
   
 }
 
+/**
+ * @brief      Read full 3D slice from a file.
+ *
+ * @param      iodata    initialized IOData
+ * @param      field     Field to real
+ * @param[in]  filename  filename to read (minus suffix)
+ */
+bool io_read_3dslice(IOData *iodata, arr_t & field, std::string filename)
+{
+  std::string dump_filename = filename + ".3d_grid.h5.gz";
+  hid_t file_id = H5Fopen(dump_filename.c_str(), H5F_ACC_RDWR, H5P_DEFAULT);
+
+  if(file_id < 0) return false;
+
+  hid_t temp;
+
+  temp = H5Dopen(file_id, "DS1", H5P_DEFAULT);
+
+  if( temp < 0 ) {
+    std::cout << "Dataset DS1 does not exist." << std::endl;
+    return false;
+  }
+  H5Dclose(temp);
+
+  hid_t dset_id = H5Dopen(file_id, "DS1", H5P_DEFAULT);
+  std::cout << "Dataset DS1 exists!" << std::endl << std::flush;
+
+  herr_t status;
+
+  // hsize_t dims[3] = {(hsize_t) field.nx, (hsize_t) field.ny, (hsize_t) field.nz},
+  //   maxdims[3] = {H5S_UNLIMITED, H5S_UNLIMITED, H5S_UNLIMITED},
+  //   chunk[3] = {6, 6, 6};
+
+    status = H5Dread(dset_id,  H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, field._array);
+  
+    return true;
+}
+
+  
   
 /**
  * @brief      Write full 3D slice to a file.
