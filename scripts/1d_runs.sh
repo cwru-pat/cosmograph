@@ -1,5 +1,6 @@
 #!/bin/bash
 
+EXEC_DIR=$(pwd)
 # Switch to the directory containing this script,
 cd "$(dirname "$0")"
 # up a directory should be the main codebase.
@@ -24,6 +25,7 @@ MODE_AMPLITUDE=0.002
 CARRIER_COUNT_SCHEME=1
 DEPOSIT_SCHEME=1
 METHOD_ORDER_RES=4
+GN_eta=0.001
 
 # read in options
 for i in "$@"
@@ -33,7 +35,7 @@ do
       printf "Usage: ./1d_runs.sh\n"
       printf "         [-C|--cluster-run] [-d|--dry-run]\n"
       printf "         [(-R|--resolution-str)='0064'] [(-l|--l)=1] [(-A|--amplitude)=0.002]\n"
-      printf "         [(-c|--carriers)=2] [(-g|--gauge)=Harmonic]\n"
+      printf "         [(-c|--carriers)=2] [(-g|--gauge)=Harmonic] [--GN_eta=0.0001]\n"
       exit 0
       ;;
       -N=*|--resolution-N=*)
@@ -46,6 +48,10 @@ do
       ;;
       -g=*|--gauge=*)
       GAUGE="${i#*=}"
+      shift # past argument=value
+      ;;
+      --GN_eta=*)
+      GN_eta="${i#*=}"
       shift # past argument=value
       ;;
       -A=*|--amplitude=*)
@@ -73,18 +79,17 @@ done
 
 # derived vars
 RES_INT=$(echo $RES_STR | sed 's/^0*//')
-STEPS=$(bc <<< "$RES_INT*6000/$BOX_LENGTH")
+STEPS=$(bc <<< "$RES_INT*3000/$BOX_LENGTH")
 IO_INT=$((STEPS/1000))
 IO_INT_1D=$((STEPS/10))
 IO_INT_3D=$((STEPS/10))
 METHOD_ORDER=$((METHOD_ORDER_RES*2))
 IC_PPDX=$((RES_INT*20000))
-
-
+DT_FRAC=0.2
 
 mkdir -p ../build
 cd ../build
-DIR="1d_runs/sheet_run-L_$BOX_LENGTH-r_$RES_STR-Odx_$METHOD_ORDER-cpdx_$CARRIERS_PER_DX-ccs_$CARRIER_COUNT_SCHEME-ds_$DEPOSIT_SCHEME-A_${MODE_AMPLITUDE}_$GAUGE"
+DIR="$EXEC_DIR/sheet_run-L_$BOX_LENGTH-r_$RES_STR-Odx_$METHOD_ORDER-cpdx_$CARRIERS_PER_DX-ccs_$CARRIER_COUNT_SCHEME-ds_$DEPOSIT_SCHEME-A_${MODE_AMPLITUDE}_$GAUGE"
 
 printf "${BLUE}Deploying runs:${NC}\n"
 printf "  Will be using directory: $DIR\n"
@@ -113,6 +118,25 @@ TMP_CONFIG_FILE=config.txt
 cp ../../../config/tests/phase_space_sheets.txt $TMP_CONFIG_FILE
 
 
+USE_GN=0
+USE_Z4c=0
+if [ "$GAUGE" = "GeneralizedNewton" ]; then
+  USE_GN=1
+  USE_Z4c=1
+  GN_xi=0.1
+  DT_FRAC=$(bc -l <<< "0.05 * 0.0001/$GN_eta * 16.0/$RES_INT")
+
+  sed -i -E "s/GN_xi = [\.0-9]+/GN_xi = $GN_xi/g" $TMP_CONFIG_FILE
+  sed -i -E "s/GN_eta = [\.0-9]+/GN_eta = $GN_eta/g" $TMP_CONFIG_FILE
+  sed -i -E "s/dt_frac = [\.0-9]+/dt_frac = $DT_FRAC/g" $TMP_CONFIG_FILE
+
+  STEPS=$(bc <<< " ( $RES_INT*300/$BOX_LENGTH*0.1/$DT_FRAC ) ")
+  IO_INT=$((STEPS/1000))
+  IO_INT_1D=$((STEPS/10))
+  IO_INT_3D=$((STEPS/10))
+fi
+
+
 sed -i -E "s/ns1 = [\.0-9]+/ns1 = $RES_INT/g" $TMP_CONFIG_FILE
 sed -i -E "s/carriers_per_dx = [0-9]+/carriers_per_dx = $CARRIERS_PER_DX/g" $TMP_CONFIG_FILE
 sed -i -E "s/carrier_count_scheme = [\.0-9]+/carrier_count_scheme = $CARRIER_COUNT_SCHEME/g" $TMP_CONFIG_FILE
@@ -126,7 +150,7 @@ sed -i -E "s/IO_constraint_interval = [0-9]+/IO_constraint_interval = $IO_INT/g"
 sed -i -E "s/SVT_constraint_interval = [0-9]+/SVT_constraint_interval = $IO_INT/g" $TMP_CONFIG_FILE
 sed -i -E "s/peak_amplitude = [\.0-9]+/peak_amplitude = $MODE_AMPLITUDE/g" $TMP_CONFIG_FILE
 sed -i -E "s/lapse = [a-zA-Z]+/lapse = $GAUGE/g" $TMP_CONFIG_FILE
-sed -i -E "s/dt_frac = [\.0-9]+/dt_frac = 0.1/g" $TMP_CONFIG_FILE
+sed -i -E "s/dt_frac = [\.0-9]+/dt_frac = $DT_FRAC/g" $TMP_CONFIG_FILE
 sed -i -E "s,output_dir = [[:alnum:]_-\./]+,output_dir = output,g" $TMP_CONFIG_FILE
 
 
@@ -136,9 +160,9 @@ if "$USE_CLUSTER"; then
   module load cmake
 fi
 
-cmake ../../.. -DCOSMO_N=$RES_INT -DCOSMO_NY=1 -DCOSMO_NZ=1 -DCOSMO_USE_GENERALIZED_NEWTON=1\
+cmake ../../.. -DCOSMO_N=$RES_INT -DCOSMO_NY=1 -DCOSMO_NZ=1 -DCOSMO_USE_GENERALIZED_NEWTON=$USE_GN\
    -DCOSMO_STENCIL_ORDER=$METHOD_ORDER -DCOSMO_USE_REFERENCE_FRW=0 -DCOSMO_H_LEN_FRAC=$BOX_LENGTH\
-   && make -j24 # -DCOSMO_USE_Z4c_DAMPING=1 
+   -DCOSMO_USE_Z4c_DAMPING=$USE_Z4c && make -j24 
 if [ $? -ne 0 ]; then
   echo "Error: compilation failed!"
   exit 1

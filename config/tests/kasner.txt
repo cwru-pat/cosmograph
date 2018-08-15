@@ -1,0 +1,12 @@
+dt_frac = 0.1
+steps = 100
+
+simulation_type = vacuum
+ic_type = kasner
+px = 0.5
+
+output_dir = kasner_dt_0.1
+dump_file = kasner
+
+IO_constraint_interval = 1
+IO_bssnstats_interval = 1

@@ -55,6 +55,12 @@ void VacuumSim::setICs()
     int dir = std::stoi(_config("gauge_wave_dir", "1"));
     bssn_ic_awa_shifted_gauge_wave(bssnSim, dir);
   }
+  else if(_config["ic_type"] == "kasner")
+  {
+    iodata->log("Setting kasner initial conditions.");
+    int px = std::stod(_config("kasner_px", "0.5"));
+    bssn_ic_kasner(bssnSim, px);
+  }
   else
   {
     iodata->log("IC type not recognized!");

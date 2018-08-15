@@ -359,4 +359,54 @@ void bssn_ic_awa_shifted_gauge_wave(BSSN * bssn, int dir)
   }
 }
 
+/**
+ * @brief      AwA Shifted Gauge Wave Test
+ */
+void bssn_ic_kasner(BSSN * bssn, real_t px)
+{
+  idx_t i, j, k;
+
+  // gamma_ij = diag( t^(2px), t^(2py), t^(2pz) )
+  // pick px,
+  // px + py + pz = 1
+  // px^2 + py^2 + pz^2 = 1
+  // => py = ( 1 - px - sqrt( 1 + 2*px - 3px^2 ) )/2
+  //    pz = ( 1 - px + sqrt( 1 + 2*px - 3px^2 ) )/2
+  // det(gamma) = t^2
+  // Let t_i = 1 => DIFFphi = 0, DIFFgamma_ij
+  // 
+  // K = - 1/(2 det(gamma)) d/dt det(gamma)
+  //   = -1/(2t) * 2
+  // => K = -1
+  // 
+  // K_ij = -1/2 * d_t gamma_ij
+  //      = -1/2 * diag( 2px*t^(2px-1), 2py*t^(2py-1), 2pz*t^(2pz-1) )
+  // 
+  // Check: K = gamma^ij K_ij = -1 
+  // 
+  // A_ij = K_ij - K gamma_ij / 3
+  //      = -1/2 * diag( 2px*t^(2px-1), 2py*t^(2py-1), 2pz*t^(2pz-1) ) - (-1/3)*diag( t^(2px), t^(2py), t^(2pz) )
+  //      = -diag( px, py, pz ) + diag( 1, 1, 1 )/3
+  //      = diag( 1/3-px, 1/3-py, 1/3-pz )
+
+  real_t py = ( 1.0 - px - std::sqrt( 1.0 + 2.0*px - 3.0*px*px ) )/2.0;
+  real_t pz = ( 1.0 - px + std::sqrt( 1.0 + 2.0*px - 3.0*px*px ) )/2.0;
+
+  arr_t & DIFFK_p = *bssn->fields["DIFFK_p"];  
+  arr_t & A11_p = *bssn->fields["A11_p"];
+  arr_t & A22_p = *bssn->fields["A22_p"];
+  arr_t & A33_p = *bssn->fields["A33_p"];
+
+  LOOP3(i,j,k)
+  {
+    idx_t idx = NP_INDEX(i,j,k);
+
+    DIFFK_p[idx] = -1.0;
+    A11_p[idx] = 1.0/3.0 - px;
+    A22_p[idx] = 1.0/3.0 - py;
+    A33_p[idx] = 1.0/3.0 - pz;
+  }
+}
+
+
 } // namespace cosmo

@@ -359,16 +359,16 @@ void Bardeen::setPotentials(real_t elapsed_sim_time)
       - derivative(i,j,k,3,h11) - derivative(i,j,k,3,h22) )/a/a
       + 2.0*derivative(i,j,k,3,A);
 
-    // d^2 C_i
+    // d^2 d_t C_i
     dt_C1[idx] = ( derivative(i,j,k,2,dt_h12) + derivative(i,j,k,3,dt_h13)
         - derivative(i,j,k,1,dt_h22) - derivative(i,j,k,1,dt_h33) )/a/a
-      - 2.0*H*C1[idx] + 2.0*derivative(i,j,k,1,dt_A);
+      - 2.0*H*( C1[idx] - 2.0*derivative(i,j,k,1,A) ) + 2.0*derivative(i,j,k,1,dt_A);
     dt_C2[idx] = ( derivative(i,j,k,1,dt_h12) + derivative(i,j,k,3,dt_h23)
         - derivative(i,j,k,2,dt_h11) - derivative(i,j,k,2,dt_h33) )/a/a
-      - 2.0*H*C2[idx] + 2.0*derivative(i,j,k,2,dt_A);
+      - 2.0*H*( C2[idx] - 2.0*derivative(i,j,k,2,A) ) + 2.0*derivative(i,j,k,2,dt_A);
     dt_C3[idx] = ( derivative(i,j,k,1,dt_h13) + derivative(i,j,k,2,dt_h23)
         - derivative(i,j,k,3,dt_h11) - derivative(i,j,k,3,dt_h22) )/a/a
-      - 2.0*H*C3[idx] + 2.0*derivative(i,j,k,3,dt_A);
+      - 2.0*H*( C3[idx] - 2.0*derivative(i,j,k,3,A) ) + 2.0*derivative(i,j,k,3,dt_A);
   }
   fourier->inverseLaplacian <idx_t, real_t> (C1._array);
   fourier->inverseLaplacian <idx_t, real_t> (C2._array);

@@ -20,6 +20,7 @@ void bssn_ic_awa_gauge_wave(BSSN * bssn);
 void bssn_ic_awa_gauge_wave(BSSN * bssn, int dir);
 void bssn_ic_awa_shifted_gauge_wave(BSSN * bssn);
 void bssn_ic_awa_shifted_gauge_wave(BSSN * bssn, int dir);
+void bssn_ic_kasner(BSSN * bssn, real_t px);
 
 }
 
