@@ -15,6 +15,7 @@ Fourier::~Fourier()
   fftw_free(f_field);
   fftw_destroy_plan(p_r2c);
   fftw_destroy_plan(p_c2r);
+  delete [] double_field;
 }
 
 }

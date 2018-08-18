@@ -26,6 +26,7 @@ CARRIER_COUNT_SCHEME=1
 DEPOSIT_SCHEME=1
 METHOD_ORDER_RES=4
 GN_eta=0.001
+STEPS_FAC=3000
 
 # read in options
 for i in "$@"
@@ -34,8 +35,9 @@ do
       -h|--help)
       printf "Usage: ./1d_runs.sh\n"
       printf "         [-C|--cluster-run] [-d|--dry-run]\n"
-      printf "         [(-R|--resolution-str)='0064'] [(-l|--l)=1] [(-A|--amplitude)=0.002]\n"
+      printf "         [(-N|--resolution-N)='0064'] [(-l|--l)=1] [(-A|--amplitude)=0.002]\n"
       printf "         [(-c|--carriers)=2] [(-g|--gauge)=Harmonic] [--GN_eta=0.0001]\n"
+      printf "         [(-s|--steps-fac)=3000]\n"
       exit 0
       ;;
       -N=*|--resolution-N=*)
@@ -70,6 +72,10 @@ do
       DRY_RUN=true
       shift # past argument
       ;;
+      -s=*|--steps-fac=*)
+      STEPS_FAC="${i#*=}"
+      shift # past argument
+      ;;
       *)
         printf "Unrecognized option will not be used: ${i#*=}\n"
         # unknown option
@@ -79,8 +85,12 @@ done
 
 # derived vars
 RES_INT=$(echo $RES_STR | sed 's/^0*//')
-STEPS=$(bc <<< "$RES_INT*3000/$BOX_LENGTH")
+RES_NS=$((RES_INT*RES_INT/8)) # 16*2, 32*4, 64*8, ...
+STEPS=$(bc <<< "$RES_INT*$STEPS_FAC/$BOX_LENGTH")
 IO_INT=$((STEPS/1000))
+if ((IO_INT<1)); then
+  IO_INT=1
+fi
 IO_INT_1D=$((STEPS/10))
 IO_INT_3D=$((STEPS/10))
 METHOD_ORDER=$((METHOD_ORDER_RES*2))
@@ -123,21 +133,20 @@ USE_Z4c=0
 if [ "$GAUGE" = "GeneralizedNewton" ]; then
   USE_GN=1
   USE_Z4c=1
-  GN_xi=0.1
+  GN_xi=0.0
   DT_FRAC=$(bc -l <<< "0.05 * 0.0001/$GN_eta * 16.0/$RES_INT")
 
   sed -i -E "s/GN_xi = [\.0-9]+/GN_xi = $GN_xi/g" $TMP_CONFIG_FILE
   sed -i -E "s/GN_eta = [\.0-9]+/GN_eta = $GN_eta/g" $TMP_CONFIG_FILE
   sed -i -E "s/dt_frac = [\.0-9]+/dt_frac = $DT_FRAC/g" $TMP_CONFIG_FILE
 
-  STEPS=$(bc <<< " ( $RES_INT*300/$BOX_LENGTH*0.1/$DT_FRAC ) ")
+  STEPS=$(bc <<< " ( $RES_INT*$STEPS_FAC/$BOX_LENGTH*0.1/$DT_FRAC ) ")
   IO_INT=$((STEPS/1000))
   IO_INT_1D=$((STEPS/10))
   IO_INT_3D=$((STEPS/10))
 fi
 
-
-sed -i -E "s/ns1 = [\.0-9]+/ns1 = $RES_INT/g" $TMP_CONFIG_FILE
+sed -i -E "s/ns1 = [\.0-9]+/ns1 = $RES_NS/g" $TMP_CONFIG_FILE
 sed -i -E "s/carriers_per_dx = [0-9]+/carriers_per_dx = $CARRIERS_PER_DX/g" $TMP_CONFIG_FILE
 sed -i -E "s/carrier_count_scheme = [\.0-9]+/carrier_count_scheme = $CARRIER_COUNT_SCHEME/g" $TMP_CONFIG_FILE
 sed -i -E "s/deposit_scheme = [0-9]+/deposit_scheme = $DEPOSIT_SCHEME/g" $TMP_CONFIG_FILE
@@ -162,7 +171,7 @@ fi
 
 cmake ../../.. -DCOSMO_N=$RES_INT -DCOSMO_NY=1 -DCOSMO_NZ=1 -DCOSMO_USE_GENERALIZED_NEWTON=$USE_GN\
    -DCOSMO_STENCIL_ORDER=$METHOD_ORDER -DCOSMO_USE_REFERENCE_FRW=0 -DCOSMO_H_LEN_FRAC=$BOX_LENGTH\
-   -DCOSMO_USE_Z4c_DAMPING=$USE_Z4c && make -j24 
+   -DCOSMO_USE_Z4c_DAMPING=$USE_Z4c -DCOSMO_USE_LONG_DOUBLES=0 && make -j24 
 if [ $? -ne 0 ]; then
   echo "Error: compilation failed!"
   exit 1

@@ -318,7 +318,7 @@ void sheets_ic_sinusoid_3d(
                              * (derivative(0, j, k, 2, s2) + 1.0)
                              * (derivative(0, 0, k, 3, s3) + 1.0)));
         if(err > max_err) max_err_i = i;
-        max_err = std::max(max_err,err);
+        max_err = std::max(max_err, err);
       }
   
   std::cout<<"Max error to Eq. 10 is "<<max_err<<" at "<<max_err_i<<"\n";
@@ -446,11 +446,11 @@ void sheets_ic_sinusoid_3d(
         }
         Dx(i, j, k) = dx_cur;
         max_inverse_deviation = std::max(max_inverse_deviation,
-                                         fabs(x+dx_cur+s1.getTriCubicInterpolatedValue(x_idx,y_idx,z_idx) - cur_s1));
+                                 (real_t) fabs(x+dx_cur+s1.getTriCubicInterpolatedValue(x_idx,y_idx,z_idx) - cur_s1));
         max_inverse_deviation = std::max(max_inverse_deviation,
-                                         fabs(y+s2.getTriCubicInterpolatedValue(x_idx,y_idx,z_idx) - cur_s2));
+                                 (real_t) fabs(y+s2.getTriCubicInterpolatedValue(x_idx,y_idx,z_idx) - cur_s2));
         max_inverse_deviation = std::max(max_inverse_deviation,
-                                         fabs(z+s3.getTriCubicInterpolatedValue(x_idx,y_idx,z_idx) - cur_s3));
+                                 (real_t) fabs(z+s3.getTriCubicInterpolatedValue(x_idx,y_idx,z_idx) - cur_s3));
 
       }
     }
@@ -479,7 +479,7 @@ void sheets_ic_sinusoid_3d(
     );
 
     // These aren't difference vars
-    max_dev = std::max(max_dev, fabs(DIFFr_a[NP_INDEX(i,j,k)] - rho));
+    max_dev = std::max(max_dev, (real_t) fabs(DIFFr_a[NP_INDEX(i,j,k)] - rho));
   }
   std::cout<<"max dev is "<<max_dev<<"\n";
 }
@@ -541,12 +541,14 @@ void sheets_ic_sinusoid(
     DIFFr_a[idx] = rho;
   }
 
-  real_t integration_points = sheetSim->ns1 * std::stod(_config("integration_points_per_dx", "1000"));
+  idx_t integration_points = sheetSim->ns1 * std::stoi(_config("integration_points_per_dx", "1000"));
   std::cout << "Setting initial conditions using " << integration_points << " integration_points" << std::endl;
   real_t integration_interval = sheetSim->lx / integration_points;
   tot_mass = 0;
 
   // compute total mass in simulation, mass per tracer particle
+  real_t tot_mass_tmp = 0.0;
+# pragma omp parallel for reduction(+:tot_mass_tmp)
   for(idx_t i=0; i<integration_points; ++i)
   {
     real_t x_frac = i/(real_t) integration_points;
@@ -559,9 +561,10 @@ void sheets_ic_sinusoid(
 
     real_t rootdetg = std::exp(6.0*phi);
 
-    tot_mass += rho * rootdetg * integration_interval * sheetSim->ly * sheetSim->lz;
+    tot_mass_tmp += rho * rootdetg * integration_interval * sheetSim->ly * sheetSim->lz;
   }
 
+  tot_mass = tot_mass_tmp;
   real_t mass_per_tracer = tot_mass / (real_t) (sheetSim->ns1);
 
   std::cout << "Total mass and mass_per_tracer are " << tot_mass
@@ -581,7 +584,6 @@ void sheets_ic_sinusoid(
       pw2(twopi_L*A*cos(2.0*PI*x_frac + phix))
       - pw2_twopi_L*A*sin(2.0*PI*x_frac + phix)
     );
-
 
     real_t rootdetg = std::exp(6.0*phi);
     cur_mass += rho * rootdetg * integration_interval * sheetSim->ly * sheetSim->lz;
@@ -803,8 +805,7 @@ void sheets_ic_sinusoid_3d_diffusion(
 
   Fourier * fourier;
   fourier = new Fourier();
-  fourier->Initialize(NX, NY, NZ,
-    bssnSim->fields["DIFFphi_a"]->_array);
+  fourier->Initialize(NX, NY, NZ);
 
   fourier->inverseLaplacian <idx_t, real_t> (fourier_temp._array);
 
@@ -945,11 +946,11 @@ void sheets_ic_sinusoid_3d_diffusion(
         }
         Dx_p(i, j, k) = dx_cur;
         max_inverse_deviation = std::max(max_inverse_deviation,
-                                         fabs(x+dx_cur+d1phi.getTriCubicInterpolatedValue(x_idx,y_idx,z_idx) - cur_s1));
+                                  (real_t) fabs(x+dx_cur+d1phi.getTriCubicInterpolatedValue(x_idx,y_idx,z_idx) - cur_s1));
         max_inverse_deviation = std::max(max_inverse_deviation,
-                                         fabs(y+d2phi.getTriCubicInterpolatedValue(x_idx,y_idx,z_idx) - cur_s2));
+                                  (real_t) fabs(y+d2phi.getTriCubicInterpolatedValue(x_idx,y_idx,z_idx) - cur_s2));
         max_inverse_deviation = std::max(max_inverse_deviation,
-                                         fabs(z+d3phi.getTriCubicInterpolatedValue(x_idx,y_idx,z_idx) - cur_s3));
+                                  (real_t) fabs(z+d3phi.getTriCubicInterpolatedValue(x_idx,y_idx,z_idx) - cur_s3));
 
       }
     }
@@ -1054,11 +1055,10 @@ void sheets_ic_sinusoid_3d_diffusion(
 void sheets_ic_sinusoid_1d_diffusion(
   BSSN *bssnSim, Sheet *sheetSim, Lambda * lambda, IOData * iodata, real_t & tot_mass)
 {
-  iodata->log("Setting sinusoidal 3D ICs with diffusion method");
+  iodata->log("Setting sinusoidal 1D ICs with diffusion method");
   idx_t i, j, k;
 
-
-    // conformal factor
+  // conformal factor
   arr_t & DIFFphi_p = *bssnSim->fields["DIFFphi_p"];
   // DIFFK is initially zero
   arr_t & DIFFK_p = *bssnSim->fields["DIFFK_p"];
@@ -1071,7 +1071,7 @@ void sheets_ic_sinusoid_1d_diffusion(
   real_t A = sheetSim->lx*sheetSim->lx*std::stod(_config("peak_amplitude", "0.0001"));
 
   // setting iteration stuff
-  real_t precision_goal = sheetSim->lx * sheetSim->lx * std::stod(_config("precision_goal", "1e-5"));
+  real_t precision_goal = pw2(sheetSim->lx/sheetSim->ns1) * std::stod(_config("precision_goal", "1e-6"));
   real_t damping_coef = sheetSim->lx * sheetSim->lx * std::stod(_config("damping_coef", "0.1"));
   
   iodata->log( "Generating ICs with peak amp. = " + stringify(A) );

@@ -63,8 +63,7 @@ void CosmoSim::simInit()
 
   // FFT helper
   fourier = new Fourier();
-  fourier->Initialize(NX, NY, NZ,
-    bssnSim->fields["DIFFphi_a"]->_array /* arbitrary array for planning */);
+  fourier->Initialize(NX, NY, NZ);
 
 # if USE_COSMOTRACE
   // initialize raytracing if needed
@@ -85,10 +84,10 @@ void CosmoSim::simInit()
     bardeen = new Bardeen(bssnSim, fourier);
     bool use_ML_scale_factor = !!std::stoi(_config("use_ML_scale_factor", "1"));
     bardeen->setUseMLScaleFactor(use_ML_scale_factor);
+    real_t Omega_L = std::stod(_config("Omega_L", "0.0"));
+    bardeen->useMLScaleFactor(Omega_L);
     if(use_ML_scale_factor)
     {
-      real_t Omega_L = std::stod(_config("Omega_L", "0.0"));
-      bardeen->useMLScaleFactor(Omega_L);
       iodata->log("Using Matter+Lambda FLRW scale factor for Bardeen calculations with Omega_L = "
         + stringify(Omega_L) + ".");
     }

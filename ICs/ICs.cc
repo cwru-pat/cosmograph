@@ -134,8 +134,12 @@ void set_gaussian_random_field(arr_t & field, Fourier *fourier, ICsData *icd)
 
   // FFT back; 'field' array should now be populated with a gaussian random
   // field and power spectrum given by cosmo_power_spectrum.
-  fftw_execute_dft_c2r(fourier->p_c2r, fourier->f_field, field._array);
-
+  double * double_field = new double[POINTS];
+  fftw_execute_dft_c2r(fourier->p_c2r, fourier->f_field, double_field);
+  for(int i=0; i<POINTS; ++i)
+    field._array[i] = (real_t) double_field[i];
+  delete [] double_field;
+  
   return;
 }
 

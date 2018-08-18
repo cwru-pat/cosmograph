@@ -159,16 +159,11 @@ void BSSN::setKODampingCoefficient(real_t coefficient)
 
 void BSSN::setExtraFieldData()
 {
-
   K_min = min(DIFFK->_array_a);
   K_avg = conformal_average(DIFFK->_array_a, DIFFphi->_array_a, frw->get_phi());
-  rho_avg = conformal_average(DIFFr_a, DIFFphi->_array_a, frw->get_phi());
 
 #if USE_GENERALIZED_NEWTON
   idx_t i, j, k;
-
-  // real_t GN_eta = gaugeHandler->GN_eta;
-  // real_t GN_xi = gaugeHandler->GN_xi;
  
 # pragma omp parallel for default(shared) private(i, j, k)
   LOOP3(i, j, k)
@@ -358,7 +353,6 @@ void BSSN::set_bd_values(idx_t i, idx_t j, idx_t k, BSSNData *bd)
 
   // average K
   bd->K_avg = K_avg;
-  bd->rho_avg = rho_avg;
 
   // draw data from cache
   set_local_vals(bd);
