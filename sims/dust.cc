@@ -25,7 +25,7 @@ void DustSim::init()
   iodata->log("Initializing 'dust' type simulation.");
   staticSim = new Static();
   staticSim->init();
-
+  lambda = new Lambda();
   _timer["init"].stop();
 }
 
@@ -45,7 +45,7 @@ void DustSim::setICs()
   }
   else if(_config("ic_type", "") == "sinusoid")
   {
-    dust_ic_set_sinusoid(bssnSim, staticSim, fourier, iodata);
+    dust_ic_set_sinusoid(bssnSim, staticSim, lambda, fourier, iodata);
   }
   else
   {
@@ -63,6 +63,7 @@ void DustSim::initDustStep()
     bssnSim->stepInit();
     bssnSim->clearSrc();
     staticSim->addBSSNSrc(bssnSim->fields, bssnSim->frw);
+    lambda->addBSSNSource(bssnSim);
   _timer["RK_steps"].stop();
 }
 
@@ -95,18 +96,21 @@ void DustSim::runDustStep()
     // Second RK step
     bssnSim->clearSrc();
     staticSim->addBSSNSrc(bssnSim->fields, bssnSim->frw);
+    lambda->addBSSNSource(bssnSim);
     bssnSim->RKEvolve();
     bssnSim->K2Finalize();
 
     // Third RK step
     bssnSim->clearSrc();
     staticSim->addBSSNSrc(bssnSim->fields, bssnSim->frw);
+    lambda->addBSSNSource(bssnSim);
     bssnSim->RKEvolve();
     bssnSim->K3Finalize();
 
     // Fourth RK step
     bssnSim->clearSrc();
     staticSim->addBSSNSrc(bssnSim->fields, bssnSim->frw);
+    lambda->addBSSNSource(bssnSim);
     bssnSim->RKEvolve();
     bssnSim->K4Finalize();
 
