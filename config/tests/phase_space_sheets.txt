@@ -8,6 +8,7 @@ lapse = Harmonic
 
 peak_amplitude = 0.005
 Omega_L = 1.0e-6
+use_ML_scale_factor = 0
 
 ns1 = 64
 ns2 = 1
@@ -44,3 +45,4 @@ SVT_constraint_interval = 1000
 
 
 GN_eta = 0.000001
+GN_xi = 0.1

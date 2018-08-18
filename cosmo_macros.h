@@ -54,6 +54,10 @@
   #define USE_GENERALIZED_NEWTON false
 #endif
 
+// Long doubles?
+#ifndef USE_LONG_DOUBLES
+# define USE_LONG_DOUBLES false
+#endif
 
 // Optionally exclude some second-order terms
 #ifndef EXCLUDE_SECOND_ORDER_SMALL

@@ -166,7 +166,6 @@ public:
     }
 
     Omega_L_I = Omega_L_I_in;
-    use_mL_scale_factor = true;
   }
 
   void setUseMLScaleFactor(bool use)
