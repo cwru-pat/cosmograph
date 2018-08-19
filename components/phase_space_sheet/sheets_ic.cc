@@ -673,7 +673,7 @@ void sheets_ic_sinusoid_3d_diffusion(
   arr_t d1phi(NX, NY, NZ), d2phi(NX, NY, NZ), d3phi(NX, NY, NZ);
   
   // grid values
-  //#pragma omp parallel for
+  # pragma omp parallel for default(shared) private(i, j, k)
   LOOP3(i,j,k)
   {
     idx_t idx = NP_INDEX(i,j,k);
@@ -974,8 +974,7 @@ void sheets_ic_sinusoid_3d_diffusion(
   
   // doing iteration
   // stop when max_err increase 
-  //  while(max_err <= previous_err)
-  while(1)
+  while(max_err <= previous_err)
   {
     previous_err = max_err;
     if(iter_cnt >= 2000)

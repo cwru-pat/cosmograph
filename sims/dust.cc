@@ -7,7 +7,7 @@ namespace cosmo
 DustSim::DustSim()
 {
   // just check to make sure we can use this class.
-  if(_config("lapse", "") != "" && _config("lapse", "") != "static")
+  if(_config("lapse", "") != "" && _config("lapse", "") != "Static")
   {
     iodata->log("Error - not using synchronous gauge! You must use it for dust sims.");
     iodata->log("Please change this setting in the config file and re-run.");
@@ -46,6 +46,10 @@ void DustSim::setICs()
   else if(_config("ic_type", "") == "sinusoid")
   {
     dust_ic_set_sinusoid(bssnSim, staticSim, lambda, fourier, iodata);
+  }
+  else if(_config("ic_type", "") == "sinusoid_3d")
+  {
+    dust_ic_set_sinusoid_3d(bssnSim, staticSim, lambda, fourier, iodata);
   }
   else
   {

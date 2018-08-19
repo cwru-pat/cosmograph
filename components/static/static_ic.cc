@@ -138,6 +138,138 @@ void dust_ic_set_random(BSSN * bssn, Static * dust, Fourier * fourier,
 # endif
 }
 
+void dust_ic_set_sinusoid_3d(BSSN * bssn, Static * dust, Lambda * lambda, Fourier * fourier,
+  IOData * iodata)
+{
+
+  idx_t i, j, k;
+
+  arr_t & DIFFr_a = *bssn->fields["DIFFr_a"];
+  arr_t & DIFFphi_p = *bssn->fields["DIFFphi_p"];
+  arr_t & DIFFD_a = *dust->fields["DIFFD_a"];
+
+  real_t rho_FRW = 3.0/PI/8.0;
+
+  real_t Omega_L = std::stod(_config("Omega_L", "0.0"));
+  real_t rho_m = (1.0 - Omega_L) * rho_FRW;
+  real_t rho_L = Omega_L * rho_FRW;
+  lambda->setLambda(rho_L);
+
+  real_t A = H_LEN_FRAC*H_LEN_FRAC*std::stod(_config("peak_amplitude_frac", "0.001"));
+
+  // the conformal factor in front of metric is the solution to
+  // d^2 exp(\phi) = -2*pi exp(5\phi) * \delta_rho
+  // generate random mode in \phi
+  // delta_rho = -(lap e^\phi)/e^(4\phi)/2pi
+  real_t phix = std::stod(_config("phix", "0.0"));
+  real_t phiy = phix, phiz = phix;
+
+  // grid values
+  LOOP3(i,j,k)
+  {
+    idx_t idx = NP_INDEX(i,j,k);
+
+    real_t x_frac = ((real_t) i / (real_t) NX),
+      y_frac = ((real_t) j / (real_t) NY), z_frac = ((real_t) k / (real_t) NZ);
+    
+    real_t phi = A*
+      (sin(2.0*PI*x_frac + phix) + sin(2.0*PI*y_frac + phiy) + sin(2.0*PI*z_frac + phiz));
+
+    real_t DIFFrho = -exp(-4.0*phi)/PI/2.0*(
+      pw2(A*2.0*PI / H_LEN_FRAC * cos(2.0*PI*x_frac + phix))
+      + pw2(A*2.0*PI / H_LEN_FRAC * cos(2.0*PI*y_frac + phiy))
+      + pw2(A*2.0*PI / H_LEN_FRAC * cos(2.0*PI*z_frac + phiz))
+      -  ( A * pw2(2.0*PI / H_LEN_FRAC) * sin(2.0*PI*x_frac + phix)
+           + A * pw2(2.0*PI / H_LEN_FRAC) * sin(2.0*PI*y_frac + phiy)
+           + A * pw2(2.0*PI / H_LEN_FRAC) * sin(2.0*PI*z_frac + phiz))
+    );
+
+    // These aren't difference vars
+    DIFFphi_p[NP_INDEX(i,j,k)] = phi;
+    DIFFr_a[idx] = DIFFrho;
+
+// // debugging: throw away field
+// DIFFD_a[idx] = phi;
+  }
+// std::cout << std::setprecision(17);
+// std::cout << "field[0] = " << DIFFD_a[0] << "; ";
+// fourier->inverseLaplacian <idx_t, real_t> (DIFFD_a._array);
+// std::cout << "lap/lap field = " << laplacian(0,0,0,DIFFD_a) << "\n";
+
+  // Make sure min density value > 0
+  // Set conserved density variable field
+  real_t min = rho_m;
+  real_t max = min;
+  LOOP3(i,j,k)
+  {
+    idx_t idx = NP_INDEX(i,j,k);
+    real_t DIFFr = DIFFr_a[idx];
+    real_t rho = rho_m + DIFFr;
+    // phi_FRW = 0
+    real_t DIFFphi = DIFFphi_p[idx];
+    // phi = DIFFphi
+    // DIFFK = 0
+
+    DIFFD_a[idx] =
+      rho_m*expm1(6.0*DIFFphi) + exp(6.0*DIFFphi)*DIFFr;
+
+    if(rho < min)
+    {
+      min = rho;
+    }
+    if(rho > max)
+    {
+      max = rho;
+    }
+    if(rho != rho)
+    {
+      iodata->log("Error: NaN energy density.");
+      throw -1;
+    }
+  }
+
+  iodata->log( "Minimum fluid density: " + stringify(min) );
+  iodata->log( "Maximum fluid density: " + stringify(max) );
+  iodata->log( "Average fluctuation density: " + stringify(average(DIFFD_a)) );
+  iodata->log( "Std.dev fluctuation density: " + stringify(standard_deviation(DIFFD_a)) );
+  if(min < 0.0)
+  {
+    iodata->log("Error: negative density in some regions.");
+    throw -1;
+  }
+
+# if USE_REFERENCE_FRW
+  // Set values in reference FRW integrator
+  auto & frw = bssn->frw;
+  real_t K_FRW = -sqrt(24.0*PI*rho_FRW);
+  frw->set_phi(0.0);
+  frw->set_K(K_FRW);
+  frw->addFluid(rho_m, 0.0 /* w=0 */);
+# else
+  arr_t & DIFFK_p = *bssn->fields["DIFFK_p"];
+  arr_t & DIFFK_a = *bssn->fields["DIFFK_a"];
+  // add in FRW pieces to ICs
+  // phi is unchanged
+  // rho (D) and K get contribs
+  // w=0 fluid only
+# pragma omp parallel for default(shared) private(i,j,k)
+  LOOP3(i,j,k)
+  {
+    idx_t idx = NP_INDEX(i,j,k);
+
+    real_t D_FRW = rho_m; // on initial slice
+
+    DIFFr_a[idx] += rho_m;
+
+    DIFFK_a[idx] = -sqrt(24.0*PI*rho_FRW);
+    DIFFK_p[idx] = -sqrt(24.0*PI*rho_FRW);
+
+    DIFFD_a[idx] += D_FRW;
+  }
+# endif
+
+}
+
 
 /**
  * @brief Sinusoidal mode ICs
