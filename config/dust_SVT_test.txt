@@ -1,5 +1,5 @@
 steps = 8000
-dt_frac = 0.1
+dt_frac = 0.2
 
 lapse = Static
 
@@ -13,6 +13,7 @@ normalize_metric = 1
 output_dir = dust_SVT_test
 dump_file = calculated
 
+Omega_L = 1.0e-6
 
 IO_bssnstats_interval = 100
 dump_file = calculated
@@ -34,4 +35,4 @@ IO_1D_Bardeen_B = 1
 IO_1D_Bardeen_dt_B = 1
 IO_1D_Bardeen_d2t_B = 1
 
-omp_num_threads = 8
+omp_num_threads = 16

@@ -3,7 +3,7 @@
 
 #include "sim.h"
 #include "../components/static/static.h"
-
+#include "../components/Lambda/lambda.h"
 
 namespace cosmo
 {
@@ -15,7 +15,7 @@ class DustSim : public CosmoSim
 {
 protected:
   Static * staticSim;
-
+  Lambda * lambda;
 public:
   DustSim();
   ~DustSim()
