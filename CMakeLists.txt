@@ -42,4 +42,4 @@ file(GLOB COSMO_SOURCES *.cc IO/*.cc utils/*.cc
   components/Lambda/*.cc sims/*.cc ICs/*.cc)
 
 add_executable(cosmo ${COSMO_SOURCES} ${MULTIGRID_SOURCES})
-target_link_libraries(cosmo m rt z ${HDF5_LINK_LIBRARY} ${FFTW_LIBRARIES})
+target_link_libraries(cosmo m rt z ${HDF5_LINK_LIBRARY} ${FFTW_LIBRARIES} ${FFTWL_LIBRARIES})

@@ -21,13 +21,26 @@ namespace cosmo
 class Fourier
 {
 public:
+#if USE_LONG_DOUBLES
+  typedef long double fft_rt;
+  typedef fftwl_complex fft_ct;
+#else
+  typedef double fft_realt;
+  typedef fftw_complex fft_ct;
+#endif
+
   // FFT field
-  fftw_complex *f_field;
-  double *double_field;
+  fft_ct *f_field;
+  fft_rt *double_field;
 
   // plans for taking FFTs
+#if USE_LONG_DOUBLES
+  fftwl_plan p_c2r;
+  fftwl_plan p_r2c;
+#else
   fftw_plan p_c2r;
   fftw_plan p_r2c;
+#endif
 
   Fourier();
   ~Fourier();
@@ -38,8 +51,13 @@ public:
   template<typename IT>
   void Initialize_1D(IT n);
 
+#if USE_LONG_DOUBLES
+  void execute_f_r2c() { fftwl_execute(p_r2c); }
+  void execute_f_c2r() { fftwl_execute(p_c2r); }
+#else
   void execute_f_r2c() { fftw_execute(p_r2c); }
   void execute_f_c2r() { fftw_execute(p_c2r); }
+#endif
 
   template<typename RT, typename IOT>
   void powerDump(RT *in, IOT *iodata);
@@ -60,34 +78,61 @@ public:
 template<typename IT>
 void Fourier::Initialize(IT nx, IT ny, IT nz)
 {
-  //fftw_malloc
-  f_field = (fftw_complex *) fftw_malloc(nx*ny*(nz/2+1)
-                                         *((long long) sizeof(fftw_complex)));
-  double_field = new double[nx*ny*nz];
-
   // create plans
+#if USE_LONG_DOUBLES
+  //fftw_malloc
+  f_field = (fft_ct *) fftwl_malloc(nx*ny*(nz/2+1)
+                                         *((long long) sizeof(fft_ct)));
+  double_field = new fft_rt[nx*ny*nz];
+
+  p_r2c = fftwl_plan_dft_r2c_3d(nx, ny, nz,
+                               double_field, f_field,
+                               FFTW_MEASURE);
+  p_c2r = fftwl_plan_dft_c2r_3d(nx, ny, nz,
+                               f_field, double_field,
+                               FFTW_MEASURE);
+#else
+  //fftw_malloc
+  f_field = (fft_ct *) fftw_malloc(nx*ny*(nz/2+1)
+                                         *((long long) sizeof(fft_ct)));
+  double_field = new fft_rt[nx*ny*nz];
+
   p_r2c = fftw_plan_dft_r2c_3d(nx, ny, nz,
                                double_field, f_field,
                                FFTW_MEASURE);
   p_c2r = fftw_plan_dft_c2r_3d(nx, ny, nz,
                                f_field, double_field,
                                FFTW_MEASURE);
+#endif
 }
 
 template<typename IT>
 void Fourier::Initialize_1D(IT n)
 {
-  //fftw_malloc
-  f_field = (fftw_complex *) fftw_malloc((n/2 +1)*((long long) sizeof(fftw_complex)));
-  double_field = new double[n];
-
   // create plans
+#if USE_LONG_DOUBLES
+  //fftw_malloc
+  f_field = (fft_ct *) fftwl_malloc((n/2 +1)*((long long) sizeof(fft_ct)));
+  double_field = new fft_rt[n];
+
+  p_r2c = fftwl_plan_dft_r2c_1d(n,
+                               double_field, f_field,FFTW_ESTIMATE
+                               );
+  p_c2r = fftwl_plan_dft_c2r_1d(n,
+                               f_field, double_field,FFTW_ESTIMATE
+			       );
+#else
+  //fftw_malloc
+  f_field = (fft_ct *) fftw_malloc((n/2 +1)*((long long) sizeof(fft_ct)));
+  double_field = new fft_rt[n];
+
   p_r2c = fftw_plan_dft_r2c_1d(n,
                                double_field, f_field,FFTW_ESTIMATE
                                );
   p_c2r = fftw_plan_dft_c2r_1d(n,
                                f_field, double_field,FFTW_ESTIMATE
-			       );
+             );
+#endif
 }
 
 
@@ -103,9 +148,13 @@ void Fourier::powerDump(RT *in, IOT *iodata)
 {
   // Transform input array
   for(long int i=0; i<POINTS; ++i)
-    double_field[i] = (double) in[i];
+    double_field[i] = (fft_rt) in[i];
 
+#if USE_LONG_DOUBLES
+  fftwl_execute_dft_r2c(p_r2c, double_field, f_field);
+#else
   fftw_execute_dft_r2c(p_r2c, double_field, f_field);
+#endif
 
   // average power over angles
   const int numbins = (int) (sqrt(NX*NX + NY*NY + NZ*NZ)/2.0) + 1; // Actual number of bins
@@ -114,9 +163,9 @@ void Fourier::powerDump(RT *in, IOT *iodata)
   RT * p = new RT[numbins];
   RT * f2 = new RT[numbins]; // Values for each bin: Momentum, |F-k|^2, n_k
 
-  double pmagnitude; // Total momentum (p) in units of lattice spacing, pmagnitude = Sqrt(px^2+py^2+pz^2).
+  fft_rt pmagnitude; // Total momentum (p) in units of lattice spacing, pmagnitude = Sqrt(px^2+py^2+pz^2).
                      // This also gives the bin index since bin spacing is set to equal lattice spacing.
-  double fp2;
+  fft_rt fp2;
   int i, j, k, px, py, pz; // px, py, and pz are components of momentum in units of grid spacing
 
   // Initial magnitude of momentum in each bin
@@ -162,7 +211,7 @@ void Fourier::powerDump(RT *in, IOT *iodata)
     // Converts sums to averages. (numpoints[i] should always be greater than zero.)
     if(numpoints[i] > 0)
     {
-      array_out[i] = f2[i]/((double) numpoints[i]);
+      array_out[i] = f2[i]/((fft_rt) numpoints[i]);
     }
     else
     {
@@ -183,7 +232,7 @@ void Fourier::powerDump(RT *in, IOT *iodata)
   for(i=0; i<numbins; i++)
   {
     // field values
-    sprintf(data, "%g\t", (double) array_out[i]);
+    sprintf(data, "%g\t", (fft_rt) array_out[i]);
     gzwrite(datafile, data, std::char_traits<char>::length(data));
   }
   gzwrite(datafile, "\n", std::char_traits<char>::length("\n")); 
@@ -206,9 +255,13 @@ void Fourier::inverseLaplacian(RT *field)
   RT px, py, pz, pmag;
 
   for(long int i=0; i<POINTS; ++i)
-    double_field[i] = (double) field[i];
+    double_field[i] = (fft_rt) field[i];
 
+#if USE_LONG_DOUBLES
+  fftwl_execute_dft_r2c(p_r2c, double_field, f_field);
+#else
   fftw_execute_dft_r2c(p_r2c, double_field, f_field);
+#endif
 
   for(i=0; i<NX; i++)
   {
@@ -233,7 +286,12 @@ void Fourier::inverseLaplacian(RT *field)
   f_field[0][0] = 0;
   f_field[0][1] = 0;
 
+#if USE_LONG_DOUBLES
+  fftwl_execute_dft_c2r(p_c2r, f_field, double_field);
+#else
   fftw_execute_dft_c2r(p_c2r, f_field, double_field);
+#endif
+  
 
   for(long int i=0; i<POINTS; ++i)
     field[i] = (RT) double_field[i];
