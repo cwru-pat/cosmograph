@@ -10,6 +10,9 @@ peak_amplitude = 0.005
 Omega_L = 1.0e-6
 use_ML_scale_factor = 0
 
+stop_at_expansion_goal = 1
+expansion_goal = 100.0
+
 ns1 = 64
 ns2 = 1
 ns3 = 1
