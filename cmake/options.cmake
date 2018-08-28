@@ -87,8 +87,9 @@ if(DEFINED COSMO_USE_GENERALIZED_NEWTON)
   message(STATUS "${Cyan}Setting USE_GENERALIZED_NEWTON=${COSMO_USE_GENERALIZED_NEWTON}.${ColorReset}")
 endif()
 
-# Generalized Newton gauge? see notes
+# Long double precision?
 if(DEFINED COSMO_USE_LONG_DOUBLES)
+  set(FFTW_USE_LONG_DOUBLES "1")
   add_definitions(-DUSE_LONG_DOUBLES=${COSMO_USE_LONG_DOUBLES})
   message(STATUS "${Cyan}Setting USE_LONG_DOUBLES=${COSMO_USE_LONG_DOUBLES}.${ColorReset}")
 endif()

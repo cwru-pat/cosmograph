@@ -103,23 +103,24 @@ void CosmoSim::run()
   iodata->log("Running simulation...");
 
   _timer["loop"].start();
-  real_t avg_vol_i = 0.0;
+  real_t avg_vol_i = 1.0;
   while(step <= num_steps)
   {
     runStep();
-    step++;
     t += dt;
-      
+
     if(step == 0)
     {
       avg_vol_i = bssnSim->avg_vol;
     }
     else if( !!std::stod(_config("stop_at_expansion_goal", "0"))
-      && pow(bssnSim->avg_vol / avg_vol_i, 1.0/3.0) >= std::stod(_config("expansion_goal", "100.0")) )
+      && std::pow(bssnSim->avg_vol / avg_vol_i, 1.0/3.0) >= std::stod(_config("expansion_goal", "100.0")) )
     {
       iodata->log("Target expasion reached, run ending.");
       break;
     }
+
+    step++;
   }
   _timer["loop"].stop();
 
@@ -184,6 +185,14 @@ void CosmoSim::runCommonStepTasks()
   // progress bar in terminal
   if(step % 100 == 0)
     io_show_progress(step, num_steps);
+
+# if USE_GENERALIZED_NEWTON
+  real_t dt0 = std::stold(_config( "dt_frac", "0.1" ))*dx;
+  real_t frac_done = (num_steps - step) / (real_t) num_steps;
+
+  dt = dt0 + frac_done*frac_done*100*dt0;
+  bssnSim->setDt(dt);
+# endif
 
 # if USE_COSMOTRACE
   // Evolve light rays when integrating backwards
