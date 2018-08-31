@@ -732,8 +732,10 @@ void sheets_ic_sinusoid_3d_diffusion(
   idx_t i, j, k;
 
 
-    // conformal factor
+  // conformal factor
   arr_t & DIFFphi_p = *bssnSim->fields["DIFFphi_p"];
+  // need _a component of phi for depositing mass
+  arr_t & DIFFphi_a = *bssnSim->fields["DIFFphi_a"];
   // DIFFK is initially zero
   arr_t & DIFFK_p = *bssnSim->fields["DIFFK_p"];
   // matter sources
@@ -806,6 +808,7 @@ void sheets_ic_sinusoid_3d_diffusion(
 
     // These aren't difference vars
     DIFFphi_p[NP_INDEX(i,j,k)] = phi;
+    DIFFphi_a[NP_INDEX(i,j,k)] = phi;
     DIFFK_p[idx] = K_FRW;
     // set target \rho to rho temperarily
     rho[idx] = rho_c;
@@ -1170,6 +1173,7 @@ void sheets_ic_sinusoid_1d_diffusion(
 
   // conformal factor
   arr_t & DIFFphi_p = *bssnSim->fields["DIFFphi_p"];
+  arr_t & DIFFphi_a = *bssnSim->fields["DIFFphi_a"];
   // DIFFK is initially zero
   arr_t & DIFFK_p = *bssnSim->fields["DIFFK_p"];
   // matter sources
@@ -1227,6 +1231,7 @@ void sheets_ic_sinusoid_1d_diffusion(
     );
     // These aren't difference vars
     DIFFphi_p[NP_INDEX(i,j,k)] = phi;
+    DIFFphi_a[NP_INDEX(i,j,k)] = phi;
     DIFFK_p[idx] = K_FRW;
     // set target \rho to rho temperarily
     rho[idx] = rho_c;
