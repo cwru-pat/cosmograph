@@ -2,13 +2,13 @@ steps = 4000
 dt_frac = 0.2
 
 simulation_type = sheets
-ic_type = sinusoid
+ic_type = semianalytic
 
 lapse = Harmonic
 
 peak_amplitude = 0.005
-Omega_L = 1.0e-6
-use_ML_scale_factor = 1
+Omega_L = 1.72e-08
+use_ML_scale_factor = 0
 
 stop_at_expansion_goal = 1
 expansion_goal = 100.0

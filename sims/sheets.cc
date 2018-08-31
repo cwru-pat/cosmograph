@@ -29,6 +29,10 @@ void SheetSim::setICs()
   {
     sheets_ic_sinusoid(bssnSim, sheetSim, lambda, iodata, tot_mass);
   }
+  else if(_config("ic_type", "") == "semianalytic")
+  {
+    sheets_ic_semianalytic(bssnSim, sheetSim, lambda, iodata, tot_mass);
+  }
   else if(_config("ic_type", "") == "sinusoid_3d")
   {
     sheets_ic_sinusoid_3d_diffusion(bssnSim, sheetSim, lambda, iodata, tot_mass);

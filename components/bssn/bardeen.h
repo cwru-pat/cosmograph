@@ -12,6 +12,8 @@
 #include "../../utils/Fourier.h"
 #include "bssn.h"
 
+#define NUM_BARDEEN_VIOLS 17
+
 namespace cosmo
 {
 
@@ -63,7 +65,7 @@ public:
   arr_t Phi, Psi;
 
   // constraint violation
-  arr_t lin_viol, lin_viol_der_mag, lin_viol_der;
+  arr_t lin_viol, lin_viol_mag, lin_viol_der_mag, lin_viol_der;
 
   real_t * viols;
 
@@ -112,11 +114,12 @@ public:
     Phi.init(NX, NY, NZ); Psi.init(NX, NY, NZ);
 
     lin_viol.init(NX, NY, NZ);
+    lin_viol_mag.init(NX, NY, NZ);
     lin_viol_der_mag.init(NX, NY, NZ);
     lin_viol_der.init(NX, NY, NZ);
 
-    viols = new real_t[13];
-    for(int i=0; i<13; ++i)
+    viols = new real_t[NUM_BARDEEN_VIOLS];
+    for(int i=0; i<NUM_BARDEEN_VIOLS; ++i)
       viols[0] = 0;
 
     // add Bardeen potentials to BSSN fields map

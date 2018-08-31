@@ -25,7 +25,7 @@ public:
   typedef long double fft_rt;
   typedef fftwl_complex fft_ct;
 #else
-  typedef double fft_realt;
+  typedef double fft_rt;
   typedef fftw_complex fft_ct;
 #endif
 

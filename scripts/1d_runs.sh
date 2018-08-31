@@ -26,7 +26,8 @@ CARRIER_COUNT_SCHEME=1
 DEPOSIT_SCHEME=1
 METHOD_ORDER_RES=4
 GN_eta=0.001
-STEPS_FAC=3000
+STEPS_FAC=6000
+RES_NS_RED=8
 
 # read in options
 for i in "$@"
@@ -37,7 +38,7 @@ do
       printf "         [-C|--cluster-run] [-d|--dry-run]\n"
       printf "         [(-N|--resolution-N)='0064'] [(-l|--l)=1] [(-A|--amplitude)=0.002]\n"
       printf "         [(-c|--carriers)=2] [(-g|--gauge)=Harmonic] [--GN_eta=0.0001]\n"
-      printf "         [(-s|--steps-fac)=3000]\n"
+      printf "         [(-s|--steps-fac)=3000] [(-n|--ns-reduction)=8]\n"
       exit 0
       ;;
       -N=*|--resolution-N=*)
@@ -76,6 +77,10 @@ do
       STEPS_FAC="${i#*=}"
       shift # past argument
       ;;
+      -n=*|--ns-reduction=*)
+      RES_NS_RED="${i#*=}"
+      shift # past argument
+      ;;
       *)
         printf "Unrecognized option will not be used: ${i#*=}\n"
         # unknown option
@@ -85,17 +90,23 @@ done
 
 # derived vars
 RES_INT=$(echo $RES_STR | sed 's/^0*//')
-RES_NS=$((RES_INT*RES_INT/8)) # 16*2, 32*4, 64*8, ...
+RES_NS=$((RES_INT*RES_INT/RES_NS_RED))
 STEPS=$(bc <<< "$RES_INT*$STEPS_FAC/$BOX_LENGTH")
 IO_INT=$((STEPS/1000))
 if ((IO_INT<1)); then
   IO_INT=1
 fi
 IO_INT_1D=$((STEPS/10))
+if ((IO_INT_1D<1)); then
+  IO_INT_1D=1
+fi
 IO_INT_3D=$((STEPS/10))
+if ((IO_INT_3D<1)); then
+  IO_INT_3D=1
+fi
 METHOD_ORDER=$((METHOD_ORDER_RES*2))
 IC_PPDX=$((RES_INT*20000))
-DT_FRAC=0.2
+DT_FRAC=0.1
 OUTPUT_DIR=output
 
 mkdir -p ../build
