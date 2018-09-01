@@ -84,7 +84,9 @@ int main(int argc, char **argv)
   cosmoSim->init();
 
   // Generate initial conditions
+  _timer["ICs"].start();
   cosmoSim->setICs();
+  _timer["ICs"].stop();
 
   // Run simulation
   cosmoSim->run();

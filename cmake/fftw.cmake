@@ -14,7 +14,8 @@ else()
   set(FFTW_LIBRARIES "${FFTW_LIBRARY}")
   if(NOT FFTW_INCLUDE_DIRS)
     message(STATUS "FFTW partially found. An include directory was not found for FFTW in the CPLUS_INCLUDE_PATH environment variable.")
-    message(STATUS "If compilation or linking fails, you may need to add the include path to this variable.")
+    message(STATUS "If compilation or linking fails, you may need to add the include path.")
+    message(STATUS " CPLUS_INCLUDE_PATH: ${CPLUS_INCLUDE_PATH}")
     message(STATUS " FFTW_LIBRARY: ${FFTW_LIBRARY}")
   else()
     include_directories("${FFTW_INCLUDE_DIRS}")
@@ -23,3 +24,35 @@ else()
     message(STATUS " FFTW_INCLUDE_DIRS: ${FFTW_INCLUDE_DIRS}")
   endif()
 endif()
+
+
+# option defined in options.cmake
+if(FFTW_USE_LONG_DOUBLES)
+  message(STATUS "Checking for fftwl (long double library).")
+
+  find_library(FFTWL_LIBRARY
+    NAMES fftw3l libfftw3l fftwl libfftwl
+    HINTS ENV LD_LIBRARY_PATH)
+
+  find_path(FFTWL_INCLUDE_DIRS
+    NAMES fftwl.h
+    HINTS ENV CPLUS_INCLUDE_PATH)
+
+  if(NOT FFTWL_LIBRARY)
+    message(FATAL_ERROR "${Red}The FFTW lond gouble library was not found. Please make sure you have FFTW installed or loaded, and that the library and include directories can be found in CPLUS_INCLUDE_PATH and LD_LIBRARY_PATH environment variables.${ColorReset}")
+  else()
+    set(FFTWL_LIBRARIES "${FFTWL_LIBRARY}")
+    if(NOT FFTWL_INCLUDE_DIRS)
+      message(STATUS "FFTW long double partially found. An include directory was not found for FFTW in the CPLUS_INCLUDE_PATH environment variable.")
+      message(STATUS "If compilation or linking fails, you may need to add the include path.")
+      message(STATUS " CPLUS_INCLUDE_PATH: ${CPLUS_INCLUDE_PATH}")
+      message(STATUS " FFTWL_LIBRARY: ${FFTWL_LIBRARY}")
+    else()
+      include_directories("${FFTWL_INCLUDE_DIRS}")
+      message(STATUS "Found FFTW:")
+      message(STATUS " FFTWL_LIBRARY: ${FFTWL_LIBRARY}")
+      message(STATUS " FFTWL_INCLUDE_DIRS: ${FFTWL_INCLUDE_DIRS}")
+    endif()
+  endif()
+endif()
+unset(FFTW_USE_LONG_DOUBLES CACHE)

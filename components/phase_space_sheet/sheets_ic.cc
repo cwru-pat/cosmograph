@@ -4,7 +4,7 @@
 #include "../../cosmo_globals.h"
 #include "../../utils/Fourier.h"
 #include "../../utils/math.h"
-
+#include <iomanip>
 
 namespace cosmo
 {
@@ -484,19 +484,130 @@ void sheets_ic_sinusoid_3d(
   std::cout<<"max dev is "<<max_dev<<"\n";
 }
 
+
+/**
+ * Semi-analytic solution for sheet: faster than integration
+ * method, more straightforward convergence
+ */
+real_t semianalytic_phi(real_t x, real_t L, real_t A)
+{
+  return std::log1p( A*std::sin(2.0*PI*x/L) );
+}
+real_t semianalytic_delta_rho(real_t x, real_t L, real_t A)
+{
+  return 2.0*A*PI*std::sin((2*PI*x)/L)
+    / ( L*L*std::pow(1 + A*std::sin((2*PI*x)/L), 5) );
+}
+real_t semianalytic_int_rhodg(real_t x, real_t L, real_t A, real_t rho_m)
+{
+  return (120*PI*x*(16*(A*A)*PI + (16 + 5*(A*A)*(24 + 18*(A*A) + (A*A*A*A)))*(L*L)*rho_m) + A*L*
+      (-240*(8*PI + 3*(8 + 5*(A*A)*(4 + (A*A)))*(L*L)*rho_m)*std::cos((2*PI*x)/L) + A*(-480*PI*std::sin((4*PI*x)/L) + 
+           (L*L)*rho_m*(200*A*(8 + 3*(A*A))*std::cos((6*PI*x)/L) - 72*(A*A*A)*std::cos((10*PI*x)/L) - 225*(16 + 16*(A*A) + (A*A*A*A))*std::sin((4*PI*x)/L) + 45*(A*A)*(10 + (A*A))*std::sin((8*PI*x)/L) - 5*(A*A*A*A)*std::sin((12*PI*x)/L)))))/
+   (1920.*(L*L)*PI); // returns something with units of m
+}
+real_t semianalytic_x_at_target_xmass( real_t xm_target, real_t L, real_t A, real_t rho_m )
+{
+  real_t int_rhodg_0 = semianalytic_int_rhodg(0.0, L, A, rho_m);
+
+  // Find root to int_rhodg(x) - int_rhodg(x=0) == xm_target
+  // secant method
+  real_t x = xm_target/rho_m;
+  real_t x1 = xm_target/rho_m+dx;
+  real_t x2 = xm_target/rho_m-dx;
+  real_t TOL = 1.0e-14;
+  real_t MAX_ITER = 100;
+  real_t n_iter = 0;
+  while(
+    std::abs( semianalytic_int_rhodg(x, L, A, rho_m) - int_rhodg_0 - xm_target ) > TOL
+    && n_iter < MAX_ITER )
+  {
+    real_t f1 = semianalytic_int_rhodg(x1, L, A, rho_m) - int_rhodg_0 - xm_target;
+    real_t f2 = semianalytic_int_rhodg(x2, L, A, rho_m) - int_rhodg_0 - xm_target;
+    if(f1 == f2) { break; }
+    real_t new_x = ( x2*f1 - x1*f2 ) / ( f1 - f2 );
+    x2 = x1;
+    x1 = x;
+    x = new_x;
+    n_iter++;
+  }
+  return x;
+}
+void sheets_ic_semianalytic(BSSN *bssnSim, Sheet *sheetSim,
+  Lambda * lambda, IOData * iodata, real_t & tot_mass)
+{
+  iodata->log("Setting semianalytic (1d) ICs.");
+  idx_t i, j, k;
+
+  arr_t & DIFFphi_p = *bssnSim->fields["DIFFphi_p"];
+  arr_t & DIFFphi_a = *bssnSim->fields["DIFFphi_a"];
+  arr_t & DIFFK_p = *bssnSim->fields["DIFFK_p"];
+  arr_t & DIFFr_a = *bssnSim->fields["DIFFr_a"];
+  arr_t & Dx = sheetSim->Dx._array_p;
+  
+  real_t K_FRW = -3.0;
+  real_t rho_FRW = 3.0/PI/8.0;
+  real_t A = std::stod(_config("peak_amplitude", "0.0001"));
+  real_t L = sheetSim->lx;
+  iodata->log( "Generating ICs with peak amp. = " + stringify(A) );
+
+  real_t Omega_L = std::stod(_config("Omega_L", "0.0"));
+  real_t rho_m = (1.0 - Omega_L) * rho_FRW;
+  real_t rho_L = Omega_L * rho_FRW;
+  lambda->setLambda(rho_L);
+
+  tot_mass = sheetSim->ly * sheetSim->lz * (
+    semianalytic_int_rhodg(L, L, A, rho_m)-semianalytic_int_rhodg(0.0, L, A, rho_m));
+
+  iodata->log( "Total density is " + stringify(rho_FRW) + ". FRW matter density is "
+    + stringify(rho_m) + ", total matter mass in simulation volume is "
+    + stringify(tot_mass));
+
+  // grid values
+# pragma omp parallel for
+  LOOP3(i,j,k)
+  {
+    idx_t idx = NP_INDEX(i,j,k);
+    real_t x = ((real_t) i) * dx;
+    DIFFphi_p[NP_INDEX(i,j,k)] = semianalytic_phi(x, L, A);
+    DIFFphi_a[NP_INDEX(i,j,k)] = DIFFphi_p[NP_INDEX(i,j,k)];
+    DIFFK_p[idx] = K_FRW;
+    DIFFr_a[idx] = 0.0;
+  }
+
+
+  real_t tot_xmass = tot_mass / sheetSim->ly / sheetSim->lz;
+  real_t xmass_per_tracer = tot_xmass / (real_t) sheetSim->ns1;
+  idx_t tracer_num = 0;
+
+# pragma omp parallel for
+  for(tracer_num=0; tracer_num<sheetSim->ns1; tracer_num++)
+  {
+    real_t xmass_target = xmass_per_tracer*tracer_num;
+    real_t x_m = semianalytic_x_at_target_xmass(xmass_target, L, A, rho_m);
+    real_t x_ref = tracer_num/(real_t) sheetSim->ns1*L;
+
+    for(j=0; j<sheetSim->ns2; j++)
+      for(k=0; k<sheetSim->ns3; k++)
+      {
+        Dx(tracer_num, j, k) = x_m - x_ref;
+      }
+  }
+}
+
+
+
+/**
+ * @brief      1-d sinusoid via integration
+ */
 void sheets_ic_sinusoid(
   BSSN *bssnSim, Sheet *sheetSim, Lambda * lambda, IOData * iodata, real_t & tot_mass)
 {
   iodata->log("Setting sinusoidal ICs.");
   idx_t i, j, k;
 
-  // conformal factor
   arr_t & DIFFphi_p = *bssnSim->fields["DIFFphi_p"];
-  // DIFFK is initially zero
   arr_t & DIFFK_p = *bssnSim->fields["DIFFK_p"];
-  // matter sources
   arr_t & DIFFr_a = *bssnSim->fields["DIFFr_a"];
-
   arr_t & Dx = sheetSim->Dx._array_p;
   
   real_t A = sheetSim->lx*sheetSim->lx*std::stod(_config("peak_amplitude", "0.0001"));
@@ -621,8 +732,9 @@ void sheets_ic_sinusoid_3d_diffusion(
   idx_t i, j, k;
 
 
-    // conformal factor
+  // conformal factor
   arr_t & DIFFphi_p = *bssnSim->fields["DIFFphi_p"];
+  // need _a component of phi for depositing mass
   arr_t & DIFFphi_a = *bssnSim->fields["DIFFphi_a"];
   // DIFFK is initially zero
   arr_t & DIFFK_p = *bssnSim->fields["DIFFK_p"];
@@ -674,7 +786,7 @@ void sheets_ic_sinusoid_3d_diffusion(
   arr_t d1phi(NX, NY, NZ), d2phi(NX, NY, NZ), d3phi(NX, NY, NZ);
   
   // grid values
-  //#pragma omp parallel for
+  # pragma omp parallel for default(shared) private(i, j, k)
   LOOP3(i,j,k)
   {
     idx_t idx = NP_INDEX(i,j,k);
@@ -977,8 +1089,7 @@ void sheets_ic_sinusoid_3d_diffusion(
 
   // doing iteration
   // stop when max_err increase 
-    while(max_err <= previous_err)
-  //  while(1)
+  while(max_err <= previous_err)
   {
     previous_err = max_err;
     if(iter_cnt >= iter_cnt_limit)
@@ -1063,6 +1174,7 @@ void sheets_ic_sinusoid_1d_diffusion(
 
   // conformal factor
   arr_t & DIFFphi_p = *bssnSim->fields["DIFFphi_p"];
+  arr_t & DIFFphi_a = *bssnSim->fields["DIFFphi_a"];
   // DIFFK is initially zero
   arr_t & DIFFK_p = *bssnSim->fields["DIFFK_p"];
   // matter sources
@@ -1120,6 +1232,7 @@ void sheets_ic_sinusoid_1d_diffusion(
     );
     // These aren't difference vars
     DIFFphi_p[NP_INDEX(i,j,k)] = phi;
+    DIFFphi_a[NP_INDEX(i,j,k)] = phi;
     DIFFK_p[idx] = K_FRW;
     // set target \rho to rho temperarily
     rho[idx] = rho_c;

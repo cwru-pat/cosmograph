@@ -26,7 +26,8 @@ CARRIER_COUNT_SCHEME=1
 DEPOSIT_SCHEME=1
 METHOD_ORDER_RES=4
 GN_eta=0.001
-STEPS_FAC=3000
+STEPS_FAC=6000
+RES_NS_RED=8
 
 # read in options
 for i in "$@"
@@ -37,7 +38,7 @@ do
       printf "         [-C|--cluster-run] [-d|--dry-run]\n"
       printf "         [(-N|--resolution-N)='0064'] [(-l|--l)=1] [(-A|--amplitude)=0.002]\n"
       printf "         [(-c|--carriers)=2] [(-g|--gauge)=Harmonic] [--GN_eta=0.0001]\n"
-      printf "         [(-s|--steps-fac)=3000]\n"
+      printf "         [(-s|--steps-fac)=3000] [(-n|--ns-reduction)=8]\n"
       exit 0
       ;;
       -N=*|--resolution-N=*)
@@ -76,6 +77,10 @@ do
       STEPS_FAC="${i#*=}"
       shift # past argument
       ;;
+      -n=*|--ns-reduction=*)
+      RES_NS_RED="${i#*=}"
+      shift # past argument
+      ;;
       *)
         printf "Unrecognized option will not be used: ${i#*=}\n"
         # unknown option
@@ -85,17 +90,24 @@ done
 
 # derived vars
 RES_INT=$(echo $RES_STR | sed 's/^0*//')
-RES_NS=$((RES_INT*RES_INT/8)) # 16*2, 32*4, 64*8, ...
+RES_NS=$((RES_INT*RES_INT/RES_NS_RED))
 STEPS=$(bc <<< "$RES_INT*$STEPS_FAC/$BOX_LENGTH")
 IO_INT=$((STEPS/1000))
 if ((IO_INT<1)); then
   IO_INT=1
 fi
 IO_INT_1D=$((STEPS/10))
+if ((IO_INT_1D<1)); then
+  IO_INT_1D=1
+fi
 IO_INT_3D=$((STEPS/10))
+if ((IO_INT_3D<1)); then
+  IO_INT_3D=1
+fi
 METHOD_ORDER=$((METHOD_ORDER_RES*2))
 IC_PPDX=$((RES_INT*20000))
-DT_FRAC=0.2
+DT_FRAC=0.1
+OUTPUT_DIR=output
 
 mkdir -p ../build
 cd ../build
@@ -134,7 +146,7 @@ if [ "$GAUGE" = "GeneralizedNewton" ]; then
   USE_GN=1
   USE_Z4c=1
   GN_xi=0.0
-  DT_FRAC=$(bc -l <<< "0.05 * 0.0001/$GN_eta * 16.0/$RES_INT")
+  DT_FRAC=$(bc -l <<< "0.1 * 0.0001/$GN_eta * 16.0/$RES_INT")
 
   sed -i -E "s/GN_xi = [\.0-9]+/GN_xi = $GN_xi/g" $TMP_CONFIG_FILE
   sed -i -E "s/GN_eta = [\.0-9]+/GN_eta = $GN_eta/g" $TMP_CONFIG_FILE
@@ -142,8 +154,13 @@ if [ "$GAUGE" = "GeneralizedNewton" ]; then
 
   STEPS=$(bc <<< " ( $RES_INT*$STEPS_FAC/$BOX_LENGTH*0.1/$DT_FRAC ) ")
   IO_INT=$((STEPS/1000))
+  if ((IO_INT<1)); then
+    IO_INT=1
+  fi
   IO_INT_1D=$((STEPS/10))
   IO_INT_3D=$((STEPS/10))
+
+  OUTPUT_DIR=output.$GN_eta
 fi
 
 sed -i -E "s/ns1 = [\.0-9]+/ns1 = $RES_NS/g" $TMP_CONFIG_FILE
@@ -160,7 +177,7 @@ sed -i -E "s/SVT_constraint_interval = [0-9]+/SVT_constraint_interval = $IO_INT/
 sed -i -E "s/peak_amplitude = [\.0-9]+/peak_amplitude = $MODE_AMPLITUDE/g" $TMP_CONFIG_FILE
 sed -i -E "s/lapse = [a-zA-Z]+/lapse = $GAUGE/g" $TMP_CONFIG_FILE
 sed -i -E "s/dt_frac = [\.0-9]+/dt_frac = $DT_FRAC/g" $TMP_CONFIG_FILE
-sed -i -E "s,output_dir = [[:alnum:]_-\./]+,output_dir = output,g" $TMP_CONFIG_FILE
+sed -i -E "s,output_dir = [[:alnum:]_-\./]+,output_dir = $OUTPUT_DIR,g" $TMP_CONFIG_FILE
 
 
 # Load modules
@@ -171,7 +188,7 @@ fi
 
 cmake ../../.. -DCOSMO_N=$RES_INT -DCOSMO_NY=1 -DCOSMO_NZ=1 -DCOSMO_USE_GENERALIZED_NEWTON=$USE_GN\
    -DCOSMO_STENCIL_ORDER=$METHOD_ORDER -DCOSMO_USE_REFERENCE_FRW=0 -DCOSMO_H_LEN_FRAC=$BOX_LENGTH\
-   -DCOSMO_USE_Z4c_DAMPING=$USE_Z4c -DCOSMO_USE_LONG_DOUBLES=0 && make -j24 
+   -DCOSMO_USE_Z4c_DAMPING=$USE_Z4c -DCOSMO_USE_LONG_DOUBLES=1 && make -j24 
 if [ $? -ne 0 ]; then
   echo "Error: compilation failed!"
   exit 1
