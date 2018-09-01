@@ -546,8 +546,8 @@ void sheets_ic_semianalytic(BSSN *bssnSim, Sheet *sheetSim,
   
   real_t K_FRW = -3.0;
   real_t rho_FRW = 3.0/PI/8.0;
-  real_t A = std::stod(_config("peak_amplitude", "0.0001"));
   real_t L = sheetSim->lx;
+  real_t A = std::stod(_config("peak_amplitude", "0.0001"))*0.234874; // A -> sigma rho / rho
   iodata->log( "Generating ICs with peak amp. = " + stringify(A) );
 
   real_t Omega_L = std::stod(_config("Omega_L", "0.0"));
@@ -571,9 +571,8 @@ void sheets_ic_semianalytic(BSSN *bssnSim, Sheet *sheetSim,
     DIFFphi_p[NP_INDEX(i,j,k)] = semianalytic_phi(x, L, A);
     DIFFphi_a[NP_INDEX(i,j,k)] = DIFFphi_p[NP_INDEX(i,j,k)];
     DIFFK_p[idx] = K_FRW;
-    DIFFr_a[idx] = 0.0;
+    DIFFr_a[idx] = 0.0; // set later using sheetSim->addBSSNSource
   }
-
 
   real_t tot_xmass = tot_mass / sheetSim->ly / sheetSim->lz;
   real_t xmass_per_tracer = tot_xmass / (real_t) sheetSim->ns1;
@@ -592,6 +591,11 @@ void sheets_ic_semianalytic(BSSN *bssnSim, Sheet *sheetSim,
         Dx(tracer_num, j, k) = x_m - x_ref;
       }
   }
+
+  sheetSim->addBSSNSource(bssnSim, tot_mass);
+  iodata->log( "RMS/avg. density is "
+    + stringify(standard_deviation(DIFFr_a)/average(DIFFr_a)) );
+
 }
 
 

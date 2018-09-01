@@ -106,7 +106,7 @@ if ((IO_INT_3D<1)); then
 fi
 METHOD_ORDER=$((METHOD_ORDER_RES*2))
 IC_PPDX=$((RES_INT*20000))
-DT_FRAC=0.1
+DT_FRAC=0.2
 OUTPUT_DIR=output
 
 mkdir -p ../build
@@ -141,7 +141,7 @@ cp ../../../config/tests/phase_space_sheets.txt $TMP_CONFIG_FILE
 
 
 USE_GN=0
-USE_Z4c=0
+USE_Z4c=1
 if [ "$GAUGE" = "GeneralizedNewton" ]; then
   USE_GN=1
   USE_Z4c=1
@@ -158,7 +158,13 @@ if [ "$GAUGE" = "GeneralizedNewton" ]; then
     IO_INT=1
   fi
   IO_INT_1D=$((STEPS/10))
+  if ((IO_INT_1D<1)); then
+    IO_INT_1D=1
+  fi
   IO_INT_3D=$((STEPS/10))
+  if ((IO_INT_3D<1)); then
+    IO_INT_3D=1
+  fi
 
   OUTPUT_DIR=output.$GN_eta
 fi
@@ -188,7 +194,7 @@ fi
 
 cmake ../../.. -DCOSMO_N=$RES_INT -DCOSMO_NY=1 -DCOSMO_NZ=1 -DCOSMO_USE_GENERALIZED_NEWTON=$USE_GN\
    -DCOSMO_STENCIL_ORDER=$METHOD_ORDER -DCOSMO_USE_REFERENCE_FRW=0 -DCOSMO_H_LEN_FRAC=$BOX_LENGTH\
-   -DCOSMO_USE_Z4c_DAMPING=$USE_Z4c -DCOSMO_USE_LONG_DOUBLES=1 && make -j24 
+   -DCOSMO_USE_Z4c_DAMPING=$USE_Z4c -DCOSMO_USE_LONG_DOUBLES=0 && make -j24 
 if [ $? -ne 0 ]; then
   echo "Error: compilation failed!"
   exit 1

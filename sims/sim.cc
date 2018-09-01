@@ -186,13 +186,13 @@ void CosmoSim::runCommonStepTasks()
   if(step % 100 == 0)
     io_show_progress(step, num_steps);
 
-# if USE_GENERALIZED_NEWTON
-  real_t dt0 = std::stold(_config( "dt_frac", "0.1" ))*dx;
-  real_t frac_done = (num_steps - step) / (real_t) num_steps;
+// # if USE_GENERALIZED_NEWTON
+//   real_t dt0 = std::stold(_config( "dt_frac", "0.1" ))*dx;
+//   real_t frac_done = (num_steps - step) / (real_t) num_steps;
 
-  dt = dt0 + frac_done*frac_done*100*dt0;
-  bssnSim->setDt(dt);
-# endif
+//   dt = dt0 + frac_done*frac_done*100*dt0;
+//   bssnSim->setDt(dt);
+// # endif
 
 # if USE_COSMOTRACE
   // Evolve light rays when integrating backwards
