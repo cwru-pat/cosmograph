@@ -1089,13 +1089,14 @@ void sheets_ic_sinusoid_3d_diffusion(
   idx_t ns3 = Dx_a.nz;
 
   idx_t iter_cnt = 0;
-  
+  idx_t iter_cnt_limit = std::stoi(_config("iter_cnt_limit", "0"));
+
   // doing iteration
   // stop when max_err increase 
   while(max_err <= previous_err)
   {
     previous_err = max_err;
-    if(iter_cnt >= 2000)
+    if(iter_cnt >= iter_cnt_limit)
     {
       std::cout<<"Jump out since iteration counts are too many!\n";
       break;
