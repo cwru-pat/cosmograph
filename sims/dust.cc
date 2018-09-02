@@ -47,6 +47,10 @@ void DustSim::setICs()
   {
     dust_ic_set_sinusoid(bssnSim, staticSim, lambda, fourier, iodata);
   }
+  else if(_config("ic_type", "") == "semianalytic")
+  {
+    dust_ic_set_semianalytic(bssnSim, staticSim, lambda, fourier, iodata);
+  }
   else if(_config("ic_type", "") == "sinusoid_3d")
   {
     dust_ic_set_sinusoid_3d(bssnSim, staticSim, lambda, fourier, iodata);
