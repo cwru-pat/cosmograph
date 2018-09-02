@@ -37,7 +37,7 @@ do
       printf "Usage: ./1d_runs.sh\n"
       printf "         [-C|--cluster-run] [-d|--dry-run]\n"
       printf "         [(-N|--resolution-N)='0064'] [(-l|--l)=1] [(-A|--amplitude)=0.002]\n"
-      printf "         [(-c|--carriers)=2] [(-g|--gauge)=Harmonic] [--GN_eta=0.0001]\n"
+      printf "         [(-c|--carriers)=2] [(-g|--gauge)=Harmonic] [--GN_eta=0.001]\n"
       printf "         [(-s|--steps-fac)=3000] [(-n|--ns-reduction)=8]\n"
       exit 0
       ;;
@@ -194,7 +194,7 @@ fi
 
 cmake ../../.. -DCOSMO_N=$RES_INT -DCOSMO_NY=1 -DCOSMO_NZ=1 -DCOSMO_USE_GENERALIZED_NEWTON=$USE_GN\
    -DCOSMO_STENCIL_ORDER=$METHOD_ORDER -DCOSMO_USE_REFERENCE_FRW=0 -DCOSMO_H_LEN_FRAC=$BOX_LENGTH\
-   -DCOSMO_USE_Z4c_DAMPING=$USE_Z4c -DCOSMO_USE_LONG_DOUBLES=0 && make -j24 
+   -DCOSMO_USE_Z4c_DAMPING=$USE_Z4c -DCOSMO_USE_LONG_DOUBLES=0 && make -j24
 if [ $? -ne 0 ]; then
   echo "Error: compilation failed!"
   exit 1

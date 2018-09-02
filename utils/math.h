@@ -1205,6 +1205,15 @@ inline real_t backward_dissipation(idx_t i, idx_t j, idx_t k, int d,
 inline real_t derivative(idx_t i, idx_t j, idx_t k, int d,
     arr_t & field)
 {
+
+#if NY == 1
+  if(d == 2) return 0;
+#endif
+
+#if NZ == 1
+  if(d == 3) return 0;
+#endif
+
   return STENCIL_ORDER_FUNCTION(derivative_Odx)(i, j, k, d, field);
 }
 
@@ -1257,6 +1266,15 @@ inline real_t upwind_derivative(idx_t i, idx_t j, idx_t k, int d,
  */
 inline real_t mixed_derivative_stencil(idx_t i, idx_t j, idx_t k, int d1, int d2, arr_t & field)
 {
+
+#if NY == 1
+  if(d1 == 2 || d2 == 2) return 0;
+#endif
+
+#if NZ == 1
+  if(d1 == 3 || d2 == 3) return 0;
+#endif
+
   return STENCIL_ORDER_FUNCTION(mixed_derivative_stencil_Odx)(i, j, k, d1, d2, field);
 }
 
@@ -1274,6 +1292,15 @@ inline real_t mixed_derivative_stencil(idx_t i, idx_t j, idx_t k, int d1, int d2
 inline real_t double_derivative_stencil(idx_t i, idx_t j, idx_t k, int d,
     arr_t & field)
 {
+
+#if NY == 1
+  if(d == 2) return 0;
+#endif
+
+#if NZ == 1
+  if(d == 3) return 0;
+#endif
+
   return STENCIL_ORDER_FUNCTION(double_derivative_stencil_Odx)(i, j, k, d, field);
 }
 

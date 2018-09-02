@@ -56,7 +56,7 @@ void SheetSim::initSheetStep()
     sheetSim->stepInit();
     bssnSim->clearSrc();
     sheetSim->addBSSNSource(bssnSim, tot_mass);
-    lambda->addBSSNSource(bssnSim);    
+    lambda->addBSSNSource(bssnSim);
   _timer["RK_steps"].stop();
 }
 

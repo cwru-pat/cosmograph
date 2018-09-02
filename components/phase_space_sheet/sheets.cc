@@ -535,9 +535,11 @@ void Sheet::RKStep(BSSN *bssn)
     d3beta2_a(i, j, k) = derivative(i, j, k, 3, beta2_a);
     d3beta3_a(i, j, k) = derivative(i, j, k, 3, beta3_a);
 #endif
+
     d1alpha_a(i, j, k) = derivative(i, j, k, 1, DIFFalpha_a);
     d2alpha_a(i, j, k) = derivative(i, j, k, 2, DIFFalpha_a);
     d3alpha_a(i, j, k) = derivative(i, j, k, 3, DIFFalpha_a);
+
 
     real_t phi = DIFFphi_a(i, j, k);
 
@@ -641,6 +643,22 @@ void Sheet::RKStep(BSSN *bssn)
         real_t d1gammai13 = d1gammai13_a.getTriCubicInterpolatedValue(x_idx, y_idx, z_idx);
         real_t d1gammai23 = d1gammai23_a.getTriCubicInterpolatedValue(x_idx, y_idx, z_idx);
 
+// optimize this for 1d
+#if NY == 1 && NZ == 1
+        real_t d2gammai11 = 0.0;
+        real_t d2gammai22 = 0.0;
+        real_t d2gammai33 = 0.0;
+        real_t d2gammai12 = 0.0;
+        real_t d2gammai13 = 0.0;
+        real_t d2gammai23 = 0.0;
+
+        real_t d3gammai11 = 0.0;
+        real_t d3gammai22 = 0.0;
+        real_t d3gammai33 = 0.0;
+        real_t d3gammai12 = 0.0;
+        real_t d3gammai13 = 0.0;
+        real_t d3gammai23 = 0.0;
+#else
         real_t d2gammai11 = d2gammai11_a.getTriCubicInterpolatedValue(x_idx, y_idx, z_idx);
         real_t d2gammai22 = d2gammai22_a.getTriCubicInterpolatedValue(x_idx, y_idx, z_idx);
         real_t d2gammai33 = d2gammai33_a.getTriCubicInterpolatedValue(x_idx, y_idx, z_idx);
@@ -654,6 +672,7 @@ void Sheet::RKStep(BSSN *bssn)
         real_t d3gammai12 = d3gammai12_a.getTriCubicInterpolatedValue(x_idx, y_idx, z_idx);
         real_t d3gammai13 = d3gammai13_a.getTriCubicInterpolatedValue(x_idx, y_idx, z_idx);
         real_t d3gammai23 = d3gammai23_a.getTriCubicInterpolatedValue(x_idx, y_idx, z_idx);
+#endif
           
         real_t W = std::sqrt( 1.0 +
                               gammai11 * u1 * u1 + gammai22 * u2 * u2 + gammai33 * u3 * u3
