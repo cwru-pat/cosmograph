@@ -27,6 +27,10 @@ void dust_ic_set_sinusoid(BSSN * bssn, Static * dust, Lambda * lambda, Fourier *
 
 void dust_ic_set_sphere(BSSN * bssn, Static * dust, IOData * iodata);
 
+void dust_ic_set_semianalytic(
+  BSSN * bssn, Static * dust, Lambda * lambda, Fourier * fourier,
+  IOData * iodata);
+  
 }
 
 #endif
