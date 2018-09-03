@@ -236,6 +236,14 @@ void CosmoSim::outputStateInformation()
   // TODO: Source values may be off; correct this?
   bssnSim->stepInit();
   prepBSSNOutput();
+
+  iodata->log( "---- Information from step " + stringify(step)
+    + " of " + stringify(num_steps) + " ----" );
+
+  iodata->log( "RMS / avg. density is "
+    + stringify(standard_deviation(*bssnSim->fields["DIFFr_a"])
+        / average(*bssnSim->fields["DIFFr_a"])) );
+
   iodata->log(
       "Average | Min | Max conformal factor: " + stringify(
         average(*bssnSim->fields["DIFFphi_a"]) + bssnSim->frw->get_phi()
@@ -281,6 +289,9 @@ void CosmoSim::outputStateInformation()
       );
   }
 # endif
+
+  iodata->log( "---- ---- ---- ----" );
+
 }
 
 idx_t CosmoSim::simNumNaNs()

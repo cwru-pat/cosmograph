@@ -223,10 +223,16 @@ class CosmoArray
 
     RT getTriCubicInterpolatedValue(RT i_in, RT j_in, RT k_in)
     {
-      // TODO: need higher order interpolation methods
-      // For now, weighted average (linear interpolation)
       IT il = i_in < 0 ? (IT) i_in - 1 : (IT) i_in; // Index "left" of i
       RT id = i_in - il; // fractional difference
+      // special 1d case
+      if(ny==1 && nz==1)
+      {
+          return CINT(id,
+            _array[idx(il-1, 0, 0)], _array[idx(il, 0, 0)],
+            _array[idx(il+1, 0, 0)], _array[idx(il+2, 0, 0)]);
+      }
+
       IT jl = j_in < 0 ? (IT) j_in - 1 : (IT) j_in; // same as ^ but j
       RT jd = j_in - jl;
       IT kl = k_in < 0 ? (IT) k_in - 1 : (IT) k_in; // same as ^ but k
