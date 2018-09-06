@@ -414,15 +414,13 @@ void dust_ic_set_semianalytic(
   real_t rho_m = (1.0 - Omega_L) * rho_FRW;
   real_t rho_L = Omega_L * rho_FRW;
   lambda->setLambda(rho_L);
-
-  real_t A = 0.234874*std::stod(_config("peak_amplitude_frac", "0.001"));
   real_t L = H_LEN_FRAC;
+  real_t A = 0.234874*std::stod(_config("peak_amplitude_frac", "0.001"))*L*L;
   // grid values
   LOOP3(i,j,k)
   {
     idx_t idx = NP_INDEX(i,j,k);
-
-    real_t x = ((real_t) i / (real_t) NX);
+    real_t x = ((real_t) i) * dx;
     DIFFphi_p[idx] = std::log1p( A*std::sin(2.0*PI*x/L) );
     DIFFphi_a[idx] = DIFFphi_p[idx];
 
