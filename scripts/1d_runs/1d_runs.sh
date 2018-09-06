@@ -138,10 +138,10 @@ cd $DIR
 
 TMP_CONFIG_FILE=config.txt
 if [ "$GAUGE" = "Static" ]; then
-  cp ../../../config/1d_sheets.txt $TMP_CONFIG_FILE
+  cp ../../../config/1d_dust.txt $TMP_CONFIG_FILE
   USE_Z4c=0
 else
-  cp ../../../config/1d_dust.txt $TMP_CONFIG_FILE
+  cp ../../../config/1d_sheets.txt $TMP_CONFIG_FILE
   USE_Z4c=1
 fi
 

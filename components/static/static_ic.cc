@@ -405,32 +405,29 @@ void dust_ic_set_semianalytic(
 
   arr_t & DIFFr_a = *bssn->fields["DIFFr_a"];
   arr_t & DIFFphi_p = *bssn->fields["DIFFphi_p"];
-  arr_t & DIFFphi_a = *bssn->fields["DIFFphi_a"];
   arr_t & DIFFD_a = *dust->fields["DIFFD_a"];
+  arr_t & DIFFK_p = *bssn->fields["DIFFK_p"];
 
   real_t rho_FRW = 3.0/PI/8.0;
+  real_t K_FRW = -3.0;
 
   real_t Omega_L = std::stod(_config("Omega_L", "0.0"));
   real_t rho_m = (1.0 - Omega_L) * rho_FRW;
   real_t rho_L = Omega_L * rho_FRW;
   lambda->setLambda(rho_L);
   real_t L = H_LEN_FRAC;
-  real_t A = 0.234874*std::stod(_config("peak_amplitude_frac", "0.001"))*L*L;
+  real_t A = std::stod(_config("peak_amplitude", "0.001"))*0.026699*L*L;
   // grid values
   LOOP3(i,j,k)
   {
     idx_t idx = NP_INDEX(i,j,k);
     real_t x = ((real_t) i) * dx;
     DIFFphi_p[idx] = std::log1p( A*std::sin(2.0*PI*x/L) );
-    DIFFphi_a[idx] = DIFFphi_p[idx];
-
-    DIFFr_a[idx] = 2.0*A*PI*std::sin((2*PI*x)/L)
-    / ( L*L*std::pow(1 + A*std::sin((2*PI*x)/L), 5) );
+    DIFFr_a[idx] = rho_m + 2.0*A*PI*std::sin((2*PI*x)/L)
+      / ( L*L*std::pow(1 + A*std::sin((2*PI*x)/L), 5) );
+    DIFFK_p[idx] = K_FRW;
+    DIFFD_a[idx] = exp(6.0*DIFFphi_p[idx])*DIFFr_a[idx];
   }
-// std::cout << std::setprecision(17);
-// std::cout << "field[0] = " << DIFFD_a[0] << "; ";
-// fourier->inverseLaplacian <idx_t, real_t> (DIFFD_a._array);
-// std::cout << "lap/lap field = " << laplacian(0,0,0,DIFFD_a) << "\n";
 
   // Make sure min density value > 0
   // Set conserved density variable field
@@ -438,17 +435,7 @@ void dust_ic_set_semianalytic(
   real_t max = min;
   LOOP3(i,j,k)
   {
-    idx_t idx = NP_INDEX(i,j,k);
-    real_t DIFFr = DIFFr_a[idx];
-    real_t rho = rho_m + DIFFr;
-    // phi_FRW = 0
-    real_t DIFFphi = DIFFphi_p[idx];
-    // phi = DIFFphi
-    // DIFFK = 0
-
-    DIFFD_a[idx] =
-      rho_m*expm1(6.0*DIFFphi) + exp(6.0*DIFFphi)*DIFFr;
-
+    real_t rho = DIFFr_a[NP_INDEX(i,j,k)];
     if(rho < min)
     {
       min = rho;
@@ -473,36 +460,6 @@ void dust_ic_set_semianalytic(
     iodata->log("Error: negative density in some regions.");
     throw -1;
   }
-  real_t K_FRW = -3.0;
-
-# if USE_REFERENCE_FRW
-  // Set values in reference FRW integrator
-  auto & frw = bssn->frw;
-  frw->set_phi(0.0);
-  frw->set_K(K_FRW);
-  frw->addFluid(rho_m, 0.0 /* w=0 */);
-# else
-  arr_t & DIFFK_p = *bssn->fields["DIFFK_p"];
-  arr_t & DIFFK_a = *bssn->fields["DIFFK_a"];
-  // add in FRW pieces to ICs
-  // phi is unchanged
-  // rho (D) and K get contribs
-  // w=0 fluid only
-# pragma omp parallel for default(shared) private(i,j,k)
-  LOOP3(i,j,k)
-  {
-    idx_t idx = NP_INDEX(i,j,k);
-
-    real_t D_FRW = rho_m; // on initial slice
-
-    DIFFr_a[idx] += rho_m;
-
-    DIFFK_a[idx] = K_FRW;
-    DIFFK_p[idx] = K_FRW;
-
-    DIFFD_a[idx] += D_FRW;
-  }
-# endif
 }
 
 

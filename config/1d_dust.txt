@@ -5,8 +5,8 @@ KO_damping_coefficient = 0
 
 lapse = Static
 simulation_type = dust
-ic_type = sinusoid
-peak_amplitude_frac = 0.005
+ic_type = semianalytic
+peak_amplitude = 0.005
 Omega_L =  1.63e-05
 
 stop_at_expansion_goal = 1
