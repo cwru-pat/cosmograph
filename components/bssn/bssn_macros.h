@@ -116,15 +116,14 @@
   function(ricci);                                       \
   function(AijAij);                                      \
   function(K0);                                          \
-  function(GNTensor11);                                  \
-  function(GNTensor22);                                  \
-  function(GNTensor33);                                  \
-  function(GNTensor12);                                  \
-  function(GNTensor13);                                  \
-  function(GNTensor23);                                  \
-  function(GNvar1);                                      \
-  function(GNvar2);                                      \
-  function(GNvar3);                                      
+  function(GNricciTF11);                                 \
+  function(GNricciTF22);                                 \
+  function(GNricciTF33);                                 \
+  function(GNricciTF12);                                 \
+  function(GNricciTF13);                                 \
+  function(GNricciTF23);                                 \
+  function(GND2Alpha);                                   \
+  function(GNDiDjRijTFoD2);
 #else
 #define BSSN_APPLY_TO_GEN1_EXTRAS(function)     \
   function(ricci);                              \
@@ -213,25 +212,6 @@
 
 #define BSSN_SET_DT(dt) \
   BSSN_APPLY_TO_FIELDS_ARGS(BSSN_SET_DT_FIELD, dt)
-
-
-/*
- * GN Gauge macros
- */
-#define GN_TENSOR(I, J)                                     \
-  (bd.alpha * bd.ricciTF##I##J - bd.D##I##D##J##aTF )
-
-#define SET_GN_VARIABLES(J, K, I)               \
-  exp(-4.0 * bd.phi) * bd.gammai##J##K *        \
-  (derivative(i, j, k, K, GNTensor##I##J##_a)                           \
-   -                                                                    \
-   (bd.G1##K##I * bd.GNTensor1##J                                       \
-    + bd.G2##K##I * bd.GNTensor2##J                                     \
-    + bd.G3##K##I * bd.GNTensor3##J)                                    \
-   -                                                                    \
-   (bd.G1##K##J * bd.GNTensor##I##1                                     \
-    + bd.G2##K##J * bd.GNTensor##I##2                                   \
-    + bd.G3##K##J * bd.GNTensor##I##3))
 
 
 /*

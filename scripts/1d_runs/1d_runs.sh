@@ -3,7 +3,10 @@
 EXEC_DIR=$(pwd)
 # Switch to the directory containing this script,
 cd "$(dirname "$0")"
-# up a directory should be the main codebase.
+# up two directories should be the main codebase.
+mkdir -p ../../build
+cd ../../build
+pwd
 
 # Some colors
 RED='\033[31m'
@@ -108,10 +111,7 @@ METHOD_ORDER=$((METHOD_ORDER_RES*2))
 IC_PPDX=$((RES_INT*20000))
 DT_FRAC=0.2
 OUTPUT_DIR=output
-
-mkdir -p ../build
-cd ../build
-DIR="$EXEC_DIR/sheet_run-L_$BOX_LENGTH-r_$RES_STR-Odx_$METHOD_ORDER-cpdx_$CARRIERS_PER_DX-ccs_$CARRIER_COUNT_SCHEME-ds_$DEPOSIT_SCHEME-A_${MODE_AMPLITUDE}_$GAUGE"
+DIR="$EXEC_DIR/1D_run-L_$BOX_LENGTH-r_$RES_STR-Odx_$METHOD_ORDER-cpdx_$CARRIERS_PER_DX-ccs_$CARRIER_COUNT_SCHEME-ds_$DEPOSIT_SCHEME-A_${MODE_AMPLITUDE}_$GAUGE"
 
 printf "${BLUE}Deploying runs:${NC}\n"
 printf "  Will be using directory: $DIR\n"
@@ -137,21 +137,21 @@ mkdir -p $DIR
 cd $DIR
 
 TMP_CONFIG_FILE=config.txt
-cp ../../../config/tests/phase_space_sheets.txt $TMP_CONFIG_FILE
-
+if [ "$GAUGE" = "Static" ]; then
+  cp ../../../config/1d_sheets.txt $TMP_CONFIG_FILE
+  USE_Z4c=0
+else
+  cp ../../../config/1d_dust.txt $TMP_CONFIG_FILE
+  USE_Z4c=1
+fi
 
 USE_GN=0
-USE_Z4c=1
 if [ "$GAUGE" = "GeneralizedNewton" ]; then
   USE_GN=1
-  USE_Z4c=1
-  GN_xi=0.0
-  DT_FRAC=$(bc -l <<< "0.1 * 0.0001/$GN_eta * 16.0/$RES_INT")
-
-  sed -i -E "s/GN_xi = [\.0-9]+/GN_xi = $GN_xi/g" $TMP_CONFIG_FILE
   sed -i -E "s/GN_eta = [\.0-9]+/GN_eta = $GN_eta/g" $TMP_CONFIG_FILE
-  sed -i -E "s/dt_frac = [\.0-9]+/dt_frac = $DT_FRAC/g" $TMP_CONFIG_FILE
+  sed -i -E "s/KO_damping_coefficient = [\.0-9]+/KO_damping_coefficient = 0.05/g" $TMP_CONFIG_FILE
 
+  DT_FRAC=0.05
   STEPS=$(bc <<< " ( $RES_INT*$STEPS_FAC/$BOX_LENGTH*0.1/$DT_FRAC ) ")
   IO_INT=$((STEPS/1000))
   if ((IO_INT<1)); then
@@ -218,10 +218,11 @@ if [ "$DRY_RUN" = false ]; then
 fi
 
 if "$USE_CLUSTER"; then
-  printf "squeue -u jbm120\n"
-  squeue -u jbm120
-  printf "squeue -u jbm120 --start\n"
-  squeue -u jbm120 --start
+  USER=$(whoami)
+  printf "squeue -u $USER\n"
+  squeue -u $USER
+  printf "squeue -u $USER --start\n"
+  squeue -u $USER --start
 fi
 
 printf "\n"

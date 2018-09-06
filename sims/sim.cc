@@ -58,12 +58,12 @@ CosmoSim::CosmoSim()
  */
 void CosmoSim::simInit()
 {
-  // Always use GR fields
-  bssnSim = new BSSN(&_config);
-
   // FFT helper
   fourier = new Fourier();
   fourier->Initialize(NX, NY, NZ);
+
+  // Always use GR fields
+  bssnSim = new BSSN(&_config, fourier);
 
 # if USE_COSMOTRACE
   // initialize raytracing if needed
@@ -241,8 +241,10 @@ void CosmoSim::outputStateInformation()
     + " of " + stringify(num_steps) + " ----" );
 
   iodata->log( "RMS / avg. density is "
-    + stringify(standard_deviation(*bssnSim->fields["DIFFr_a"])
-        / average(*bssnSim->fields["DIFFr_a"])) );
+    + stringify(
+        standard_deviation(*bssnSim->fields["DIFFr_a"])
+          / average(*bssnSim->fields["DIFFr_a"])
+    ));
 
   iodata->log(
       "Average | Min | Max conformal factor: " + stringify(

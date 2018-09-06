@@ -1,19 +1,19 @@
 steps = 8000
 dt_frac = 0.2
 
-lapse = Static
+KO_damping_coefficient = 0
 
+lapse = Static
 simulation_type = dust
 ic_type = sinusoid
 peak_amplitude_frac = 0.005
+Omega_L =  1.63e-05
 
-KO_damping_coefficient = 0
-normalize_metric = 1
+stop_at_expansion_goal = 1
+expansion_goal = 51.0
+
 
 output_dir = dust_SVT_test
-dump_file = calculated
-
-Omega_L = 1.0e-6
 
 IO_bssnstats_interval = 100
 dump_file = calculated
@@ -29,10 +29,7 @@ IO_3D_grid_interval = 1000
 
 IO_constraint_interval = 1000
 
+
 use_bardeen = 1
 SVT_constraint_interval = 1000
-IO_1D_Bardeen_B = 1
-IO_1D_Bardeen_dt_B = 1
-IO_1D_Bardeen_d2t_B = 1
-
-omp_num_threads = 16
+use_ML_scale_factor = 0

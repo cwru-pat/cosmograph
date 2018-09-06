@@ -10,7 +10,7 @@ namespace cosmo
  * @details Allocate memory for fields, add fields to map,
  * create reference FRW integrator, and call BSSN::init.
  */
-BSSN::BSSN(ConfigParser * config)
+BSSN::BSSN(ConfigParser * config, Fourier * fourier_in)
 {
   KO_damping_coefficient = std::stod((*config)("KO_damping_coefficient", "0.0"));
   a_adj_amp = std::stod((*config)("a_adj_amp", "0.0"));
@@ -20,6 +20,8 @@ BSSN::BSSN(ConfigParser * config)
 
   // FRW reference integrator
   frw = new FRW<real_t> (0.0, 0.0);
+
+  fourier = fourier_in;
 
   // BSSN fields
   BSSN_APPLY_TO_FIELDS(RK4_ARRAY_ALLOC)
@@ -163,7 +165,9 @@ void BSSN::setExtraFieldData()
   K_avg = conformal_average(DIFFK->_array_a, DIFFphi->_array_a, frw->get_phi());
   avg_vol = std::exp(6.0*conformal_average(DIFFphi->_array_a, DIFFphi->_array_a, frw->get_phi()));
 
+
 #if USE_GENERALIZED_NEWTON
+// in GN gauge, compute 1/d^2 di dj Rij^tf.
   idx_t i, j, k;
  
 # pragma omp parallel for default(shared) private(i, j, k)
@@ -173,23 +177,33 @@ void BSSN::setExtraFieldData()
     set_bd_values(i, j, k, &bd);
     idx_t idx = bd.idx;
 
-    GNTensor11_a[idx] = GN_TENSOR(1, 1);
-    GNTensor12_a[idx] = GN_TENSOR(1, 2);
-    GNTensor13_a[idx] = GN_TENSOR(1, 3);
-    GNTensor22_a[idx] = GN_TENSOR(2, 2);
-    GNTensor23_a[idx] = GN_TENSOR(2, 3);
-    GNTensor33_a[idx] = GN_TENSOR(3, 3);
+    GNricciTF11_a[idx] = bd.ricciTF11;
+    GNricciTF12_a[idx] = bd.ricciTF12;
+    GNricciTF13_a[idx] = bd.ricciTF13;
+    GNricciTF22_a[idx] = bd.ricciTF22;
+    GNricciTF23_a[idx] = bd.ricciTF23;
+    GNricciTF33_a[idx] = bd.ricciTF33;
   }
 
 # pragma omp parallel for default(shared) private(i, j, k)
   LOOP3(i, j, k)
   {
-    BSSNData bd = {0};
-    set_bd_values(i, j, k, &bd);
-    idx_t idx = bd.idx;
-    GNvar1_a[idx] = COSMO_SUMMATION_2_ARGS(SET_GN_VARIABLES, 1);
-    GNvar2_a[idx] = COSMO_SUMMATION_2_ARGS(SET_GN_VARIABLES, 2);
-    GNvar3_a[idx] = COSMO_SUMMATION_2_ARGS(SET_GN_VARIABLES, 3);
+    idx_t idx = NP_INDEX(i,j,k);
+    GNDiDjRijTFoD2_a[idx] = double_derivative(i, j, k, 1, 1, GNricciTF11_a)
+     + double_derivative(i, j, k, 2, 2, GNricciTF22_a)
+     + double_derivative(i, j, k, 3, 3, GNricciTF33_a)
+     + 2.0 * ( double_derivative(i, j, k, 1, 2, GNricciTF12_a)
+               + double_derivative(i, j, k, 1, 3, GNricciTF13_a)
+               + double_derivative(i, j, k, 2, 3, GNricciTF23_a) );
+  }
+
+  fourier->inverseLaplacian <idx_t, real_t> (GNDiDjRijTFoD2_a._array);
+
+# pragma omp parallel for default(shared) private(i, j, k)
+  LOOP3(i, j, k)
+  {
+    idx_t idx = NP_INDEX(i,j,k);
+    GND2Alpha_a[idx] = laplacian(i, j, k, DIFFalpha->_array_a);
   }
 #endif
 

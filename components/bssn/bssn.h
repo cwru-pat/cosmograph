@@ -8,6 +8,7 @@
 #include "BSSNGaugeHandler.h"
 #include "../../utils/Array.h"
 #include "../../utils/FRW.h"
+#include "../../utils/Fourier.h"
 #include "../../utils/ConfigParser.h"
 
 #if USE_COSMOTRACE
@@ -34,6 +35,7 @@ class BSSN
   real_t gd_eta; ///< Gamma driver "eta" parameter
   int normalize_metric; ///< Normalize A_ij and \gamma_ij? Default: 1 (true)
 
+  Fourier * fourier;
   
 public:
   BSSNGaugeHandler * gaugeHandler;
@@ -49,7 +51,7 @@ public:
   
   real_t avg_vol;
 
-  BSSN(ConfigParser * config);
+  BSSN(ConfigParser * config, Fourier * fourier_in);
   ~BSSN();
 
   void init();

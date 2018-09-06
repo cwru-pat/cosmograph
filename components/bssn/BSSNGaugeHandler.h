@@ -35,11 +35,6 @@ private:
   bssn_gauge_func_t shift_fn2; ///< Shift evolution function
   bssn_gauge_func_t shift_fn3; ///< Shift evolution function
 
-  // defining vector term in the bracket, see notes
-#if USE_GENERALIZED_NEWTON
-  arr_t *GNvar1, *GNvar2, *GNvar3;
-#endif
-
   // Generic, not evolving gauge
   real_t Static(BSSNData *bd);
 
@@ -50,9 +45,10 @@ private:
   real_t gd_c; ///< Tunable gauge parameter
   real_t exp_sync_gauge_c;
   real_t OnePlusLogLapse(BSSNData *bd);
-#if USE_GENERALIZED_NEWTON
+
+  // Generalized Newtonian
+  real_t GN_eta;
   real_t GeneralizedNewton(BSSNData *bd);
-#endif
   
   // Untested/experimental lapses
   real_t AnharmonicLapse(BSSNData *bd);
@@ -97,6 +93,7 @@ private:
     lapse_gauge_map["Static"] = &BSSNGaugeHandler::Static;
     lapse_gauge_map["Harmonic"] = &BSSNGaugeHandler::HarmonicLapse;
 #if USE_GENERALIZED_NEWTON
+    // shouldn't be using this gauge w/o extra fields
     lapse_gauge_map["GeneralizedNewton"] = &BSSNGaugeHandler::GeneralizedNewton;
 #endif
     lapse_gauge_map["Anharmonic"] = &BSSNGaugeHandler::AnharmonicLapse;
@@ -144,15 +141,12 @@ private:
     exp_sync_gauge_c = std::stod((*config)("exp_sync_gauge_c", "1.0"));
     
     k_driver_coeff = std::stod((*config)("k_driver_coeff", "0.04"));
-  }
 
-#if USE_GENERALIZED_NEWTON
-  void _initGeneralizedNewtonParameters(ConfigParser *config);
-#endif
+    GN_eta = std::stod((*config)("GN_eta", "0.001"));
+  }
   
 public:
 
-  real_t GN_eta, GN_xi;
   /**
    * @brief Initialize with static, non-evolving gauge
    */
@@ -161,9 +155,6 @@ public:
     ConfigParser emptyConfig;
     _initGaugeMaps();
     _initDefaultParameters(&emptyConfig);
-#if USE_GENERALIZED_NEWTON
-    _initGeneralizedNewtonParameters(&emptyConfig);
-#endif
     setLapseFn("Static");
     setShiftFn("Static");
   }
@@ -177,9 +168,6 @@ public:
         
     _initGaugeMaps();
     _initDefaultParameters(config);
-#if USE_GENERALIZED_NEWTON
-    _initGeneralizedNewtonParameters(config);
-#endif
     setLapseFn((*config)("lapse", "Static"));
     setShiftFn((*config)("shift", "Static"));
 
