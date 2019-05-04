@@ -29,6 +29,8 @@ namespace cosmo
   void sheets_ic_sinusoid_1d_diffusion(
     BSSN *bssnSim, Sheet *sheetSim, Lambda * lambda, IOData * iodata, real_t & tot_mass);
 
+  void sheets_ic_rays(BSSN *bssnSim, Sheet *raySheet, IOData *iodata);
+
 }
 
 #endif

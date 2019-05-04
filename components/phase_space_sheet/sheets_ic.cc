@@ -5,6 +5,7 @@
 #include "../../utils/Fourier.h"
 #include "../../utils/math.h"
 #include <iomanip>
+#include <fstream>
 
 namespace cosmo
 {
@@ -1338,6 +1339,121 @@ void sheets_ic_sinusoid_1d_diffusion(
   }
 
   
+}
+
+void sheets_ic_rays(BSSN *bssnSim, Sheet *raySheet, IOData *iodata)
+{
+  // make sure ns1, ns2, ns3 are set "correctly" for now
+  if( raySheet->ns1 != 3072 || raySheet->ns2 != 3 || raySheet->ns3 != 1 )
+  {
+    iodata->log( "ns1 needs to be 12*16**2 (NSIDE=16), and ns2 = ns3 = 1.");
+    throw -1;
+  }
+  raySheet->follow_null_geodesics = true;
+
+  // all x's are 0, x = x0 + Dx, so Dx's (displacements) are -x0
+  arr_t & Dx_p = raySheet->Dx._array_p;
+  arr_t & Dy_p = raySheet->Dy._array_p;
+  arr_t & Dz_p = raySheet->Dz._array_p;
+#pragma omp parallel for
+  for(idx_t s1=0; s1<raySheet->ns1; ++s1)
+    for(idx_t s2=0; s2<raySheet->ns2; ++s2)
+      for(idx_t s3=0; s3<raySheet->ns3; ++s3)
+      {
+        Dx_p(s1,s2,s3) = -1.0*raySheet->_S1IDXtoX0(s1);
+        Dy_p(s1,s2,s3) = -1.0*raySheet->_S2IDXtoY0(s2);
+        Dz_p(s1,s2,s3) = -1.0*raySheet->_S3IDXtoZ0(s3);
+      }
+  std::vector<real_t> gammaiIJ = raySheet->getgammaiIJ(0,0,0,bssnSim); // metric at the observer
+  std::vector<real_t> gammaIJ = raySheet->getgammaIJ(0,0,0,bssnSim); // metric at the observer
+  raySheet->det_g_obs = std::pow(gammaIJ[6], 3);
+
+  // set momenta to propagate outward radially according to an observer "at rest" wrt. coordinate system
+  arr_t & vx_p = raySheet->vx._array_p;
+  arr_t & vy_p = raySheet->vy._array_p;
+  arr_t & vz_p = raySheet->vz._array_p;
+  std::ifstream vecFile(_config["healpix_vecs_file"]);
+  idx_t r = 0;
+  while (!vecFile.eof())
+  {
+    real_t vx, vy, vz;
+    vecFile >> vx;
+    vecFile >> vy;
+    vecFile >> vz;
+    
+    if(r<3072)
+    {
+      // Fiducial ray direction      
+      real_t vhat[3] = {vx, vy, vz};
+      real_t magv = mag_cov_spatial_vector(vhat, gammaiIJ);
+      vhat[0] /= magv;
+      vhat[1] /= magv;
+      vhat[2] /= magv;
+      vx_p(r,0,0) = vhat[0];
+      vy_p(r,0,0) = vhat[1];
+      vz_p(r,0,0) = vhat[2];
+
+      // Separation/screen vectors to compute angular diameter distance
+      // Need to be orthonormal (in a gamma_ij sense in synchronous gauge) to the fiducial ray
+      // S_A is spatial, _|_ V
+      real_t s1[3] = {0.0, 1.0, 0.0}; // Gram-Schmidt basis vector for S1
+      real_t s2[3] = {1.0, 0.0, 0.0}; // Gram-Schmidt basis vector for S2
+      // special case if in x- or y-direction; or x-y plane
+      if(std::abs(vz) <= 1e-10 && std::abs(vy) <= 1e-10)
+      {
+        s2[2] = 1.0;
+        s2[0] = 0.0;
+      }
+      else if(std::abs(vz) <= 1e-10 && std::abs(vx) <= 1e-10)
+      {
+        s1[2] = 1.0;
+        s1[1] = 0.0;
+      }
+      else
+      {
+        // if V is in x-y plane, pick vectors out of that plane
+        if(std::abs(vz) <= 1e-10) { s1[2] = 1.0; s2[2] = 1.0; }
+        // if V is in x-z plane, pick vectors out of that plane
+        if(std::abs(vy) <= 1e-10) { s2[1] = 1.0; }
+        // if V is in y-z plane, pick vectors out of that plane
+        if(std::abs(vx) <= 1e-10) { s1[0] = 1.0; }
+      }
+
+      // subtract out part of s1 along V & normalize
+      real_t s1hat[3] = {0.0, 0.0, 0.0};
+      real_t s2hat[3] = {0.0, 0.0, 0.0};
+
+      real_t s1dotvhat = dot_cov_spatial_vectors(s1, vhat, gammaiIJ);
+      for(int i=0; i<3; i++)
+        s1hat[i] = s1[i] - s1dotvhat*vhat[i];
+      real_t mags1hat = mag_cov_spatial_vector(s1hat, gammaiIJ);
+      for(int i=0; i<3; i++)
+        s1hat[i] /= mags1hat;
+
+      // subtract out part of s2 along V & s1
+      real_t s2dotvhat = dot_cov_spatial_vectors(s2, vhat, gammaiIJ);
+      real_t s2dots1hat = dot_cov_spatial_vectors(s2, s1hat, gammaiIJ);
+      for(int i=0; i<3; i++)
+        s2hat[i] = s2[i] - s2dotvhat*vhat[i] - s2dots1hat*s1hat[i];
+      real_t mags2hat = mag_cov_spatial_vector(s2hat, gammaiIJ);
+      for(int i=0; i<3; i++)
+        s2hat[i] /= mags2hat;
+
+      vx_p(r,1,0) = vx = raySheet->ray_bundle_epsilon*s1hat[0];
+      vy_p(r,1,0) = vy = raySheet->ray_bundle_epsilon*s1hat[1];
+      vz_p(r,1,0) = vz = raySheet->ray_bundle_epsilon*s1hat[2];
+
+      vx_p(r,2,0) = vx = raySheet->ray_bundle_epsilon*s2hat[0];
+      vy_p(r,2,0) = vy = raySheet->ray_bundle_epsilon*s2hat[1];
+      vz_p(r,2,0) = vz = raySheet->ray_bundle_epsilon*s2hat[2];
+    }
+    else
+    {
+      break;
+    }
+    r++;
+  }
+
 }
 
 

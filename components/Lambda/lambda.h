@@ -18,6 +18,7 @@ public:
   ~Lambda();
 
   void setLambda(real_t lambda_in);
+  real_t getLambda();
   void addBSSNSource(BSSN *bssn);
 
 };

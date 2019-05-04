@@ -41,6 +41,9 @@ private:
   // Harmonic gauge lapse
   real_t HarmonicLapse(BSSNData *bd);
 
+  // Conformal FLRW-like lapse (~comoving synchronous with non-constant timestep)
+  real_t ConformalFLRWLapse(BSSNData *bd);
+
   // 1+log gauge slicing
   real_t gd_c; ///< Tunable gauge parameter
   real_t exp_sync_gauge_c;
@@ -92,6 +95,7 @@ private:
     // Lapse functions
     lapse_gauge_map["Static"] = &BSSNGaugeHandler::Static;
     lapse_gauge_map["Harmonic"] = &BSSNGaugeHandler::HarmonicLapse;
+    lapse_gauge_map["ConformalFLRW"] = &BSSNGaugeHandler::ConformalFLRWLapse;
 #if USE_GENERALIZED_NEWTON
     // shouldn't be using this gauge w/o extra fields
     lapse_gauge_map["GeneralizedNewton"] = &BSSNGaugeHandler::GeneralizedNewton;

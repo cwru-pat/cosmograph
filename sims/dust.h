@@ -4,6 +4,7 @@
 #include "sim.h"
 #include "../components/static/static.h"
 #include "../components/Lambda/lambda.h"
+#include "../components/phase_space_sheet/sheets.h"
 
 namespace cosmo
 {
@@ -14,8 +15,11 @@ namespace cosmo
 class DustSim : public CosmoSim
 {
 protected:
+  Sheet * raySheet;
   Static * staticSim;
   Lambda * lambda;
+  bool take_ray_step;
+  idx_t raysheet_flip_step;
 public:
   DustSim();
   ~DustSim()

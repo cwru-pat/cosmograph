@@ -25,6 +25,7 @@
 #include "../../cosmo_types.h"
 #include "../bssn/bssn.h"
 #include "../../utils/TriCubicInterpolator.h"
+#include "../Lambda/lambda.h"
 #include <cmath>
 #include <algorithm>
 #include <iostream>
@@ -34,6 +35,7 @@
 #include <sstream>
 #include <iomanip>
 #include <fstream>
+#include <vector>
 
 namespace cosmo
 {
@@ -51,10 +53,13 @@ public:
   real_t lx, ly, lz; ///< Metric grid physical dimensions
   real_t dx, dy, dz; ///< Metric grid physical spacing
   
-  register_t Dx, Dy, Dz; ///< Metric-space density
+  register_t Dx, Dy, Dz; ///< Metric-space displacements
   register_t vx, vy, vz; ///< Phase-space velocity fields
   
   arr_t tmp; ///< Array for misc. tmp storage (such as deconvolving)
+
+  bool follow_null_geodesics;
+  real_t ray_bundle_epsilon, det_g_obs;
 
   idx_t step;
 
@@ -71,6 +76,8 @@ public:
 
   Sheet();
   ~Sheet();
+
+  void setDt(real_t dt);
 
   /**
    * Functions to convert s-indices to non-displaced coordinates
@@ -153,7 +160,16 @@ public:
   arr_t d2beta1_a, d2beta2_a, d2beta3_a;
   arr_t d3beta1_a, d3beta2_a, d3beta3_a;
 
+  std::vector<real_t> getgammaiIJ(idx_t s1, idx_t s2, idx_t s3, BSSN *bssnSim);
+  std::vector<real_t> getgammaIJ(idx_t s1, idx_t s2, idx_t s3, BSSN *bssnSim);
+  std::vector<real_t> getRayDataAtS(idx_t s, BSSN *bssnSim, Lambda * lambda);
+
 };
+
+real_t dot_cov_spatial_vectors(real_t * v1, real_t * v2, std::vector<real_t> gammaiIJ);
+real_t mag_cov_spatial_vector(real_t * v1, std::vector<real_t> gammaiIJ);
+real_t dot_cont_spatial_vectors(real_t * v1, real_t * v2, std::vector<real_t> gammaIJ);
+real_t mag_cont_spatial_vector(real_t * v1, std::vector<real_t> gammaIJ);
 
 } //namespace cosmo
 #endif // include guard

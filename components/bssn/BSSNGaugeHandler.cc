@@ -18,6 +18,13 @@ real_t BSSNGaugeHandler::Static(BSSNData *bd)
   return 0.0;
 }
 
+/**
+ * @brief Locally conformal FLRW-type lapse
+ */
+real_t BSSNGaugeHandler::ConformalFLRWLapse(BSSNData *bd)
+{
+  return -1.0/3.0*bd->alpha*bd->K_avg;
+}
 
 /**
  * @brief Hamonic gauge lapse
@@ -70,6 +77,8 @@ real_t BSSNGaugeHandler::MaximalSlicingLapse(BSSNData *bd)
 
 /**
  * @brief Untested/experimental gauge choice; conformal synchronous gauge
+ * Relies on having reference metric for K_FRW
+ * See also ConformalFLRWLapse
  */
 real_t BSSNGaugeHandler::ConformalSyncLapse(BSSNData *bd)
 {

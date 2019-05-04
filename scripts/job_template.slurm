@@ -8,7 +8,7 @@
 #SBATCH --exclude=compt178
 
 JOBDIR="job-$SLURM_JOBID"
-JOBPATH="$TMPDIR/$JOBDIR"
+JOBPATH="$JOBDIR"
 mkdir -p $JOBPATH
 cp -r cosmo $JOBPATH
 cp -r config.txt $JOBPATH
@@ -19,6 +19,3 @@ rm job.out
 echo "Working in: " . $JOBPATH
 
 ./cosmo config.txt
-
-cd $TMPDIR
-cp -r $JOBDIR $SLURM_SUBMIT_DIR

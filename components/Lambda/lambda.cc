@@ -18,6 +18,11 @@ void Lambda::setLambda(real_t lambda_in)
   lambda = lambda_in;
 }
 
+real_t Lambda::getLambda()
+{
+  return lambda;
+}
+
 void Lambda::addBSSNSource(BSSN *bssn)
 {
   arr_t & DIFFr_a = *bssn->fields["DIFFr_a"];

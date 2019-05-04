@@ -69,10 +69,10 @@ void CosmoSim::simInit()
   // initialize raytracing if needed
   if(ray_integrate)
   {
-    if(_config("lapse", "") != "" && _config("lapse", "") != "static")
+    if(_config("lapse", "") != "" && _config("lapse", "") != "Static" && _config("lapse", "") != "ConformalFLRW")
     {
       iodata->log("Error - not using synchronous gauge! You must use it for raytracing sims.");
-      iodata->log("Please change this setting in cosmo_macros.h and recompile.");
+      iodata->log("Please change this setting in the config file and re-run.");
       throw -1;
     }
     init_ray_vector(&rays);
@@ -200,7 +200,7 @@ void CosmoSim::runCommonStepTasks()
   {
     if(step == ray_flip_step) {
       iodata->log("\nFlipping sign of dt @ step = " + std::to_string(step) );
-      dt = -dt;
+      dt = -std::abs(dt);
       bssnSim->setDt(dt);
     }
     if(step >= ray_flip_step) {

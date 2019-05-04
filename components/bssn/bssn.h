@@ -44,12 +44,10 @@ public:
   // Standard FRW spacetime integrator - for a reference metric
   FRW<real_t> * frw; ///< FRW reference metric instance
   // Average K, rho for reference
-  real_t K_avg, rho_avg;
+  real_t K_avg, rho_avg, avg_vol;
   real_t K_min;
 
   real_t cur_t;
-  
-  real_t avg_vol;
 
   BSSN(ConfigParser * config, Fourier * fourier_in);
   ~BSSN();

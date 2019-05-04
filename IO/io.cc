@@ -638,6 +638,7 @@ bool io_read_3dslice(IOData *iodata, arr_t & field, std::string filename)
   //   chunk[3] = {6, 6, 6};
 
   status = H5Dread(dset_id, H5T_TO_USE, H5S_ALL, H5S_ALL, H5P_DEFAULT, field._array);
+  status = status; // suppress unused variable warning
   
   return true;
 }
@@ -1128,6 +1129,45 @@ void io_svt_violation(IOData *iodata, idx_t step, Bardeen * bardeen, real_t t)
       io_dump_value(iodata, SVT_calcs[i], "SVT_violations", "\t");
     io_dump_value(iodata, SVT_calcs[NUM_BARDEEN_VIOLS-1], "SVT_violations", "\n");
   }
+}
+
+
+void io_raysheet_dump(IOData *iodata, idx_t step,
+  Sheet * raySheet, BSSN *bssnSim, Lambda * lambda)
+{
+  bool output_step = ( std::stoi(_config("IO_raysheet_interval", "0")) > 0 );
+  if(!output_step) return;
+
+  bool output_this_step = (0 == step % std::stoi(_config("IO_raysheet_interval", "1")));
+  if( output_step && output_this_step )
+  {
+    // output misc. info about simulation here.
+    char data[35];
+    std::string dump_filename = iodata->dir() + "raysheet.dat.gz";
+
+    gzFile datafile = gzopen(dump_filename.c_str(), "ab");
+    if(datafile == Z_NULL) {
+      iodata->log("Error opening file: " + dump_filename);
+      return;
+    }
+
+    for(idx_t r=0; r<raySheet->ns1; ++r)
+    {
+      std::vector<real_t> sheet_data = raySheet->getRayDataAtS(r,bssnSim,lambda);
+      idx_t size = (idx_t) sheet_data.size();
+      for(idx_t i=0; i<size; ++i)
+      {
+        sprintf(data, "%.15g\t", (double) sheet_data[i]);
+        gzwrite(datafile, data, strlen(data));        
+      }
+    }
+
+    sprintf(data, "\n");
+    gzwrite(datafile, data, strlen(data));
+    gzclose(datafile);
+  }
+
+  return;
 }
 
 

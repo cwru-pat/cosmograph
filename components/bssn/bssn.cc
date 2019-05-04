@@ -164,7 +164,7 @@ void BSSN::setExtraFieldData()
   K_min = min(DIFFK->_array_a);
   K_avg = conformal_average(DIFFK->_array_a, DIFFphi->_array_a, frw->get_phi());
   avg_vol = std::exp(6.0*conformal_average(DIFFphi->_array_a, DIFFphi->_array_a, frw->get_phi()));
-
+  rho_avg = conformal_average(DIFFr_a, DIFFphi->_array_a, frw->get_phi());
 
 #if USE_GENERALIZED_NEWTON
 // in GN gauge, compute 1/d^2 di dj Rij^tf.
@@ -368,6 +368,8 @@ void BSSN::set_bd_values(idx_t i, idx_t j, idx_t k, BSSNData *bd)
 
   // average K
   bd->K_avg = K_avg;
+  bd->avg_vol = avg_vol;
+  bd->rho_avg = rho_avg;
 
   // draw data from cache
   set_local_vals(bd);

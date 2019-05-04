@@ -67,6 +67,9 @@ void io_raytrace_bardeen_dump(IOData *iodata, idx_t step,
 
 void io_svt_violation(IOData *iodata, idx_t step, Bardeen * bardeen, real_t t);
 
+void io_raysheet_dump(IOData *iodata, idx_t step,
+  Sheet * raySheet, BSSN *bssnSim, Lambda * lambda);
+
 }
 
 #endif
