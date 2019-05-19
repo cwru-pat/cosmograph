@@ -28,20 +28,27 @@ real_t cosmo_power_spectrum(real_t k, real_t A, real_t k0)
   return A/(1.0 + pow(fabs(k)/k0, 4.0)/3.0)/pow(fabs(k)/k0, 3.0);
 }
 
+void set_gaussian_random_Phi_N(arr_t & field, Fourier *fourier,
+  real_t A, real_t p0, real_t p_cut)
+{
+  set_gaussian_random_Phi_N(field, fourier, A, p0, p_cut, false);
+}
 
 // set a field to an arbitrary gaussian random field
 void set_gaussian_random_Phi_N(arr_t & field, Fourier *fourier,
-  real_t A, real_t p0, real_t p_cut)
+  real_t A, real_t p0, real_t p_cut, bool fix_amplitude)
 {
   idx_t i, j, k;
   real_t px, py, pz, p_mag;
   real_t scale;
+  real_t signA = A<0.0?-1:1;
+  real_t absA = A<0.0?-A:A;
 
   // populate "field" with random values
   std::random_device rd;
   const real_t seed = stod(_config("mt19937_seed", "9"));
   std::mt19937 gen(seed);
-  std::normal_distribution<real_t> gaussian_distribution;
+  std::normal_distribution<real_t> gaussian_distribution; // zero mean, unit variance
   std::uniform_real_distribution<double> angular_distribution(0.0, 2.0*PI);
    // calling these here before looping suppresses a warning (bug)
   gaussian_distribution(gen);
@@ -63,6 +70,11 @@ void set_gaussian_random_Phi_N(arr_t & field, Fourier *fourier,
 
         // generate the same random modes for all resolutions (up to NMAX)
         real_t rand_mag = gaussian_distribution(gen);
+        // fix power spectrum amplitude
+        if(fix_amplitude)
+        {
+          rand_mag = 1.0;
+        }
         real_t rand_phase = angular_distribution(gen);
 
         // only store momentum values for relevant bins
@@ -89,7 +101,7 @@ void set_gaussian_random_Phi_N(arr_t & field, Fourier *fourier,
           real_t cutoff = 1.0 / (
               1.0 + exp(10.0*(p_mag - p_cut))
           );
-          scale = cutoff*sqrt(cosmo_power_spectrum(p_mag, A, p0));
+          scale = signA*cutoff*std::sqrt(cosmo_power_spectrum(p_mag, absA, p0));
 
           (fourier->f_field)[fft_index][0] = scale*rand_mag*cos(rand_phase);
           (fourier->f_field)[fft_index][1] = scale*rand_mag*sin(rand_phase);

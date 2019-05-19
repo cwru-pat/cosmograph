@@ -1344,9 +1344,12 @@ void sheets_ic_sinusoid_1d_diffusion(
 void sheets_ic_rays(BSSN *bssnSim, Sheet *raySheet, IOData *iodata)
 {
   // make sure ns1, ns2, ns3 are set "correctly" for now
-  if( raySheet->ns1 != 3072 || raySheet->ns2 != 3 || raySheet->ns3 != 1 )
+  idx_t n_obs = std::pow(std::stoi(_config("observers_per_dim", "1")), 3);
+  idx_t nside = std::stoi(_config("nside", "16"));
+  idx_t npix = 12*nside*nside;
+  if( raySheet->ns1 != n_obs*npix || raySheet->ns2 != 3 || raySheet->ns3 != 1 )
   {
-    iodata->log( "ns1 needs to be 12*16**2 (NSIDE=16), and ns2 = ns3 = 1.");
+    iodata->log( "ns1 needs to be observers_per_dim^3 * 12*16^2 (NSIDE=16), ns2 = 3, ns3 = 1.");
     throw -1;
   }
   raySheet->follow_null_geodesics = true;
@@ -1364,9 +1367,11 @@ void sheets_ic_rays(BSSN *bssnSim, Sheet *raySheet, IOData *iodata)
         Dy_p(s1,s2,s3) = -1.0*raySheet->_S2IDXtoY0(s2);
         Dz_p(s1,s2,s3) = -1.0*raySheet->_S3IDXtoZ0(s3);
       }
-  std::vector<real_t> gammaiIJ = raySheet->getgammaiIJ(0,0,0,bssnSim); // metric at the observer
+  std::vector<real_t> gammaiIJ = raySheet->getgammaiIJ(0,0,0,bssnSim); // inverse metric at the observer
   std::vector<real_t> gammaIJ = raySheet->getgammaIJ(0,0,0,bssnSim); // metric at the observer
-  raySheet->det_g_obs = std::pow(gammaIJ[6], 3);
+  real_t gxx = gammaIJ[0], gyy = gammaIJ[1], gzz = gammaIJ[2],
+    gxy = gammaIJ[3], gxz = gammaIJ[4], gyz = gammaIJ[5]; // shorthands
+  raySheet->det_g_obs = gammaIJ[6];
 
   // set momenta to propagate outward radially according to an observer "at rest" wrt. coordinate system
   arr_t & vx_p = raySheet->vx._array_p;
@@ -1374,17 +1379,33 @@ void sheets_ic_rays(BSSN *bssnSim, Sheet *raySheet, IOData *iodata)
   arr_t & vz_p = raySheet->vz._array_p;
   std::ifstream vecFile(_config["healpix_vecs_file"]);
   idx_t r = 0;
+
+  // fermi transformation components
+  real_t exx = std::sqrt(gxx);
+  real_t exy = gxy/std::sqrt(gxx);
+  real_t eyy = std::sqrt(gyy - exy*exy);
+  real_t exz = gxz/std::sqrt(gxx);
+  real_t eyz = (gyz - gxy*gxz/gxx)/eyy;
+  real_t ezz = std::sqrt(gzz - exz*exz - eyz*eyz);
+  
   while (!vecFile.eof())
   {
-    real_t vx, vy, vz;
-    vecFile >> vx;
-    vecFile >> vy;
-    vecFile >> vz;
+    real_t vx_fermi, vy_fermi, vz_fermi;
+    vecFile >> vx_fermi;
+    vecFile >> vy_fermi;
+    vecFile >> vz_fermi;
     
-    if(r<3072)
+    if(r<npix)
     {
-      // Fiducial ray direction      
-      real_t vhat[3] = {vx, vy, vz};
+      // Fiducial ray direction in local Fermi coordinates
+      real_t v_fermi[3] = {vx_fermi, vy_fermi, vz_fermi};
+      // convert to 3+1 comoving sync. coordinates:
+      real_t vhat[3] = {
+        exx*v_fermi[0],
+        exy*v_fermi[0]+eyy*v_fermi[1],
+        exz*v_fermi[0]+eyz*v_fermi[1]+ezz*v_fermi[2]
+      };
+
       real_t magv = mag_cov_spatial_vector(vhat, gammaiIJ);
       vhat[0] /= magv;
       vhat[1] /= magv;
@@ -1392,6 +1413,9 @@ void sheets_ic_rays(BSSN *bssnSim, Sheet *raySheet, IOData *iodata)
       vx_p(r,0,0) = vhat[0];
       vy_p(r,0,0) = vhat[1];
       vz_p(r,0,0) = vhat[2];
+      real_t vx = vhat[0];
+      real_t vy = vhat[0];
+      real_t vz = vhat[0];
 
       // Separation/screen vectors to compute angular diameter distance
       // Need to be orthonormal (in a gamma_ij sense in synchronous gauge) to the fiducial ray
@@ -1439,19 +1463,24 @@ void sheets_ic_rays(BSSN *bssnSim, Sheet *raySheet, IOData *iodata)
       for(int i=0; i<3; i++)
         s2hat[i] /= mags2hat;
 
-      vx_p(r,1,0) = vx = raySheet->ray_bundle_epsilon*s1hat[0];
-      vy_p(r,1,0) = vy = raySheet->ray_bundle_epsilon*s1hat[1];
-      vz_p(r,1,0) = vz = raySheet->ray_bundle_epsilon*s1hat[2];
+      vx_p(r,1,0) = vhat[0] + raySheet->ray_bundle_epsilon*s1hat[0];
+      vy_p(r,1,0) = vhat[1] + raySheet->ray_bundle_epsilon*s1hat[1];
+      vz_p(r,1,0) = vhat[2] + raySheet->ray_bundle_epsilon*s1hat[2];
 
-      vx_p(r,2,0) = vx = raySheet->ray_bundle_epsilon*s2hat[0];
-      vy_p(r,2,0) = vy = raySheet->ray_bundle_epsilon*s2hat[1];
-      vz_p(r,2,0) = vz = raySheet->ray_bundle_epsilon*s2hat[2];
+      vx_p(r,2,0) = vhat[0] + raySheet->ray_bundle_epsilon*s2hat[0];
+      vy_p(r,2,0) = vhat[1] + raySheet->ray_bundle_epsilon*s2hat[1];
+      vz_p(r,2,0) = vhat[2] + raySheet->ray_bundle_epsilon*s2hat[2];
     }
     else
     {
       break;
     }
     r++;
+  }
+
+  if(r < npix)
+  {
+    iodata->log("Warning/error: not all rays initialized correctly (npix > lines in "+_config["healpix_vecs_file"]+").");
   }
 
 }

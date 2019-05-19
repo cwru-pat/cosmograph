@@ -28,7 +28,7 @@ typedef std::pair<real_t, real_t> complex_t;
  *  4) Solve for V, U in CTT decomposition -> obtain \bar{A}_{ij}^{\rm NL}
  *  5) Use the Hamiltonian constraint residual to solve for the density field
  */
-void dust_ic_set_random(BSSN * bssn, Static * dust, Lambda * lambda,
+void static_ic_set_random(BSSN * bssn, Static * stat, Lambda * lambda,
   Fourier * fourier, IOData * iodata)
 {
   idx_t i, j, k;
@@ -51,7 +51,7 @@ void dust_ic_set_random(BSSN * bssn, Static * dust, Lambda * lambda,
   arr_t & A22_p = *bssn->fields["A22_p"];
   arr_t & A23_p = *bssn->fields["A23_p"];
   arr_t & A33_p = *bssn->fields["A33_p"];
-  arr_t & DIFFD_a = *dust->fields["DIFFD_a"];
+  arr_t & DIFFD_a = *stat->fields["DIFFD_a"];
 
   // Extra / auxiliary fields for intermediate computations
   // (re-use _c register, it gets overwritten later anyways)
@@ -148,7 +148,7 @@ void dust_ic_set_random(BSSN * bssn, Static * dust, Lambda * lambda,
 }
 
 
-void dust_ic_set_sinusoid_3d(BSSN * bssn, Static * dust, Lambda * lambda, Fourier * fourier,
+void static_ic_set_sinusoid_3d(BSSN * bssn, Static * stat, Lambda * lambda, Fourier * fourier,
   IOData * iodata)
 {
 
@@ -156,7 +156,7 @@ void dust_ic_set_sinusoid_3d(BSSN * bssn, Static * dust, Lambda * lambda, Fourie
 
   arr_t & DIFFr_a = *bssn->fields["DIFFr_a"];
   arr_t & DIFFphi_p = *bssn->fields["DIFFphi_p"];
-  arr_t & DIFFD_a = *dust->fields["DIFFD_a"];
+  arr_t & DIFFD_a = *stat->fields["DIFFD_a"];
 
   real_t rho_FRW = 3.0/PI/8.0;
 
@@ -284,14 +284,14 @@ void dust_ic_set_sinusoid_3d(BSSN * bssn, Static * dust, Lambda * lambda, Fourie
 /**
  * @brief Sinusoidal mode ICs
  */
-void dust_ic_set_sinusoid(BSSN * bssn, Static * dust, Lambda * lambda, Fourier * fourier,
+void static_ic_set_sinusoid(BSSN * bssn, Static * stat, Lambda * lambda, Fourier * fourier,
   IOData * iodata)
 {
   idx_t i, j, k;
 
   arr_t & DIFFr_a = *bssn->fields["DIFFr_a"];
   arr_t & DIFFphi_p = *bssn->fields["DIFFphi_p"];
-  arr_t & DIFFD_a = *dust->fields["DIFFD_a"];
+  arr_t & DIFFD_a = *stat->fields["DIFFD_a"];
 
   real_t rho_FRW = 3.0/PI/8.0;
 
@@ -401,15 +401,15 @@ void dust_ic_set_sinusoid(BSSN * bssn, Static * dust, Lambda * lambda, Fourier *
 }
 
 
-void dust_ic_set_semianalytic(
-  BSSN * bssn, Static * dust, Lambda * lambda, Fourier * fourier,
+void static_ic_set_semianalytic(
+  BSSN * bssn, Static * stat, Lambda * lambda, Fourier * fourier,
   IOData * iodata)
 {
   idx_t i, j, k;
 
   arr_t & DIFFr_a = *bssn->fields["DIFFr_a"];
   arr_t & DIFFphi_p = *bssn->fields["DIFFphi_p"];
-  arr_t & DIFFD_a = *dust->fields["DIFFD_a"];
+  arr_t & DIFFD_a = *stat->fields["DIFFD_a"];
   arr_t & DIFFK_p = *bssn->fields["DIFFK_p"];
 
   real_t rho_FRW = 3.0/PI/8.0;
@@ -471,7 +471,7 @@ void dust_ic_set_semianalytic(
 /**
  * @brief Spherical "shell" of perturbations around an observer
  */
-void dust_ic_set_sphere(BSSN * bssn, Static * dust, IOData * iodata)
+void static_ic_set_sphere(BSSN * bssn, Static * stat, IOData * iodata)
 {
   idx_t i, j, k;
 
@@ -480,7 +480,7 @@ void dust_ic_set_sphere(BSSN * bssn, Static * dust, IOData * iodata)
   arr_t & DIFFphi_a = *bssn->fields["DIFFphi_a"];
   arr_t & DIFFphi_f = *bssn->fields["DIFFphi_f"];
 
-  arr_t & DIFFD_a = *dust->fields["DIFFD_a"];
+  arr_t & DIFFD_a = *stat->fields["DIFFD_a"];
 
   // shell amplitude
   const real_t A = stod(_config("shell_amplitude", "1e-5"));

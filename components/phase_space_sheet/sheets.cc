@@ -63,7 +63,7 @@ Sheet::Sheet():
   deposit = static_cast<depositScheme> (std::stoi(_config("deposit_scheme","1")));
 
   follow_null_geodesics = !!std::stoi(_config("follow_null_geodesics", "0"));
-  ray_bundle_epsilon = std::stod(_config("ray_bundle_epsilon","1.0e-6"));
+  ray_bundle_epsilon = std::stod(_config("ray_bundle_epsilon","1.0")) / (real_t POINTS);
   det_g_obs = 0.0;
 
   carriers_per_dx = std::stoi(_config("carriers_per_dx","1"));
@@ -914,7 +914,12 @@ real_t mag_cont_spatial_vector(real_t * v1, std::vector<real_t> gammaIJ)
 {
   return std::sqrt( dot_cont_spatial_vectors(v1, v1, gammaIJ) );
 }
-
+real_t dot_cov_cont_spatial_vectors(real_t * v1, real_t * v2)
+{
+  return (
+      v1[0]*v2[0] + v1[1]*v2[1] + v1[2]*v2[2]
+    );
+}
 
 
 /**
@@ -923,11 +928,12 @@ real_t mag_cont_spatial_vector(real_t * v1, std::vector<real_t> gammaIJ)
  */
 std::vector<real_t> Sheet::getRayDataAtS(idx_t s, BSSN *bssnSim, Lambda * lambda)
 {
-  std::vector<real_t> sheet_data (10);
+  std::vector<real_t> sheet_data (9);
   idx_t s1 = s, s2 = 0, s3 = 0;
 
   arr_t & DIFFr_a = *bssnSim->fields["DIFFr_a"];
   arr_t & DIFFalpha_p = *bssnSim->fields["DIFFalpha_p"];
+  std::vector<real_t> gammaiIJ = getgammaiIJ(s1, s2, s3, bssnSim);
 
   real_t x_pt = Dx._p(s1,s2,s3) + _S1IDXtoX0(s1);
   real_t y_pt = Dy._p(s1,s2,s3) + _S2IDXtoY0(s2);
@@ -935,6 +941,11 @@ std::vector<real_t> Sheet::getRayDataAtS(idx_t s, BSSN *bssnSim, Lambda * lambda
   real_t u1 = vx._p(s1,s2,s3);
   real_t u2 = vy._p(s1,s2,s3);
   real_t u3 = vz._p(s1,s2,s3);
+  
+  real_t uhat[3] = { u1, u2, u3 };
+  real_t umag = std::sqrt(dot_cov_spatial_vectors(uhat, uhat, gammaiIJ));
+  for(int i=0; i<3; i++)
+    uhat[i] /= umag;
 
   real_t x_idx = x_pt/dx;
   real_t y_idx = y_pt/dy;
@@ -942,53 +953,57 @@ std::vector<real_t> Sheet::getRayDataAtS(idx_t s, BSSN *bssnSim, Lambda * lambda
 
   real_t rho = DIFFr_a.getTriCubicInterpolatedValue(x_idx, y_idx, z_idx);
   real_t alpha = DIFFalpha_p.getTriCubicInterpolatedValue(x_idx, y_idx, z_idx);
-  std::vector<real_t> gammaiIJ = getgammaiIJ(s1, s2, s3, bssnSim);
+
   real_t gammai11 = gammaiIJ[0];
   real_t gammai22 = gammaiIJ[1];
   real_t gammai33 = gammaiIJ[2];
   real_t gammai12 = gammaiIJ[3];
   real_t gammai13 = gammaiIJ[4];
   real_t gammai23 = gammaiIJ[5];
-  real_t W = 0.0;
-  if(follow_null_geodesics)
-  {
-    W = std::sqrt(
-      gammai11*u1*u1 + gammai22*u2*u2 + gammai33*u3*u3
-      + 2.0*( gammai12*u1*u2 + gammai13*u1*u3 + gammai23*u2*u3 )
-    );
-  }
-  else
-  {
-    W = std::sqrt( 1.0 +
-      gammai11*u1*u1 + gammai22*u2*u2 + gammai33*u3*u3
-      + 2.0*( gammai12*u1*u2 + gammai13*u1*u3 + gammai23*u2*u3 )
-    );
-  }
-  real_t rho_m = rho - lambda->getLambda();
+  real_t W = std::sqrt(
+    gammai11*u1*u1 + gammai22*u2*u2 + gammai33*u3*u3
+    + 2.0*( gammai12*u1*u2 + gammai13*u1*u3 + gammai23*u2*u3 )
+  );
+  real_t rho_m = rho - lambda->getLambda(); // ADM matter density
 
-  // angular diameter for a coordinate observer at rest only
-  // only ok in constant-lapse, zero shift gauge?
-  std::vector<real_t> gammaIJ = getgammaIJ(s1, s2, s3, bssnSim);
+  // angular diameter for a coordinate observer at rest
+
+  // get separation vectors
   real_t sep1[3] = { Dx._p(s1,1,0) - Dx._p(s1,0,0),
     Dy._p(s1,1,0) - Dy._p(s1,0,0), Dz._p(s1,1,0) - Dz._p(s1,0,0) };
-  real_t sep1mag = mag_cont_spatial_vector(sep1, gammaIJ);
   real_t sep2[3] = { Dx._p(s1,2,0) - Dx._p(s1,0,0),
     Dy._p(s1,2,0) - Dy._p(s1,0,0), Dz._p(s1,2,0) - Dz._p(s1,0,0) };
-  real_t sep2mag = mag_cont_spatial_vector(sep2, gammaIJ);
-  real_t sep1hat[3];
-  real_t sep2hat[3];
+
+  // Get screen vectors
+  // Use separation vectors as guesses, and orthonormalize
+  real_t S1[3];
+  real_t S2[3];
   for(int i=0; i<3; ++i)
   {
-    sep1hat[i] = sep1[i]/sep1mag;
-    sep2hat[i] = sep2[i]/sep2mag;
+    S1[i] = sep1[i];
+    S2[i] = sep2[i];
   }
+  // Subtract component in k-direction for S1:
+  real_t S1dotuhat = dot_cov_spatial_vectors(S1, uhat, gammaiIJ);
+  for(int i=0; i<3; i++)
+    S1[i] = S1[i] - S1dotuhat*uhat[i];
+  real_t magS1 = mag_cov_spatial_vector(S1, gammaiIJ);
+  for(int i=0; i<3; i++)
+    S1[i] /= magS1;
+  // subtract component in k, S1-directions for S2:
+  real_t S2dotuhat = dot_cov_spatial_vectors(S2, uhat, gammaiIJ);
+  real_t S2dotS1 = dot_cov_spatial_vectors(S2, S1, gammaiIJ);
+  for(int i=0; i<3; i++)
+    S2[i] = S2[i] - S2dotuhat*uhat[i] - S2dotS1*S1[i];
+  real_t magS2 = mag_cov_spatial_vector(S2, gammaiIJ);
+  for(int i=0; i<3; i++)
+    S2[i] /= magS2;
 
-  real_t u0p0 = W/alpha;
-  real_t D11 = dot_cont_spatial_vectors(sep1, sep1hat, gammaIJ);
-  real_t D12 = dot_cont_spatial_vectors(sep1, sep2hat, gammaIJ);
-  real_t D21 = dot_cont_spatial_vectors(sep2, sep1hat, gammaIJ);
-  real_t D22 = dot_cont_spatial_vectors(sep2, sep2hat, gammaIJ);
-  real_t DA = u0p0 * det_g_obs/ray_bundle_epsilon * std::sqrt(std::abs(D11*D22 - D12*D21));
+  real_t D11 = dot_cov_cont_spatial_vectors(sep1, S1);
+  real_t D12 = dot_cov_cont_spatial_vectors(sep1, S2);
+  real_t D21 = dot_cov_cont_spatial_vectors(sep2, S1);
+  real_t D22 = dot_cov_cont_spatial_vectors(sep2, S2);
+  real_t DA = ray_bundle_epsilon * std::sqrt(std::abs(D11*D22 - D12*D21));
 
 
   sheet_data[0] = x_pt;
@@ -1000,10 +1015,9 @@ std::vector<real_t> Sheet::getRayDataAtS(idx_t s, BSSN *bssnSim, Lambda * lambda
   sheet_data[5] = u3;
 
   sheet_data[6] = W;
-  sheet_data[7] = alpha;
-  sheet_data[8] = rho_m;
+  sheet_data[7] = rho_m;
 
-  sheet_data[9] = DA;
+  sheet_data[8] = DA;
 
   return sheet_data;
 }

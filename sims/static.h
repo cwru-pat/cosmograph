@@ -1,8 +1,8 @@
-#ifndef COSMO_DUST_SIM_H
-#define COSMO_DUST_SIM_H
+#ifndef COSMO_STATIC_SIM_H
+#define COSMO_STATIC_SIM_H
 
 #include "sim.h"
-#include "../components/dust_fluid/dust.h"
+#include "../components/static/static.h"
 #include "../components/Lambda/lambda.h"
 #include "../components/phase_space_sheet/sheets.h"
 
@@ -12,17 +12,17 @@ namespace cosmo
 /**
  * derived class based on CosmoSim class (sim.h)
  */
-class DustSim : public CosmoSim
+class StaticSim : public CosmoSim
 {
 protected:
   Sheet * raySheet;
-  Dust * dustSim;
+  Static * staticSim;
   Lambda * lambda;
   bool take_ray_step;
   idx_t raysheet_flip_step;
 public:
-  DustSim();
-  ~DustSim()
+  StaticSim();
+  ~StaticSim()
   {
     std::cout << "Cleaning up...";
     delete iodata;
@@ -38,9 +38,9 @@ public:
 
   void init();
   void setICs();
-  void initDustStep();
-  void outputDustStep();
-  void runDustStep();
+  void initStaticStep();
+  void outputStaticStep();
+  void runStaticStep();
   void runStep();
 };
 

@@ -4,6 +4,7 @@
 
 #include "sims/sim.h"
 #include "sims/dust.h"
+#include "sims/static.h"
 #include "sims/particles.h"
 #include "sims/scalar.h"
 #include "sims/vacuum.h"
@@ -52,6 +53,10 @@ int main(int argc, char **argv)
   if( simulation_type == "dust" )
   {
     cosmoSim = new DustSim();
+  }
+  if( simulation_type == "static" )
+  {
+    cosmoSim = new StaticSim();
   }
   else if( simulation_type == "particles" )
   {

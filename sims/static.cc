@@ -1,16 +1,16 @@
-#include "dust.h"
-#include "../components/dust_fluid/dust_ic.h"
+#include "static.h"
+#include "../components/static/static_ic.h"
 #include "../components/phase_space_sheet/sheets_ic.h"
 
 namespace cosmo
 {
 
-DustSim::DustSim()
+StaticSim::StaticSim()
 {
   // just check to make sure we can use this class.
-  if(_config("shift", "") != "")
+  if(_config("lapse", "") != "" && _config("lapse", "") != "Static" && _config("lapse", "") != "ConformalFLRW")
   {
-    iodata->log("Error - non-zero shift not ok for this class!");
+    iodata->log("Error - not using a constant lapse gauge! You must use it for 'static' sims.");
     iodata->log("Please change this setting in the config file and re-run.");
     throw -1;
   }
@@ -19,15 +19,16 @@ DustSim::DustSim()
   raysheet_flip_step = std::stoi(_config("raysheet_flip_step", "-1"));
 }
 
-void DustSim::init()
+void StaticSim::init()
 {
   _timer["init"].start();
 
   // initialize base class
   simInit();
 
-  iodata->log("Initializing 'dust' type simulation.");
-  dustSim = new Dust();
+  iodata->log("Initializing 'static' type simulation.");
+  staticSim = new Static();
+  staticSim->init();
   lambda = new Lambda();
   raySheet = new Sheet();
   _timer["init"].stop();
@@ -37,31 +38,48 @@ void DustSim::init()
  * @brief      Set conformally flat initial conditions for a w=0
  *  fluid in synchronous gauge.
  */
-void DustSim::setICs()
+void StaticSim::setICs()
 {
   _timer["ICs"].start();
 
-  iodata->log("Setting dust initial conditions.");
+  iodata->log("Setting static initial conditions (ICs).");
 
-  iodata->log("Setting cosmological ICs.");
-  dust_ic_set_random(bssnSim, dustSim, lambda, fourier, iodata);
+  if(_config("ic_type", "") == "shell")
+  {
+    static_ic_set_sphere(bssnSim, staticSim, iodata);
+  }
+  else if(_config("ic_type", "") == "sinusoid")
+  {
+    static_ic_set_sinusoid(bssnSim, staticSim, lambda, fourier, iodata);
+  }
+  else if(_config("ic_type", "") == "semianalytic")
+  {
+    static_ic_set_semianalytic(bssnSim, staticSim, lambda, fourier, iodata);
+  }
+  else if(_config("ic_type", "") == "sinusoid_3d")
+  {
+    static_ic_set_sinusoid_3d(bssnSim, staticSim, lambda, fourier, iodata);
+  }
+  else
+  {
+    iodata->log("Setting cosmological ICs.");
+    static_ic_set_random(bssnSim, staticSim, lambda, fourier, iodata);
+  }
+
   iodata->log("Finished setting ICs.");
   
   _timer["ICs"].stop();
 }
 
-void DustSim::initDustStep()
+void StaticSim::initStaticStep()
 {
   _timer["RK_steps"].start();
     bssnSim->stepInit();
-    if(take_ray_step) raySheet->stepInit();
-    dustSim->stepInit(bssnSim);
-
     bssnSim->clearSrc();
-    dustSim->addBSSNSrc(bssnSim);
+    if(take_ray_step) raySheet->stepInit();
+    staticSim->addBSSNSrc(bssnSim->fields, bssnSim->frw);
     lambda->addBSSNSource(bssnSim);
   _timer["RK_steps"].stop();
-
 
   arr_t & DIFFr_a = *bssnSim->fields["DIFFr_a"];
   real_t rho_tot_avg = average(DIFFr_a);
@@ -86,12 +104,11 @@ void DustSim::initDustStep()
 
     outputStateInformation();
     bssnSim->setDt(dt);
-    dustSim->setDt(dt);
     raySheet->setDt(dt);
   }
 }
 
-void DustSim::outputDustStep()
+void StaticSim::outputStaticStep()
 {
   _timer["output"].start();
     prepBSSNOutput();
@@ -111,61 +128,53 @@ void DustSim::outputDustStep()
   _timer["output"].stop();
 }
 
-void DustSim::runDustStep()
+void StaticSim::runStaticStep()
 {
   _timer["RK_steps"].start();
     // First RK step
-    // source already set in initDustStep() (used for output)
+    // source already set in initStaticStep() (used for output)
     bssnSim->RKEvolve();
-    dustSim->RKEvolve(bssnSim);
     if(take_ray_step) raySheet->RKStep(bssnSim);
     bssnSim->K1Finalize();
-    dustSim->K1Finalize();
     if(take_ray_step) raySheet->K1Finalize();
 
     // Second RK step
     bssnSim->clearSrc();
-    dustSim->addBSSNSrc(bssnSim);
+    staticSim->addBSSNSrc(bssnSim->fields, bssnSim->frw);
     lambda->addBSSNSource(bssnSim);
     bssnSim->RKEvolve();
-    dustSim->RKEvolve(bssnSim);
     if(take_ray_step) raySheet->RKStep(bssnSim);
     bssnSim->K2Finalize();
-    dustSim->K2Finalize();
     if(take_ray_step) raySheet->K2Finalize();
 
     // Third RK step
     bssnSim->clearSrc();
-    dustSim->addBSSNSrc(bssnSim);
+    staticSim->addBSSNSrc(bssnSim->fields, bssnSim->frw);
     lambda->addBSSNSource(bssnSim);
     bssnSim->RKEvolve();
-    dustSim->RKEvolve(bssnSim);
     if(take_ray_step) raySheet->RKStep(bssnSim);
     bssnSim->K3Finalize();
-    dustSim->K3Finalize();
     if(take_ray_step) raySheet->K3Finalize();
 
     // Fourth RK step
     bssnSim->clearSrc();
-    dustSim->addBSSNSrc(bssnSim);
+    staticSim->addBSSNSrc(bssnSim->fields, bssnSim->frw);
     lambda->addBSSNSource(bssnSim);
     bssnSim->RKEvolve();
-    dustSim->RKEvolve(bssnSim);
     if(take_ray_step) raySheet->RKStep(bssnSim);
     bssnSim->K4Finalize();
-    dustSim->K4Finalize();
     if(take_ray_step) raySheet->K4Finalize();
 
     // "current" data should be in the _p array.
   _timer["RK_steps"].stop();
 }
 
-void DustSim::runStep()
+void StaticSim::runStep()
 {
-  initDustStep();
+  initStaticStep();
   runCommonStepTasks();
-  outputDustStep();
-  runDustStep();
+  outputStaticStep();
+  runStaticStep();
 }
 
 } /* namespace cosmo */

@@ -1139,6 +1139,7 @@ void io_raysheet_dump(IOData *iodata, idx_t step,
   if(!output_step) return;
 
   bool output_this_step = (0 == step % std::stoi(_config("IO_raysheet_interval", "1")));
+  bool output_minimalwrite = !!std::stoi(_config("IO_raysheet_minimalwrite", "1"));
   if( output_step && output_this_step )
   {
     // output misc. info about simulation here.
@@ -1155,7 +1156,8 @@ void io_raysheet_dump(IOData *iodata, idx_t step,
     {
       std::vector<real_t> sheet_data = raySheet->getRayDataAtS(r,bssnSim,lambda);
       idx_t size = (idx_t) sheet_data.size();
-      for(idx_t i=0; i<size; ++i)
+      idx_t i;
+      for(i=output_minimalwrite?6:0; i<size; ++i)
       {
         sprintf(data, "%.15g\t", (double) sheet_data[i]);
         gzwrite(datafile, data, strlen(data));        
