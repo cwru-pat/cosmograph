@@ -4,6 +4,7 @@
 #include "../../cosmo_globals.h"
 #include "../../utils/Fourier.h"
 #include "../../utils/math.h"
+#include "../../ICs/ICs.h"
 
 namespace cosmo
 {

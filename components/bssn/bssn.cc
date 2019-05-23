@@ -17,6 +17,9 @@ BSSN::BSSN(ConfigParser * config, Fourier * fourier_in)
   k_damping_amp = std::stod((*config)("k_damping_amp", "0.0"));
   gd_eta = std::stod((*config)("gd_eta", "0.0"));
   normalize_metric = std::stoi((*config)("normalize_metric", "1"));
+  
+  rescale_metric = std::stod((*config)("rescale_metric", "1.0"));
+  if(rescale_metric == 1.0) { rescale_metric = 0.0; }
 
   // FRW reference integrator
   frw = new FRW<real_t> (0.0, 0.0);
@@ -229,12 +232,14 @@ void BSSN::RKEvolve()
 {
   idx_t i, j, k;
 
+  if(rescale_metric) scaleMetricPerturbations(rescale_metric);
 # pragma omp parallel for default(shared) private(i, j, k)
   LOOP3(i, j, k)
   {
     BSSNData bd = {0};
     RKEvolvePt(i, j, k, &bd);
   }
+  if(rescale_metric) scaleMetricPerturbations(1.0 / rescale_metric);
 }
 
 /**
@@ -931,6 +936,23 @@ void BSSN::set1DConstraintOutput(
   }
 
 }
+
+/**
+ * @brief scale all metric fields by a multiplier:
+ * f -> f_avg + mlt*(f-f_avg)
+ */
+void BSSN::scaleMetricPerturbations(real_t multiplier)
+{
+  real_t avg;
+  idx_t i, j, k;
+
+#define BSSN_SCALE_FIELD(field) \
+  avg = conformal_average(field->_array_a, DIFFphi->_array_a, frw->get_phi()); \
+  LOOP3(i,j,k) field->_array_a[NP_INDEX(i,j,k)] = avg + multiplier*(field->_array_a[NP_INDEX(i,j,k)] - avg);
+
+  BSSN_APPLY_TO_FIELDS(BSSN_SCALE_FIELD)
+}
+
 
 void BSSN::setConstraintCalcs(real_t H_values[8], real_t M_values[8],
   real_t G_values[7], real_t A_values[7], real_t S_values[7])

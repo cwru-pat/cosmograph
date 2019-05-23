@@ -165,51 +165,58 @@ if False :
     loadData(nl_dir, 1.0)
 
 
-# lindir_p_96 = '/home/jbm120/nonlinear_forecast/cosmograph/build/nl_runs/r96_P0.00000013_M1/dust_lensing/'
-# rho_data_lin_96 = loadData(lindir_p_96, 1000.0)
-# rho_interp_lin_96 = rho_interp(rho_data_lin_96)
-# rhos_lin_96 = rho(rho_interp_lin_96, 0.25)
-# cls_lin_96 = hp.anafast(rhos_lin_96)
+lindir_p_96 = '/home/jbm120/nonlinear_forecast/cosmograph/build/nl_runs/r96_P0.00000013_M1/dust_lensing.1/'
+rho_data_lin_96 = loadData(lindir_p_96, 1000.0)
+rho_interp_lin_96 = rho_interp(rho_data_lin_96)
+rhos_lin_96 = rho(rho_interp_lin_96, 0.5)
+cls_lin_96 = hp.anafast(rhos_lin_96)
 
-# nldir_p_96 = '/home/jbm120/nonlinear_forecast/cosmograph/build/nl_runs/r96_P0.13_M1/dust_lensing/'
-# rho_data_nl_96 = loadData(nldir_p_96, 1.0)
-# rho_interp_nl_96 = rho_interp(rho_data_nl_96)
-# rhos_nl_96 = rho(rho_interp_nl_96, 0.25)
-# cls_nl_96 = hp.anafast(rhos_nl_96)
+nldir_p_96 = '/home/jbm120/nonlinear_forecast/cosmograph/build/nl_runs/r96_P0.13_M1/dust_lensing.1/'
+rho_data_nl_96 = loadData(nldir_p_96, 1.0)
+rho_interp_nl_96 = rho_interp(rho_data_nl_96)
+rhos_nl_96 = rho(rho_interp_nl_96, 0.5)
+cls_nl_96 = hp.anafast(rhos_nl_96)
 
-# hpmin = np.min(rhos_lin_96)
-# hpmax = np.max(rhos_lin_96)
-# hp.mollview(rhos_lin_96, min=hpmin, max=hpmax)
-# plt.savefig('rhos_lin_96.png')
-# plt.close()
-# hp.mollview(rhos_nl_96, min=hpmin, max=hpmax)
-# plt.savefig('rhos_nl_96.png')
-# plt.close()
+hpmin = np.min(rhos_lin_96)
+hpmax = np.max(rhos_lin_96)
+hp.mollview(rhos_lin_96, min=hpmin, max=hpmax)
+plt.savefig('rhos_lin_96.png')
+plt.close()
+hp.mollview(rhos_nl_96, min=hpmin, max=hpmax)
+plt.savefig('rhos_nl_96.png')
+plt.close()
 
 # print( ( (rhos_nl_96-np.mean(rhos_nl_96)) - (rhos_lin_96-np.mean(rhos_lin_96)) ) / np.std(rhos_lin_96) )
+delta_lin_96 = (rhos_lin_96-np.mean(rhos_lin_96))/np.mean(rhos_lin_96)
+delta_nl_96 = (rhos_nl_96-np.mean(rhos_nl_96))/np.mean(rhos_nl_96)
 
 
+lindir_p_128 = '/home/jbm120/nonlinear_forecast/cosmograph/build/nl_runs/r128_P0.00000013_M1/dust_lensing.1/'
+rho_data_lin_128 = loadData(lindir_p_128, 1000.0)
+rho_interp_lin_128 = rho_interp(rho_data_lin_128)
+rhos_lin_128 = rho(rho_interp_lin_128, 0.5)
+cls_lin_128 = hp.anafast(rhos_lin_128)
 
-# lindir_p_128 = '/home/jbm120/nonlinear_forecast/cosmograph/build/nl_runs/r128_P0.00000013_M1/dust_lensing/'
-# rho_data_lin_128 = loadData(lindir_p_128, 1000.0)
-# rho_interp_lin_128 = rho_interp(rho_data_lin_128)
-# rhos_lin_128 = rho(rho_interp_lin_128, 0.25)
-# cls_lin_128 = hp.anafast(rhos_lin_128)
+nldir_p_128 = '/home/jbm120/nonlinear_forecast/cosmograph/build/nl_runs/r128_P0.13_M1/dust_lensing.1/'
+rho_data_nl_128 = loadData(nldir_p_128, 1.0)
+rho_interp_nl_128 = rho_interp(rho_data_nl_128)
+rhos_nl_128 = rho(rho_interp_nl_128, 0.5)
+cls_nl_128 = hp.anafast(rhos_nl_128)
 
-# nldir_p_128 = '/home/jbm120/nonlinear_forecast/cosmograph/build/nl_runs/r128_P0.13_M1/dust_lensing/'
-# rho_data_nl_128 = loadData(nldir_p_128, 1.0)
-# rho_interp_nl_128 = rho_interp(rho_data_nl_128)
-# rhos_nl_128 = rho(rho_interp_nl_128, 0.25)
-# cls_nl_128 = hp.anafast(rhos_nl_128)
+hpmin = np.min(rhos_lin_128)
+hpmax = np.max(rhos_lin_128)
+hp.mollview(rhos_lin_128, min=hpmin, max=hpmax)
+plt.savefig('rhos_lin_128.png')
+plt.close()
+hp.mollview(rhos_nl_128, min=hpmin, max=hpmax)
+plt.savefig('rhos_nl_128.png')
+plt.close()
 
-# hpmin = np.min(rhos_lin_128)
-# hpmax = np.max(rhos_lin_128)
-# hp.mollview(rhos_lin_128, min=hpmin, max=hpmax)
-# plt.savefig('rhos_lin_128.png')
-# plt.close()
-# hp.mollview(rhos_nl_128, min=hpmin, max=hpmax)
-# plt.savefig('rhos_nl_128.png')
-# plt.close()
+delta_lin_128 = (rhos_lin_128-np.mean(rhos_lin_128))/np.mean(rhos_lin_128)
+delta_nl_128 = (rhos_nl_128-np.mean(rhos_nl_128))/np.mean(rhos_nl_128)
 
 # print( ( (rhos_nl_128-np.mean(rhos_nl_128)) - (rhos_lin_128-np.mean(rhos_lin_128)) ) / np.std(rhos_lin_128) )
 
+
+print(np.std(delta_lin_96-delta_nl_96)/np.std(delta_lin_96))
+print(np.std(delta_lin_128-delta_nl_128)/np.std(delta_lin_128))

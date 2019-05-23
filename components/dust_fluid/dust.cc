@@ -7,26 +7,13 @@ namespace cosmo
 {
 
 
-typedef struct {
-
-  // conformal field values (D = tilde(D) from notes)
-  // or D = sqrt(gamma) D From Rezzolla
-  real_t D, S1, S2, S3;
-
-  // Derived stuff
-  real_t W;
-  real_t v1, v2, v3; // contravariant velocities
-
-} DustData;
-
-
 /**
  * @brief Constructor: initialize fields needed for dust evolution,
  * set timestep according to global `dt`.
  * Doesn't work with a shift! (For now?)
  */
 Dust::Dust():
-  D(), S1(), S2(), S3(), S4(),
+  D(), S1(), S2(), S3(),
   aDv1(), aDv2(), aDv3(),
   aS1v1(), aS1v2(), aS1v3(),
   aS2v1(), aS2v2(), aS2v3(),
@@ -145,15 +132,15 @@ void Dust::populateDerivedFields(BSSN *bssn)
     aS3v2[idx] = bd.alpha*S3[idx]*dd.v2;
     aS3v3[idx] = bd.alpha*S3[idx]*dd.v3;
 
-    S1src[idx] = 1.0/2.0 * bd.alpha * dd.W * D[idx] * std::exp(4.0*bd->phi) *(
+    S1src[idx] = 1.0/2.0 * bd.alpha * dd.W * D[idx] * std::exp(4.0*bd.phi) *(
         dd.v1*dd.v1*(4.0*bd.gamma11*bd.d1phi + bd.d1g11)  + dd.v2*dd.v2*(4.0*bd.gamma22*bd.d1phi + bd.d1g22) + dd.v3*dd.v3*(4.0*bd.gamma33*bd.d1phi + bd.d1g33)
         + 2.0*( dd.v1*dd.v2*(4.0*bd.gamma12*bd.d1phi + bd.d1g12)  + dd.v1*dd.v3*(4.0*bd.gamma13*bd.d1phi + bd.d1g13) + dd.v2*dd.v3*(4.0*bd.gamma23*bd.d1phi + bd.d1g23) )
       ) - dd.W*D[idx]*bd.d1a;
-    S2src[idx] = 1.0/2.0 * bd.alpha * dd.W * D[idx] * std::exp(4.0*bd->phi) *(
+    S2src[idx] = 1.0/2.0 * bd.alpha * dd.W * D[idx] * std::exp(4.0*bd.phi) *(
         dd.v1*dd.v1*(4.0*bd.gamma11*bd.d2phi + bd.d2g11)  + dd.v2*dd.v2*(4.0*bd.gamma22*bd.d2phi + bd.d2g22) + dd.v3*dd.v3*(4.0*bd.gamma33*bd.d2phi + bd.d2g33)
         + 2.0*( dd.v1*dd.v2*(4.0*bd.gamma12*bd.d2phi + bd.d2g12)  + dd.v1*dd.v3*(4.0*bd.gamma13*bd.d2phi + bd.d2g13) + dd.v2*dd.v3*(4.0*bd.gamma23*bd.d2phi + bd.d2g23) )
       ) - dd.W*D[idx]*bd.d2a;
-    S3src[idx] = 1.0/2.0 * bd.alpha * dd.W * D[idx] * std::exp(4.0*bd->phi) *(
+    S3src[idx] = 1.0/2.0 * bd.alpha * dd.W * D[idx] * std::exp(4.0*bd.phi) *(
         dd.v1*dd.v1*(4.0*bd.gamma11*bd.d3phi + bd.d3g11)  + dd.v2*dd.v2*(4.0*bd.gamma22*bd.d3phi + bd.d3g22) + dd.v3*dd.v3*(4.0*bd.gamma33*bd.d3phi + bd.d3g33)
         + 2.0*( dd.v1*dd.v2*(4.0*bd.gamma12*bd.d3phi + bd.d3g12)  + dd.v1*dd.v3*(4.0*bd.gamma13*bd.d3phi + bd.d3g13) + dd.v2*dd.v3*(4.0*bd.gamma23*bd.d3phi + bd.d3g23) )
       ) - dd.W*D[idx]*bd.d3a;
@@ -236,7 +223,7 @@ real_t Dust::dt_S3(idx_t i, idx_t j, idx_t k)
   + S3src[NP_INDEX(i,j,k)];
 }
 
-void Dust::addBSSNSource(BSSN * bssn)
+void Dust::addBSSNSrc(BSSN * bssn)
 {
   arr_t & DIFFr_a = *bssn->fields["DIFFr_a"];
   arr_t & DIFFS_a = *bssn->fields["DIFFS_a"];
@@ -252,25 +239,45 @@ void Dust::addBSSNSource(BSSN * bssn)
 
   idx_t i, j, k;
 
-  #pragma omp parallel for default(shared) private(i, j, k)
-  LOOP3(i, j, k)
+  real_t rescale_metric = std::stod(_config("rescale_metric", "1.0"));
+  if(rescale_metric == 1.0) { rescale_metric = 0.0; }
+
+  if(rescale_metric)
   {
-    idx_t idx = INDEX(i,j,k);
+#   pragma omp parallel for default(shared) private(i, j, k)
+    LOOP3(i, j, k)
+    {
+      idx_t idx = INDEX(i,j,k);
 
-    DIFFr_a[idx] += W[idx]*D[idx]/detg[idx];
+      DIFFr_a[idx] += W[idx]*D[idx]/detg[idx];
 
-    DIFFS_a[idx] += D[idx]/detg[idx] * (W[idx]*W[idx]-1.0)/W[idx];
+      S1_a[idx] += S1[idx]/detg[idx];
+      S2_a[idx] += S2[idx]/detg[idx];
+      S3_a[idx] += S3[idx]/detg[idx];
+    }
+  }
+  else
+  {
+#   pragma omp parallel for default(shared) private(i, j, k)
+    LOOP3(i, j, k)
+    {
+      idx_t idx = INDEX(i,j,k);
 
-    S1_a[idx] += S1[idx]/detg[idx];
-    S2_a[idx] += S2[idx]/detg[idx];
-    S3_a[idx] += S3[idx]/detg[idx];
+      DIFFr_a[idx] += W[idx]*D[idx]/detg[idx];
 
-    STF11_a[idx] += S1[idx]*S1[idx]/W[idx]/D[idx]/detg[idx] - 1.0/3.0*g11[idx]*DIFFS_a[idx];
-    STF12_a[idx] += S1[idx]*S2[idx]/W[idx]/D[idx]/detg[idx] - 1.0/3.0*g12[idx]*DIFFS_a[idx];
-    STF13_a[idx] += S1[idx]*S3[idx]/W[idx]/D[idx]/detg[idx] - 1.0/3.0*g13[idx]*DIFFS_a[idx];
-    STF22_a[idx] += S2[idx]*S2[idx]/W[idx]/D[idx]/detg[idx] - 1.0/3.0*g22[idx]*DIFFS_a[idx];
-    STF23_a[idx] += S2[idx]*S3[idx]/W[idx]/D[idx]/detg[idx] - 1.0/3.0*g23[idx]*DIFFS_a[idx];
-    STF33_a[idx] += S3[idx]*S3[idx]/W[idx]/D[idx]/detg[idx] - 1.0/3.0*g33[idx]*DIFFS_a[idx];
+      DIFFS_a[idx] += D[idx]/detg[idx] * (W[idx]*W[idx]-1.0)/W[idx];
+
+      S1_a[idx] += S1[idx]/detg[idx];
+      S2_a[idx] += S2[idx]/detg[idx];
+      S3_a[idx] += S3[idx]/detg[idx];
+
+      STF11_a[idx] += S1[idx]*S1[idx]/W[idx]/D[idx]/detg[idx] - 1.0/3.0*g11[idx]*DIFFS_a[idx];
+      STF12_a[idx] += S1[idx]*S2[idx]/W[idx]/D[idx]/detg[idx] - 1.0/3.0*g12[idx]*DIFFS_a[idx];
+      STF13_a[idx] += S1[idx]*S3[idx]/W[idx]/D[idx]/detg[idx] - 1.0/3.0*g13[idx]*DIFFS_a[idx];
+      STF22_a[idx] += S2[idx]*S2[idx]/W[idx]/D[idx]/detg[idx] - 1.0/3.0*g22[idx]*DIFFS_a[idx];
+      STF23_a[idx] += S2[idx]*S3[idx]/W[idx]/D[idx]/detg[idx] - 1.0/3.0*g23[idx]*DIFFS_a[idx];
+      STF33_a[idx] += S3[idx]*S3[idx]/W[idx]/D[idx]/detg[idx] - 1.0/3.0*g33[idx]*DIFFS_a[idx];
+    }
   }
 
   return;

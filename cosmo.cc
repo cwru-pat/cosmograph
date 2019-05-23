@@ -54,7 +54,7 @@ int main(int argc, char **argv)
   {
     cosmoSim = new DustSim();
   }
-  if( simulation_type == "static" )
+  else if( simulation_type == "static" )
   {
     cosmoSim = new StaticSim();
   }
@@ -76,7 +76,7 @@ int main(int argc, char **argv)
   }
   else
   {
-    std::cerr << "Invalid simulation type specified.";
+    std::cerr << "Invalid simulation type specified. ";
     throw 2;
   }
 

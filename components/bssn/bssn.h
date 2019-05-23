@@ -33,6 +33,7 @@ class BSSN
   real_t k_damping_amp; ///< Additional "K"-damping (default 0)
   real_t a_adj_amp; ///< A-adjusted term amplitude (default 0)
   real_t gd_eta; ///< Gamma driver "eta" parameter
+  real_t rescale_metric;
   int normalize_metric; ///< Normalize A_ij and \gamma_ij? Default: 1 (true)
 
   Fourier * fourier;
@@ -68,6 +69,8 @@ public:
     void K4Finalize();
     void clearSrc();
     void step();
+
+    void scaleMetricPerturbations(real_t multiplier);
 
   /* calculating quantities during an RK step */
     void set_bd_values(idx_t i, idx_t j, idx_t k, BSSNData *bd);

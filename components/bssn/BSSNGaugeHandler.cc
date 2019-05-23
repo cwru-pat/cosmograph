@@ -31,7 +31,7 @@ real_t BSSNGaugeHandler::ConformalFLRWLapse(BSSNData *bd)
  */
 real_t BSSNGaugeHandler::HarmonicLapse(BSSNData *bd)
 {
-  return -1.0*pw2(bd->alpha)*( bd->K - bd->K_avg );
+  return -1.0*bd->alpha*( bd->K );
 }
 
 /**

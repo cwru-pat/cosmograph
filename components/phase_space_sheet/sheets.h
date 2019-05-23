@@ -170,6 +170,9 @@ real_t dot_cov_spatial_vectors(real_t * v1, real_t * v2, std::vector<real_t> gam
 real_t mag_cov_spatial_vector(real_t * v1, std::vector<real_t> gammaiIJ);
 real_t dot_cont_spatial_vectors(real_t * v1, real_t * v2, std::vector<real_t> gammaIJ);
 real_t mag_cont_spatial_vector(real_t * v1, std::vector<real_t> gammaIJ);
+real_t dot_4_vectors_vvg(real_t v1[4], real_t v2[4], real_t g[4][4]);
+real_t dot_4_vectors_vv(real_t v1[4], real_t v2[4]);
+
 
 } //namespace cosmo
 #endif // include guard

@@ -8,6 +8,19 @@
 namespace cosmo
 {
 
+typedef struct {
+
+  // conformal field values (D = tilde(D) from notes)
+  // or D = sqrt(gamma) D From Rezzolla
+  real_t D, S1, S2, S3;
+
+  // Derived stuff
+  real_t W;
+  real_t v1, v2, v3; // contravariant velocities
+
+} DustData;
+
+
 /**
  * @brief Class implementing functionality for a dust fluid that relies on a
  * BSSN instance.
@@ -52,7 +65,7 @@ public:
 
   DustData getDustData(BSSNData *bd);
 
-  void addBSSNSource(BSSN *bssn);
+  void addBSSNSrc(BSSN *bssn);
 };
 
 } // namespace cosmo
