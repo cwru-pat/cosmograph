@@ -59,6 +59,7 @@ public:
   arr_t tmp; ///< Array for misc. tmp storage (such as deconvolving)
 
   bool follow_null_geodesics;
+  real_t rescale_sheet;
   real_t ray_bundle_epsilon, det_g_obs;
 
   idx_t step;
@@ -135,6 +136,11 @@ public:
                             idx_t s3_idx, real_t X0_lower, real_t X0_upper);
 
   void addBSSNSource(BSSN *bssn, real_t tot_mass);
+
+  void rescaleFieldPerturbations(arr_t & field, real_t multiplier);
+  void rescaleVelocityPerturbations(arr_t & ux, arr_t & uy, arr_t & uz, real_t multiplier);
+  void rescalePositionPerturbations(arr_t & dx, arr_t & dy, arr_t & dz, real_t multiplier);
+  void rescaleAllFieldPerturbations(BSSN *bssn, real_t multiplier);
 
   void RKStep(BSSN *bssn);
 

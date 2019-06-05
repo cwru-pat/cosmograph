@@ -239,45 +239,25 @@ void Dust::addBSSNSrc(BSSN * bssn)
 
   idx_t i, j, k;
 
-  real_t rescale_metric = std::stod(_config("rescale_metric", "1.0"));
-  if(rescale_metric == 1.0) { rescale_metric = 0.0; }
-
-  if(rescale_metric)
+# pragma omp parallel for default(shared) private(i, j, k)
+  LOOP3(i, j, k)
   {
-#   pragma omp parallel for default(shared) private(i, j, k)
-    LOOP3(i, j, k)
-    {
-      idx_t idx = INDEX(i,j,k);
+    idx_t idx = INDEX(i,j,k);
 
-      DIFFr_a[idx] += W[idx]*D[idx]/detg[idx];
+    DIFFr_a[idx] += W[idx]*D[idx]/detg[idx];
 
-      S1_a[idx] += S1[idx]/detg[idx];
-      S2_a[idx] += S2[idx]/detg[idx];
-      S3_a[idx] += S3[idx]/detg[idx];
-    }
-  }
-  else
-  {
-#   pragma omp parallel for default(shared) private(i, j, k)
-    LOOP3(i, j, k)
-    {
-      idx_t idx = INDEX(i,j,k);
+    DIFFS_a[idx] += D[idx]/detg[idx] * (W[idx]*W[idx]-1.0)/W[idx];
 
-      DIFFr_a[idx] += W[idx]*D[idx]/detg[idx];
+    S1_a[idx] += S1[idx]/detg[idx];
+    S2_a[idx] += S2[idx]/detg[idx];
+    S3_a[idx] += S3[idx]/detg[idx];
 
-      DIFFS_a[idx] += D[idx]/detg[idx] * (W[idx]*W[idx]-1.0)/W[idx];
-
-      S1_a[idx] += S1[idx]/detg[idx];
-      S2_a[idx] += S2[idx]/detg[idx];
-      S3_a[idx] += S3[idx]/detg[idx];
-
-      STF11_a[idx] += S1[idx]*S1[idx]/W[idx]/D[idx]/detg[idx] - 1.0/3.0*g11[idx]*DIFFS_a[idx];
-      STF12_a[idx] += S1[idx]*S2[idx]/W[idx]/D[idx]/detg[idx] - 1.0/3.0*g12[idx]*DIFFS_a[idx];
-      STF13_a[idx] += S1[idx]*S3[idx]/W[idx]/D[idx]/detg[idx] - 1.0/3.0*g13[idx]*DIFFS_a[idx];
-      STF22_a[idx] += S2[idx]*S2[idx]/W[idx]/D[idx]/detg[idx] - 1.0/3.0*g22[idx]*DIFFS_a[idx];
-      STF23_a[idx] += S2[idx]*S3[idx]/W[idx]/D[idx]/detg[idx] - 1.0/3.0*g23[idx]*DIFFS_a[idx];
-      STF33_a[idx] += S3[idx]*S3[idx]/W[idx]/D[idx]/detg[idx] - 1.0/3.0*g33[idx]*DIFFS_a[idx];
-    }
+    STF11_a[idx] += S1[idx]*S1[idx]/W[idx]/D[idx]/detg[idx] - 1.0/3.0*g11[idx]*DIFFS_a[idx];
+    STF12_a[idx] += S1[idx]*S2[idx]/W[idx]/D[idx]/detg[idx] - 1.0/3.0*g12[idx]*DIFFS_a[idx];
+    STF13_a[idx] += S1[idx]*S3[idx]/W[idx]/D[idx]/detg[idx] - 1.0/3.0*g13[idx]*DIFFS_a[idx];
+    STF22_a[idx] += S2[idx]*S2[idx]/W[idx]/D[idx]/detg[idx] - 1.0/3.0*g22[idx]*DIFFS_a[idx];
+    STF23_a[idx] += S2[idx]*S3[idx]/W[idx]/D[idx]/detg[idx] - 1.0/3.0*g23[idx]*DIFFS_a[idx];
+    STF33_a[idx] += S3[idx]*S3[idx]/W[idx]/D[idx]/detg[idx] - 1.0/3.0*g33[idx]*DIFFS_a[idx];
   }
 
   return;

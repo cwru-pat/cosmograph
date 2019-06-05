@@ -8,8 +8,10 @@ mt19937_seed = 7
 Omega_L = 0.00175
 p0 = 7.0
 P = 0.13
-p_cut = 15.0
+p_cut = 50.0
+
 rescale_metric = 1.0
+rescale_sheet = 0
 
 raysheet_flip_step = 5
 

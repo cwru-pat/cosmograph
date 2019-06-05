@@ -947,10 +947,18 @@ void BSSN::scaleMetricPerturbations(real_t multiplier)
   idx_t i, j, k;
 
 #define BSSN_SCALE_FIELD(field) \
-  avg = conformal_average(field->_array_a, DIFFphi->_array_a, frw->get_phi()); \
-  LOOP3(i,j,k) field->_array_a[NP_INDEX(i,j,k)] = avg + multiplier*(field->_array_a[NP_INDEX(i,j,k)] - avg);
+  avg = average(field->_array_a); \
+  LOOP3(i,j,k) field->_array_a[NP_INDEX(i,j,k)] = avg + multiplier*(field->_array_a[NP_INDEX(i,j,k)] - avg); \
+  avg = average(field->_array_c); \
+  LOOP3(i,j,k) field->_array_c[NP_INDEX(i,j,k)] = avg + multiplier*(field->_array_c[NP_INDEX(i,j,k)] - avg);
+
+#define BSSN_SCALE_ARR(field) \
+  avg = average(field##_a); \
+  LOOP3(i,j,k) field##_a[NP_INDEX(i,j,k)] = avg + multiplier*(field##_a[NP_INDEX(i,j,k)] - avg);
 
   BSSN_APPLY_TO_FIELDS(BSSN_SCALE_FIELD)
+  BSSN_APPLY_TO_SOURCES(BSSN_SCALE_ARR)
+  BSSN_APPLY_TO_GEN1_EXTRAS(BSSN_SCALE_ARR)
 }
 
 

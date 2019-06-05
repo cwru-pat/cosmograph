@@ -63,6 +63,8 @@ Sheet::Sheet():
   deposit = static_cast<depositScheme> (std::stoi(_config("deposit_scheme","1")));
 
   follow_null_geodesics = !!std::stoi(_config("follow_null_geodesics", "0"));
+  rescale_sheet = std::stod(_config("rescale_sheet", "1.0"));
+  if(rescale_sheet == 1.0) rescale_sheet = 0.0;
   ray_bundle_epsilon = std::stod(_config("ray_bundle_epsilon","1.0")) / (real_t POINTS);
   det_g_obs = 0.0;
 
@@ -346,7 +348,7 @@ void Sheet::addBSSNSource(BSSN *bssn, real_t tot_mass)
   idx_t num_x_carriers, num_y_carriers, num_z_carriers;
 
   //    int i, j, k;
-  #pragma omp parallel for collapse(2)        
+# pragma omp parallel for collapse(2)
   for(idx_t s1=0; s1<ns1; ++s1)
     for(idx_t s2=0; s2<ns2; ++s2)
       for(idx_t s3=0; s3<ns3; ++s3)
@@ -524,9 +526,107 @@ void Sheet::addBSSNSource(BSSN *bssn, real_t tot_mass)
   _timer["_pushsheetToStressTensor"].stop();
 }
 
+void Sheet::rescaleFieldPerturbations(arr_t & field, real_t multiplier)
+{
+  idx_t i, j, k;
+  real_t avg = average(field);
+  LOOP3(i,j,k)
+  {
+    field[NP_INDEX(i,j,k)] = avg + multiplier*( field[NP_INDEX(i,j,k)] - avg );
+  }
+}
+
+void Sheet::rescaleVelocityPerturbations(arr_t & ux, arr_t & uy, arr_t & uz, real_t multiplier)
+{
+
+  // velocities are perturbations around \vec{u} = \hat{r}
+  // Can scale coordinates relative to average magnitude
+  real_t avg_u = 0.0;
+# pragma omp parallel for collapse(2) reduction(+:avg_u)
+  for(idx_t s1=0; s1<ns1; ++s1)
+    for(idx_t s2=0; s2<ns2; ++s2)
+      for(idx_t s3=0; s3<ns3; ++s3)
+      {
+        avg_u += std::sqrt( pw2(ux(s1,s2,s3)) + pw2(uy(s1,s2,s3)) + pw2(uz(s1,s2,s3)) );
+      }
+  avg_u /= ns1*ns2*ns3;
+
+# pragma omp parallel for collapse(2)
+  for(idx_t s1=0; s1<ns1; ++s1)
+    for(idx_t s2=0; s2<ns2; ++s2)
+      for(idx_t s3=0; s3<ns3; ++s3)
+      {
+        real_t umag = std::sqrt( pw2(ux(s1,s2,s3)) + pw2(uy(s1,s2,s3)) + pw2(uz(s1,s2,s3)) );
+        ux(s1,s2,s3) = multiplier*( 1.0 - avg_u/umag )*ux(s1,s2,s3) + avg_u/umag*ux(s1,s2,s3);
+        uy(s1,s2,s3) = multiplier*( 1.0 - avg_u/umag )*uy(s1,s2,s3) + avg_u/umag*uy(s1,s2,s3);
+        uz(s1,s2,s3) = multiplier*( 1.0 - avg_u/umag )*uz(s1,s2,s3) + avg_u/umag*uz(s1,s2,s3);
+      }
+}
+
+
+void Sheet::rescalePositionPerturbations(arr_t & dx, arr_t & dy, arr_t & dz, real_t multiplier)
+{
+  // coordinate positions are "perturbations" around \vec{x} = \vec{r}
+  // Can scale coordinates relative to average magnitude
+  real_t avg_r = 0.0;
+# pragma omp parallel for collapse(2) reduction(+:avg_r)
+  for(idx_t s1=0; s1<ns1; ++s1)
+    for(idx_t s2=0; s2<ns2; ++s2)
+      for(idx_t s3=0; s3<ns3; ++s3)
+      {
+        real_t x_pt = dx(s1,s2,s3) + _S1IDXtoX0(s1);
+        real_t y_pt = dy(s1,s2,s3) + _S2IDXtoY0(s2);
+        real_t z_pt = dz(s1,s2,s3) + _S3IDXtoZ0(s3);
+        avg_r += std::sqrt( pw2(x_pt) + pw2(y_pt) + pw2(z_pt) );
+      }
+  avg_r /= ns1*ns2*ns3;
+
+#pragma omp parallel for
+  for(idx_t s1=0; s1<ns1; ++s1)
+    for(idx_t s2=0; s2<ns2; ++s2)
+      for(idx_t s3=0; s3<ns3; ++s3)
+      {
+        real_t x_pt = dx(s1,s2,s3) + _S1IDXtoX0(s1);
+        real_t y_pt = dy(s1,s2,s3) + _S2IDXtoY0(s2);
+        real_t z_pt = dz(s1,s2,s3) + _S3IDXtoZ0(s3);
+        real_t rmag = std::sqrt( pw2(x_pt) + pw2(y_pt) + pw2(z_pt) );
+        Dx(s1,s2,s3) = multiplier*( 1.0 - avg_r/rmag )*x_pt + avg_r/rmag*x_pt - _S1IDXtoX0(s1);
+        Dy(s1,s2,s3) = multiplier*( 1.0 - avg_r/rmag )*y_pt + avg_r/rmag*y_pt - _S2IDXtoY0(s2);
+        Dz(s1,s2,s3) = multiplier*( 1.0 - avg_r/rmag )*z_pt + avg_r/rmag*z_pt - _S3IDXtoZ0(s3);
+      }
+}
+
+
+void Sheet::rescaleAllFieldPerturbations(BSSN *bssn, real_t multiplier)
+{
+  // rescale metric perturbations that get used in the sheet evolution
+  rescaleFieldPerturbations(*bssn->fields["DIFFphi_a"], multiplier);
+  rescaleFieldPerturbations(*bssn->fields["DIFFgamma11_a"], multiplier);
+  rescaleFieldPerturbations(*bssn->fields["DIFFgamma22_a"], multiplier);
+  rescaleFieldPerturbations(*bssn->fields["DIFFgamma33_a"], multiplier);
+  rescaleFieldPerturbations(*bssn->fields["DIFFgamma12_a"], multiplier);
+  rescaleFieldPerturbations(*bssn->fields["DIFFgamma13_a"], multiplier);
+  rescaleFieldPerturbations(*bssn->fields["DIFFgamma23_a"], multiplier);
+  rescaleFieldPerturbations(*bssn->fields["DIFFalpha_a"], multiplier);
+#if USE_BSSN_SHIFT
+  rescaleFieldPerturbations(*bssn->fields["beta1_a"], multiplier);
+  rescaleFieldPerturbations(*bssn->fields["beta2_a"], multiplier);
+  rescaleFieldPerturbations(*bssn->fields["beta3_a"], multiplier);
+#endif
+
+  rescalePositionPerturbations(Dx._array_a, Dy._array_a, Dz._array_a, multiplier);
+  rescalePositionPerturbations(Dx._array_c, Dy._array_c, Dz._array_c, multiplier);
+
+  rescaleVelocityPerturbations(vx._array_a, vy._array_a, vz._array_a, multiplier);
+  rescaleVelocityPerturbations(vx._array_c, vy._array_c, vz._array_c, multiplier);
+
+}
+
 
 void Sheet::RKStep(BSSN *bssn)
 {
+  if(rescale_sheet) rescaleAllFieldPerturbations(bssn, rescale_sheet);
+
   idx_t i, j, k;
 
   arr_t & DIFFphi_a = *bssn->fields["DIFFphi_a"];
@@ -546,7 +646,8 @@ void Sheet::RKStep(BSSN *bssn)
   arr_t & beta3_a = *bssn->fields["beta3_a"];
 #endif
 
-  # pragma omp parallel for default(shared) private(i, j, k)
+
+# pragma omp parallel for default(shared) private(i, j, k)
   LOOP3(i, j, k)
   {
 #if USE_BSSN_SHIFT
@@ -739,6 +840,8 @@ void Sheet::RKStep(BSSN *bssn)
             + 2.0 * (d3gammai12 * u1 * u2 + d3gammai13 * u1 * u3 + d3gammai23 * u2 * u3)
           );
       }
+
+  if(rescale_sheet) rescaleAllFieldPerturbations(bssn, 1.0/rescale_sheet);
 }
 
 void Sheet::stepInit()
