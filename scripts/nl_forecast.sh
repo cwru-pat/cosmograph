@@ -11,12 +11,13 @@ cd ../build/nl_runs
 do_run () {
   RES=$1
   P=$2
-  RESCALE=$3
+  METRIC_RESCALE=$3
   NSIDE=$4
   MTSEED=$5
   LAPSE=$6
-  LinRaysheet=$7
+  RAYSHEET_RESCALE=$7
   NPIX=$((12*$NSIDE*$NSIDE))
+  P_CUT=50.0
 
   if [[ "$LAPSE" == "Harmonic" ]]; then
     STEPS=$((144*2*$RES/8))
@@ -32,7 +33,7 @@ do_run () {
   cmake -DCOSMO_N=${RES} -DCOSMO_H_LEN_FRAC=1.9 ../..
   make -j8
 
-  RUN_DIR="v1_r${RES}_P${P}_M${MTSEED}_resc${RESCALE}_${LAPSE}"
+  RUN_DIR="v1_r${RES}_P${P}_M${MTSEED}_resc${METRIC_RESCALE}_${LAPSE}_rsc${RAYSHEET_RESCALE}"
   if [ "$LinHydroSrc" == "0" ] ; then
     RUN_DIR="${RUN_DIR}_nlsrc"
   fi
@@ -43,8 +44,8 @@ do_run () {
   cd $RUN_DIR
 
   sed -i.bak -r "s/P = [\.0-9]+/P = ${P}/" config.txt
-  sed -i.bak -r "s/rescale_metric = [\.0-9]+/rescale_metric = ${RESCALE}/" config.txt
-  sed -i.bak -r "s/rescale_sheet = [\.0-9]+/rescale_sheet = ${LinRaysheet}/" config.txt
+  sed -i.bak -r "s/rescale_metric = [\.0-9]+/rescale_metric = ${METRIC_RESCALE}/" config.txt
+  sed -i.bak -r "s/rescale_sheet = [\.0-9]+/rescale_sheet = ${RAYSHEET_RESCALE}/" config.txt
   sed -i.bak -r "s/raysheet_flip_step = [0-9]+/raysheet_flip_step = ${FLIP_STEP}/" config.txt
   sed -i.bak -r "s/steps = [0-9]+/steps = ${STEPS}/" config.txt
   sed -i.bak -r "s/healpix_vecs_file = \.\.\/config\/healpix_vecs\/nside_16\.vecs/healpix_vecs_file = nside\.vecs/" config.txt
@@ -52,20 +53,26 @@ do_run () {
   sed -i.bak -r "s/nside = [0-9]+/nside = ${NSIDE}/" config.txt
   sed -i.bak -r "s/mt19937_seed = [0-9]+/mt19937_seed = ${MTSEED}/" config.txt
   sed -i.bak -r "s/lapse = [A-Za-z0-9]+/lapse = ${LAPSE}/" config.txt
+  sed -i.bak -r "s/p_cut = [\.0-9]+/p_cut = ${P_CUT}/" config.txt
 
-  sbatch --exclusive -N 1 --mem=90g -n 24 --time=200:00:00 --wrap="./cosmo config.txt"
+  # sbatch --exclusive -N 1 --mem=90g -n 24 --time=200:00:00 --wrap="./cosmo config.txt"
+  ./cosmo config.txt
 
   cd ..
 }
+
+do_run 16 0.13 1.0e-3 32 0 Harmonic 1.0
+
+
 
 for ((i=1; i<20; i+=1));
 do
   MTS=$i
   
-  # do_run 96 0.13 1.0 32 "$MTS" Harmonic 0 # full nonlinear
-  # do_run 96 0.13 1.0e-3 32 "$MTS" Harmonic 0 # linearize metric only
-  # do_run 96 0.00000013 1.0 32 "$MTS" Harmonic 0 # linearize all
-  do_run 96 0.13 1.0e-3 32 "$MTS" Harmonic 1.0e-3 # linearize metric & raytrace
+  # do_run 96 0.13 1.0 32 "$MTS" Harmonic 1.0 # full nonlinear
+  # do_run 96 0.13 1.0e-3 32 "$MTS" Harmonic 1.0 # linearize metric only
+  # do_run 96 0.00000013 1.0 32 "$MTS" Harmonic 1.0 # linearize all
+  # do_run 96 0.13 1.0e-3 32 "$MTS" Harmonic 1.0e-3 # linearize metric & raytrace
   
   # do_run 96 0.13 1.0 32 "$MTS" ConformalFLRW 1
   # do_run 96 0.13 1.0e-3 32 "$MTS" ConformalFLRW 1

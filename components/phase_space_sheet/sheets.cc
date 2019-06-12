@@ -542,25 +542,40 @@ void Sheet::rescaleVelocityPerturbations(arr_t & ux, arr_t & uy, arr_t & uz, rea
   // velocities are perturbations around \vec{u} = \hat{r}
   // Can scale coordinates relative to average magnitude
   real_t avg_u = 0.0;
-# pragma omp parallel for collapse(2) reduction(+:avg_u)
+  idx_t s2 = 0, s3 = 0;
+# pragma omp parallel for reduction(+:avg_u)
   for(idx_t s1=0; s1<ns1; ++s1)
-    for(idx_t s2=0; s2<ns2; ++s2)
-      for(idx_t s3=0; s3<ns3; ++s3)
-      {
-        avg_u += std::sqrt( pw2(ux(s1,s2,s3)) + pw2(uy(s1,s2,s3)) + pw2(uz(s1,s2,s3)) );
-      }
-  avg_u /= ns1*ns2*ns3;
+  {
+    avg_u += std::sqrt( pw2(ux(s1,s2,s3)) + pw2(uy(s1,s2,s3)) + pw2(uz(s1,s2,s3)) );
+  }
+  avg_u /= ns1;
 
-# pragma omp parallel for collapse(2)
-  for(idx_t s1=0; s1<ns1; ++s1)
-    for(idx_t s2=0; s2<ns2; ++s2)
-      for(idx_t s3=0; s3<ns3; ++s3)
-      {
-        real_t umag = std::sqrt( pw2(ux(s1,s2,s3)) + pw2(uy(s1,s2,s3)) + pw2(uz(s1,s2,s3)) );
-        ux(s1,s2,s3) = multiplier*( 1.0 - avg_u/umag )*ux(s1,s2,s3) + avg_u/umag*ux(s1,s2,s3);
-        uy(s1,s2,s3) = multiplier*( 1.0 - avg_u/umag )*uy(s1,s2,s3) + avg_u/umag*uy(s1,s2,s3);
-        uz(s1,s2,s3) = multiplier*( 1.0 - avg_u/umag )*uz(s1,s2,s3) + avg_u/umag*uz(s1,s2,s3);
-      }
+  std::ifstream vecFile(_config["healpix_vecs_file"]);
+  idx_t r = 0;
+  while (!vecFile.eof() && r < ns1)
+  {
+    idx_t s1 = r;
+    // "background" position
+    real_t ux_bar, uy_bar, uz_bar;
+    vecFile >> ux_bar;
+    vecFile >> uy_bar;
+    vecFile >> uz_bar;
+    real_t mag_u = std::sqrt( pw2(ux_bar) + pw2(uy_bar) + pw2(uz_bar) );
+    ux_bar *= avg_u/mag_u;
+    uy_bar *= avg_u/mag_u;
+    uz_bar *= avg_u/mag_u;
+
+    for(idx_t s2=0; s2<3; ++s2)
+    {
+      idx_t s3 = 0.0;
+      ux(s1,s2,s3) = ux_bar + multiplier*( ux(s1,s2,s3) - ux_bar );
+      uy(s1,s2,s3) = uy_bar + multiplier*( uy(s1,s2,s3) - uy_bar );
+      uz(s1,s2,s3) = uz_bar + multiplier*( uz(s1,s2,s3) - uz_bar );
+    }
+    r++;
+  }
+  vecFile.close();
+
 }
 
 
@@ -569,31 +584,43 @@ void Sheet::rescalePositionPerturbations(arr_t & dx, arr_t & dy, arr_t & dz, rea
   // coordinate positions are "perturbations" around \vec{x} = \vec{r}
   // Can scale coordinates relative to average magnitude
   real_t avg_r = 0.0;
-# pragma omp parallel for collapse(2) reduction(+:avg_r)
+  idx_t s2 = 0, s3 = 0;
+# pragma omp parallel for reduction(+:avg_r)
   for(idx_t s1=0; s1<ns1; ++s1)
-    for(idx_t s2=0; s2<ns2; ++s2)
-      for(idx_t s3=0; s3<ns3; ++s3)
-      {
-        real_t x_pt = dx(s1,s2,s3) + _S1IDXtoX0(s1);
-        real_t y_pt = dy(s1,s2,s3) + _S2IDXtoY0(s2);
-        real_t z_pt = dz(s1,s2,s3) + _S3IDXtoZ0(s3);
-        avg_r += std::sqrt( pw2(x_pt) + pw2(y_pt) + pw2(z_pt) );
-      }
-  avg_r /= ns1*ns2*ns3;
+  {
+    real_t x_pt = dx(s1,s2,s3) + _S1IDXtoX0(s1);
+    real_t y_pt = dy(s1,s2,s3) + _S2IDXtoY0(s2);
+    real_t z_pt = dz(s1,s2,s3) + _S3IDXtoZ0(s3);
+    avg_r += std::sqrt( pw2(x_pt) + pw2(y_pt) + pw2(z_pt) );
+  }
+  avg_r /= ns1;
 
-#pragma omp parallel for
-  for(idx_t s1=0; s1<ns1; ++s1)
-    for(idx_t s2=0; s2<ns2; ++s2)
-      for(idx_t s3=0; s3<ns3; ++s3)
-      {
-        real_t x_pt = dx(s1,s2,s3) + _S1IDXtoX0(s1);
-        real_t y_pt = dy(s1,s2,s3) + _S2IDXtoY0(s2);
-        real_t z_pt = dz(s1,s2,s3) + _S3IDXtoZ0(s3);
-        real_t rmag = std::sqrt( pw2(x_pt) + pw2(y_pt) + pw2(z_pt) );
-        Dx(s1,s2,s3) = multiplier*( 1.0 - avg_r/rmag )*x_pt + avg_r/rmag*x_pt - _S1IDXtoX0(s1);
-        Dy(s1,s2,s3) = multiplier*( 1.0 - avg_r/rmag )*y_pt + avg_r/rmag*y_pt - _S2IDXtoY0(s2);
-        Dz(s1,s2,s3) = multiplier*( 1.0 - avg_r/rmag )*z_pt + avg_r/rmag*z_pt - _S3IDXtoZ0(s3);
-      }
+  std::ifstream vecFile(_config["healpix_vecs_file"]);
+  idx_t r = 0;
+  while (!vecFile.eof() && r < ns1)
+  {
+    idx_t s1 = r;
+    // "background" position
+    real_t x_bar, y_bar, z_bar;
+    vecFile >> x_bar;
+    vecFile >> y_bar;
+    vecFile >> z_bar;
+    real_t mag_r = -std::sqrt( pw2(x_bar) + pw2(y_bar) + pw2(z_bar) );
+    x_bar *= avg_r/mag_r;
+    y_bar *= avg_r/mag_r;
+    z_bar *= avg_r/mag_r;
+
+    for(idx_t s2=0; s2<3; ++s2)
+    {
+      idx_t s3 = 0.0;
+      Dx(s1,s2,s3) = x_bar + multiplier*( dx(s1,s2,s3) + _S1IDXtoX0(s1) - x_bar ) - _S1IDXtoX0(s1);
+      Dy(s1,s2,s3) = y_bar + multiplier*( dy(s1,s2,s3) + _S2IDXtoY0(s2) - y_bar ) - _S2IDXtoY0(s2);
+      Dz(s1,s2,s3) = z_bar + multiplier*( dz(s1,s2,s3) + _S3IDXtoZ0(s3) - z_bar ) - _S3IDXtoZ0(s3);
+    }
+    r++;
+  }
+  vecFile.close();
+
 }
 
 
@@ -619,7 +646,6 @@ void Sheet::rescaleAllFieldPerturbations(BSSN *bssn, real_t multiplier)
 
   rescaleVelocityPerturbations(vx._array_a, vy._array_a, vz._array_a, multiplier);
   rescaleVelocityPerturbations(vx._array_c, vy._array_c, vz._array_c, multiplier);
-
 }
 
 
@@ -1133,9 +1159,9 @@ std::vector<real_t> Sheet::getRayDataAtS(idx_t s, BSSN *bssnSim, Lambda * lambda
 
   // get separation vectors; time separation is zero
   real_t sep1[4] = { 0, Dx._p(s1,1,0) - Dx._p(s1,0,0),
-    Dy._p(s1,1,0) - Dy._p(s1,0,0), Dz._p(s1,1,0) - Dz._p(s1,0,0) };
+    Dy._p(s1,1,0) + _S2IDXtoY0((idx_t) 1) - Dy._p(s1,0,0), Dz._p(s1,1,0) - Dz._p(s1,0,0) };
   real_t sep2[4] = { 0, Dx._p(s1,2,0) - Dx._p(s1,0,0),
-    Dy._p(s1,2,0) - Dy._p(s1,0,0), Dz._p(s1,2,0) - Dz._p(s1,0,0) };
+    Dy._p(s1,2,0) + _S2IDXtoY0((idx_t) 2) - Dy._p(s1,0,0), Dz._p(s1,2,0) - Dz._p(s1,0,0) };
 
   // Get screen vectors
   // Use separation vectors as guesses (dont worry about co/contra, just a guess), and orthonormalize
@@ -1154,17 +1180,16 @@ std::vector<real_t> Sheet::getRayDataAtS(idx_t s, BSSN *bssnSim, Lambda * lambda
   real_t v1V2 = 0.0;
   for(int i=0; i<4; i++)
     v1V2 += v1[i]*V2[i];
-  real_t v2norm = std::sqrt( dot_4_vectors_vvg(V2, V2, Smn) - v1V2*v1V2 );
+  real_t SVV = dot_4_vectors_vvg(V2, V2, Smn);
+  real_t v2norm = std::sqrt( std::abs( SVV - v1V2*v1V2 ) );
   for(int i=0; i<4; i++)
     v2[i] = ( Smn[i][0]*V2[0] + Smn[i][1]*V2[1] + Smn[i][2]*V2[2] + Smn[i][3]*V2[3] - v1[i]*v1V2 ) / v2norm;
-
 
   real_t D11 = dot_4_vectors_vv(sep1, v1);
   real_t D12 = dot_4_vectors_vv(sep1, v2);
   real_t D21 = dot_4_vectors_vv(sep2, v1);
   real_t D22 = dot_4_vectors_vv(sep2, v2);
-  real_t DA = std::atan(ray_bundle_epsilon) * std::sqrt(std::abs(D11*D22 - D12*D21));
-
+  real_t DA = std::sqrt(std::abs(D11*D22 - D12*D21)) / std::atan(ray_bundle_epsilon);
 
   sheet_data[0] = x_pt;
   sheet_data[1] = y_pt;

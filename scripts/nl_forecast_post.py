@@ -103,10 +103,10 @@ def getCls(dir, mlt=1.0, smooth=0.0, z=0.25) :
   alms = getalms(dir, mlt, smooth)
   return hp.alm2cl(alms)[:30]
 
-alin_dirs_harm = [ "v1_r96_P0.00000013_M"+str(i)+"_resc1.0_Harmonic_nlsrc" for i in range(1,20) ]
-# flin_dirs_harm = [ "v1_r96_P0.13_M"+str(i)+"_resc1.0e-3_Harmonic" for i in range(1,20) ]
-mlin_dirs_harm = [ "v1_r96_P0.13_M"+str(i)+"_resc1.0e-3_Harmonic_nlsrc" for i in range(1,20) ]
-nl_dirs_harm = [ "v1_r96_P0.13_M"+str(i)+"_resc1.0_Harmonic_nlsrc" for i in range(1,20) ]
+alin_dirs_harm = [ "v1_r96_P0.00000013_M"+str(i)+"_resc1.0_Harmonic_nlsrc" for i in range(1,20) ] # All linear
+rlin_dirs_harm = [ "v1_r96_P0.13_M"+str(i)+"_resc1.0e-3_Harmonic_rsc1.0e-3" for i in range(1,20) ] # metric & raysheet linear
+mlin_dirs_harm = [ "v1_r96_P0.13_M"+str(i)+"_resc1.0e-3_Harmonic_nlsrc" for i in range(1,20) ] # metric (only) linear
+nl_dirs_harm = [ "v1_r96_P0.13_M"+str(i)+"_resc1.0_Harmonic_nlsrc" for i in range(1,20) ] # full nonlinear
 
 lin_dirs_cflrw = [ "r96_P0.13_M"+str(i)+"_resc1.0e-3_ConformalFLRW" for i in range(1,20) ]
 nl_dirs_cflrw = [ "r96_P0.13_M"+str(i)+"_resc1.0_ConformalFLRW" for i in range(1,20) ]
@@ -116,6 +116,7 @@ if True :
 
   # all_alin_rho = np.array([ getmap(dir, mlt=1000.0, field='rho') for dir in alin_dirs_harm])
   # all_mlin_rho = np.array([ getmap(dir, field='rho') for dir in mlin_dirs_harm])
+  # all_rlin_rho = np.array([ getmap(dir, field='rho') for dir in rlin_dirs_harm])
   # all_nl_rho = np.array([ getmap(dir, field='rho') for dir in nl_dirs_harm])
 
   # all_alin_DA = np.array([ getmap(dir, mlt=1000.0, field='DA') for dir in alin_dirs_harm])
@@ -123,14 +124,17 @@ if True :
   # all_nl_DA = np.array([ getmap(dir, field='DA') for dir in nl_dirs_harm])
 
   np.savetxt('all_alin_rho.txt', all_alin_rho)
+  np.savetxt('all_rlin_rho.txt', all_rlin_rho)
   np.savetxt('all_mlin_rho.txt', all_mlin_rho)
   np.savetxt('all_nl_rho.txt', all_nl_rho)
-  np.savetxt('all_alin_d2rho.txt', np.array([ laplacian(alin) for alin in all_alin_rho ]) )
-  np.savetxt('all_mlin_d2rho.txt', np.array([ laplacian(alin) for alin in all_mlin_rho ]) )
-  np.savetxt('all_nl_d2rho.txt', np.array([ laplacian(alin) for alin in all_nl_rho ]) )
-  np.savetxt('all_alin_drho2.txt', np.array([ laplacian(alin) for alin in all_alin_rho ]) )
-  np.savetxt('all_mlin_drho2.txt', np.array([ gradmapsquared(alin) for alin in all_mlin_rho ]) )
-  np.savetxt('all_nl_drho2.txt', np.array([ gradmapsquared(alin) for alin in all_nl_rho ]) )
+
+  # np.savetxt('all_alin_d2rho.txt', np.array([ laplacian(alin) for alin in all_alin_rho ]) )
+  # np.savetxt('all_mlin_d2rho.txt', np.array([ laplacian(alin) for alin in all_mlin_rho ]) )
+  # np.savetxt('all_nl_d2rho.txt', np.array([ laplacian(alin) for alin in all_nl_rho ]) )
+
+  # np.savetxt('all_alin_drho2.txt', np.array([ laplacian(alin) for alin in all_alin_rho ]) )
+  # np.savetxt('all_mlin_drho2.txt', np.array([ gradmapsquared(alin) for alin in all_mlin_rho ]) )
+  # np.savetxt('all_nl_drho2.txt', np.array([ gradmapsquared(alin) for alin in all_nl_rho ]) )
 
   # np.savetxt('all_alin_DA.txt', all_alin_DA)
   # np.savetxt('all_mlin_DA.txt', all_mlin_DA)

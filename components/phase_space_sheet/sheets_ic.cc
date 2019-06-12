@@ -1414,8 +1414,8 @@ void sheets_ic_rays(BSSN *bssnSim, Sheet *raySheet, IOData *iodata)
       vy_p(r,0,0) = vhat[1];
       vz_p(r,0,0) = vhat[2];
       real_t vx = vhat[0];
-      real_t vy = vhat[0];
-      real_t vz = vhat[0];
+      real_t vy = vhat[1];
+      real_t vz = vhat[2];
 
       // Separation/screen vectors to compute angular diameter distance
       // Need to be orthonormal (in a gamma_ij sense in synchronous gauge) to the fiducial ray
@@ -1470,6 +1470,11 @@ void sheets_ic_rays(BSSN *bssnSim, Sheet *raySheet, IOData *iodata)
       vx_p(r,2,0) = vhat[0] + raySheet->ray_bundle_epsilon*s2hat[0];
       vy_p(r,2,0) = vhat[1] + raySheet->ray_bundle_epsilon*s2hat[1];
       vz_p(r,2,0) = vhat[2] + raySheet->ray_bundle_epsilon*s2hat[2];
+
+      if(r==0) { std::cout << "vhat="<<vhat[0]<<", "<<vhat[1]<<", "<<vhat[2]<<"\n"; }
+      if(r==0) { std::cout << "s1hat="<<s1hat[0]<<", "<<s1hat[1]<<", "<<s1hat[2]<<"\n"; }
+      if(r==0) { std::cout << "s2hat="<<s2hat[0]<<", "<<s2hat[1]<<", "<<s2hat[2]<<"\n"; }
+
     }
     else
     {
@@ -1477,6 +1482,7 @@ void sheets_ic_rays(BSSN *bssnSim, Sheet *raySheet, IOData *iodata)
     }
     r++;
   }
+  vecFile.close();
 
   if(r < npix)
   {
