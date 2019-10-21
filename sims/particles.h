@@ -17,8 +17,23 @@ protected:
   Particles * particles;
 
 public:
-  ParticleSim();
-  ~ParticleSim(){}
+  ParticleSim() {}
+  ~ParticleSim()
+  {
+    std::cout << "Cleaning up...";
+
+    delete particles;
+    delete iodata;
+    delete bssnSim;
+    delete fourier;
+    if(use_bardeen)
+    {
+      delete bardeen;
+    }
+
+    std::cout << "done.\n";
+    std::cout << std::flush;
+  }
 
   void init();
   void setICs();

@@ -46,7 +46,6 @@ public:
   void K2Finalize();
   void K3Finalize();
   void K4Finalize();
-  void RKEvolve(BSSNData *bd);
   void RKEvolvePt(BSSNData *bd);
 
   ScalarData getScalarData(BSSNData *bd);

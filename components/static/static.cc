@@ -19,7 +19,6 @@ Static::~Static()
 void Static::addBSSNSrc(map_t & bssn_fields, FRW<real_t> *frw)
 {
   idx_t i=0, j=0, k=0;
-  arr_t & DIFFalpha_a = *bssn_fields["DIFFalpha_a"];
   arr_t & DIFFr_a = *bssn_fields["DIFFr_a"];
   arr_t & DIFFphi_a = *bssn_fields["DIFFphi_a"];
 
@@ -30,7 +29,7 @@ void Static::addBSSNSrc(map_t & bssn_fields, FRW<real_t> *frw)
   {
     idx_t idx = NP_INDEX(i,j,k);
     // \Delta \rho = \rho - \rho_FRW = ...
-    DIFFr_a[idx] += exp(-6.0*(DIFFphi_a[idx] + phi_FRW))*( DIFFD_a[idx] / (1.0 + DIFFalpha_a[idx]) )
+    DIFFr_a[idx] += exp(-6.0*(DIFFphi_a[idx] + phi_FRW))*DIFFD_a[idx]
       + rho_FRW*expm1(-6.0*DIFFphi_a[idx]);
   }
 

@@ -271,8 +271,8 @@ typedef struct {
   real_t rho_FRW, ///< Reference FRW variable, \f$\rho_{FRW}\f$
          S_FRW; ///< Reference FRW variable, \f$S_{FRW}\f$
 
-  // average K
-  real_t K_avg;
+  // average K, rho
+  real_t K_avg, rho_avg, avg_vol;
 
 } BSSNData;
 

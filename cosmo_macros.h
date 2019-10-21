@@ -23,7 +23,7 @@
 #endif
 #define POINTS ((NX)*(NY)*(NZ))
 
-// physical box size (eg., in hubble units)
+// physical box size (in units of the initial Hubble^-1 scale)
 // eg; L = H_LEN_FRAC = N*dx
 #ifndef H_LEN_FRAC
   #define H_LEN_FRAC 0.5
@@ -41,12 +41,22 @@
 
 // evolve shift as well? (if not, assumed to be zero)
 #ifndef USE_BSSN_SHIFT
-  #define USE_BSSN_SHIFT true
+  #define USE_BSSN_SHIFT false
 #endif
 
 // Gamma-driver gauge settings (must turn on bssn_shift as well)
 #ifndef USE_GAMMA_DRIVER
-  #define USE_GAMMA_DRIVER true
+  #define USE_GAMMA_DRIVER false
+#endif
+
+// Generalized Newtonian gauge setting
+#ifndef USE_GENERALIZED_NEWTON
+  #define USE_GENERALIZED_NEWTON false
+#endif
+
+// Long doubles?
+#ifndef USE_LONG_DOUBLES
+# define USE_LONG_DOUBLES false
 #endif
 
 // Optionally exclude some second-order terms
@@ -103,7 +113,7 @@
 #define RESTRICT __restrict__
 
 // standard index, implementing periodic boundary conditions
-#define INDEX(i,j,k) ( ((i+NX)%(NX))*(NY)*(NZ) + ((j+NY)%(NY))*(NZ) + (k+NZ)%(NZ) )
+#define INDEX(i,j,k) ( ((i+4*NX)%(NX))*(NY)*(NZ) + ((j+4*NY)%(NY))*(NZ) + (k+4*NZ)%(NZ) )
 // indexing without periodicity
 #define NP_INDEX(i,j,k) ((NZ)*(NY)*(i) + (NZ)*(j) + (k))
 // indexing of flux arrays; indexes cell boundaries with 'd' = 1,2,3, using periodic BCs
@@ -111,7 +121,7 @@
 // non-periodic indexing of flux arrays; indexes cell boundaries with 'd' = 1,2,3
 #define F_NP_INDEX(i,j,k,d) ( (NZ)*(NY)*(i)*3 + (NZ)*(j)*3 + (k)*3 + (d+2)%3 )
 
-// index with designated grid number
+// index with variable grid resolution
 #define H_INDEX(i,j,k,nx,ny,nz) (((i+nx)%(nx))*(ny)*(nz) + ((j+ny)%(ny))*(nz) + (k+(nz))%(nz))
 
 // map spatial (i,j) to array index
@@ -155,7 +165,7 @@
         name->init(NX, NY, NZ, dt)
 
 #define RK4_ARRAY_DELETE(name) \
-        name->~RK4Register()
+        delete name
 
 #define RK4_SET_LOCAL_VALUES(name) \
     bd->name = name->_array_a[bd->idx];
@@ -171,8 +181,7 @@
 #define GEN1_ARRAY_ALLOC(name) \
         name##_a.init(NX, NY, NZ)
 
-#define GEN1_ARRAY_DELETE(name) \
-        name##_a.~CosmoArray()
+#define GEN1_ARRAY_DELETE(name)
 
 #define GEN1_SET_LOCAL_VALUES(name) \
     bd->name = name##_a[bd->idx];

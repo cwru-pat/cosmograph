@@ -16,6 +16,7 @@
 #include "../components/bssn/bssn.h"
 #include "../components/bssn/bardeen.h"
 #include "../components/scalar/scalar.h"
+#include "../components/phase_space_sheet/sheets.h"
 #include "../components/particles/particles.h"
 #include "IOData.h"
 
@@ -40,8 +41,11 @@ void io_raytrace_dump(IOData *iodata, idx_t step,
   std::vector<RayTrace<real_t, idx_t> *> const * rays);
 #endif
 
+bool io_read_3dslice(IOData *iodata, arr_t & field, std::string filename);
+ 
 void io_scalar_snapshot(IOData *iodata, idx_t step, Scalar * scalar);
-
+void io_sheets_snapshot(IOData *iodata, idx_t step, Sheet * sheets);
+ 
 void io_dump_2dslice(IOData *iodata, arr_t & field, std::string filename);
 void io_dump_3dslice(IOData *iodata, arr_t & field, std::string filename);
 void io_dump_strip(IOData *iodata, arr_t & field, std::string file,
@@ -57,8 +61,14 @@ void io_print_particles(IOData *iodata, idx_t step, Particles *particles);
 
 #if USE_COSMOTRACE
 void io_raytrace_bardeen_dump(IOData *iodata, idx_t step,
-  std::vector<RayTrace<real_t, idx_t> *> const * rays, Bardeen * bardeen);
+  std::vector<RayTrace<real_t, idx_t> *> const * rays, Bardeen * bardeen,
+  real_t t);
 #endif
+
+void io_svt_violation(IOData *iodata, idx_t step, Bardeen * bardeen, real_t t);
+
+void io_raysheet_dump(IOData *iodata, idx_t step,
+  Sheet * raySheet, BSSN *bssnSim, Lambda * lambda);
 
 }
 

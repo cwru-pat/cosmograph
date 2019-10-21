@@ -21,6 +21,7 @@ protected:
   idx_t num_steps;
   bool dt_flip;
   idx_t dt_flip_step;
+  real_t t; ///< Time @ current step
 
   std::string simulation_type;
   IOData * iodata;
@@ -37,11 +38,12 @@ protected:
   bool ray_integrate;
   idx_t ray_flip_step;
   std::vector<RayTrace<real_t, idx_t> *> rays;
+  bool simple_raytrace;
 # endif
 
 public:
   CosmoSim();
-  ~CosmoSim();
+  virtual ~CosmoSim() {};
 
   // These functions will be called in main();
   // Each derived class should implement them.

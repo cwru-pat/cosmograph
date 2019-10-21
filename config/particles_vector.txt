@@ -6,13 +6,17 @@ normalize_metric = 1
 
 simulation_type = particles
 ic_type = vectorpert
-peak_amplitude = 0.02
-particles_per_dy = 2
-smoothing_radius = 2.5
 deconvolution_strength = 0
+
+peak_amplitude = 0.2
+particles_per_dy = 1
+smoothing_radius = 1.5
+use_initial_shift = 1
 
 shift = RedShift
 lapse = OnePlusLog
+gd_c = 2.0
+gd_eta = 1.0
 
 output_dir = particle_vectorpert_test
 dump_file = calculated
@@ -20,19 +24,17 @@ dump_file = calculated
 IO_constraint_interval = 10
 IO_bssnstats_interval = 10
 
-IO_particles = 1
+IO_particles = 100
 
-IO_1D_grid_interval = 1
+IO_1D_grid_interval = 100
 IO_1D_DIFFr_a = 1
 IO_1D_DIFFr_a_axis = 2
 IO_1D_DIFFphi_a = 1
 IO_1D_DIFFphi_a_axis = 2
-IO_1D_DIFFK_a = 1
-IO_1D_DIFFK_a_axis = 2
-IO_1D_DIFFgamma12_a = 1
-IO_1D_DIFFgamma12_a_axis = 2
 IO_1D_DIFFalpha_a = 1
 IO_1D_DIFFalpha_a_axis = 2
+IO_1D_DIFFK_a = 1
+IO_1D_DIFFK_a_axis = 2
 IO_1D_A12_a = 1
 IO_1D_A12_a_axis = 2
 IO_1D_S1_a = 1

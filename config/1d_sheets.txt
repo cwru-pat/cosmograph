@@ -1,0 +1,51 @@
+steps = 4000
+dt_frac = 0.2
+
+simulation_type = sheets
+ic_type = semianalytic
+
+lapse = Harmonic
+
+peak_amplitude = 0.005
+Omega_L =  1.63e-05
+use_ML_scale_factor = 0
+
+stop_at_expansion_goal = 1
+expansion_goal = 51.0
+
+ns1 = 64
+ns2 = 1
+ns3 = 1
+carrier_count_scheme = 0
+carriers_per_dx = 4
+carriers_per_dy = 1
+carriers_per_dz = 1
+
+verbosity = 0
+
+deposit_scheme = 2
+KO_damping_coefficient = 0.0
+integration_points_per_dx = 1000000
+
+IO_bssnstats_interval = 100
+dump_file = calculated
+output_dir = phase_space_sheets_method_test
+
+IO_1D_grid_interval = 1000
+IO_1D_DIFFr_a = 1
+IO_1D_DIFFphi_a = 1
+IO_1D_DIFFS_a = 1
+IO_1D_DIFFalpha_a = 1
+IO_1D_DIFFK_a = 1
+
+IO_3D_grid_interval = 1000
+IO_sheets_displacement_x = 1
+IO_sheets_velocity_x = 1
+
+IO_constraint_interval = 1000
+use_bardeen = 1
+SVT_constraint_interval = 1000
+
+
+GN_eta = 0.000001
+GN_xi = 0.1

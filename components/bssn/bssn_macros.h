@@ -111,10 +111,26 @@
   function(STF23);                      \
   function(STF33);
 
-#define BSSN_APPLY_TO_GEN1_EXTRAS(function) \
-  function(ricci);                          \
-  function(AijAij);                         \
+#if USE_GENERALIZED_NEWTON
+#define BSSN_APPLY_TO_GEN1_EXTRAS(function)              \
+  function(ricci);                                       \
+  function(AijAij);                                      \
+  function(K0);                                          \
+  function(GNricciTF11);                                 \
+  function(GNricciTF22);                                 \
+  function(GNricciTF33);                                 \
+  function(GNricciTF12);                                 \
+  function(GNricciTF13);                                 \
+  function(GNricciTF23);                                 \
+  function(GND2Alpha);                                   \
+  function(GNDiDjRijTFoD2);
+#else
+#define BSSN_APPLY_TO_GEN1_EXTRAS(function)     \
+  function(ricci);                              \
+  function(AijAij);                             \
   function(K0);
+#endif
+
 
 #define BSSN_APPLY_TO_IJ_PERMS(function) \
   function(1, 1);                        \
@@ -276,7 +292,10 @@
 #if USE_BSSN_SHIFT
 #define BSSN_DT_DIFFGAMMAIJ(I, J) ( \
     - 2.0*bd->alpha*bd->A##I##J \
-    + bd->beta1 * bd->d1g##I##J + bd->beta2 * bd->d2g##I##J + bd->beta3 * bd->d3g##I##J \
+    /* + bd->beta1 * bd->d1g##I##J + bd->beta2 * bd->d2g##I##J + bd->beta3 * bd->d3g##I##J \  */ \
+    + upwind_derivative(bd->i, bd->j, bd->k, 1, DIFFgamma##I##J->_array_a, bd->beta1) \
+    + upwind_derivative(bd->i, bd->j, bd->k, 2, DIFFgamma##I##J->_array_a, bd->beta2) \
+    + upwind_derivative(bd->i, bd->j, bd->k, 3, DIFFgamma##I##J->_array_a, bd->beta3) \
     + bd->gamma##I##1*bd->d##J##beta1 + bd->gamma##I##2*bd->d##J##beta2 + bd->gamma##I##3*bd->d##J##beta3 \
     + bd->gamma##J##1*bd->d##I##beta1 + bd->gamma##J##2*bd->d##I##beta2 + bd->gamma##J##3*bd->d##I##beta3 \
     - (2.0/3.0)*bd->gamma##I##J*(bd->d1beta1 + bd->d2beta2 + bd->d3beta3) \
@@ -301,9 +320,12 @@
 #define BSSN_DT_AIJ(I, J) ( \
     exp(-4.0*bd->phi)*( bd->alpha*(bd->ricciTF##I##J - 8.0*PI*bd->STF##I##J) - bd->D##I##D##J##aTF ) \
     + bd->alpha*(BSSN_DT_AIJ_SECOND_ORDER_KA(I,J) - 2.0*BSSN_DT_AIJ_SECOND_ORDER_AA(I,J)) \
-    + bd->beta1*derivative(bd->i, bd->j, bd->k, 1, A##I##J->_array_a) \
-    + bd->beta2*derivative(bd->i, bd->j, bd->k, 2, A##I##J->_array_a) \
-    + bd->beta3*derivative(bd->i, bd->j, bd->k, 3, A##I##J->_array_a) \
+    /* + bd->beta1*derivative(bd->i, bd->j, bd->k, 1, A##I##J->_array_a) \ */ \
+    /* + bd->beta2*derivative(bd->i, bd->j, bd->k, 2, A##I##J->_array_a) \ */ \
+    /* + bd->beta3*derivative(bd->i, bd->j, bd->k, 3, A##I##J->_array_a) \ */ \
+       + upwind_derivative(bd->i, bd->j, bd->k, 1, A##I##J->_array_a, bd->beta1)     \
+       + upwind_derivative(bd->i, bd->j, bd->k, 2, A##I##J->_array_a, bd->beta2)     \
+       + upwind_derivative(bd->i, bd->j, bd->k, 3, A##I##J->_array_a, bd->beta3)     \
     + bd->A##I##1*bd->d##J##beta1 + bd->A##I##2*bd->d##J##beta2 + bd->A##I##3*bd->d##J##beta3 \
     + bd->A##J##1*bd->d##I##beta1 + bd->A##J##2*bd->d##I##beta2 + bd->A##J##3*bd->d##I##beta3 \
     - (2.0/3.0)*bd->A##I##J*(bd->d1beta1 + bd->d2beta2 + bd->d3beta3) \
@@ -340,9 +362,12 @@
 
 #if USE_BSSN_SHIFT
 #define BSSN_DT_GAMMAI_SHIFT(I) ( \
-    + bd->beta1*derivative(bd->i, bd->j, bd->k, 1, Gamma##I->_array_a) \
-    + bd->beta2*derivative(bd->i, bd->j, bd->k, 2, Gamma##I->_array_a) \
-    + bd->beta3*derivative(bd->i, bd->j, bd->k, 3, Gamma##I->_array_a) \
+    /* + bd->beta1*derivative(bd->i, bd->j, bd->k, 1, Gamma##I->_array_a) \ */ \
+    /* + bd->beta2*derivative(bd->i, bd->j, bd->k, 2, Gamma##I->_array_a) \ */ \
+    /* + bd->beta3*derivative(bd->i, bd->j, bd->k, 3, Gamma##I->_array_a) \ */ \
+    + upwind_derivative(bd->i, bd->j, bd->k, 1, Gamma##I->_array_a, bd->beta1) \
+    + upwind_derivative(bd->i, bd->j, bd->k, 2, Gamma##I->_array_a, bd->beta2) \
+    + upwind_derivative(bd->i, bd->j, bd->k, 3, Gamma##I->_array_a, bd->beta3) \
     - bd->Gammad1*bd->d1beta##I - bd->Gammad2*bd->d2beta##I - bd->Gammad3*bd->d3beta##I \
     + (2.0/3.0) * bd->Gammad##I * (bd->d1beta1 + bd->d2beta2 + bd->d3beta3) \
     + (1.0/3.0) * ( \
@@ -473,7 +498,7 @@
       bd->gammai11*derivative(bd->i, bd->j, bd->k, 1, A1##I->_array_a) + bd->gammai12*derivative(bd->i, bd->j, bd->k, 2, A1##I->_array_a) + bd->gammai13*derivative(bd->i, bd->j, bd->k, 3, A1##I->_array_a) \
       + bd->gammai21*derivative(bd->i, bd->j, bd->k, 1, A2##I->_array_a) + bd->gammai22*derivative(bd->i, bd->j, bd->k, 2, A2##I->_array_a) + bd->gammai23*derivative(bd->i, bd->j, bd->k, 3, A2##I->_array_a) \
       + bd->gammai31*derivative(bd->i, bd->j, bd->k, 1, A3##I->_array_a) + bd->gammai32*derivative(bd->i, bd->j, bd->k, 2, A3##I->_array_a) + bd->gammai33*derivative(bd->i, bd->j, bd->k, 3, A3##I->_array_a) \
-      - bd->Gamma1*bd->A1##I - bd->Gamma2*bd->A2##I - bd->Gamma3*bd->A3##I \
+      - bd->Gammad1*bd->A1##I - bd->Gammad2*bd->A2##I - bd->Gammad3*bd->A3##I \
       - bd->GL11##I*bd->Acont11 - bd->GL21##I*bd->Acont21 - bd->GL31##I*bd->Acont31 \
       - bd->GL12##I*bd->Acont12 - bd->GL22##I*bd->Acont22 - bd->GL32##I*bd->Acont32 \
       - bd->GL13##I*bd->Acont13 - bd->GL23##I*bd->Acont23 - bd->GL33##I*bd->Acont33 \
@@ -494,7 +519,7 @@
       bd->gammai11*derivative(bd->i, bd->j, bd->k, 1, A1##I->_array_a) + bd->gammai12*derivative(bd->i, bd->j, bd->k, 2, A1##I->_array_a) + bd->gammai13*derivative(bd->i, bd->j, bd->k, 3, A1##I->_array_a) \
       + bd->gammai21*derivative(bd->i, bd->j, bd->k, 1, A2##I->_array_a) + bd->gammai22*derivative(bd->i, bd->j, bd->k, 2, A2##I->_array_a) + bd->gammai23*derivative(bd->i, bd->j, bd->k, 3, A2##I->_array_a) \
       + bd->gammai31*derivative(bd->i, bd->j, bd->k, 1, A3##I->_array_a) + bd->gammai32*derivative(bd->i, bd->j, bd->k, 2, A3##I->_array_a) + bd->gammai33*derivative(bd->i, bd->j, bd->k, 3, A3##I->_array_a) \
-      - bd->Gamma1*bd->A1##I - bd->Gamma2*bd->A2##I - bd->Gamma3*bd->A3##I \
+      - bd->Gammad1*bd->A1##I - bd->Gammad2*bd->A2##I - bd->Gammad3*bd->A3##I \
       - bd->GL11##I*bd->Acont11 - bd->GL21##I*bd->Acont21 - bd->GL31##I*bd->Acont31 \
       - bd->GL12##I*bd->Acont12 - bd->GL22##I*bd->Acont22 - bd->GL32##I*bd->Acont32 \
       - bd->GL13##I*bd->Acont13 - bd->GL23##I*bd->Acont23 - bd->GL33##I*bd->Acont33 \
@@ -728,5 +753,21 @@
 #define STF21 STF12
 #define STF31 STF13
 #define STF32 STF23
+
+#if USE_GENERALIZED_NEWTON
+#define ricciTF21 ricciTF12
+#define ricciTF31 ricciTF13
+#define ricciTF32 ricciTF23
+
+#define GNTensor21 GNTensor12
+#define GNTensor31 GNTensor13
+#define GNTensor32 GNTensor23
+
+#define GNTensor21_a GNTensor12_a
+#define GNTensor31_a GNTensor13_a
+#define GNTensor32_a GNTensor23_a
+
+
+#endif
 
 #endif

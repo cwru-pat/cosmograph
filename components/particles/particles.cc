@@ -343,11 +343,11 @@ ParticleMetricPrimitives<real_t> Particles::getInterpolatedPrimitives(Particle<r
 #         endif
 
           pp.dgi[a][aIDX(1,1)] = -4.0*DER(DIFFphi_a)*pp.gi[aIDX(1,1)]
-            + std::exp(-4.0*DIFFphi_a[idx])*(DER(DIFFgamma22_a) + DER(DIFFgamma33_a) - 2.0*DER(DIFFgamma23_a) + DER(DIFFgamma22_a)*DIFFgamma33_a[idx] + DIFFgamma22_a[idx]*DER(DIFFgamma33_a));
+            + std::exp(-4.0*DIFFphi_a[idx])*(DER(DIFFgamma22_a) + DER(DIFFgamma33_a) - 2.0*DIFFgamma23_a[idx]*DER(DIFFgamma23_a) + DER(DIFFgamma22_a)*DIFFgamma33_a[idx] + DIFFgamma22_a[idx]*DER(DIFFgamma33_a));
           pp.dgi[a][aIDX(2,2)] = -4.0*DER(DIFFphi_a)*pp.gi[aIDX(2,2)]
-            + std::exp(-4.0*DIFFphi_a[idx])*(DER(DIFFgamma11_a) + DER(DIFFgamma33_a) - 2.0*DER(DIFFgamma13_a) + DER(DIFFgamma11_a)*DIFFgamma33_a[idx] + DIFFgamma11_a[idx]*DER(DIFFgamma33_a));
+            + std::exp(-4.0*DIFFphi_a[idx])*(DER(DIFFgamma11_a) + DER(DIFFgamma33_a) - 2.0*DIFFgamma13_a[idx]*DER(DIFFgamma13_a) + DER(DIFFgamma11_a)*DIFFgamma33_a[idx] + DIFFgamma11_a[idx]*DER(DIFFgamma33_a));
           pp.dgi[a][aIDX(3,3)] = -4.0*DER(DIFFphi_a)*pp.gi[aIDX(3,3)]
-            + std::exp(-4.0*DIFFphi_a[idx])*(DER(DIFFgamma11_a) + DER(DIFFgamma22_a) - 2.0*DER(DIFFgamma12_a) + DER(DIFFgamma11_a)*DIFFgamma22_a[idx] + DIFFgamma11_a[idx]*DER(DIFFgamma22_a));
+            + std::exp(-4.0*DIFFphi_a[idx])*(DER(DIFFgamma11_a) + DER(DIFFgamma22_a) - 2.0*DIFFgamma12_a[idx]*DER(DIFFgamma12_a) + DER(DIFFgamma11_a)*DIFFgamma22_a[idx] + DIFFgamma11_a[idx]*DER(DIFFgamma22_a));
           pp.dgi[a][aIDX(1,2)] = -4.0*DER(DIFFphi_a)*pp.gi[aIDX(1,2)]
             + std::exp(-4.0*DIFFphi_a[idx])*(DER(DIFFgamma13_a)*DIFFgamma23_a[idx] + DIFFgamma13_a[idx]*DER(DIFFgamma23_a) - DER(DIFFgamma12_a)*(1.0 + DIFFgamma33_a[idx]) - DIFFgamma12_a[idx]*DER(DIFFgamma33_a));
           pp.dgi[a][aIDX(1,3)] = -4.0*DER(DIFFphi_a)*pp.gi[aIDX(1,3)]
@@ -420,7 +420,7 @@ void Particles::RKStep(ParticleRegister<real_t> * pr, real_t h, real_t RK_sum_co
 
   for(int i=1; i<=3; i++)
   {
-    p_c.X[iIDX(i)] = p_p.X[iIDX(i)] + h*(pp_a.gi[aIDX(i,1)]*p_a.U[iIDX(1)] + pp_a.gi[aIDX(i,2)]*p_a.U[iIDX(2)] + pp_a.gi[aIDX(i,3)]*p_a.U[iIDX(3)] - pp_a.beta[iIDX(i)]);
+    p_c.X[iIDX(i)] = p_p.X[iIDX(i)] + h*( (pp_a.gi[aIDX(i,1)]*p_a.U[iIDX(1)] + pp_a.gi[aIDX(i,2)]*p_a.U[iIDX(2)] + pp_a.gi[aIDX(i,3)]*p_a.U[iIDX(3)]) / U0 - pp_a.beta[iIDX(i)]);
     p_c.U[iIDX(i)] = p_p.U[iIDX(i)] + h*(
       -1.0*W*pp_a.dalpha[iIDX(i)] + p_a.U[iIDX(1)]*pp_a.dbeta[iIDX(i)][iIDX(1)] + p_a.U[iIDX(2)]*pp_a.dbeta[iIDX(i)][iIDX(2)] + p_a.U[iIDX(3)]*pp_a.dbeta[iIDX(i)][iIDX(3)]
       -1.0/2.0/U0*(
@@ -509,15 +509,6 @@ void Particles::stepTerm()
       p_p.X[i] = p_f.X[i]/3.0 - 2.0/3.0*p_p.X[i];
       p_p.U[i] = p_f.U[i]/3.0 - 2.0/3.0*p_p.U[i];
     }
-    // std::cout << p_p.X[0] << ", " << p_p.X[1] << ", " << p_p.X[2] << ", ";
-    // std::cout << p_p.U[0] << ", " << p_p.U[1] << ", " << p_p.U[2] << ", ";
-    // idx_t x_idx = getIndexBelow(p_p.X[0]);
-    // idx_t y_idx = getIndexBelow(p_p.X[1]);
-    // idx_t z_idx = getIndexBelow(p_p.X[2]);
-    // real_t x_d[3] = {0};
-    // setX_d(p_p.X, x_d);
-    // std::cout << x_idx  << ", " << y_idx  << ", " << z_idx  << ", ";
-    // std::cout << x_d[0] << ", " << x_d[1] << ", " << x_d[2] << "\n";
   }
   _timer["Particles::RKCalcs"].stop();
 }
@@ -610,7 +601,7 @@ void Particles::addParticlesToBSSNSrc(BSSN * bssnSim)
         for(idx_t y=y_idx-w_idx; y<=y_idx+w_idx+1; ++y)
           for(idx_t z=z_idx-w_idx; z<=z_idx+w_idx+1; ++z)
       {
-        idx_t idx = INDEX(x,y,z);
+        idx_t idx = NP_INDEX( idx_t_mod(x,NX), idx_t_mod(y,NY), idx_t_mod(z,NZ) );
 
         real_t r = std::sqrt( pw2(x - p_a.X[0]/dx) + pw2(y - p_a.X[1]/dx) + pw2(z - p_a.X[2]/dx) );
         real_t weight = getKernelWeight(r, r_s) / total_weight;
@@ -654,6 +645,7 @@ void Particles::addParticlesToBSSNSrc(BSSN * bssnSim)
     STF23_a[idx] -= (1.0/3.0)*exp(4.0*bd.phi)*bd.gamma23*trS;
     STF33_a[idx] -= (1.0/3.0)*exp(4.0*bd.phi)*bd.gamma33*trS;
   }
+
 
   _timer["Particles::addToBSSNSrc"].stop();
 }

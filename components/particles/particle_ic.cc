@@ -16,21 +16,21 @@ namespace cosmo
 void particle_ic_set_random(BSSN * bssnSim, Particles * particles, Fourier * fourier,
   IOData * iodata)
 {
-  // TODO: Move to separate file?
   idx_t i, j, k;
-  ICsData icd = cosmo_get_ICsData();
-  real_t rho_FRW = icd.rho_K_matter;
   arr_t & DIFFr = *bssnSim->fields["DIFFr_a"];
   arr_t & DIFFphi_p = *bssnSim->fields["DIFFphi_p"];
   arr_t & DIFFphi_a = *bssnSim->fields["DIFFphi_a"];
   arr_t & DIFFphi_f = *bssnSim->fields["DIFFphi_f"];
-  iodata->log( "Generating ICs with peak at k = " + stringify(icd.peak_k) );
-  iodata->log( "Generating ICs with peak amp. = " + stringify(icd.peak_amplitude) );
+
+  // Background cosmology, a_FRW = 1
+  real_t rho_FRW = 3.0/PI/8.0;
+  // real_t K_FRW = -3.0;
 
   // the conformal factor in front of metric is the solution to
   // d^2 exp(\phi) = -2*pi exp(5\phi) * \rho
   // generate gaussian random field 1 + xi = exp(phi) (use phi_p as a proxy):
-  set_gaussian_random_field(DIFFphi_p, fourier, &icd);
+  real_t p0 = 7.0, P = 1.0, p_cut = 17.0;
+  set_gaussian_random_Phi_N(DIFFphi_p, fourier, P, p0, p_cut);
 
   // rho = -lap(phi)/xi^5/2pi
 # pragma omp parallel for default(shared) private(i,j,k)
@@ -138,7 +138,7 @@ void particle_ic_set_random(BSSN * bssnSim, Particles * particles, Fourier * fou
 
   // Make sure min density value > 0
   // Set conserved density variable field
-  real_t min = icd.rho_K_matter;
+  real_t min = rho_FRW;
   real_t max = min;
   LOOP3(i,j,k)
   {
@@ -195,7 +195,7 @@ void particle_ic_set_sinusoid(BSSN * bssnSim, Particles * particles, IOData * io
   // matter sources
   arr_t & DIFFr_a = *bssnSim->fields["DIFFr_a"];
 
-  real_t A = std::stod(_config("peak_amplitude", "0.0001"));
+  real_t A = H_LEN_FRAC*H_LEN_FRAC*std::stod(_config("peak_amplitude_frac", "0.0001"));
   iodata->log( "Generating ICs with peak amp. = " + stringify(A) );
 
   real_t rho_FRW = 3.0/PI/8.0;
@@ -205,7 +205,7 @@ void particle_ic_set_sinusoid(BSSN * bssnSim, Particles * particles, IOData * io
   // d^2 exp(\phi) = -2*pi exp(5\phi) * \delta_rho
   // generate random mode in \phi
   // delta_rho = -(lap e^\phi)/e^(4\phi)/2pi
-  real_t phix = 2.77;
+  real_t phix = std::stod(_config("sinusoid_phix", "2.77"));
   real_t twopi_L = 2.0*PI/H_LEN_FRAC;
   real_t pw2_twopi_L = twopi_L*twopi_L;
   // grid values
@@ -239,10 +239,29 @@ void particle_ic_set_sinusoid(BSSN * bssnSim, Particles * particles, IOData * io
     real_t x = ((real_t) i / (real_t) NX / (real_t) particles_per_dx);
 
     real_t phi = A*sin(2.0*PI*x + phix);
+
+    // \rho at a few/adjacent points
     real_t rho = rho_FRW + -exp(-4.0*phi)/PI/2.0*(
         pw2(twopi_L*A*cos(2.0*PI*x + phix))
         - pw2_twopi_L*A*sin(2.0*PI*x + phix)
       );
+    real_t xp = x + dx/particles_per_dx;
+    real_t xm = x - dx/particles_per_dx;
+    real_t rhop = rho_FRW + -exp(-4.0*phi)/PI/2.0*(
+        pw2(twopi_L*A*cos(2.0*PI*xp + phix))
+        - pw2_twopi_L*A*sin(2.0*PI*xp + phix)
+      );
+    real_t rhom = rho_FRW + -exp(-4.0*phi)/PI/2.0*(
+        pw2(twopi_L*A*cos(2.0*PI*xm + phix))
+        - pw2_twopi_L*A*sin(2.0*PI*xm + phix)
+      );
+    // deconvolution to get mass
+    // mass is distributed across nearby points;
+    // try to counteract this
+    // TODO: tune this?
+    real_t stren = std::stod(_config("deconvolution_strength", "1.0"));
+    rho = -stren*rhop + (1.0+2.0*stren)*rho - stren*rhom;
+
 
     real_t rootdetg = std::exp(6.0*phi);
     Particle<real_t> particle = {0};
@@ -262,7 +281,7 @@ void particle_ic_set_sinusoid(BSSN * bssnSim, Particles * particles, IOData * io
   {
     idx_t idx = NP_INDEX(i,j,k);
 
-    real_t rho = rho_FRW + DIFFr_a[idx];
+    real_t rho =  DIFFr_a[idx];
 
     if(rho < min)
     {
@@ -289,7 +308,7 @@ void particle_ic_set_sinusoid(BSSN * bssnSim, Particles * particles, IOData * io
     throw -1;
   }
 }
-
+ 
 /**
  * @brief Initialize particles per vector mode ID
  */
@@ -307,13 +326,23 @@ void particle_ic_set_vectorpert(BSSN * bssnSim, Particles * particles,
   // beta1 (x-shift) to counter fluid velocity
   arr_t & beta1_p = *bssnSim->fields["beta1_p"];
 
-  real_t B = std::stod(_config("peak_amplitude", "0.0001"));
-  iodata->log( "Generating ICs with peak amp. = " + stringify(B) );
+  real_t b = std::stod(_config("peak_amplitude", "0.01"));
+  iodata->log( "Generating ICs with b = " + stringify(b) );
+  real_t use_initial_shift = std::stoi(_config("use_initial_shift", "1"));
+  if(use_initial_shift)
+  {
+    iodata->log( "Using initial shift." );
+  }
+  else
+  {
+    iodata->log( "Not using initial shift." );
+  }
 
   real_t rho_FRW = 3.0/PI/8.0;
   real_t K_FRW = -sqrt(24.0*PI*rho_FRW);
   real_t L = H_LEN_FRAC;
-  real_t phase = 0.5;
+  real_t B = b*L*L;
+  real_t phase = 2.0*PI*0.5*dx/L;
 
   // grid values
   for(i=0; i<NX; ++i)
@@ -325,19 +354,19 @@ void particle_ic_set_vectorpert(BSSN * bssnSim, Particles * particles,
 
     DIFFK_p[idx] = K_FRW;
 
-    real_t Axy = B*std::sin(2.0*PI*y/L + phase);
+    real_t Axy = B*PI/L*std::cos(2.0*PI*y/L + phase);
     A12_p[idx] = Axy;
 
-    // much more unstable when using shift
-    real_t Sx = B/L*std::cos(2.0*PI*y/L + phase)/4.0; 
-    real_t rho = ( K_FRW*K_FRW/12.0 - 2.0*Axy*Axy/8.0 ) / 2.0 / PI;
-    beta1_p[idx] = Sx/rho/std::sqrt(1.0 - pw2(Sx/rho));
+    // more stable when using shift?
+    if(use_initial_shift)
+    {
+      beta1_p[idx] = B*std::sin(2.0*PI*y/L + phase);
+    }
   }
 
   // particle values
   idx_t particles_per_dy = std::stoi(_config("particles_per_dy", "1"));
   iodata->log("Particles per dx: " + stringify(particles_per_dy));
-
 
   for(i=0; i<NX; ++i)
     for(j=0; j<NY; ++j)
@@ -350,17 +379,16 @@ void particle_ic_set_vectorpert(BSSN * bssnSim, Particles * particles,
     real_t ys[3] = { j*dx + (p-1)*p_frac, j*dx + p*p_frac, j*dx + (p+1)*p_frac };
 
     // determined via Hamiltonian constraint:
-    real_t Axy, Sx; // "primitives"
+    real_t Axy, Sx;
     real_t rho, Ux, W, M; // variables to construct (some intermediate)
     real_t MWs[3], MUs[3]; // variables to deconvolve
     for(int s=0; s<3; ++s)
     {
-      Axy = B*std::sin(2.0*PI*ys[s]/L + phase);
-      Sx =  B/L*std::cos(2.0*PI*ys[s]/L + phase)/4.0;
+      Axy = B*PI/L*std::cos(2.0*PI*ys[s]/L + phase);
+      Sx = -B*PI/L/L/4.0*std::sin(2.0*PI*ys[s]/L + phase);
 
-      // fluid defn's
-      rho = ( K_FRW*K_FRW/12.0 - 2.0*Axy*Axy/8.0 ) / 2.0 / PI;
-      Ux = Sx/rho/std::sqrt(1.0 - pw2(Sx/rho));
+      rho = (K_FRW*K_FRW/12.0 - 2.0*Axy*Axy/8.0)/2.0/PI;
+      Ux = Sx/std::sqrt(rho*rho - Sx*Sx);
       W = std::sqrt(1.0 + Ux*Ux);
 
       // Particle mass

@@ -82,17 +82,6 @@ void Scalar::K4Finalize()
   psi3.K4Finalize();
 }
 
-void Scalar::RKEvolve(BSSNData *bd)
-{
-  idx_t i, j, k;
-  
-  #pragma omp parallel for default(shared) private(i, j, k)
-  LOOP3(i,j,k)
-  {
-    RKEvolvePt(bd);
-  }
-}
-
 void Scalar::RKEvolvePt(BSSNData *bd)
 {
   ScalarData sd = getScalarData(bd);

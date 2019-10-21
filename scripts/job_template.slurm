@@ -1,18 +1,21 @@
 #!/bin/bash
 #SBATCH --nodes=1
-#SBATCH --cpus-per-task=16
+#SBATCH --exclusive
 #SBATCH --time=72:00:00
-#SBATCH --mem=20g
+#SBATCH --mem=60g
 #SBATCH -A gds6
-#SBATCH --mail-type=STAGE_OUT
-#SBATCH -o job.out
 #SBATCH -J JOBNAME
+#SBATCH --exclude=compt178
 
-cp -r * $PFSDIR
-cd $PFSDIR
+JOBDIR="job-$SLURM_JOBID"
+JOBPATH="$JOBDIR"
+mkdir -p $JOBPATH
+cp -r cosmo $JOBPATH
+cp -r config.txt $JOBPATH
+cp -r nside_* $JOBPATH
+cd $JOBPATH
+
 rm job.out
-echo "Working in: " . $PFSDIR
+echo "Working in: " . $JOBPATH
 
 ./cosmo config.txt
-
-cp -r * $SLURM_SUBMIT_DIR

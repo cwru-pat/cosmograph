@@ -132,24 +132,37 @@ void bssn_ic_awa_diagonal_linear_wave(BSSN * bssn)
  * @brief Initialize with a "linear" wave propagating in the x-direction,
  * on top of a deSitter spacetime.
  * @details Solution should behave, at linear order, as a damped wave equation.
+ * Should be run as a vacuum sim (todo: clean up)
  */
 void bssn_ic_awa_linear_wave_desitter(BSSN * bssn)
 {
-  bssn_ic_awa_linear_wave(bssn);
+  bssn_ic_awa_linear_wave(bssn, 1.0e-8, 1);
 
-  idx_t i, j, k;
+  real_t rho = 1.0e-3;
+  auto & frw = bssn->frw;
 
-  arr_t & r_a = *bssn->fields["r_a"];
-  arr_t & K_p = *bssn->fields["K_p"];
+  real_t K = -sqrt(24.0*PI*rho);
 
-  LOOP3(i,j,k)
-  {
-    // FRW Background parameters
-    real_t rho = 1.0;
+  frw->set_phi(0.0);
+  frw->set_K(K);
+  frw->addFluid(rho, -1.0 /* w=-1 */);
 
-    r_a[NP_INDEX(i,j,k)] = rho; // constant density
-    K_p[NP_INDEX(i,j,k)] = -sqrt(24.0*PI*rho);
-  }
+  // idx_t i, j, k;
+
+  // arr_t & DIFFr_a = *bssn->fields["DIFFr_a"];
+  // arr_t & DIFFS_a = *bssn->fields["DIFFS_a"];
+  // arr_t & DIFFK_p = *bssn->fields["DIFFK_p"];
+
+  // LOOP3(i,j,k)
+  // {
+  //   // FRW Background parameters
+  //   real_t rho = 1.0e-3;
+
+  //   DIFFr_a[NP_INDEX(i,j,k)] = rho; // constant density
+  //                                   // not evolved for a vacuum sim
+  //   DIFFS_a[NP_INDEX(i,j,k)] = -3.0*rho;
+  //   DIFFK_p[NP_INDEX(i,j,k)] = -sqrt(24.0*PI*rho);
+  // }
 }
 
 /**
@@ -345,5 +358,55 @@ void bssn_ic_awa_shifted_gauge_wave(BSSN * bssn, int dir)
     }
   }
 }
+
+/**
+ * @brief      AwA Shifted Gauge Wave Test
+ */
+void bssn_ic_kasner(BSSN * bssn, real_t px)
+{
+  idx_t i, j, k;
+
+  // gamma_ij = diag( t^(2px), t^(2py), t^(2pz) )
+  // pick px,
+  // px + py + pz = 1
+  // px^2 + py^2 + pz^2 = 1
+  // => py = ( 1 - px - sqrt( 1 + 2*px - 3px^2 ) )/2
+  //    pz = ( 1 - px + sqrt( 1 + 2*px - 3px^2 ) )/2
+  // det(gamma) = t^2
+  // Let t_i = 1 => DIFFphi = 0, DIFFgamma_ij
+  // 
+  // K = - 1/(2 det(gamma)) d/dt det(gamma)
+  //   = -1/(2t) * 2
+  // => K = -1
+  // 
+  // K_ij = -1/2 * d_t gamma_ij
+  //      = -1/2 * diag( 2px*t^(2px-1), 2py*t^(2py-1), 2pz*t^(2pz-1) )
+  // 
+  // Check: K = gamma^ij K_ij = -1 
+  // 
+  // A_ij = K_ij - K gamma_ij / 3
+  //      = -1/2 * diag( 2px*t^(2px-1), 2py*t^(2py-1), 2pz*t^(2pz-1) ) - (-1/3)*diag( t^(2px), t^(2py), t^(2pz) )
+  //      = -diag( px, py, pz ) + diag( 1, 1, 1 )/3
+  //      = diag( 1/3-px, 1/3-py, 1/3-pz )
+
+  real_t py = ( 1.0 - px - std::sqrt( 1.0 + 2.0*px - 3.0*px*px ) )/2.0;
+  real_t pz = ( 1.0 - px + std::sqrt( 1.0 + 2.0*px - 3.0*px*px ) )/2.0;
+
+  arr_t & DIFFK_p = *bssn->fields["DIFFK_p"];  
+  arr_t & A11_p = *bssn->fields["A11_p"];
+  arr_t & A22_p = *bssn->fields["A22_p"];
+  arr_t & A33_p = *bssn->fields["A33_p"];
+
+  LOOP3(i,j,k)
+  {
+    idx_t idx = NP_INDEX(i,j,k);
+
+    DIFFK_p[idx] = -1.0;
+    A11_p[idx] = 1.0/3.0 - px;
+    A22_p[idx] = 1.0/3.0 - py;
+    A33_p[idx] = 1.0/3.0 - pz;
+  }
+}
+
 
 } // namespace cosmo

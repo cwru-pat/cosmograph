@@ -1,0 +1,32 @@
+steps = 10
+
+lapse = Harmonic
+
+simulation_type = dust
+mt19937_seed = 7
+
+Omega_L = 0.00175
+p0 = 7.0
+P = 0.13
+p_cut = 50.0
+
+rescale_metric = 1.0
+rescale_sheet = 0
+
+raysheet_flip_step = 5
+
+healpix_vecs_file = ../config/healpix_vecs/nside_16.vecs
+follow_null_geodesics = 1
+observers_per_dim = 1
+nside = 16
+ns1 = 3072
+ns2 = 3
+ns3 = 1
+ray_bundle_epsilon = 1.0e-6
+
+output_dir = dust_lensing
+dump_file = calculated
+
+IO_constraint_interval = 10
+IO_bssnstats_interval = 10
+IO_raysheet_interval = 1

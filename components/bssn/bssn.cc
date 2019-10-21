@@ -10,18 +10,21 @@ namespace cosmo
  * @details Allocate memory for fields, add fields to map,
  * create reference FRW integrator, and call BSSN::init.
  */
-BSSN::BSSN(ConfigParser * config)
+BSSN::BSSN(ConfigParser * config, Fourier * fourier_in)
 {
-  gaugeHandler = new BSSNGaugeHandler(config);
-
   KO_damping_coefficient = std::stod((*config)("KO_damping_coefficient", "0.0"));
   a_adj_amp = std::stod((*config)("a_adj_amp", "0.0"));
   k_damping_amp = std::stod((*config)("k_damping_amp", "0.0"));
   gd_eta = std::stod((*config)("gd_eta", "0.0"));
   normalize_metric = std::stoi((*config)("normalize_metric", "1"));
+  
+  rescale_metric = std::stod((*config)("rescale_metric", "1.0"));
+  if(rescale_metric == 1.0) { rescale_metric = 0.0; }
 
   // FRW reference integrator
   frw = new FRW<real_t> (0.0, 0.0);
+
+  fourier = fourier_in;
 
   // BSSN fields
   BSSN_APPLY_TO_FIELDS(RK4_ARRAY_ALLOC)
@@ -36,6 +39,8 @@ BSSN::BSSN(ConfigParser * config)
   BSSN_APPLY_TO_GEN1_EXTRAS(GEN1_ARRAY_ADDMAP)
 
   init();
+
+  gaugeHandler = new BSSNGaugeHandler(config, this);
 }
 
 BSSN::~BSSN()
@@ -43,8 +48,10 @@ BSSN::~BSSN()
   BSSN_APPLY_TO_FIELDS(RK4_ARRAY_DELETE)
   BSSN_APPLY_TO_SOURCES(GEN1_ARRAY_DELETE)
   BSSN_APPLY_TO_GEN1_EXTRAS(GEN1_ARRAY_DELETE)
-}
 
+  delete gaugeHandler;
+  delete frw;
+}
 
 
 /**
@@ -155,6 +162,56 @@ void BSSN::setKODampingCoefficient(real_t coefficient)
   KO_damping_coefficient = coefficient;
 }
 
+void BSSN::setExtraFieldData()
+{
+  K_min = min(DIFFK->_array_a);
+  K_avg = conformal_average(DIFFK->_array_a, DIFFphi->_array_a, frw->get_phi());
+  avg_vol = std::exp(6.0*conformal_average(DIFFphi->_array_a, DIFFphi->_array_a, frw->get_phi()));
+  rho_avg = conformal_average(DIFFr_a, DIFFphi->_array_a, frw->get_phi());
+
+#if USE_GENERALIZED_NEWTON
+// in GN gauge, compute 1/d^2 di dj Rij^tf.
+  idx_t i, j, k;
+ 
+# pragma omp parallel for default(shared) private(i, j, k)
+  LOOP3(i, j, k)
+  {
+    BSSNData bd = {0};
+    set_bd_values(i, j, k, &bd);
+    idx_t idx = bd.idx;
+
+    GNricciTF11_a[idx] = bd.ricciTF11;
+    GNricciTF12_a[idx] = bd.ricciTF12;
+    GNricciTF13_a[idx] = bd.ricciTF13;
+    GNricciTF22_a[idx] = bd.ricciTF22;
+    GNricciTF23_a[idx] = bd.ricciTF23;
+    GNricciTF33_a[idx] = bd.ricciTF33;
+  }
+
+# pragma omp parallel for default(shared) private(i, j, k)
+  LOOP3(i, j, k)
+  {
+    idx_t idx = NP_INDEX(i,j,k);
+    GNDiDjRijTFoD2_a[idx] = double_derivative(i, j, k, 1, 1, GNricciTF11_a)
+     + double_derivative(i, j, k, 2, 2, GNricciTF22_a)
+     + double_derivative(i, j, k, 3, 3, GNricciTF33_a)
+     + 2.0 * ( double_derivative(i, j, k, 1, 2, GNricciTF12_a)
+               + double_derivative(i, j, k, 1, 3, GNricciTF13_a)
+               + double_derivative(i, j, k, 2, 3, GNricciTF23_a) );
+  }
+
+  fourier->inverseLaplacian <idx_t, real_t> (GNDiDjRijTFoD2_a._array);
+
+# pragma omp parallel for default(shared) private(i, j, k)
+  LOOP3(i, j, k)
+  {
+    idx_t idx = NP_INDEX(i,j,k);
+    GND2Alpha_a[idx] = laplacian(i, j, k, DIFFalpha->_array_a);
+  }
+#endif
+
+}
+
 /**
  * @brief Call RK4Register class step initialization; normalize Aij and DIFFgammaIJ fields
  * @details See RK4Register::stepInit() method.
@@ -162,6 +219,7 @@ void BSSN::setKODampingCoefficient(real_t coefficient)
 void BSSN::stepInit()
 {
   BSSN_RK_INITIALIZE; // macro calls stepInit for all fields
+  setExtraFieldData(); // Set extra field information (eg. derived field data for gauge conditions)
 
   if(normalize_metric)
     set_DIFFgamma_Aij_norm(); // norms metric in _a register
@@ -174,12 +232,14 @@ void BSSN::RKEvolve()
 {
   idx_t i, j, k;
 
+  if(rescale_metric) scaleMetricPerturbations(rescale_metric);
 # pragma omp parallel for default(shared) private(i, j, k)
   LOOP3(i, j, k)
   {
     BSSNData bd = {0};
     RKEvolvePt(i, j, k, &bd);
   }
+  if(rescale_metric) scaleMetricPerturbations(1.0 / rescale_metric);
 }
 
 /**
@@ -208,7 +268,7 @@ void BSSN::K1Finalize()
 {
   frw->P1_step(dt);
   BSSN_FINALIZE_K(1);
-  K_avg = conformal_average(DIFFK->_array_a, DIFFphi->_array_a, frw->get_phi());
+  setExtraFieldData();
 }
 
 /**
@@ -219,7 +279,7 @@ void BSSN::K2Finalize()
 {
   frw->P2_step(dt);
   BSSN_FINALIZE_K(2);
-  K_avg = conformal_average(DIFFK->_array_a, DIFFphi->_array_a, frw->get_phi());
+  setExtraFieldData();
 }
 
 /**
@@ -230,7 +290,7 @@ void BSSN::K3Finalize()
 {
   frw->P3_step(dt);
   BSSN_FINALIZE_K(3);
-  K_avg = conformal_average(DIFFK->_array_a, DIFFphi->_array_a, frw->get_phi());
+  setExtraFieldData();
 }
 
 /**
@@ -241,7 +301,7 @@ void BSSN::K4Finalize()
 {
   frw->RK_total_step(dt);
   BSSN_FINALIZE_K(4);
-  K_avg = conformal_average(DIFFK->_array_f, DIFFphi->_array_f, frw->get_phi());
+  setExtraFieldData();
 }
 
 /**
@@ -313,6 +373,8 @@ void BSSN::set_bd_values(idx_t i, idx_t j, idx_t k, BSSNData *bd)
 
   // average K
   bd->K_avg = K_avg;
+  bd->avg_vol = avg_vol;
+  bd->rho_avg = rho_avg;
 
   // draw data from cache
   set_local_vals(bd);
@@ -330,7 +392,7 @@ void BSSN::set_bd_values(idx_t i, idx_t j, idx_t k, BSSNData *bd)
   bd->r        =   bd->DIFFr + bd->rho_FRW;
   bd->S        =   bd->DIFFS + bd->S_FRW;
   bd->alpha    =   bd->DIFFalpha + 1.0;
-  
+
   // pre-compute re-used quantities
   // gammas & derivs first
   calculate_Acont(bd);
@@ -353,9 +415,6 @@ void BSSN::set_bd_values(idx_t i, idx_t j, idx_t k, BSSNData *bd)
   calculateDDalphaTF(bd);
   // Ricci depends on DDphi
   calculateRicciTF(bd);
-
-  // enforce trace-free source
-  enforceTFSIJ(bd);
 
   // Hamiltonian constraint
   bd->H = hamiltonianConstraintCalc(bd);
@@ -610,7 +669,7 @@ void BSSN::calculateRicciTF(BSSNData *bd)
   bd->ricciTF22 = bd->ricci22 - (1.0/3.0)*exp(4.0*bd->phi)*bd->gamma22*bd->ricci;
   bd->ricciTF23 = bd->ricci23 - (1.0/3.0)*exp(4.0*bd->phi)*bd->gamma23*bd->ricci;
   bd->ricciTF33 = bd->ricci33 - (1.0/3.0)*exp(4.0*bd->phi)*bd->gamma33*bd->ricci;
-
+  
   return;
 }
 
@@ -706,6 +765,16 @@ real_t BSSN::ev_Gamma3(BSSNData *bd) { return BSSN_DT_GAMMAI(3) - KO_dissipation
 
 real_t BSSN::ev_DIFFK(BSSNData *bd)
 {
+
+#if EXCLUDE_SECOND_ORDER_SMALL
+  return (
+    - bd->DDaTR
+    + bd->alpha/3.0*bd->DIFFK*(bd->DIFFK + 2.0*bd->K_FRW)
+    + 4.0*PI*(bd->DIFFr + bd->DIFFS)
+    + 4.0*PI*bd->DIFFalpha*(bd->rho_FRW + bd->S_FRW)
+  );
+#endif
+
   return (
     - bd->DDaTR
     + bd->alpha*(
@@ -714,7 +783,11 @@ real_t BSSN::ev_DIFFK(BSSNData *bd)
     )
     + 4.0*PI*bd->alpha*(bd->DIFFr + bd->DIFFS)
     + 4.0*PI*bd->DIFFalpha*(bd->rho_FRW + bd->S_FRW)
-    + bd->beta1*bd->d1K + bd->beta2*bd->d2K + bd->beta3*bd->d3K
+#if USE_BSSN_SHIFT
+    + upwind_derivative(bd->i, bd->j, bd->k, 1, DIFFK->_array_a,  bd->beta1)
+    + upwind_derivative(bd->i, bd->j, bd->k, 2, DIFFK->_array_a,  bd->beta2)
+    + upwind_derivative(bd->i, bd->j, bd->k, 3, DIFFK->_array_a,  bd->beta3)
+#endif
     - 1.0*k_damping_amp*bd->H*exp(-5.0*bd->phi)
     + Z4c_K1_DAMPING_AMPLITUDE*(1.0 - Z4c_K2_DAMPING_AMPLITUDE)*bd->theta
     - KO_dissipation_Q(bd->i, bd->j, bd->k, DIFFK->_array_a, KO_damping_coefficient)
@@ -723,6 +796,13 @@ real_t BSSN::ev_DIFFK(BSSNData *bd)
 
 real_t BSSN::ev_DIFFphi(BSSNData *bd)
 {
+#if EXCLUDE_SECOND_ORDER_SMALL
+  return -1.0/6.0*(
+      bd->alpha*bd->DIFFK
+      + bd->DIFFalpha*bd->K_FRW
+    );
+#endif
+
   return (
     0.1*a_adj_amp*dt*bd->H
     -1.0/6.0*(
@@ -730,7 +810,11 @@ real_t BSSN::ev_DIFFphi(BSSNData *bd)
       + bd->DIFFalpha*bd->K_FRW
       - ( bd->d1beta1 + bd->d2beta2 + bd->d3beta3 )
     )
-    + bd->beta1*bd->d1phi + bd->beta2*bd->d2phi + bd->beta3*bd->d3phi
+#if USE_BSSN_SHIFT
+    + upwind_derivative(bd->i, bd->j, bd->k, 1, DIFFphi->_array_a,  bd->beta1)
+    + upwind_derivative(bd->i, bd->j, bd->k, 2, DIFFphi->_array_a,  bd->beta2)
+    + upwind_derivative(bd->i, bd->j, bd->k, 3, DIFFphi->_array_a,  bd->beta3)
+#endif
     - KO_dissipation_Q(bd->i, bd->j, bd->k, DIFFphi->_array_a, KO_damping_coefficient)
   );
 }
@@ -738,6 +822,11 @@ real_t BSSN::ev_DIFFphi(BSSNData *bd)
 real_t BSSN::ev_DIFFalpha(BSSNData *bd)
 {
   return gaugeHandler->ev_lapse(bd)
+#if USE_BSSN_SHIFT
+    + upwind_derivative(bd->i, bd->j, bd->k, 1, DIFFalpha->_array_a, bd->beta1)
+    + upwind_derivative(bd->i, bd->j, bd->k, 2, DIFFalpha->_array_a, bd->beta2)
+    + upwind_derivative(bd->i, bd->j, bd->k, 3, DIFFalpha->_array_a, bd->beta3)
+#endif
     - KO_dissipation_Q(bd->i, bd->j, bd->k, DIFFalpha->_array_a, KO_damping_coefficient);
 }
 
@@ -749,7 +838,13 @@ real_t BSSN::ev_theta(BSSNData *bd)
       bd->ricci + 2.0/3.0*pw2(bd->K + 2.0*bd->theta) - bd->AijAij - 16.0*PI*( bd->r )
     )
     - bd->alpha*Z4c_K1_DAMPING_AMPLITUDE*(2.0 + Z4c_K2_DAMPING_AMPLITUDE)*bd->theta
-    + bd->beta1*bd->d1theta + bd->beta2*bd->d2theta + bd->beta2*bd->d2theta
+    //    + bd->beta1*bd->d1theta + bd->beta2*bd->d2theta + bd->beta2*bd->d2theta
+#if USE_BSSN_SHIFT
+    + upwind_derivative(bd->i, bd->j, bd->k, 1, theta->_array_a, bd->beta1)
+    + upwind_derivative(bd->i, bd->j, bd->k, 2, theta->_array_a, bd->beta2)
+    + upwind_derivative(bd->i, bd->j, bd->k, 3, theta->_array_a, bd->beta3)
+#endif
+
   ) - KO_dissipation_Q(bd->i, bd->j, bd->k, theta->_array_a, KO_damping_coefficient);
 }
 #endif
@@ -805,7 +900,69 @@ Constraint violtion calculations
 ******************************************************************************
 */
 
-void BSSN::setConstraintCalcs(real_t H_values[7], real_t M_values[7],
+void BSSN::set1DConstraintOutput(
+  real_t H_values[], real_t M_values[], int axis, idx_t n1, idx_t n2)
+{
+  switch (axis)
+  {
+  case 1:
+    for(idx_t i=0; i<NX; i++)
+    {
+      BSSNData bd = {0};
+      set_bd_values(i, n1, n2, &bd);
+      H_values[i] = hamiltonianConstraintCalc(&bd);
+      M_values[i] = momentumConstraintCalc(&bd, axis);
+    }
+    break;
+  case 2:
+    for(idx_t j=0; j<NY; j++)
+    {
+      BSSNData bd = {0};
+      set_bd_values(j, n1, n2, &bd);
+      H_values[j] = hamiltonianConstraintCalc(&bd);
+      M_values[j] = momentumConstraintCalc(&bd, axis);
+
+    }
+    break;
+  case 3:
+    for(idx_t k=0; k<NZ; k++)
+    {
+      BSSNData bd = {0};
+      set_bd_values(k, n1, n2, &bd);
+      H_values[k] = hamiltonianConstraintCalc(&bd);
+      M_values[k] = momentumConstraintCalc(&bd, axis);
+    }
+    break;
+  }
+
+}
+
+/**
+ * @brief scale all metric fields by a multiplier:
+ * f -> f_avg + mlt*(f-f_avg)
+ */
+void BSSN::scaleMetricPerturbations(real_t multiplier)
+{
+  real_t avg;
+  idx_t i, j, k;
+
+#define BSSN_SCALE_FIELD(field) \
+  avg = average(field->_array_a); \
+  LOOP3(i,j,k) field->_array_a[NP_INDEX(i,j,k)] = avg + multiplier*(field->_array_a[NP_INDEX(i,j,k)] - avg); \
+  avg = average(field->_array_c); \
+  LOOP3(i,j,k) field->_array_c[NP_INDEX(i,j,k)] = avg + multiplier*(field->_array_c[NP_INDEX(i,j,k)] - avg);
+
+#define BSSN_SCALE_ARR(field) \
+  avg = average(field##_a); \
+  LOOP3(i,j,k) field##_a[NP_INDEX(i,j,k)] = avg + multiplier*(field##_a[NP_INDEX(i,j,k)] - avg);
+
+  BSSN_APPLY_TO_FIELDS(BSSN_SCALE_FIELD)
+  BSSN_APPLY_TO_SOURCES(BSSN_SCALE_ARR)
+  BSSN_APPLY_TO_GEN1_EXTRAS(BSSN_SCALE_ARR)
+}
+
+
+void BSSN::setConstraintCalcs(real_t H_values[8], real_t M_values[8],
   real_t G_values[7], real_t A_values[7], real_t S_values[7])
 {
   idx_t i, j, k;
@@ -814,10 +971,11 @@ void BSSN::setConstraintCalcs(real_t H_values[7], real_t M_values[7],
   BSSN_INITIALIZE_CONSTRAINT_STAT_VARS(G);
   BSSN_INITIALIZE_CONSTRAINT_STAT_VARS(A);
   BSSN_INITIALIZE_CONSTRAINT_STAT_VARS(S);
+  real_t H_L2 = 0, M_L2 = 0;
 
 # pragma omp parallel for default(shared) private(i, j, k) reduction(+:mean_H,\
 mean_H_scale,mean_H_scaled,mean_M,mean_M_scale,mean_M_scaled,mean_G,mean_G_scale,\
-mean_G_scaled,mean_A,mean_A_scale,mean_A_scaled,mean_S,mean_S_scale,mean_S_scaled)
+mean_G_scaled,mean_A,mean_A_scale,mean_A_scaled,mean_S,mean_S_scale,mean_S_scaled,H_L2,M_L2)
   LOOP3(i,j,k)
   {
     // populate BSSNData struct
@@ -828,10 +986,13 @@ mean_G_scaled,mean_A,mean_A_scale,mean_A_scaled,mean_S,mean_S_scale,mean_S_scale
     BSSN_COMPUTE_CONSTRAINT_STAT_VARS(H, hamiltonianConstraintCalc, hamiltonianConstraintScale);
     BSSN_COMPUTE_CONSTRAINT_MEAN_VARS(H);
 
+    H_L2 += H_val * H_val * dx * dx * dx;
     // momentum constraint calculations
     BSSN_COMPUTE_CONSTRAINT_STAT_VARS_VEC(M, momentumConstraintCalc, momentumConstraintScale);
     BSSN_COMPUTE_CONSTRAINT_MEAN_VARS(M);
 
+    M_L2 += M_val * M_val * dx * dx * dx;
+    
     // Christoffel constraint calculations
     BSSN_COMPUTE_CONSTRAINT_STAT_VARS_VEC(G, christoffelConstraintCalc, christoffelConstraintScale);
     BSSN_COMPUTE_CONSTRAINT_MEAN_VARS(G);
@@ -903,6 +1064,9 @@ stdev_A_scaled,stdev_S,stdev_S_scaled)
   BSSN_STORE_CONSTRAINT_STAT_VARS(A);
   BSSN_STORE_CONSTRAINT_STAT_VARS(S);
 
+  H_values[7] = sqrt(H_L2);
+  M_values[7] = sqrt(M_L2);
+  
   return;
 }
 

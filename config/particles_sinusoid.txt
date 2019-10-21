@@ -1,8 +1,11 @@
 steps = 4000
-dt_frac = 0.1
-particles_per_dx = 10
+dt_frac = 0.05
 
-lapse = OnePlusLog
+particles_per_dx = 3
+smoothing_radius = 1.5
+
+lapse = TestKDriverLapse
+k_driver_coeff = 0.0
 
 KO_damping_coefficient = 0.0
 k_damping_amp = 0
@@ -12,17 +15,45 @@ normalize_metric = 1
 simulation_type = particles
 ic_type = sinusoid
 peak_amplitude_frac = 0.001
+deconvolution_strength = 0.0
 
 output_dir = particle_sinusoid_test
 dump_file = calculated
 
 IO_constraint_interval = 10
 IO_bssnstats_interval = 10
-
 IO_1D_grid_interval = 40
+
+IO_particles = 200
+
 IO_1D_DIFFr_a = 1
+
 IO_1D_DIFFphi_a = 1
 IO_1D_DIFFK_a = 1
-IO_1D_DIFFgamma11_a = 1
 
-IO_particles = 40
+IO_1D_DIFFalpha_a = 1
+
+IO_1D_DIFFgamma11_a = 1
+IO_1D_DIFFgamma12_a = 1
+IO_1D_DIFFgamma13_a = 1
+IO_1D_DIFFgamma22_a = 1
+IO_1D_DIFFgamma23_a = 1
+IO_1D_DIFFgamma33_a = 1
+
+IO_1D_A11_a = 1
+IO_1D_A12_a = 1
+IO_1D_A13_a = 1
+IO_1D_A22_a = 1
+IO_1D_A23_a = 1
+IO_1D_A33_a = 1
+
+
+use_bardeen = 1
+IO_1D_Bardeen_Phi = 1
+IO_1D_Bardeen_Psi = 1
+IO_1D_Bardeen_A = 1
+IO_1D_Bardeen_dt_A = 1
+IO_1D_Bardeen_d2t_A = 1
+IO_1D_Bardeen_B = 1
+IO_1D_Bardeen_dt_B = 1
+IO_1D_Bardeen_d2t_B = 1

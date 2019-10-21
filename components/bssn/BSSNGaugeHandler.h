@@ -15,10 +15,15 @@
 namespace cosmo
 {
 
+class BSSN; // forward declaration of BSSN class
+
 class BSSNGaugeHandler
 {
 private:
   typedef real_t (BSSNGaugeHandler::*bssn_gauge_func_t)(BSSNData *bd); ///< internal function pointer type
+
+  // Reference to BSSN instance
+  BSSN * bssn;
 
   // Maps to available functions
   std::map<std::string, bssn_gauge_func_t> lapse_gauge_map;
@@ -36,10 +41,18 @@ private:
   // Harmonic gauge lapse
   real_t HarmonicLapse(BSSNData *bd);
 
+  // Conformal FLRW-like lapse (~comoving synchronous with non-constant timestep)
+  real_t ConformalFLRWLapse(BSSNData *bd);
+
   // 1+log gauge slicing
   real_t gd_c; ///< Tunable gauge parameter
+  real_t exp_sync_gauge_c;
   real_t OnePlusLogLapse(BSSNData *bd);
 
+  // Generalized Newtonian
+  real_t GN_eta;
+  real_t GeneralizedNewton(BSSNData *bd);
+  
   // Untested/experimental lapses
   real_t AnharmonicLapse(BSSNData *bd);
   real_t ConformalSyncLapse(BSSNData *bd);
@@ -69,10 +82,12 @@ private:
   real_t AwAShiftedWaveShift2(BSSNData *bd);
   real_t AwAShiftedWaveShift3(BSSNData *bd);
 
-  // RedShift
-  real_t RedShift1(BSSNData *bd);
-  real_t RedShift2(BSSNData *bd);
-  real_t RedShift3(BSSNData *bd);
+  real_t k_driver_coeff;
+  real_t TestKDriverLapse(BSSNData *bd);
+  real_t TestAijDriverLapse(BSSNData *bd);
+  real_t AijDriverShift1(BSSNData *bd);
+  real_t AijDriverShift2(BSSNData *bd);
+  real_t AijDriverShift3(BSSNData *bd);
 
   // Map of strings to functions
   void _initGaugeMaps()
@@ -80,12 +95,20 @@ private:
     // Lapse functions
     lapse_gauge_map["Static"] = &BSSNGaugeHandler::Static;
     lapse_gauge_map["Harmonic"] = &BSSNGaugeHandler::HarmonicLapse;
+    lapse_gauge_map["ConformalFLRW"] = &BSSNGaugeHandler::ConformalFLRWLapse;
+#if USE_GENERALIZED_NEWTON
+    // shouldn't be using this gauge w/o extra fields
+    lapse_gauge_map["GeneralizedNewton"] = &BSSNGaugeHandler::GeneralizedNewton;
+#endif
     lapse_gauge_map["Anharmonic"] = &BSSNGaugeHandler::AnharmonicLapse;
     lapse_gauge_map["OnePlusLog"] = &BSSNGaugeHandler::OnePlusLogLapse;
     lapse_gauge_map["DampedWave"] = &BSSNGaugeHandler::DampedWaveLapse;
     lapse_gauge_map["ConformalSync"] = &BSSNGaugeHandler::ConformalSyncLapse;
     lapse_gauge_map["AwAGaugeWave"] = &BSSNGaugeHandler::AwAGaugeWaveLapse;
     lapse_gauge_map["AwAShiftedWave"] = &BSSNGaugeHandler::AwAShiftedWaveLapse;
+
+    lapse_gauge_map["TestKDriverLapse"] = &BSSNGaugeHandler::TestKDriverLapse;
+    lapse_gauge_map["TestAijDriverLapse"] = &BSSNGaugeHandler::TestAijDriverLapse;
 
     // Shift functions
     // Static gauge
@@ -104,10 +127,11 @@ private:
     shift_gauge_map["AwAShiftedWave"]["1"] = &BSSNGaugeHandler::AwAShiftedWaveShift1;
     shift_gauge_map["AwAShiftedWave"]["2"] = &BSSNGaugeHandler::AwAShiftedWaveShift2;
     shift_gauge_map["AwAShiftedWave"]["3"] = &BSSNGaugeHandler::AwAShiftedWaveShift3;
-    // Trial vector mode shift velocity-counter
-    shift_gauge_map["RedShift"]["1"] = &BSSNGaugeHandler::RedShift1;
-    shift_gauge_map["RedShift"]["2"] = &BSSNGaugeHandler::RedShift2;
-    shift_gauge_map["RedShift"]["3"] = &BSSNGaugeHandler::RedShift3;
+
+
+    shift_gauge_map["AijDriverShift"]["1"] = &BSSNGaugeHandler::AijDriverShift1;
+    shift_gauge_map["AijDriverShift"]["2"] = &BSSNGaugeHandler::AijDriverShift2;
+    shift_gauge_map["AijDriverShift"]["3"] = &BSSNGaugeHandler::AijDriverShift3;
   }
 
   void _initDefaultParameters(ConfigParser *config)
@@ -116,9 +140,15 @@ private:
     dw_mu_l = std::stod((*config)("dw_mu_l", "0.0"));
     dw_mu_s = std::stod((*config)("dw_mu_s", "0.0"));
     dw_p = std::stod((*config)("dw_p", "0.0"));
-    gd_c = std::stod((*config)("gd_c", "0.0"));
-  }
+    gd_c = std::stod((*config)("gd_c", "1.0"));
 
+    exp_sync_gauge_c = std::stod((*config)("exp_sync_gauge_c", "1.0"));
+    
+    k_driver_coeff = std::stod((*config)("k_driver_coeff", "0.04"));
+
+    GN_eta = std::stod((*config)("GN_eta", "0.001"));
+  }
+  
 public:
 
   /**
@@ -136,12 +166,15 @@ public:
   /**
    * @brief Initialize with gauge determined by config file (default to a "static", non-evolving gauge)
    */
-  BSSNGaugeHandler(ConfigParser *config)
+  BSSNGaugeHandler(ConfigParser *config, BSSN *bssnSim)
   {
+    bssn = bssnSim;
+        
     _initGaugeMaps();
     _initDefaultParameters(config);
     setLapseFn((*config)("lapse", "Static"));
     setShiftFn((*config)("shift", "Static"));
+
   }
 
   /**
@@ -157,8 +190,10 @@ public:
 
     std::cout << "Using lapse: `" << name << "`.\n";
     lapse_fn = lapse_gauge_map[name];
-  }
 
+  }
+  
+  
   /**
    * @brief Set the shift function
    */
@@ -178,6 +213,7 @@ public:
       throw -1;
     }
 
+    
     if ( shift_gauge_map.find(name) == shift_gauge_map.end() )
     {
       std::cout << "Error: Shift gauge not found: `" << name << "`!\n";

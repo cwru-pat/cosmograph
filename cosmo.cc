@@ -4,10 +4,11 @@
 
 #include "sims/sim.h"
 #include "sims/dust.h"
-#include "sims/dust_lambda.h"
+#include "sims/static.h"
 #include "sims/particles.h"
 #include "sims/scalar.h"
 #include "sims/vacuum.h"
+#include "sims/sheets.h"
 
 using namespace std;
 using namespace cosmo;
@@ -37,11 +38,11 @@ int main(int argc, char **argv)
   // TODO: set other things (and check for performance hits)
   //       set these in config file?
   //       big performance hit setting N dynamically, should deal with BCs separately.
-  
   dx = stold(_config( "dx", stringify(H_LEN_FRAC/(1.0*COSMO_N)) ));
   dt = stold(_config( "dt_frac", "0.1" ))*dx;
 
-  // Set number of threads if specified
+  // Set number of threads - only if specified
+  // Otherwise, OMP_NUM_THREADS or openmp default should be used.
   int num_threads = stoi(_config("omp_num_threads", "0"));
   if(num_threads > 0)
     omp_set_num_threads(num_threads);
@@ -53,9 +54,9 @@ int main(int argc, char **argv)
   {
     cosmoSim = new DustSim();
   }
-  else if( simulation_type == "dust_lambda" )
+  else if( simulation_type == "static" )
   {
-    cosmoSim = new DustLambdaSim();
+    cosmoSim = new StaticSim();
   }
   else if( simulation_type == "particles" )
   {
@@ -69,9 +70,13 @@ int main(int argc, char **argv)
   {
     cosmoSim = new VacuumSim();
   }
+  else if( simulation_type == "sheets")
+  {
+    cosmoSim = new SheetSim();
+  }
   else
   {
-    std::cerr << "Invalid simulation type specified.";
+    std::cerr << "Invalid simulation type specified. ";
     throw 2;
   }
 
@@ -79,10 +84,13 @@ int main(int argc, char **argv)
   cosmoSim->init();
 
   // Generate initial conditions
+  _timer["ICs"].start();
   cosmoSim->setICs();
+  _timer["ICs"].stop();
 
   // Run simulation
   cosmoSim->run();
 
+  delete cosmoSim;
   return EXIT_SUCCESS;
 }
