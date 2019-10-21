@@ -1,11 +1,12 @@
 <map id="cosmo::ParticleSim" name="cosmo::ParticleSim">
-<area shape="rect" id="node2" href="$classcosmo_1_1CosmoSim.html" title="cosmo::CosmoSim" alt="" coords="889,1192,1023,1219"/>
-<area shape="rect" id="node3" href="$classcosmo_1_1BSSN.html" title="BSSN Class: evolves BSSN metric fields, computes derived quantities. " alt="" coords="676,683,783,709"/>
-<area shape="rect" id="node5" href="$classcosmo_1_1FRW.html" title="cosmo::FRW\&lt; real_t \&gt;" alt="" coords="358,796,514,823"/>
-<area shape="rect" id="node18" href="$classcosmo_1_1BSSNGaugeHandler.html" title="cosmo::BSSNGaugeHandler" alt="" coords="341,441,531,468"/>
-<area shape="rect" id="node25" href="$classcosmo_1_1IOData.html" title="cosmo::IOData" alt="" coords="381,1239,491,1265"/>
-<area shape="rect" id="node10" href="$classcosmo_1_1CosmoArray.html" title="cosmo::CosmoArray\&lt;\l idx_t, real_t \&gt;" alt="" coords="361,195,511,237"/>
-<area shape="rect" id="node14" href="$classcosmo_1_1RK4Register.html" title="RK4 Class for integration. " alt="" coords="364,281,508,322"/>
-<area shape="rect" id="node22" href="$classcosmo_1_1Fourier.html" title="cosmo::Fourier" alt="" coords="675,119,784,145"/>
-<area shape="rect" id="node27" href="$classcosmo_1_1Particles.html" title="Class for evolving non&#45;interacting matter particles. " alt="" coords="896,1299,1016,1325"/>
+<area shape="rect" id="node2" href="$classcosmo_1_1CosmoSim.html" title="cosmo::CosmoSim" alt="" coords="1268,1129,1403,1156"/>
+<area shape="rect" id="node4" href="$classcosmo_1_1BSSN.html" title="BSSN Class: evolves BSSN metric fields, computes derived quantities. " alt="" coords="666,869,773,896"/>
+<area shape="rect" id="node5" href="$classcosmo_1_1FRW.html" title="cosmo::FRW\&lt; real_t \&gt;" alt="" coords="336,660,492,687"/>
+<area shape="rect" id="node10" href="$classcosmo_1_1CosmoArray.html" title="cosmo::CosmoArray\&lt;\l idx_t, real_t \&gt;" alt="" coords="339,1053,489,1094"/>
+<area shape="rect" id="node13" href="$classcosmo_1_1Fourier.html" title="cosmo::Fourier" alt="" coords="359,1319,469,1345"/>
+<area shape="rect" id="node20" href="$classcosmo_1_1BSSNGaugeHandler.html" title="cosmo::BSSNGaugeHandler" alt="" coords="977,797,1167,824"/>
+<area shape="rect" id="node26" href="$classcosmo_1_1Bardeen.html" title="cosmo::Bardeen" alt="" coords="1013,1129,1131,1156"/>
+<area shape="rect" id="node24" href="$classcosmo_1_1IOData.html" title="cosmo::IOData" alt="" coords="359,109,469,136"/>
+<area shape="rect" id="node16" href="$classcosmo_1_1RK4Register.html" title="RK4 Class for integration. " alt="" coords="342,454,486,495"/>
+<area shape="rect" id="node27" href="$classcosmo_1_1Particles.html" title="Class for evolving non&#45;interacting matter particles. " alt="" coords="1275,1296,1395,1323"/>
 </map>

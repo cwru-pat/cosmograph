@@ -1,0 +1,12 @@
+<map id="components/bssn/bardeen.h" name="components/bssn/bardeen.h">
+<area shape="rect" id="node3" href="$io_8h_source.html" title="IO/io.h" alt="" coords="365,80,426,107"/>
+<area shape="rect" id="node13" href="$sim_8h_source.html" title="sims/sim.h" alt="" coords="756,162,843,189"/>
+<area shape="rect" id="node5" href="$sheets__ic_8h_source.html" title="components/phase_space\l_sheet/sheets_ic.h" alt="" coords="5,244,180,285"/>
+<area shape="rect" id="node10" href="$scalar__ic_8h.html" title="Functions to set initial conditions for the Scalar class. Functions should be made callable via a con..." alt="" coords="395,162,593,189"/>
+<area shape="rect" id="node15" href="$sims_2dust_8h_source.html" title="sims/dust.h" alt="" coords="578,251,669,278"/>
+<area shape="rect" id="node16" href="$sims_2static_8h_source.html" title="sims/static.h" alt="" coords="811,251,908,278"/>
+<area shape="rect" id="node17" href="$sims_2particles_8h_source.html" title="sims/particles.h" alt="" coords="1107,251,1222,278"/>
+<area shape="rect" id="node19" href="$sims_2scalar_8h_source.html" title="sims/scalar.h" alt="" coords="932,251,1032,278"/>
+<area shape="rect" id="node20" href="$vacuum_8h_source.html" title="sims/vacuum.h" alt="" coords="1247,251,1357,278"/>
+<area shape="rect" id="node22" href="$sims_2sheets_8h_source.html" title="sims/sheets.h" alt="" coords="450,251,554,278"/>
+</map>

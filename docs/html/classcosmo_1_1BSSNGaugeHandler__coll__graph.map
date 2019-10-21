@@ -1,2 +1,7 @@
 <map id="cosmo::BSSNGaugeHandler" name="cosmo::BSSNGaugeHandler">
+<area shape="rect" id="node5" href="$classcosmo_1_1BSSN.html" title="BSSN Class: evolves BSSN metric fields, computes derived quantities. " alt="" coords="649,733,756,760"/>
+<area shape="rect" id="node6" href="$classcosmo_1_1FRW.html" title="cosmo::FRW\&lt; real_t \&gt;" alt="" coords="341,516,497,543"/>
+<area shape="rect" id="node11" href="$classcosmo_1_1CosmoArray.html" title="cosmo::CosmoArray\&lt;\l idx_t, real_t \&gt;" alt="" coords="343,919,494,961"/>
+<area shape="rect" id="node14" href="$classcosmo_1_1Fourier.html" title="cosmo::Fourier" alt="" coords="364,1040,473,1067"/>
+<area shape="rect" id="node17" href="$classcosmo_1_1RK4Register.html" title="RK4 Class for integration. " alt="" coords="347,1190,491,1231"/>
 </map>

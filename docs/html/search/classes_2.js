@@ -1,7 +1,6 @@
 var searchData=
 [
-  ['configparser',['ConfigParser',['../classcosmo_1_1ConfigParser.html',1,'cosmo']]],
-  ['cosmoarray',['CosmoArray',['../classcosmo_1_1CosmoArray.html',1,'cosmo']]],
-  ['cosmoarray_3c_20idx_5ft_2c_20real_5ft_20_3e',['CosmoArray&lt; idx_t, real_t &gt;',['../classcosmo_1_1CosmoArray.html',1,'cosmo']]],
-  ['cosmosim',['CosmoSim',['../classcosmo_1_1CosmoSim.html',1,'cosmo']]]
+  ['dust',['Dust',['../classcosmo_1_1Dust.html',1,'cosmo']]],
+  ['dustdata',['DustData',['../structcosmo_1_1DustData.html',1,'cosmo']]],
+  ['dustsim',['DustSim',['../classcosmo_1_1DustSim.html',1,'cosmo']]]
 ];

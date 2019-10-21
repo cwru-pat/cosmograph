@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['normalizevelocity',['normalizeVelocity',['../classcosmo_1_1RayTrace.html#a2261ba9ca64e3169b7ceead59ab36d96',1,'cosmo::RayTrace']]]
+  ['powerdump',['powerDump',['../classcosmo_1_1Fourier.html#aeb7fe5fd339676fcbd80447dee766d35',1,'cosmo::Fourier']]]
 ];

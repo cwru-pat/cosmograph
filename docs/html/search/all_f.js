@@ -1,6 +1,12 @@
 var searchData=
 [
-  ['oneplusloglapse',['OnePlusLogLapse',['../classcosmo_1_1BSSNGaugeHandler.html#abfef68aab0bc59fcb3f19d0d1b334eda',1,'cosmo::BSSNGaugeHandler']]],
-  ['operator_28_29',['operator()',['../classcosmo_1_1ConfigParser.html#af325ba5ec3c303c53e6ec6ac8c12033d',1,'cosmo::ConfigParser']]],
-  ['operator_5b_5d',['operator[]',['../classcosmo_1_1ConfigParser.html#aa1c54c4305985953005fa32a536491e4',1,'cosmo::ConfigParser']]]
+  ['particle',['Particle',['../structcosmo_1_1Particle.html',1,'cosmo']]],
+  ['particle_5fic_2eh',['particle_ic.h',['../particle__ic_8h.html',1,'']]],
+  ['particlemetricprimitives',['ParticleMetricPrimitives',['../structcosmo_1_1ParticleMetricPrimitives.html',1,'cosmo']]],
+  ['particleregister',['ParticleRegister',['../structcosmo_1_1ParticleRegister.html',1,'cosmo']]],
+  ['particles',['Particles',['../classcosmo_1_1Particles.html',1,'cosmo']]],
+  ['particlesim',['ParticleSim',['../classcosmo_1_1ParticleSim.html',1,'cosmo']]],
+  ['phi',['phi',['../structcosmo_1_1BSSNData.html#a1cfe2c44278c9c0318b40e36c9ee3270',1,'cosmo::BSSNData']]],
+  ['phi_5ffrw',['phi_FRW',['../structcosmo_1_1BSSNData.html#af012cffec783000034a014a66389fd2e',1,'cosmo::BSSNData']]],
+  ['powerdump',['powerDump',['../classcosmo_1_1Fourier.html#aeb7fe5fd339676fcbd80447dee766d35',1,'cosmo::Fourier']]]
 ];

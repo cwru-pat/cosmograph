@@ -1,12 +1,13 @@
 <map id="cosmo::ScalarSim" name="cosmo::ScalarSim">
-<area shape="rect" id="node2" href="$classcosmo_1_1CosmoSim.html" title="cosmo::CosmoSim" alt="" coords="923,1425,1058,1452"/>
-<area shape="rect" id="node3" href="$classcosmo_1_1BSSN.html" title="BSSN Class: evolves BSSN metric fields, computes derived quantities. " alt="" coords="693,855,800,881"/>
-<area shape="rect" id="node5" href="$classcosmo_1_1FRW.html" title="cosmo::FRW\&lt; real_t \&gt;" alt="" coords="358,1216,514,1243"/>
-<area shape="rect" id="node18" href="$classcosmo_1_1BSSNGaugeHandler.html" title="cosmo::BSSNGaugeHandler" alt="" coords="341,892,531,919"/>
-<area shape="rect" id="node28" href="$classcosmo_1_1RK4Register.html" title="cosmo::RK4Register\l\&lt; idx_t, real_t \&gt;" alt="" coords="675,538,819,579"/>
-<area shape="rect" id="node25" href="$classcosmo_1_1IOData.html" title="cosmo::IOData" alt="" coords="381,1525,491,1552"/>
-<area shape="rect" id="node10" href="$classcosmo_1_1CosmoArray.html" title="cosmo::CosmoArray\&lt;\l idx_t, real_t \&gt;" alt="" coords="361,175,511,217"/>
-<area shape="rect" id="node14" href="$classcosmo_1_1RK4Register.html" title="RK4 Class for integration. " alt="" coords="364,447,508,489"/>
-<area shape="rect" id="node22" href="$classcosmo_1_1Fourier.html" title="cosmo::Fourier" alt="" coords="692,1589,801,1616"/>
-<area shape="rect" id="node27" href="$classcosmo_1_1Scalar.html" title="Class implementing functionality for a scalar field that relies on a BSSN instance. " alt="" coords="937,964,1044,991"/>
+<area shape="rect" id="node2" href="$classcosmo_1_1CosmoSim.html" title="cosmo::CosmoSim" alt="" coords="1321,1141,1456,1168"/>
+<area shape="rect" id="node4" href="$classcosmo_1_1BSSN.html" title="BSSN Class: evolves BSSN metric fields, computes derived quantities. " alt="" coords="666,847,773,873"/>
+<area shape="rect" id="node5" href="$classcosmo_1_1FRW.html" title="cosmo::FRW\&lt; real_t \&gt;" alt="" coords="336,448,492,475"/>
+<area shape="rect" id="node10" href="$classcosmo_1_1CosmoArray.html" title="cosmo::CosmoArray\&lt;\l idx_t, real_t \&gt;" alt="" coords="339,1343,489,1385"/>
+<area shape="rect" id="node13" href="$classcosmo_1_1Fourier.html" title="cosmo::Fourier" alt="" coords="359,1673,469,1700"/>
+<area shape="rect" id="node20" href="$classcosmo_1_1BSSNGaugeHandler.html" title="cosmo::BSSNGaugeHandler" alt="" coords="977,937,1167,964"/>
+<area shape="rect" id="node26" href="$classcosmo_1_1Bardeen.html" title="cosmo::Bardeen" alt="" coords="1013,1381,1131,1408"/>
+<area shape="rect" id="node28" href="$classcosmo_1_1RK4Register.html" title="cosmo::RK4Register\l\&lt; idx_t, real_t \&gt;" alt="" coords="647,1561,791,1602"/>
+<area shape="rect" id="node24" href="$classcosmo_1_1IOData.html" title="cosmo::IOData" alt="" coords="359,268,469,295"/>
+<area shape="rect" id="node16" href="$classcosmo_1_1RK4Register.html" title="RK4 Class for integration. " alt="" coords="342,755,486,797"/>
+<area shape="rect" id="node27" href="$classcosmo_1_1Scalar.html" title="Class implementing functionality for a scalar field that relies on a BSSN instance. " alt="" coords="1191,1581,1297,1608"/>
 </map>

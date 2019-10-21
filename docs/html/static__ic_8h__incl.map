@@ -1,19 +1,21 @@
 <map id="components/static/static_ic.h" name="components/static/static_ic.h">
-<area shape="rect" id="node2" href="$bssn_8h_source.html" title="../bssn/bssn.h" alt="" coords="1133,80,1237,107"/>
-<area shape="rect" id="node28" href="$IOData_8h_source.html" title="../../IO/IOData.h" alt="" coords="164,304,280,331"/>
-<area shape="rect" id="node30" href="$Fourier_8h_source.html" title="../../utils/Fourier.h" alt="" coords="1416,80,1541,107"/>
-<area shape="rect" id="node37" href="$static_8h_source.html" title="static.h" alt="" coords="1787,229,1852,256"/>
-<area shape="rect" id="node3" href="$cosmo__includes_8h_source.html" title="../../cosmo_includes.h" alt="" coords="602,304,752,331"/>
-<area shape="rect" id="node18" href="$cosmo__types_8h_source.html" title="../../cosmo_types.h" alt="" coords="1541,304,1675,331"/>
-<area shape="rect" id="node19" href="$Array_8h_source.html" title="utils/Array.h" alt="" coords="1670,453,1761,480"/>
-<area shape="rect" id="node22" href="$bssn__data_8h_source.html" title="bssn_data.h" alt="" coords="1107,229,1200,256"/>
-<area shape="rect" id="node24" href="$bssn__macros_8h_source.html" title="bssn_macros.h" alt="" coords="777,304,887,331"/>
-<area shape="rect" id="node25" href="$BSSNGaugeHandler_8h.html" title="Functions to determine gauge evolution for the BSSN class. Functions are determined via a config sett..." alt="" coords="994,155,1147,181"/>
-<area shape="rect" id="node26" href="$ConfigParser_8h_source.html" title="../../utils/ConfigParser.h" alt="" coords="911,304,1072,331"/>
-<area shape="rect" id="node27" href="$FRW_8h_source.html" title="../../utils/FRW.h" alt="" coords="1751,304,1867,331"/>
-<area shape="rect" id="node21" href="$RK4Register_8h_source.html" title="utils/RK4Register.h" alt="" coords="1801,379,1936,405"/>
-<area shape="rect" id="node23" href="$cosmo__macros_8h_source.html" title="../../cosmo_macros.h" alt="" coords="1369,304,1516,331"/>
-<area shape="rect" id="node33" href="$math_8h_source.html" title="math.h" alt="" coords="1447,155,1509,181"/>
-<area shape="rect" id="node34" href="$cosmo__globals_8h_source.html" title="../cosmo_globals.h" alt="" coords="1326,229,1457,256"/>
-<area shape="rect" id="node35" href="$Timer_8h_source.html" title="utils/Timer.h" alt="" coords="1199,304,1293,331"/>
+<area shape="rect" id="node2" href="$bssn_8h_source.html" title="../bssn/bssn.h" alt="" coords="723,155,829,181"/>
+<area shape="rect" id="node29" href="$Fourier_8h_source.html" title="../../utils/Fourier.h" alt="" coords="364,229,489,256"/>
+<area shape="rect" id="node36" href="$lambda_8h_source.html" title="../Lambda/lambda.h" alt="" coords="398,80,535,107"/>
+<area shape="rect" id="node37" href="$IOData_8h_source.html" title="../../IO/IOData.h" alt="" coords="1755,453,1872,480"/>
+<area shape="rect" id="node39" href="$components_2static_2static_8h_source.html" title="static.h" alt="" coords="195,379,261,405"/>
+<area shape="rect" id="node3" href="$cosmo__includes_8h_source.html" title="../../cosmo_includes.h" alt="" coords="1078,453,1229,480"/>
+<area shape="rect" id="node18" href="$cosmo__types_8h_source.html" title="../../cosmo_types.h" alt="" coords="39,453,174,480"/>
+<area shape="rect" id="node19" href="$Array_8h_source.html" title="utils/Array.h" alt="" coords="190,603,282,629"/>
+<area shape="rect" id="node23" href="$bssn__data_8h_source.html" title="bssn_data.h" alt="" coords="645,379,739,405"/>
+<area shape="rect" id="node25" href="$bssn__macros_8h_source.html" title="bssn_macros.h" alt="" coords="1434,453,1545,480"/>
+<area shape="rect" id="node26" href="$BSSNGaugeHandler_8h.html" title="Functions to determine gauge evolution for the BSSN class. Functions are determined via a config sett..." alt="" coords="865,304,1018,331"/>
+<area shape="rect" id="node27" href="$ConfigParser_8h_source.html" title="../../utils/ConfigParser.h" alt="" coords="837,453,998,480"/>
+<area shape="rect" id="node28" href="$FRW_8h_source.html" title="../../utils/FRW.h" alt="" coords="645,453,761,480"/>
+<area shape="rect" id="node22" href="$RK4Register_8h_source.html" title="utils/RK4Register.h" alt="" coords="53,528,189,555"/>
+<area shape="rect" id="node21" href="$TriCubicInterpolator_8h_source.html" title="TriCubicInterpolator.h" alt="" coords="172,677,319,704"/>
+<area shape="rect" id="node24" href="$cosmo__macros_8h_source.html" title="../../cosmo_macros.h" alt="" coords="249,453,396,480"/>
+<area shape="rect" id="node32" href="$math_8h_source.html" title="math.h" alt="" coords="361,304,423,331"/>
+<area shape="rect" id="node33" href="$cosmo__globals_8h_source.html" title="../cosmo_globals.h" alt="" coords="387,379,519,405"/>
+<area shape="rect" id="node34" href="$Timer_8h_source.html" title="utils/Timer.h" alt="" coords="471,453,566,480"/>
 </map>

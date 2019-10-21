@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['eqns',['eqns',['../classcosmo_1_1FASMultigrid.html#aefc0535295dfed7510b5799d98b0bbad',1,'cosmo::FASMultigrid']]],
-  ['expression',['expression',['../structcosmo_1_1BSSNData.html#ada31383be8d9e048500156839d4c9889',1,'cosmo::BSSNData']]]
+  ['fields',['fields',['../classcosmo_1_1BSSN.html#ade3dcbff71c55ded1a9deddf99ab30ce',1,'cosmo::BSSN']]],
+  ['frw',['frw',['../classcosmo_1_1BSSN.html#aa2079ee2c118f8867cb20415698b50e7',1,'cosmo::BSSN']]]
 ];

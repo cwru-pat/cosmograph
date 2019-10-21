@@ -1,6 +1,7 @@
 <map id="cosmo::BSSN" name="cosmo::BSSN">
-<area shape="rect" id="node3" href="$classcosmo_1_1FRW.html" title="cosmo::FRW\&lt; real_t \&gt;" alt="" coords="342,157,498,184"/>
-<area shape="rect" id="node16" href="$classcosmo_1_1BSSNGaugeHandler.html" title="cosmo::BSSNGaugeHandler" alt="" coords="325,545,515,572"/>
-<area shape="rect" id="node8" href="$classcosmo_1_1CosmoArray.html" title="cosmo::CosmoArray\&lt;\l idx_t, real_t \&gt;" alt="" coords="345,781,495,822"/>
-<area shape="rect" id="node12" href="$classcosmo_1_1RK4Register.html" title="RK4 Class for integration. " alt="" coords="348,969,492,1010"/>
+<area shape="rect" id="node18" href="$classcosmo_1_1BSSNGaugeHandler.html" title="cosmo::BSSNGaugeHandler" alt="" coords="905,896,1095,923"/>
+<area shape="rect" id="node3" href="$classcosmo_1_1FRW.html" title="cosmo::FRW\&lt; real_t \&gt;" alt="" coords="284,391,440,417"/>
+<area shape="rect" id="node8" href="$classcosmo_1_1CosmoArray.html" title="cosmo::CosmoArray\&lt;\l idx_t, real_t \&gt;" alt="" coords="287,555,437,597"/>
+<area shape="rect" id="node11" href="$classcosmo_1_1Fourier.html" title="cosmo::Fourier" alt="" coords="307,968,417,995"/>
+<area shape="rect" id="node14" href="$classcosmo_1_1RK4Register.html" title="RK4 Class for integration. " alt="" coords="290,146,434,187"/>
 </map>

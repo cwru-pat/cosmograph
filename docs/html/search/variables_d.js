@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['normalize_5fmetric',['normalize_metric',['../classcosmo_1_1BSSN.html#a33214ac24086942219a1b799c4b07b19',1,'cosmo::BSSN']]],
-  ['nz_5fh',['nz_h',['../classcosmo_1_1FASMultigrid.html#a5038a35c7424f51fd240130141b1834c',1,'cosmo::FASMultigrid']]]
+  ['phi',['phi',['../structcosmo_1_1BSSNData.html#a1cfe2c44278c9c0318b40e36c9ee3270',1,'cosmo::BSSNData']]],
+  ['phi_5ffrw',['phi_FRW',['../structcosmo_1_1BSSNData.html#af012cffec783000034a014a66389fd2e',1,'cosmo::BSSNData']]]
 ];

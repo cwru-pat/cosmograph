@@ -46,10 +46,9 @@
     <div class="jumbotron">
       <div class="container">
         <h1>CosmoGRaPH</h1>
-        <p>CosmoGRaPH is a c++ code intended to explore the applicability of numerical relativity to
-          problems in a cosmological setting. The goal of cosmograph is to test various numerical methods
-          for solving the Einstein field equations.</p>
-        <p><a href="https://github.com/cwru-pat/cosmograph" class="btn btn-default btn-lg active" role="button">View Code &raquo;</a></p>
+        <p>CosmoGRaPH is a c++ code used to explore cosmological problems in a fully general relativistic
+          setting. The code implements various novel methods for numerically solving the Einstein field
+          equations, including an N-body solver, full AMR capabilities via SAMRAI, and raytracing.</p>
       </div>
     </div>
 
@@ -57,9 +56,16 @@
       <!-- Example row of columns -->
       <div class="row">
         <div class="col-md-4">
-          <h2>Source Code</h2>
-          <p>You may access the source code on github.
-            Please see the README file for details regarding obtaining the code.
+          <h2>Source Code - AMR</h2>
+          <p>You may access the source code for the full AMR version on github below.
+            Please see the README file for details regarding the code.
+            Note that no support is currently offered for the code,
+            and it is still under development.</p>
+          <p><a class="btn btn-default" href="https://github.com/cwru-pat/cosmograph" role="button">Go &raquo;</a></p>
+
+          <h2>Source Code - Unigrid</h2>
+          <p>You may also access the source code for the original, unigrid code on github.
+            Please see the README file for details regarding the code.
             Note that no support is currently offered for the code, and it
             is still under development.</p>
           <p><a class="btn btn-default" href="https://github.com/cwru-pat/cosmograph" role="button">Go &raquo;</a></p>
@@ -67,8 +73,8 @@
         <div class="col-md-4">
           <h2>Documentation</h2>
           <p>CosmoGRaPH documentation is limited, but available for some
-            of the code. You may build documentation using doxygen, or view
-            a (possibly outdated) documentation build by clicking below.
+            of the unigrid version of the code. You may build documentation 
+            using doxygen, or view a (possibly outdated) documentation build by clicking below.
             </p>
           <p><a class="btn btn-default" href="html" role="button">View &raquo;</a></p>
        </div>
@@ -76,6 +82,10 @@
           <h2>Publications</h2>
           <p>Below is a list of papers that have used this code.</p>
           <ul>
+            <li>Mar., 2019 - <a href='https://inspirehep.net/record/1481369'>Cosmic expansion from spinning black holes</a></li>
+            <li>Oct., 2018 - <a href='https://inspirehep.net/record/1481369'>Limited accuracy of linearized gravity</a></li>
+            <li>Jul., 2017 - <a href='https://inspirehep.net/record/1481369'>General Relativistic Corrections to the Weak Lensing Convergence Power Spectrum</a></li>
+            <li>Apr., 2017 - <a href='https://inspirehep.net/record/1481369'>A cosmologically motivated reference formulation of numerical relativity</a></li>
             <li>Aug., 2016 - <a href='https://inspirehep.net/record/1481369'>Observable Deviations from Homogeneity in an Inhomogeneous Universe</a></li>
             <li>Nov., 2015 - <a href='https://inspirehep.net/record/1402745'>Integration of inhomogeneous cosmological spacetimes in the BSSN formalism</a></li>
             <li>Nov., 2015 - <a href='https://inspirehep.net/record/1402744'>Departures from the Friedmann-Lemaitre-Robertston-Walker Cosmological Model in an Inhomogeneous Universe: A Numerical Examination</a></li>

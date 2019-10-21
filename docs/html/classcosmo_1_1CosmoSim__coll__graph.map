@@ -1,9 +1,10 @@
 <map id="cosmo::CosmoSim" name="cosmo::CosmoSim">
-<area shape="rect" id="node2" href="$classcosmo_1_1BSSN.html" title="BSSN Class: evolves BSSN metric fields, computes derived quantities. " alt="" coords="676,621,783,648"/>
-<area shape="rect" id="node4" href="$classcosmo_1_1FRW.html" title="cosmo::FRW\&lt; real_t \&gt;" alt="" coords="358,621,514,648"/>
-<area shape="rect" id="node17" href="$classcosmo_1_1BSSNGaugeHandler.html" title="cosmo::BSSNGaugeHandler" alt="" coords="341,1136,531,1163"/>
-<area shape="rect" id="node24" href="$classcosmo_1_1IOData.html" title="cosmo::IOData" alt="" coords="381,135,491,161"/>
-<area shape="rect" id="node9" href="$classcosmo_1_1CosmoArray.html" title="cosmo::CosmoArray\&lt;\l idx_t, real_t \&gt;" alt="" coords="361,485,511,526"/>
-<area shape="rect" id="node13" href="$classcosmo_1_1RK4Register.html" title="RK4 Class for integration. " alt="" coords="364,1070,508,1111"/>
-<area shape="rect" id="node21" href="$classcosmo_1_1Fourier.html" title="cosmo::Fourier" alt="" coords="675,1253,784,1280"/>
+<area shape="rect" id="node3" href="$classcosmo_1_1BSSN.html" title="BSSN Class: evolves BSSN metric fields, computes derived quantities. " alt="" coords="666,927,773,953"/>
+<area shape="rect" id="node4" href="$classcosmo_1_1FRW.html" title="cosmo::FRW\&lt; real_t \&gt;" alt="" coords="336,397,492,424"/>
+<area shape="rect" id="node9" href="$classcosmo_1_1CosmoArray.html" title="cosmo::CosmoArray\&lt;\l idx_t, real_t \&gt;" alt="" coords="339,1219,489,1261"/>
+<area shape="rect" id="node12" href="$classcosmo_1_1Fourier.html" title="cosmo::Fourier" alt="" coords="359,1431,469,1457"/>
+<area shape="rect" id="node19" href="$classcosmo_1_1BSSNGaugeHandler.html" title="cosmo::BSSNGaugeHandler" alt="" coords="977,645,1167,672"/>
+<area shape="rect" id="node25" href="$classcosmo_1_1Bardeen.html" title="cosmo::Bardeen" alt="" coords="1013,1261,1131,1288"/>
+<area shape="rect" id="node23" href="$classcosmo_1_1IOData.html" title="cosmo::IOData" alt="" coords="359,83,469,109"/>
+<area shape="rect" id="node15" href="$classcosmo_1_1RK4Register.html" title="RK4 Class for integration. " alt="" coords="342,566,486,607"/>
 </map>

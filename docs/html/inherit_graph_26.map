@@ -1,3 +1,3 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="node1" href="$classcosmo_1_1Static.html" title="cosmo::Static" alt="" coords="6,5,109,32"/>
+<area shape="rect" id="node1" href="$classcosmo_1_1TimerManager.html" title="TimerManager class containing multiple timers; access individual timers via, eg, TM[&quot;my_timer&quot;].start() " alt="" coords="5,5,157,32"/>
 </map>

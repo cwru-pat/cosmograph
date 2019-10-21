@@ -1,11 +1,15 @@
 <map id="cosmo::DustSim" name="cosmo::DustSim">
-<area shape="rect" id="node2" href="$classcosmo_1_1CosmoSim.html" title="cosmo::CosmoSim" alt="" coords="889,597,1023,624"/>
-<area shape="rect" id="node3" href="$classcosmo_1_1BSSN.html" title="BSSN Class: evolves BSSN metric fields, computes derived quantities. " alt="" coords="676,913,783,940"/>
-<area shape="rect" id="node5" href="$classcosmo_1_1FRW.html" title="cosmo::FRW\&lt; real_t \&gt;" alt="" coords="358,508,514,535"/>
-<area shape="rect" id="node18" href="$classcosmo_1_1BSSNGaugeHandler.html" title="cosmo::BSSNGaugeHandler" alt="" coords="341,1396,531,1423"/>
-<area shape="rect" id="node25" href="$classcosmo_1_1IOData.html" title="cosmo::IOData" alt="" coords="381,409,491,436"/>
-<area shape="rect" id="node27" href="$classcosmo_1_1Static.html" title="cosmo::Static" alt="" coords="678,1332,781,1359"/>
-<area shape="rect" id="node10" href="$classcosmo_1_1CosmoArray.html" title="cosmo::CosmoArray\&lt;\l idx_t, real_t \&gt;" alt="" coords="361,1325,511,1366"/>
-<area shape="rect" id="node14" href="$classcosmo_1_1RK4Register.html" title="RK4 Class for integration. " alt="" coords="364,1103,508,1145"/>
-<area shape="rect" id="node22" href="$classcosmo_1_1Fourier.html" title="cosmo::Fourier" alt="" coords="675,57,784,84"/>
+<area shape="rect" id="node2" href="$classcosmo_1_1CosmoSim.html" title="cosmo::CosmoSim" alt="" coords="1321,920,1456,947"/>
+<area shape="rect" id="node4" href="$classcosmo_1_1BSSN.html" title="BSSN Class: evolves BSSN metric fields, computes derived quantities. " alt="" coords="682,616,789,643"/>
+<area shape="rect" id="node5" href="$classcosmo_1_1FRW.html" title="cosmo::FRW\&lt; real_t \&gt;" alt="" coords="336,517,492,544"/>
+<area shape="rect" id="node10" href="$classcosmo_1_1CosmoArray.html" title="cosmo::CosmoArray\&lt;\l idx_t, real_t \&gt;" alt="" coords="339,1597,489,1638"/>
+<area shape="rect" id="node13" href="$classcosmo_1_1Fourier.html" title="cosmo::Fourier" alt="" coords="359,1133,469,1160"/>
+<area shape="rect" id="node20" href="$classcosmo_1_1BSSNGaugeHandler.html" title="cosmo::BSSNGaugeHandler" alt="" coords="997,603,1187,629"/>
+<area shape="rect" id="node26" href="$classcosmo_1_1Bardeen.html" title="cosmo::Bardeen" alt="" coords="1033,1073,1151,1100"/>
+<area shape="rect" id="node27" href="$classcosmo_1_1Lambda.html" title="cosmo::Lambda" alt="" coords="516,1457,631,1484"/>
+<area shape="rect" id="node28" href="$classcosmo_1_1Sheet.html" title="cosmo::Sheet" alt="" coords="1041,1687,1143,1713"/>
+<area shape="rect" id="node31" href="$classcosmo_1_1RK4Register.html" title="cosmo::RK4Register\l\&lt; idx_t, real_t \&gt;" alt="" coords="663,2079,807,2121"/>
+<area shape="rect" id="node24" href="$classcosmo_1_1IOData.html" title="cosmo::IOData" alt="" coords="359,219,469,245"/>
+<area shape="rect" id="node32" href="$classcosmo_1_1Dust.html" title="Class implementing functionality for a dust fluid that relies on a BSSN instance. ..." alt="" coords="1043,2017,1141,2044"/>
+<area shape="rect" id="node16" href="$classcosmo_1_1RK4Register.html" title="RK4 Class for integration. " alt="" coords="342,451,486,493"/>
 </map>
