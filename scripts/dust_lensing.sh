@@ -72,9 +72,9 @@ if (( "$RES" < 4 )) ; then
 fi
 
 # simulation step information
-STEPS=$((1600*$RES/128 + 1))
-FLIP_STEP=$(((800 + $FLIP_DELAY)*$RES/128))
-IO3D=$((200*$RES/128))
+STEPS=$((16000*$RES/128 + 1))
+FLIP_STEP=$(((8000 + $FLIP_DELAY)*$RES/128))
+IO3D=$((2000*$RES/128))
 
 # Job directory
 JOBDIR="dust_lensing_R-${RES}_F-${FLIP_STEP}_kcut-${POWER_CUT}_Nside-${NSIDE}_S-${SEED}"
@@ -91,7 +91,7 @@ fi
 printf "  Res = $RES\n"
 printf "  Output will be in $JOBDIR\n"
 
-if ! (( 1600*$RES % 128 == 0 )) ; then
+if ! (( 16000*$RES % 128 == 0 )) ; then
   printf "${YELLOW}Warning: chosen resolution not directly comparable to 128^3${NC}\n" >&2;
 fi
 
@@ -107,10 +107,6 @@ printf "\n"
 # Load modules
  if "$USE_CLUSTER"; then
   printf "Loading Modules...\n"
-  module load gcc/4.9.3
-  module load git/2.4.8
-  module load depends
-  module load cmake/3.2.2
   module load gsl
 fi
 
@@ -164,11 +160,12 @@ if [ "$DRY_RUN" = false ]; then
   fi
 fi
 
+$USER=$(whoami)
 if "$USE_CLUSTER"; then
-  printf "squeue -u jbm120\n"
-  squeue -u jbm120
-  printf "squeue -u jbm120 --start\n"
-  squeue -u jbm120 --start
+  printf "squeue -u $USER\n"
+  squeue -u "$USER"
+  printf "squeue -u $USER --start\n"
+  squeue -u "$USER" --start
 fi
 
 printf "\n"

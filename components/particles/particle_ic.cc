@@ -17,19 +17,20 @@ void particle_ic_set_random(BSSN * bssnSim, Particles * particles, Fourier * fou
   IOData * iodata)
 {
   idx_t i, j, k;
-  ICsData icd = cosmo_get_ICsData();
-  real_t rho_FRW = icd.rho_K_matter;
   arr_t & DIFFr = *bssnSim->fields["DIFFr_a"];
   arr_t & DIFFphi_p = *bssnSim->fields["DIFFphi_p"];
   arr_t & DIFFphi_a = *bssnSim->fields["DIFFphi_a"];
   arr_t & DIFFphi_f = *bssnSim->fields["DIFFphi_f"];
-  iodata->log( "Generating ICs with peak at k = " + stringify(icd.peak_k) );
-  iodata->log( "Generating ICs with peak amp. = " + stringify(icd.peak_amplitude) );
+
+  // Background cosmology, a_FRW = 1
+  real_t rho_FRW = 3.0/PI/8.0;
+  // real_t K_FRW = -3.0;
 
   // the conformal factor in front of metric is the solution to
   // d^2 exp(\phi) = -2*pi exp(5\phi) * \rho
   // generate gaussian random field 1 + xi = exp(phi) (use phi_p as a proxy):
-  set_gaussian_random_field(DIFFphi_p, fourier, &icd);
+  real_t p0 = 7.0, P = 1.0, p_cut = 17.0;
+  set_gaussian_random_Phi_N(DIFFphi_p, fourier, P, p0, p_cut);
 
   // rho = -lap(phi)/xi^5/2pi
 # pragma omp parallel for default(shared) private(i,j,k)
@@ -137,7 +138,7 @@ void particle_ic_set_random(BSSN * bssnSim, Particles * particles, Fourier * fou
 
   // Make sure min density value > 0
   // Set conserved density variable field
-  real_t min = icd.rho_K_matter;
+  real_t min = rho_FRW;
   real_t max = min;
   LOOP3(i,j,k)
   {

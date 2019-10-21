@@ -49,6 +49,16 @@
   #define USE_GAMMA_DRIVER false
 #endif
 
+// Generalized Newtonian gauge setting
+#ifndef USE_GENERALIZED_NEWTON
+  #define USE_GENERALIZED_NEWTON false
+#endif
+
+// Long doubles?
+#ifndef USE_LONG_DOUBLES
+# define USE_LONG_DOUBLES false
+#endif
+
 // Optionally exclude some second-order terms
 #ifndef EXCLUDE_SECOND_ORDER_SMALL
   #define EXCLUDE_SECOND_ORDER_SMALL false

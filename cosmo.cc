@@ -4,7 +4,7 @@
 
 #include "sims/sim.h"
 #include "sims/dust.h"
-#include "sims/dust_lambda.h"
+#include "sims/static.h"
 #include "sims/particles.h"
 #include "sims/scalar.h"
 #include "sims/vacuum.h"
@@ -54,9 +54,9 @@ int main(int argc, char **argv)
   {
     cosmoSim = new DustSim();
   }
-  else if( simulation_type == "dust_lambda" )
+  else if( simulation_type == "static" )
   {
-    cosmoSim = new DustLambdaSim();
+    cosmoSim = new StaticSim();
   }
   else if( simulation_type == "particles" )
   {
@@ -76,7 +76,7 @@ int main(int argc, char **argv)
   }
   else
   {
-    std::cerr << "Invalid simulation type specified.";
+    std::cerr << "Invalid simulation type specified. ";
     throw 2;
   }
 
@@ -84,7 +84,9 @@ int main(int argc, char **argv)
   cosmoSim->init();
 
   // Generate initial conditions
+  _timer["ICs"].start();
   cosmoSim->setICs();
+  _timer["ICs"].stop();
 
   // Run simulation
   cosmoSim->run();

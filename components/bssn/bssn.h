@@ -8,6 +8,7 @@
 #include "BSSNGaugeHandler.h"
 #include "../../utils/Array.h"
 #include "../../utils/FRW.h"
+#include "../../utils/Fourier.h"
 #include "../../utils/ConfigParser.h"
 
 #if USE_COSMOTRACE
@@ -27,24 +28,29 @@ class BSSN
   BSSN_APPLY_TO_SOURCES(GEN1_ARRAY_CREATE)
   BSSN_APPLY_TO_GEN1_EXTRAS(GEN1_ARRAY_CREATE)
 
-  BSSNGaugeHandler * gaugeHandler;
 
   real_t KO_damping_coefficient; ///< KO_dissipation coefficient amplitude (default 0)
   real_t k_damping_amp; ///< Additional "K"-damping (default 0)
   real_t a_adj_amp; ///< A-adjusted term amplitude (default 0)
   real_t gd_eta; ///< Gamma driver "eta" parameter
+  real_t rescale_metric;
   int normalize_metric; ///< Normalize A_ij and \gamma_ij? Default: 1 (true)
 
+  Fourier * fourier;
+  
 public:
+  BSSNGaugeHandler * gaugeHandler;
   map_t fields; ///< Public map from names to internal arrays
 
   // Standard FRW spacetime integrator - for a reference metric
   FRW<real_t> * frw; ///< FRW reference metric instance
   // Average K, rho for reference
-  real_t K_avg, rho_avg;
+  real_t K_avg, rho_avg, avg_vol;
   real_t K_min;
 
-  BSSN(ConfigParser * config);
+  real_t cur_t;
+
+  BSSN(ConfigParser * config, Fourier * fourier_in);
   ~BSSN();
 
   void init();
@@ -53,6 +59,7 @@ public:
   void setKODampingCoefficient(real_t KO_damping_coefficient_in);
 
   /* RK integrator functions */
+    void setExtraFieldData();
     void stepInit();
     void RKEvolve();
     void RKEvolvePt(idx_t i, idx_t j, idx_t k, BSSNData * bd);
@@ -62,6 +69,8 @@ public:
     void K4Finalize();
     void clearSrc();
     void step();
+
+    void scaleMetricPerturbations(real_t multiplier);
 
   /* calculating quantities during an RK step */
     void set_bd_values(idx_t i, idx_t j, idx_t k, BSSNData *bd);

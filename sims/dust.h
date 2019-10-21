@@ -2,8 +2,9 @@
 #define COSMO_DUST_SIM_H
 
 #include "sim.h"
-#include "../components/static/static.h"
-
+#include "../components/dust_fluid/dust.h"
+#include "../components/Lambda/lambda.h"
+#include "../components/phase_space_sheet/sheets.h"
 
 namespace cosmo
 {
@@ -14,8 +15,11 @@ namespace cosmo
 class DustSim : public CosmoSim
 {
 protected:
-  Static * staticSim;
-
+  Sheet * raySheet;
+  Dust * dustSim;
+  Lambda * lambda;
+  bool take_ray_step;
+  idx_t raysheet_flip_step;
 public:
   DustSim();
   ~DustSim()

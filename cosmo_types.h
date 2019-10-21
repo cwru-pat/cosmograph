@@ -9,9 +9,13 @@
 namespace cosmo
 {
 
+#if USE_LONG_DOUBLES
 // changing this affects FFTs:
-typedef double real_t; /**< real type; changing this may require changes to HDF5 and FFTW functionality */
+typedef long double real_t; /**< real type; changing this may require changes to HDF5 and FFTW functionality */
 // see http://www.fftw.org/doc/Precision.html
+#else
+typedef double real_t;
+#endif
 
 typedef long int idx_t; /**< indexing type, must be long enough to support large arrays */
 

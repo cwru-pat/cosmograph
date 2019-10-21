@@ -4,6 +4,7 @@
 #include "../../cosmo_globals.h"
 #include <map>
 #include <cmath>
+#include "../../utils/math.h"
 
 namespace cosmo
 {
@@ -17,15 +18,32 @@ real_t BSSNGaugeHandler::Static(BSSNData *bd)
   return 0.0;
 }
 
+/**
+ * @brief Locally conformal FLRW-type lapse
+ */
+real_t BSSNGaugeHandler::ConformalFLRWLapse(BSSNData *bd)
+{
+  return -1.0/3.0*bd->alpha*bd->K_avg;
+}
 
 /**
  * @brief Hamonic gauge lapse
  */
 real_t BSSNGaugeHandler::HarmonicLapse(BSSNData *bd)
 {
-  return -1.0*pw2(bd->alpha)*( bd->K - bd->K_avg );
+  return -1.0*bd->alpha*( bd->K );
 }
 
+/**
+ * @brief Generalized Newton, see notes
+ */
+#if USE_GENERALIZED_NEWTON
+real_t BSSNGaugeHandler::GeneralizedNewton(BSSNData *bd)
+{  
+  return GN_eta * ( 2.0/3.0 * bd->GND2Alpha - bd->GNDiDjRijTFoD2 );
+}
+#endif
+  
 
 /**
  * @brief Experimental gauge choice, quasi-newtonian
@@ -45,13 +63,22 @@ real_t BSSNGaugeHandler::AnharmonicLapse(BSSNData *bd)
  */
 real_t BSSNGaugeHandler::OnePlusLogLapse(BSSNData *bd)
 {
-  return -2.0*bd->alpha*( bd->K - bd->K_avg )*gd_c;
-    //      + bd->beta1*bd->d1a + bd->beta2*bd->d2a + bd->beta3*bd->d3a;
+  return -2.0*bd->alpha*( bd->K - bd->K_avg )*gd_c
+         + bd->beta1*bd->d1a + bd->beta2*bd->d2a + bd->beta3*bd->d3a;
 }
 
+#if USE_MAXIMAL_SLICING
+real_t BSSNGaugeHandler::MaximalSlicingLapse(BSSNData *bd)
+{
+  return m_alpha
+}    
+#endif
+  
 
 /**
  * @brief Untested/experimental gauge choice; conformal synchronous gauge
+ * Relies on having reference metric for K_FRW
+ * See also ConformalFLRWLapse
  */
 real_t BSSNGaugeHandler::ConformalSyncLapse(BSSNData *bd)
 {

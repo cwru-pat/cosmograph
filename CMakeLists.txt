@@ -39,7 +39,7 @@ unset(COSMO_SOURCES CACHE)
 file(GLOB COSMO_SOURCES *.cc IO/*.cc utils/*.cc
   components/static/*.cc components/particles/*.cc
   components/scalar/*.cc components/bssn/*.cc components/phase_space_sheet/*.cc
-  sims/*.cc ICs/*.cc)
+  components/Lambda/*.cc components/dust_fluid/*.cc sims/*.cc ICs/*.cc)
 
 add_executable(cosmo ${COSMO_SOURCES} ${MULTIGRID_SOURCES})
-target_link_libraries(cosmo m rt z ${HDF5_LINK_LIBRARY} ${FFTW_LIBRARIES})
+target_link_libraries(cosmo m rt z ${HDF5_LINK_LIBRARY} ${FFTW_LIBRARIES} ${FFTWL_LIBRARIES})

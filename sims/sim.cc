@@ -29,6 +29,15 @@ CosmoSim::CosmoSim()
   {
     ray_integrate = false;
   }
+
+  if( stoi(_config("simple_raytrace", "0")) )
+  {
+    simple_raytrace = true;
+  }
+  else
+  {
+    simple_raytrace = false;
+  }
 # endif
 
   if( stoi(_config("use_bardeen", "0")) )
@@ -49,22 +58,21 @@ CosmoSim::CosmoSim()
  */
 void CosmoSim::simInit()
 {
-  // Always use GR fields
-  bssnSim = new BSSN(&_config);
-
   // FFT helper
   fourier = new Fourier();
-  fourier->Initialize(NX, NY, NZ,
-    bssnSim->fields["DIFFphi_a"]->_array /* arbitrary array for planning */);
+  fourier->Initialize(NX, NY, NZ);
+
+  // Always use GR fields
+  bssnSim = new BSSN(&_config, fourier);
 
 # if USE_COSMOTRACE
   // initialize raytracing if needed
   if(ray_integrate)
   {
-    if(_config("lapse", "") != "" && _config("lapse", "") != "static")
+    if(_config("lapse", "") != "" && _config("lapse", "") != "Static" && _config("lapse", "") != "ConformalFLRW")
     {
       iodata->log("Error - not using synchronous gauge! You must use it for raytracing sims.");
-      iodata->log("Please change this setting in cosmo_macros.h and recompile.");
+      iodata->log("Please change this setting in the config file and re-run.");
       throw -1;
     }
     init_ray_vector(&rays);
@@ -74,6 +82,16 @@ void CosmoSim::simInit()
   if(use_bardeen)
   {
     bardeen = new Bardeen(bssnSim, fourier);
+    bool use_ML_scale_factor = !!std::stoi(_config("use_ML_scale_factor", "1"));
+    bardeen->setUseMLScaleFactor(use_ML_scale_factor);
+    real_t Omega_L = std::stod(_config("Omega_L", "0.0"));
+    bardeen->useMLScaleFactor(Omega_L);
+    if(use_ML_scale_factor)
+    {
+      iodata->log("Using Matter+Lambda FLRW scale factor for Bardeen calculations with Omega_L = "
+        + stringify(Omega_L) + ".");
+    }
+
   }
 }
 
@@ -85,11 +103,24 @@ void CosmoSim::run()
   iodata->log("Running simulation...");
 
   _timer["loop"].start();
+  real_t avg_vol_i = 1.0;
   while(step <= num_steps)
   {
     runStep();
-    step++;
     t += dt;
+
+    if(step == 0)
+    {
+      avg_vol_i = bssnSim->avg_vol;
+    }
+    else if( !!std::stod(_config("stop_at_expansion_goal", "0"))
+      && std::pow(bssnSim->avg_vol / avg_vol_i, 1.0/3.0) >= std::stod(_config("expansion_goal", "100.0")) )
+    {
+      iodata->log("Target expasion reached, run ending.");
+      break;
+    }
+
+    step++;
   }
   _timer["loop"].stop();
 
@@ -117,7 +148,14 @@ void CosmoSim::runRayTraceStep()
     bssnSim->setRaytracePrimitives(ray);
     // evolve ray
     ray->setDerivedQuantities();
-    ray->evolveRay();
+    if(simple_raytrace)
+    {
+      ray->evolveRayBasic();
+    }
+    else
+    {
+      ray->evolveRay();
+    }
   }
   _timer["Raytrace_step"].stop();
 }
@@ -145,7 +183,16 @@ void CosmoSim::runCommonStepTasks()
   }
 
   // progress bar in terminal
-  io_show_progress(step, num_steps);
+  if(step % 100 == 0)
+    io_show_progress(step, num_steps);
+
+// # if USE_GENERALIZED_NEWTON
+//   real_t dt0 = std::stold(_config( "dt_frac", "0.1" ))*dx;
+//   real_t frac_done = (num_steps - step) / (real_t) num_steps;
+
+//   dt = dt0 + frac_done*frac_done*100*dt0;
+//   bssnSim->setDt(dt);
+// # endif
 
 # if USE_COSMOTRACE
   // Evolve light rays when integrating backwards
@@ -153,7 +200,7 @@ void CosmoSim::runCommonStepTasks()
   {
     if(step == ray_flip_step) {
       iodata->log("\nFlipping sign of dt @ step = " + std::to_string(step) );
-      dt = -dt;
+      dt = -std::abs(dt);
       bssnSim->setDt(dt);
     }
     if(step >= ray_flip_step) {
@@ -179,6 +226,8 @@ void CosmoSim::prepBSSNOutput()
 
   if(use_bardeen)
     bardeen->setPotentials(t);
+
+  bssnSim->cur_t = t;
 }
 
 void CosmoSim::outputStateInformation()
@@ -187,6 +236,16 @@ void CosmoSim::outputStateInformation()
   // TODO: Source values may be off; correct this?
   bssnSim->stepInit();
   prepBSSNOutput();
+
+  iodata->log( "---- Information from step " + stringify(step)
+    + " of " + stringify(num_steps) + " ----" );
+
+  iodata->log( "RMS / avg. density is "
+    + stringify(
+        standard_deviation(*bssnSim->fields["DIFFr_a"])
+          / average(*bssnSim->fields["DIFFr_a"])
+    ));
+
   iodata->log(
       "Average | Min | Max conformal factor: " + stringify(
         average(*bssnSim->fields["DIFFphi_a"]) + bssnSim->frw->get_phi()
@@ -232,6 +291,9 @@ void CosmoSim::outputStateInformation()
       );
   }
 # endif
+
+  iodata->log( "---- ---- ---- ----" );
+
 }
 
 idx_t CosmoSim::simNumNaNs()

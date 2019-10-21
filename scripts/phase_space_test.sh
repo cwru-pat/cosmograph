@@ -8,10 +8,10 @@ pwd
 ###
 # Compile
 ###
-mkdir -p ../build
-cd ../build
+mkdir -p ../build/phase_space
+cd ../build/phase_space
 TMP_CONFIG_FILE=phase_space_sheets.txt.test
-cp ../config/tests/phase_space_sheets.txt $TMP_CONFIG_FILE
+cp ../../config/tests/phase_space_sheets.txt $TMP_CONFIG_FILE
 
 do_runs () {
   BOX_LENGTH=$1
@@ -23,15 +23,20 @@ do_runs () {
   MODE_AMPLITUDE=$7
   GAUGE=$8
 
-  RES_INT=$(echo $RES_STR | sed 's/^0*//')
-  IO_INT=$((RES_INT/4))
-  IO_INT_3D=$((RES_INT*50))
-  STEPS=$((RES_INT*500))
-  METHOD_ORDER=$((METHOD_ORDER_RES*2))
-  IC_PPDX=$((RES_INT*20000))
+  mkdir -p $GAUGE
+  cd $GAUGE
+  cp ../$TMP_CONFIG_FILE $TMP_CONFIG_FILE
 
-  sed -i -E "s/ns1 = [\.0-9]+/ns1 = $RES_INT/g" $TMP_CONFIG_FILE
-  sed -i -E "s/carriers_per_dx = [0-9]+/carriers_per_dx = $CARRIERS_PER_DX/g" $TMP_CONFIG_FILE
+  RES_INT=$(echo $RES_STR | sed 's/^0*//')
+  IO_INT=$((RES_INT*10))
+  IO_INT_3D=$((RES_INT*1000))
+  STEPS=$((RES_INT*10000))
+  METHOD_ORDER=$((METHOD_ORDER_RES*2))
+  IC_PPDX=$((RES_INT*40000))
+  NS1=$((RES_INT*CARRIERS_PER_DX))
+
+  sed -i -E "s/ns1 = [\.0-9]+/ns1 = $NS1/g" $TMP_CONFIG_FILE
+  sed -i -E "s/carriers_per_dx = [0-9]+/carriers_per_dx = 1/g" $TMP_CONFIG_FILE
   sed -i -E "s/carrier_count_scheme = [\.0-9]+/carrier_count_scheme = $CARRIER_COUNT_SCHEME/g" $TMP_CONFIG_FILE
   sed -i -E "s/deposit_scheme = [0-9]+/deposit_scheme = $DEPOSIT_SCHEME/g" $TMP_CONFIG_FILE
   sed -i -E "s/integration_points_per_dx = [0-9]+/integration_points_per_dx = $IC_PPDX/g" $TMP_CONFIG_FILE
@@ -44,33 +49,31 @@ do_runs () {
   sed -i -E "s/peak_amplitude = [\.0-9]+/peak_amplitude = $MODE_AMPLITUDE/g" $TMP_CONFIG_FILE
   sed -i -E "s/lapse = [a-zA-Z]+/lapse = $GAUGE/g" $TMP_CONFIG_FILE
 
-  DIR="sheet_run-L_$BOX_LENGTH-r_$RES_STR-Odx_$METHOD_ORDER-cpdx_$CARRIERS_PER_DX-ccs_$CARRIER_COUNT_SCHEME-ds_$DEPOSIT_SCHEME-A_$MODE_AMPLITUDE_$GAUGE"
+  DIR="sheet_run-L_$BOX_LENGTH-r_$RES_STR-Odx_$METHOD_ORDER-cpdx_$CARRIERS_PER_DX-ccs_$CARRIER_COUNT_SCHEME-ds_$DEPOSIT_SCHEME-A_$MODE_AMPLITUDE-$GAUGE"
   sed -i -E "s,output_dir = [[:alnum:]_-\./]+,output_dir = $DIR,g" $TMP_CONFIG_FILE
   mkdir -p $DIR
   printf "Performing run with settings in dir $DIR.\n"
 
-  cmake .. -DCOSMO_N=$RES_INT -DCOSMO_NY=1 -DCOSMO_NZ=1 -DCOSMO_STENCIL_ORDER=$METHOD_ORDER -DCOSMO_USE_REFERENCE_FRW=0 -DCOSMO_H_LEN_FRAC=$BOX_LENGTH && make -j24
+  cmake ../../.. -DCOSMO_N=$RES_INT -DCOSMO_NY=1 -DCOSMO_NZ=1 -DCOSMO_STENCIL_ORDER=$METHOD_ORDER -DCOSMO_USE_REFERENCE_FRW=0 -DCOSMO_H_LEN_FRAC=$BOX_LENGTH -DCOSMO_USE_Z4c_DAMPING=0 && make -j24
   if [ $? -ne 0 ]; then
     echo "Error: compilation failed!"
   else
     ./cosmo $TMP_CONFIG_FILE
   fi
+  cd ..
 }
 
-# do_runs 0.5 "0064" 8 1 1 4 0.002 Harmonic
-# do_runs 0.5 "0128" 16 1 1 4 0.002 Harmonic
-# do_runs 0.5 "0256" 32 1 1 4 0.002 Harmonic
-# do_runs 0.5 "0512" 64 1 1 4 0.002 Harmonic
+if [ "$1" = "Harmonic" ]; then
+  do_runs 0.02 "0064" 4 1 1 4 0.0005 Harmonic
+  do_runs 0.02 "0128" 8 1 1 4 0.0005 Harmonic
+  do_runs 0.02 "0256" 16 1 1 4 0.0005 Harmonic
+fi
 
-do_runs 0.5 "0064" 8 1 1 4 0.002 Static
-do_runs 0.5 "0128" 16 1 1 4 0.002 Static
-do_runs 0.5 "0256" 32 1 1 4 0.002 Static
-do_runs 0.5 "0512" 64 1 1 4 0.002 Static
-
-# do_runs 0.05 "0064" 8 1 1 4 0.002 Harmonic
-# do_runs 0.05 "0128" 16 1 1 4 0.002 Harmonic
-# do_runs 0.05 "0256" 32 1 1 4 0.002 Harmonic
-# do_runs 0.05 "0512" 64 1 1 4 0.002 Harmonic
+if [ "$1" = "Static" ]; then
+  do_runs 0.02 "0128" 1 1 1 4 0.0005 Static
+  do_runs 0.02 "0256" 2 1 1 4 0.0005 Static
+  do_runs 0.02 "0512" 4 1 1 4 0.0005 Static
+fi
 
 # for L in 0.5 # box length
 # do

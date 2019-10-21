@@ -59,18 +59,35 @@ Sheet::Sheet():
   std::cout << "Initiaizing sheet class with lx,ly,lz = " << lx << "," << ly << "," << lz
     << ", dx,dy,dz = " << dx << "," << dy << "," << dz << std::endl;
 
-  carrier_count_scheme = static_cast<carrierCountScheme> (std::stoi(_config["carrier_count_scheme"]));
-  deposit = static_cast<depositScheme> (std::stoi(_config["deposit_scheme"]));
+  carrier_count_scheme = static_cast<carrierCountScheme> (std::stoi(_config("carrier_count_scheme","1")));
+  deposit = static_cast<depositScheme> (std::stoi(_config("deposit_scheme","1")));
 
-  carriers_per_dx = std::stod(_config["carriers_per_dx"]);
-  carriers_per_dy = std::stod(_config["carriers_per_dy"]);
-  carriers_per_dz = std::stod(_config["carriers_per_dz"]);
+  follow_null_geodesics = !!std::stoi(_config("follow_null_geodesics", "0"));
+  rescale_sheet = std::stod(_config("rescale_sheet", "1.0"));
+  if(rescale_sheet == 1.0) rescale_sheet = 0.0;
+  ray_bundle_epsilon = std::stod(_config("ray_bundle_epsilon","1.0")) / (real_t POINTS);
+  det_g_obs = 0.0;
+
+  carriers_per_dx = std::stoi(_config("carriers_per_dx","1"));
+  carriers_per_dy = std::stoi(_config("carriers_per_dy","1"));
+  carriers_per_dz = std::stoi(_config("carriers_per_dz","1"));
 }
 
 
 Sheet::~Sheet()
 {
   // Anything to do?
+}
+
+void Sheet::setDt(real_t dt)
+{
+  // set dt for all RK4 register fields
+  Dx.setDt(dt);
+  Dy.setDt(dt);
+  Dz.setDt(dt);
+  vx.setDt(dt);
+  vy.setDt(dt);
+  vz.setDt(dt);
 }
 
 void Sheet::_MassDeposit(real_t weight, real_t x_idx, real_t y_idx,
@@ -331,7 +348,7 @@ void Sheet::addBSSNSource(BSSN *bssn, real_t tot_mass)
   idx_t num_x_carriers, num_y_carriers, num_z_carriers;
 
   //    int i, j, k;
-  #pragma omp parallel for collapse(2)        
+# pragma omp parallel for collapse(2)
   for(idx_t s1=0; s1<ns1; ++s1)
     for(idx_t s2=0; s2<ns2; ++s2)
       for(idx_t s3=0; s3<ns3; ++s3)
@@ -444,10 +461,21 @@ void Sheet::addBSSNSource(BSSN *bssn, real_t tot_mass)
 
               real_t rootdetg = std::exp(6.0*phi);
         
-              real_t W = std::sqrt( 1.0 +
-                gammai11*u1*u1 + gammai22*u2*u2 + gammai33*u3*u3
-                + 2.0*( gammai12*u1*u2 + gammai13*u1*u3 + gammai23*u2*u3 )
-              );
+              real_t W = 0.0;
+              if(follow_null_geodesics)
+              {
+                W = std::sqrt(
+                  gammai11*u1*u1 + gammai22*u2*u2 + gammai33*u3*u3
+                  + 2.0*( gammai12*u1*u2 + gammai13*u1*u3 + gammai23*u2*u3 )
+                );
+              }
+              else
+              {
+                W = std::sqrt( 1.0 +
+                  gammai11*u1*u1 + gammai22*u2*u2 + gammai33*u3*u3
+                  + 2.0*( gammai12*u1*u2 + gammai13*u1*u3 + gammai23*u2*u3 )
+                );
+              }
               
               real_t mass = tot_mass / (real_t) num_carriers / ns1/ns2/ns3;
               
@@ -481,7 +509,6 @@ void Sheet::addBSSNSource(BSSN *bssn, real_t tot_mass)
               _MassDeposit(STF12, carrier_x_idx, carrier_y_idx, carrier_z_idx, STF12_a);
               _MassDeposit(STF13, carrier_x_idx, carrier_y_idx, carrier_z_idx, STF13_a);
               _MassDeposit(STF23, carrier_x_idx, carrier_y_idx, carrier_z_idx, STF23_a);
-
             }
         
       }
@@ -495,12 +522,137 @@ void Sheet::addBSSNSource(BSSN *bssn, real_t tot_mass)
     bssn->enforceTFSIJ(&bd);
   }
 
+
   _timer["_pushsheetToStressTensor"].stop();
+}
+
+void Sheet::rescaleFieldPerturbations(arr_t & field, real_t multiplier)
+{
+  idx_t i, j, k;
+  real_t avg = average(field);
+  LOOP3(i,j,k)
+  {
+    field[NP_INDEX(i,j,k)] = avg + multiplier*( field[NP_INDEX(i,j,k)] - avg );
+  }
+}
+
+void Sheet::rescaleVelocityPerturbations(arr_t & ux, arr_t & uy, arr_t & uz, real_t multiplier)
+{
+
+  // velocities are perturbations around \vec{u} = \hat{r}
+  // Can scale coordinates relative to average magnitude
+  real_t avg_u = 0.0;
+  idx_t s2 = 0, s3 = 0;
+# pragma omp parallel for reduction(+:avg_u)
+  for(idx_t s1=0; s1<ns1; ++s1)
+  {
+    avg_u += std::sqrt( pw2(ux(s1,s2,s3)) + pw2(uy(s1,s2,s3)) + pw2(uz(s1,s2,s3)) );
+  }
+  avg_u /= ns1;
+
+  std::ifstream vecFile(_config["healpix_vecs_file"]);
+  idx_t r = 0;
+  while (!vecFile.eof() && r < ns1)
+  {
+    idx_t s1 = r;
+    // "background" position
+    real_t ux_bar, uy_bar, uz_bar;
+    vecFile >> ux_bar;
+    vecFile >> uy_bar;
+    vecFile >> uz_bar;
+    real_t mag_u = std::sqrt( pw2(ux_bar) + pw2(uy_bar) + pw2(uz_bar) );
+    ux_bar *= avg_u/mag_u;
+    uy_bar *= avg_u/mag_u;
+    uz_bar *= avg_u/mag_u;
+
+    for(idx_t s2=0; s2<3; ++s2)
+    {
+      idx_t s3 = 0.0;
+      ux(s1,s2,s3) = ux_bar + multiplier*( ux(s1,s2,s3) - ux_bar );
+      uy(s1,s2,s3) = uy_bar + multiplier*( uy(s1,s2,s3) - uy_bar );
+      uz(s1,s2,s3) = uz_bar + multiplier*( uz(s1,s2,s3) - uz_bar );
+    }
+    r++;
+  }
+  vecFile.close();
+
+}
+
+
+void Sheet::rescalePositionPerturbations(arr_t & dx, arr_t & dy, arr_t & dz, real_t multiplier)
+{
+  // coordinate positions are "perturbations" around \vec{x} = \vec{r}
+  // Can scale coordinates relative to average magnitude
+  real_t avg_r = 0.0;
+  idx_t s2 = 0, s3 = 0;
+# pragma omp parallel for reduction(+:avg_r)
+  for(idx_t s1=0; s1<ns1; ++s1)
+  {
+    real_t x_pt = dx(s1,s2,s3) + _S1IDXtoX0(s1);
+    real_t y_pt = dy(s1,s2,s3) + _S2IDXtoY0(s2);
+    real_t z_pt = dz(s1,s2,s3) + _S3IDXtoZ0(s3);
+    avg_r += std::sqrt( pw2(x_pt) + pw2(y_pt) + pw2(z_pt) );
+  }
+  avg_r /= ns1;
+
+  std::ifstream vecFile(_config["healpix_vecs_file"]);
+  idx_t r = 0;
+  while (!vecFile.eof() && r < ns1)
+  {
+    idx_t s1 = r;
+    // "background" position
+    real_t x_bar, y_bar, z_bar;
+    vecFile >> x_bar;
+    vecFile >> y_bar;
+    vecFile >> z_bar;
+    real_t mag_r = -std::sqrt( pw2(x_bar) + pw2(y_bar) + pw2(z_bar) );
+    x_bar *= avg_r/mag_r;
+    y_bar *= avg_r/mag_r;
+    z_bar *= avg_r/mag_r;
+
+    for(idx_t s2=0; s2<3; ++s2)
+    {
+      idx_t s3 = 0.0;
+      Dx(s1,s2,s3) = x_bar + multiplier*( dx(s1,s2,s3) + _S1IDXtoX0(s1) - x_bar ) - _S1IDXtoX0(s1);
+      Dy(s1,s2,s3) = y_bar + multiplier*( dy(s1,s2,s3) + _S2IDXtoY0(s2) - y_bar ) - _S2IDXtoY0(s2);
+      Dz(s1,s2,s3) = z_bar + multiplier*( dz(s1,s2,s3) + _S3IDXtoZ0(s3) - z_bar ) - _S3IDXtoZ0(s3);
+    }
+    r++;
+  }
+  vecFile.close();
+
+}
+
+
+void Sheet::rescaleAllFieldPerturbations(BSSN *bssn, real_t multiplier)
+{
+  // rescale metric perturbations that get used in the sheet evolution
+  rescaleFieldPerturbations(*bssn->fields["DIFFphi_a"], multiplier);
+  rescaleFieldPerturbations(*bssn->fields["DIFFgamma11_a"], multiplier);
+  rescaleFieldPerturbations(*bssn->fields["DIFFgamma22_a"], multiplier);
+  rescaleFieldPerturbations(*bssn->fields["DIFFgamma33_a"], multiplier);
+  rescaleFieldPerturbations(*bssn->fields["DIFFgamma12_a"], multiplier);
+  rescaleFieldPerturbations(*bssn->fields["DIFFgamma13_a"], multiplier);
+  rescaleFieldPerturbations(*bssn->fields["DIFFgamma23_a"], multiplier);
+  rescaleFieldPerturbations(*bssn->fields["DIFFalpha_a"], multiplier);
+#if USE_BSSN_SHIFT
+  rescaleFieldPerturbations(*bssn->fields["beta1_a"], multiplier);
+  rescaleFieldPerturbations(*bssn->fields["beta2_a"], multiplier);
+  rescaleFieldPerturbations(*bssn->fields["beta3_a"], multiplier);
+#endif
+
+  rescalePositionPerturbations(Dx._array_a, Dy._array_a, Dz._array_a, multiplier);
+  rescalePositionPerturbations(Dx._array_c, Dy._array_c, Dz._array_c, multiplier);
+
+  rescaleVelocityPerturbations(vx._array_a, vy._array_a, vz._array_a, multiplier);
+  rescaleVelocityPerturbations(vx._array_c, vy._array_c, vz._array_c, multiplier);
 }
 
 
 void Sheet::RKStep(BSSN *bssn)
 {
+  if(rescale_sheet) rescaleAllFieldPerturbations(bssn, rescale_sheet);
+
   idx_t i, j, k;
 
   arr_t & DIFFphi_a = *bssn->fields["DIFFphi_a"];
@@ -520,7 +672,8 @@ void Sheet::RKStep(BSSN *bssn)
   arr_t & beta3_a = *bssn->fields["beta3_a"];
 #endif
 
-  # pragma omp parallel for default(shared) private(i, j, k)
+
+# pragma omp parallel for default(shared) private(i, j, k)
   LOOP3(i, j, k)
   {
 #if USE_BSSN_SHIFT
@@ -534,9 +687,11 @@ void Sheet::RKStep(BSSN *bssn)
     d3beta2_a(i, j, k) = derivative(i, j, k, 3, beta2_a);
     d3beta3_a(i, j, k) = derivative(i, j, k, 3, beta3_a);
 #endif
+
     d1alpha_a(i, j, k) = derivative(i, j, k, 1, DIFFalpha_a);
     d2alpha_a(i, j, k) = derivative(i, j, k, 2, DIFFalpha_a);
     d3alpha_a(i, j, k) = derivative(i, j, k, 3, DIFFalpha_a);
+
 
     real_t phi = DIFFphi_a(i, j, k);
 
@@ -571,7 +726,7 @@ void Sheet::RKStep(BSSN *bssn)
 
         real_t x_idx = x_pt/dx;
         real_t y_idx = y_pt/dy;
-        real_t z_idx = z_pt/dz;        
+        real_t z_idx = z_pt/dz;
  
         real_t u1 = vx._a(i, j, k);
         real_t u2 = vy._a(i, j, k);
@@ -640,6 +795,22 @@ void Sheet::RKStep(BSSN *bssn)
         real_t d1gammai13 = d1gammai13_a.getTriCubicInterpolatedValue(x_idx, y_idx, z_idx);
         real_t d1gammai23 = d1gammai23_a.getTriCubicInterpolatedValue(x_idx, y_idx, z_idx);
 
+// optimize this for 1d
+#if NY == 1 && NZ == 1
+        real_t d2gammai11 = 0.0;
+        real_t d2gammai22 = 0.0;
+        real_t d2gammai33 = 0.0;
+        real_t d2gammai12 = 0.0;
+        real_t d2gammai13 = 0.0;
+        real_t d2gammai23 = 0.0;
+
+        real_t d3gammai11 = 0.0;
+        real_t d3gammai22 = 0.0;
+        real_t d3gammai33 = 0.0;
+        real_t d3gammai12 = 0.0;
+        real_t d3gammai13 = 0.0;
+        real_t d3gammai23 = 0.0;
+#else
         real_t d2gammai11 = d2gammai11_a.getTriCubicInterpolatedValue(x_idx, y_idx, z_idx);
         real_t d2gammai22 = d2gammai22_a.getTriCubicInterpolatedValue(x_idx, y_idx, z_idx);
         real_t d2gammai33 = d2gammai33_a.getTriCubicInterpolatedValue(x_idx, y_idx, z_idx);
@@ -653,11 +824,23 @@ void Sheet::RKStep(BSSN *bssn)
         real_t d3gammai12 = d3gammai12_a.getTriCubicInterpolatedValue(x_idx, y_idx, z_idx);
         real_t d3gammai13 = d3gammai13_a.getTriCubicInterpolatedValue(x_idx, y_idx, z_idx);
         real_t d3gammai23 = d3gammai23_a.getTriCubicInterpolatedValue(x_idx, y_idx, z_idx);
-          
-        real_t W = std::sqrt( 1.0 +
-                              gammai11 * u1 * u1 + gammai22 * u2 * u2 + gammai33 * u3 * u3
-                              + 2.0 * (gammai12 * u1 * u2 + gammai13 * u1 * u3 + gammai23 * u2 * u3 )
-        );
+#endif
+
+        real_t W = 0.0;
+        if(follow_null_geodesics)
+        {
+          W = std::sqrt(
+            gammai11 * u1 * u1 + gammai22 * u2 * u2 + gammai33 * u3 * u3
+            + 2.0 * (gammai12 * u1 * u2 + gammai13 * u1 * u3 + gammai23 * u2 * u3 )
+          );
+        }
+        else
+        {
+          W = std::sqrt( 1.0 +
+            gammai11 * u1 * u1 + gammai22 * u2 * u2 + gammai33 * u3 * u3
+            + 2.0 * (gammai12 * u1 * u2 + gammai13 * u1 * u3 + gammai23 * u2 * u3 )
+          );
+        }
 
         real_t U0 = W/(DIFFalpha + 1.0);
         
@@ -683,6 +866,8 @@ void Sheet::RKStep(BSSN *bssn)
             + 2.0 * (d3gammai12 * u1 * u2 + d3gammai13 * u1 * u3 + d3gammai23 * u2 * u3)
           );
       }
+
+  if(rescale_sheet) rescaleAllFieldPerturbations(bssn, 1.0/rescale_sheet);
 }
 
 void Sheet::stepInit()
@@ -734,5 +919,293 @@ void Sheet::K4Finalize()
   vy.K4Finalize();
   vz.K4Finalize();
 }
+
+std::vector<real_t> Sheet::getgammaIJ(idx_t s1, idx_t s2, idx_t s3, BSSN *bssnSim)
+{
+  std::vector<real_t> gammaIJ (7);
+
+  arr_t & DIFFphi_p = *bssnSim->fields["DIFFphi_p"];
+  arr_t & DIFFgamma11_p = *bssnSim->fields["DIFFgamma11_p"];
+  arr_t & DIFFgamma22_p = *bssnSim->fields["DIFFgamma22_p"];
+  arr_t & DIFFgamma33_p = *bssnSim->fields["DIFFgamma33_p"];
+  arr_t & DIFFgamma12_p = *bssnSim->fields["DIFFgamma12_p"];
+  arr_t & DIFFgamma13_p = *bssnSim->fields["DIFFgamma13_p"];
+  arr_t & DIFFgamma23_p = *bssnSim->fields["DIFFgamma23_p"];
+
+  real_t x_pt = Dx._p(s1,s2,s3) + _S1IDXtoX0(s1);
+  real_t y_pt = Dy._p(s1,s2,s3) + _S2IDXtoY0(s2);
+  real_t z_pt = Dz._p(s1,s2,s3) + _S3IDXtoZ0(s3);
+
+  real_t x_idx = x_pt/dx;
+  real_t y_idx = y_pt/dy;
+  real_t z_idx = z_pt/dz;
+
+  real_t phi = DIFFphi_p.getTriCubicInterpolatedValue(x_idx, y_idx, z_idx);
+  real_t detgamma = std::exp(12.0*phi);
+  real_t gamma11 = std::exp(4.0*phi)*(1.0+DIFFgamma11_p.getTriCubicInterpolatedValue(x_idx, y_idx, z_idx));
+  real_t gamma22 = std::exp(4.0*phi)*(1.0+DIFFgamma22_p.getTriCubicInterpolatedValue(x_idx, y_idx, z_idx));
+  real_t gamma33 = std::exp(4.0*phi)*(1.0+DIFFgamma33_p.getTriCubicInterpolatedValue(x_idx, y_idx, z_idx));
+  real_t gamma12 = std::exp(4.0*phi)*DIFFgamma12_p.getTriCubicInterpolatedValue(x_idx, y_idx, z_idx);
+  real_t gamma13 = std::exp(4.0*phi)*DIFFgamma23_p.getTriCubicInterpolatedValue(x_idx, y_idx, z_idx);
+  real_t gamma23 = std::exp(4.0*phi)*DIFFgamma13_p.getTriCubicInterpolatedValue(x_idx, y_idx, z_idx);
+
+  gammaIJ[0] = gamma11;
+  gammaIJ[1] = gamma22;
+  gammaIJ[2] = gamma33;
+  gammaIJ[3] = gamma12;
+  gammaIJ[4] = gamma13;
+  gammaIJ[5] = gamma23;
+  gammaIJ[6] = detgamma;
+
+  return gammaIJ;
+}
+
+std::vector<real_t> Sheet::getgammaiIJ(idx_t s1, idx_t s2, idx_t s3, BSSN *bssnSim)
+{
+  std::vector<real_t> gammaiIJ (6);
+
+  arr_t & DIFFphi_p = *bssnSim->fields["DIFFphi_p"];
+  arr_t & DIFFgamma11_p = *bssnSim->fields["DIFFgamma11_p"];
+  arr_t & DIFFgamma22_p = *bssnSim->fields["DIFFgamma22_p"];
+  arr_t & DIFFgamma33_p = *bssnSim->fields["DIFFgamma33_p"];
+  arr_t & DIFFgamma12_p = *bssnSim->fields["DIFFgamma12_p"];
+  arr_t & DIFFgamma13_p = *bssnSim->fields["DIFFgamma13_p"];
+  arr_t & DIFFgamma23_p = *bssnSim->fields["DIFFgamma23_p"];
+
+  real_t x_pt = Dx._p(s1,s2,s3) + _S1IDXtoX0(s1);
+  real_t y_pt = Dy._p(s1,s2,s3) + _S2IDXtoY0(s2);
+  real_t z_pt = Dz._p(s1,s2,s3) + _S3IDXtoZ0(s3);
+
+  real_t x_idx = x_pt/dx;
+  real_t y_idx = y_pt/dy;
+  real_t z_idx = z_pt/dz;
+
+  real_t phi = DIFFphi_p.getTriCubicInterpolatedValue(x_idx, y_idx, z_idx);
+  real_t DIFFgamma11 = DIFFgamma11_p.getTriCubicInterpolatedValue(x_idx, y_idx, z_idx);
+  real_t DIFFgamma22 = DIFFgamma22_p.getTriCubicInterpolatedValue(x_idx, y_idx, z_idx);
+  real_t DIFFgamma33 = DIFFgamma33_p.getTriCubicInterpolatedValue(x_idx, y_idx, z_idx);
+  real_t DIFFgamma12 = DIFFgamma12_p.getTriCubicInterpolatedValue(x_idx, y_idx, z_idx);
+  real_t DIFFgamma23 = DIFFgamma23_p.getTriCubicInterpolatedValue(x_idx, y_idx, z_idx);
+  real_t DIFFgamma13 = DIFFgamma13_p.getTriCubicInterpolatedValue(x_idx, y_idx, z_idx);
+  real_t gammai11 = std::exp(-4.0*phi)*(1.0 + DIFFgamma22 + DIFFgamma33 - pw2(DIFFgamma23) + DIFFgamma22*DIFFgamma33);
+  real_t gammai22 = std::exp(-4.0*phi)*(1.0 + DIFFgamma11 + DIFFgamma33 - pw2(DIFFgamma13) + DIFFgamma11*DIFFgamma33);
+  real_t gammai33 = std::exp(-4.0*phi)*(1.0 + DIFFgamma11 + DIFFgamma22 - pw2(DIFFgamma12) + DIFFgamma11*DIFFgamma22);
+  real_t gammai12 = std::exp(-4.0*phi)*(DIFFgamma13*DIFFgamma23 - DIFFgamma12*(1.0 + DIFFgamma33));
+  real_t gammai13 = std::exp(-4.0*phi)*(DIFFgamma12*DIFFgamma23 - DIFFgamma13*(1.0 + DIFFgamma22));
+  real_t gammai23 = std::exp(-4.0*phi)*(DIFFgamma12*DIFFgamma13 - DIFFgamma23*(1.0 + DIFFgamma11));
+
+  gammaiIJ[0] = gammai11;
+  gammaiIJ[1] = gammai22;
+  gammaiIJ[2] = gammai33;
+  gammaiIJ[3] = gammai12;
+  gammaiIJ[4] = gammai13;
+  gammaiIJ[5] = gammai23;
+
+  return gammaiIJ;
+}
+
+// dot product of vectors (not ok for 4-vectors)
+real_t dot_cov_spatial_vectors(real_t * v1, real_t * v2, std::vector<real_t> gammaiIJ)
+{
+  real_t gammai11 = gammaiIJ[0];
+  real_t gammai22 = gammaiIJ[1];
+  real_t gammai33 = gammaiIJ[2];
+  real_t gammai12 = gammaiIJ[3];
+  real_t gammai13 = gammaiIJ[4];
+  real_t gammai23 = gammaiIJ[5];
+
+  return (
+      gammai11*v1[0]*v2[0] + gammai22*v1[1]*v2[1] + gammai33*v1[2]*v2[2]
+      + gammai12*v1[0]*v2[1] + gammai13*v1[0]*v2[2] + gammai23*v1[1]*v2[2]
+      + gammai12*v1[1]*v2[0] + gammai13*v1[2]*v2[1] + gammai23*v1[2]*v2[1]
+    );
+}
+real_t mag_cov_spatial_vector(real_t * v1, std::vector<real_t> gammaiIJ)
+{
+  return std::sqrt( dot_cov_spatial_vectors(v1, v1, gammaiIJ) );
+}
+real_t dot_cont_spatial_vectors(real_t * v1, real_t * v2, std::vector<real_t> gammaIJ)
+{
+  real_t gamma11 = gammaIJ[0];
+  real_t gamma22 = gammaIJ[1];
+  real_t gamma33 = gammaIJ[2];
+  real_t gamma12 = gammaIJ[3];
+  real_t gamma13 = gammaIJ[4];
+  real_t gamma23 = gammaIJ[5];
+
+  return (
+      gamma11*v1[0]*v2[0] + gamma22*v1[1]*v2[1] + gamma33*v1[2]*v2[2]
+      + gamma12*v1[0]*v2[1] + gamma13*v1[0]*v2[2] + gamma23*v1[1]*v2[2]
+      + gamma12*v1[1]*v2[0] + gamma13*v1[2]*v2[1] + gamma23*v1[2]*v2[1]
+    );
+}
+real_t mag_cont_spatial_vector(real_t * v1, std::vector<real_t> gammaIJ)
+{
+  return std::sqrt( dot_cont_spatial_vectors(v1, v1, gammaIJ) );
+}
+real_t dot_cov_cont_spatial_vectors(real_t * v1, real_t * v2)
+{
+  return (
+      v1[0]*v2[0] + v1[1]*v2[1] + v1[2]*v2[2]
+    );
+}
+
+real_t dot_4_vectors_vvg(real_t v1[4], real_t v2[4], real_t g[4][4])
+{
+  real_t mag = 0.0;
+  for(idx_t i=0; i<4; ++i)
+    for(idx_t j=0; j<4; ++j)
+      mag += g[i][j]*v1[i]*v2[j];
+  return mag;
+}
+
+real_t dot_4_vectors_vv(real_t v1[4], real_t v2[4])
+{
+  real_t mag = 0.0;
+  for(idx_t i=0; i<4; ++i)
+    mag += v1[i]*v2[i];
+  return mag;
+}
+
+/**
+ * @brief      Function to get metric/data for a particular particle;
+ * Currently only ok for zero shift (maybe ok in general?); returns data from _p register
+ */
+std::vector<real_t> Sheet::getRayDataAtS(idx_t s, BSSN *bssnSim, Lambda * lambda)
+{
+  std::vector<real_t> sheet_data (9);
+  idx_t s1 = s, s2 = 0, s3 = 0;
+
+  arr_t & DIFFr_a = *bssnSim->fields["DIFFr_a"];
+  arr_t & S1_a = *bssnSim->fields["S1_a"];
+  arr_t & S2_a = *bssnSim->fields["S2_a"];
+  arr_t & S3_a = *bssnSim->fields["S3_a"];
+  arr_t & DIFFalpha_p = *bssnSim->fields["DIFFalpha_p"];
+
+  std::vector<real_t> gammaiIJ = getgammaiIJ(s1, s2, s3, bssnSim);
+  real_t gammai11 = gammaiIJ[0];
+  real_t gammai22 = gammaiIJ[1];
+  real_t gammai33 = gammaiIJ[2];
+  real_t gammai12 = gammaiIJ[3];
+  real_t gammai13 = gammaiIJ[4];
+  real_t gammai23 = gammaiIJ[5];
+
+  std::vector<real_t> gammaIJ = getgammaIJ(s1, s2, s3, bssnSim);
+  real_t gamma11 = gammaIJ[0];
+  real_t gamma22 = gammaIJ[1];
+  real_t gamma33 = gammaIJ[2];
+  real_t gamma12 = gammaIJ[3];
+  real_t gamma13 = gammaIJ[4];
+  real_t gamma23 = gammaIJ[5];
+
+  real_t x_pt = Dx._p(s1,s2,s3) + _S1IDXtoX0(s1);
+  real_t y_pt = Dy._p(s1,s2,s3) + _S2IDXtoY0(s2);
+  real_t z_pt = Dz._p(s1,s2,s3) + _S3IDXtoZ0(s3);
+  real_t k1 = vx._p(s1,s2,s3);
+  real_t k2 = vy._p(s1,s2,s3);
+  real_t k3 = vz._p(s1,s2,s3);
+  
+  real_t x_idx = x_pt/dx;
+  real_t y_idx = y_pt/dy;
+  real_t z_idx = z_pt/dz;
+
+  real_t rho_ADM = DIFFr_a.getTriCubicInterpolatedValue(x_idx, y_idx, z_idx);
+  real_t alpha = DIFFalpha_p.getTriCubicInterpolatedValue(x_idx, y_idx, z_idx);
+  real_t S1 = S1_a.getTriCubicInterpolatedValue(x_idx, y_idx, z_idx);
+  real_t S2 = S2_a.getTriCubicInterpolatedValue(x_idx, y_idx, z_idx);
+  real_t S3 = S3_a.getTriCubicInterpolatedValue(x_idx, y_idx, z_idx);
+  
+  real_t W_k = std::sqrt(
+    gammai11*k1*k1 + gammai22*k2*k2 + gammai33*k3*k3
+    + 2.0*( gammai12*k1*k2 + gammai13*k1*k3 + gammai23*k2*k3 )
+  );
+
+  real_t rho_ADM_m = rho_ADM - lambda->getLambda(); // matter only density
+  real_t W_u = 1.0/std::sqrt( 1.0 - 
+    ( gammai11*S1*S1 + gammai22*S2*S2 + gammai33*S3*S3 + 2.0*( gammai12*S1*S2 + gammai13*S1*S3 + gammai23*S2*S3 ) ) / rho_ADM_m/rho_ADM_m
+  ); // fluid W-factor
+  real_t rho_m = rho_ADM_m / W_u / W_u; // density in matter rest frame
+
+  // observed photon frequency
+  real_t u1 = S1/rho_m/W_u, u2 = S2/rho_m/W_u, u3 = S3/rho_m/W_u;
+  real_t w = W_u*W_k - (
+      gammai11*k1*u1 + gammai12*k1*u2 + gammai13*k1*u3
+      + gammai12*k2*u1 + gammai22*k2*u2 + gammai23*k2*u3
+      + gammai13*k3*u1 + gammai23*k3*u2 + gammai33*k3*u3
+    );
+
+  // angular diameter for a coordinate observer at rest
+
+  // covariant k_0, u_0
+  real_t k0 = -alpha*W_k;
+  real_t k[4] = { k0, k1, k2, k3 };
+  real_t u0 = -alpha*W_u;
+  real_t u[4] = { u0, u1, u2, u3 };
+  // direction vector d
+  real_t d[4];
+  for(idx_t i=0; i<4; ++i)
+    d[i] = k[i]/w - u[i];
+  // 4-metric (no shift...)
+  real_t g[4][4] = {0};
+  g[0][0] = -alpha*alpha;
+  g[1][1] = gamma11; g[2][1] = gamma21; g[3][1] = gamma31;
+  g[1][2] = gamma12; g[2][2] = gamma22; g[3][2] = gamma32;
+  g[1][3] = gamma13; g[2][3] = gamma23; g[3][3] = gamma33;
+  // screen projection matrix
+  real_t Smn[4][4] = {0};
+  for(idx_t i=0; i<4; ++i)
+    for(idx_t j=0; j<4; ++j)
+      Smn[i][j] = g[i][j] + u[i]*u[j] - d[i]*d[j];
+
+  // get separation vectors; time separation is zero
+  real_t sep1[4] = { 0, Dx._p(s1,1,0) - Dx._p(s1,0,0),
+    Dy._p(s1,1,0) + _S2IDXtoY0((idx_t) 1) - Dy._p(s1,0,0), Dz._p(s1,1,0) - Dz._p(s1,0,0) };
+  real_t sep2[4] = { 0, Dx._p(s1,2,0) - Dx._p(s1,0,0),
+    Dy._p(s1,2,0) + _S2IDXtoY0((idx_t) 2) - Dy._p(s1,0,0), Dz._p(s1,2,0) - Dz._p(s1,0,0) };
+
+  // Get screen vectors
+  // Use separation vectors as guesses (dont worry about co/contra, just a guess), and orthonormalize
+  real_t V1[4], v1[4];
+  real_t V2[4], v2[4];
+  for(int i=0; i<4; ++i)
+  {
+    V1[i] = sep1[i];
+    V2[i] = sep2[i];
+  }
+  // Project & normalize V1
+  real_t v1norm = std::sqrt( dot_4_vectors_vvg(V1, V1, Smn) );
+  for(int i=0; i<4; i++)
+    v1[i] = ( Smn[i][0]*V1[0] + Smn[i][1]*V1[1] + Smn[i][2]*V1[2] + Smn[i][3]*V1[3] )/v1norm;
+  // project and normalize V2
+  real_t v1V2 = 0.0;
+  for(int i=0; i<4; i++)
+    v1V2 += v1[i]*V2[i];
+  real_t SVV = dot_4_vectors_vvg(V2, V2, Smn);
+  real_t v2norm = std::sqrt( std::abs( SVV - v1V2*v1V2 ) );
+  for(int i=0; i<4; i++)
+    v2[i] = ( Smn[i][0]*V2[0] + Smn[i][1]*V2[1] + Smn[i][2]*V2[2] + Smn[i][3]*V2[3] - v1[i]*v1V2 ) / v2norm;
+
+  real_t D11 = dot_4_vectors_vv(sep1, v1);
+  real_t D12 = dot_4_vectors_vv(sep1, v2);
+  real_t D21 = dot_4_vectors_vv(sep2, v1);
+  real_t D22 = dot_4_vectors_vv(sep2, v2);
+  real_t DA = std::sqrt(std::abs(D11*D22 - D12*D21)) / std::atan(ray_bundle_epsilon);
+
+  sheet_data[0] = x_pt;
+  sheet_data[1] = y_pt;
+  sheet_data[2] = z_pt;
+
+  sheet_data[3] = u1;
+  sheet_data[4] = u2;
+  sheet_data[5] = u3;
+
+  sheet_data[6] = w;
+  sheet_data[7] = rho_m;
+
+  sheet_data[8] = DA;
+
+  return sheet_data;
+}
+
 
 } // namespace

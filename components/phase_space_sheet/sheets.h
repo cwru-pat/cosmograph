@@ -25,6 +25,7 @@
 #include "../../cosmo_types.h"
 #include "../bssn/bssn.h"
 #include "../../utils/TriCubicInterpolator.h"
+#include "../Lambda/lambda.h"
 #include <cmath>
 #include <algorithm>
 #include <iostream>
@@ -34,6 +35,7 @@
 #include <sstream>
 #include <iomanip>
 #include <fstream>
+#include <vector>
 
 namespace cosmo
 {
@@ -51,10 +53,14 @@ public:
   real_t lx, ly, lz; ///< Metric grid physical dimensions
   real_t dx, dy, dz; ///< Metric grid physical spacing
   
-  register_t Dx, Dy, Dz; ///< Metric-space density
+  register_t Dx, Dy, Dz; ///< Metric-space displacements
   register_t vx, vy, vz; ///< Phase-space velocity fields
   
   arr_t tmp; ///< Array for misc. tmp storage (such as deconvolving)
+
+  bool follow_null_geodesics;
+  real_t rescale_sheet;
+  real_t ray_bundle_epsilon, det_g_obs;
 
   idx_t step;
 
@@ -71,6 +77,8 @@ public:
 
   Sheet();
   ~Sheet();
+
+  void setDt(real_t dt);
 
   /**
    * Functions to convert s-indices to non-displaced coordinates
@@ -129,6 +137,11 @@ public:
 
   void addBSSNSource(BSSN *bssn, real_t tot_mass);
 
+  void rescaleFieldPerturbations(arr_t & field, real_t multiplier);
+  void rescaleVelocityPerturbations(arr_t & ux, arr_t & uy, arr_t & uz, real_t multiplier);
+  void rescalePositionPerturbations(arr_t & dx, arr_t & dy, arr_t & dz, real_t multiplier);
+  void rescaleAllFieldPerturbations(BSSN *bssn, real_t multiplier);
+
   void RKStep(BSSN *bssn);
 
   void stepInit();
@@ -153,7 +166,19 @@ public:
   arr_t d2beta1_a, d2beta2_a, d2beta3_a;
   arr_t d3beta1_a, d3beta2_a, d3beta3_a;
 
+  std::vector<real_t> getgammaiIJ(idx_t s1, idx_t s2, idx_t s3, BSSN *bssnSim);
+  std::vector<real_t> getgammaIJ(idx_t s1, idx_t s2, idx_t s3, BSSN *bssnSim);
+  std::vector<real_t> getRayDataAtS(idx_t s, BSSN *bssnSim, Lambda * lambda);
+
 };
+
+real_t dot_cov_spatial_vectors(real_t * v1, real_t * v2, std::vector<real_t> gammaiIJ);
+real_t mag_cov_spatial_vector(real_t * v1, std::vector<real_t> gammaiIJ);
+real_t dot_cont_spatial_vectors(real_t * v1, real_t * v2, std::vector<real_t> gammaIJ);
+real_t mag_cont_spatial_vector(real_t * v1, std::vector<real_t> gammaIJ);
+real_t dot_4_vectors_vvg(real_t v1[4], real_t v2[4], real_t g[4][4]);
+real_t dot_4_vectors_vv(real_t v1[4], real_t v2[4]);
+
 
 } //namespace cosmo
 #endif // include guard

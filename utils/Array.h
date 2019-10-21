@@ -116,15 +116,45 @@ class CosmoArray
       return max_res;
     }
 
+    RT abs_max()
+    {
+      RT max_res = 0;
+#pragma omp parallel for
+      for(IT i = 0; i<pts; i++)
+      {
+#pragma omp critical
+        {
+          if(fabs(_array[i]) > max_res)
+            max_res = fabs(_array[i]);
+        }
+      }
+
+      return max_res;
+    }
+
+  
+  RT L2_norm()
+  {
+    RT L2 = 0;
+#pragma omp parallel for reduction(+:L2)
+    for(IT i=0; i<pts; ++i)
+    {
+      L2 += _array[i] * _array[i];
+    }
+
+    return sqrt(L2);
+  }
+
+  
     IT idx(IT i_in, IT j_in, IT k_in)
     {
       IT i=i_in, j=j_in, k=k_in;
 
       // indexing only works down to negative 100*(nx, ny, nz)?
       // Using this is slow. Use a macro instead.
-      if(i_in < 0 || i_in >= nx) i = (i_in+100*nx)%nx;
-      if(j_in < 0 || j_in >= ny) j = (j_in+100*ny)%ny;
-      if(k_in < 0 || k_in >= nz) k = (k_in+100*nz)%nz;
+      if(i_in < 0 || i_in >= nx) i = (i_in%nx + nx)%nx;
+      if(j_in < 0 || j_in >= ny) j = (j_in%ny + ny)%ny;
+      if(k_in < 0 || k_in >= nz) k = (k_in%nz + nz)%nz;
       return ( i*ny*nz + j*nz + k );
     }
 
@@ -193,10 +223,16 @@ class CosmoArray
 
     RT getTriCubicInterpolatedValue(RT i_in, RT j_in, RT k_in)
     {
-      // TODO: need higher order interpolation methods
-      // For now, weighted average (linear interpolation)
       IT il = i_in < 0 ? (IT) i_in - 1 : (IT) i_in; // Index "left" of i
       RT id = i_in - il; // fractional difference
+      // special 1d case
+      if(ny==1 && nz==1)
+      {
+          return CINT(id,
+            _array[idx(il-1, 0, 0)], _array[idx(il, 0, 0)],
+            _array[idx(il+1, 0, 0)], _array[idx(il+2, 0, 0)]);
+      }
+
       IT jl = j_in < 0 ? (IT) j_in - 1 : (IT) j_in; // same as ^ but j
       RT jd = j_in - jl;
       IT kl = k_in < 0 ? (IT) k_in - 1 : (IT) k_in; // same as ^ but k

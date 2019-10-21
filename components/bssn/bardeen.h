@@ -12,6 +12,8 @@
 #include "../../utils/Fourier.h"
 #include "bssn.h"
 
+#define NUM_BARDEEN_VIOLS 17
+
 namespace cosmo
 {
 
@@ -25,7 +27,8 @@ class Bardeen
   BSSN * bssn;
   Fourier * fourier;
 
-  bool use_matter_scale_factor;
+  bool use_mL_scale_factor; ///< Use FLRW matter+Lambda scale factor?
+  real_t Omega_L_I; ///< Initial Omega_Lambda
 
 public:  
   // perturbed metric & time derivatives
@@ -52,6 +55,8 @@ public:
   // Vector potentials
   arr_t G1, G2, G3;
   arr_t C1, C2, C3;
+  arr_t dt_C1, dt_C2, dt_C3;
+  arr_t Vmag;
 
   // Tensor
   arr_t D11, D12, D13, D22, D23, D33;
@@ -60,7 +65,7 @@ public:
   arr_t Phi, Psi;
 
   // constraint violation
-  arr_t lin_viol, lin_viol_der_mag, lin_viol_der;
+  arr_t lin_viol, lin_viol_mag, lin_viol_der_mag, lin_viol_der;
 
   real_t * viols;
 
@@ -69,7 +74,8 @@ public:
     bssn = bssn_in;
     fourier = fourier_in;
 
-    use_matter_scale_factor = true;
+    use_mL_scale_factor = false;
+    Omega_L_I = 0;
 
     h11.init(NX, NY, NZ); h12.init(NX, NY, NZ); h13.init(NX, NY, NZ);
     h22.init(NX, NY, NZ); h23.init(NX, NY, NZ); h33.init(NX, NY, NZ);
@@ -95,6 +101,8 @@ public:
 
     G1.init(NX, NY, NZ); G2.init(NX, NY, NZ); G3.init(NX, NY, NZ);
     C1.init(NX, NY, NZ); C2.init(NX, NY, NZ); C3.init(NX, NY, NZ);
+    dt_C1.init(NX, NY, NZ); dt_C2.init(NX, NY, NZ); dt_C3.init(NX, NY, NZ);
+    Vmag.init(NX, NY, NZ);
 
     D11.init(NX, NY, NZ);
     D12.init(NX, NY, NZ);
@@ -106,11 +114,12 @@ public:
     Phi.init(NX, NY, NZ); Psi.init(NX, NY, NZ);
 
     lin_viol.init(NX, NY, NZ);
+    lin_viol_mag.init(NX, NY, NZ);
     lin_viol_der_mag.init(NX, NY, NZ);
     lin_viol_der.init(NX, NY, NZ);
 
-    viols = new real_t[7];
-    for(int i=0; i<7; ++i)
+    viols = new real_t[NUM_BARDEEN_VIOLS];
+    for(int i=0; i<NUM_BARDEEN_VIOLS; ++i)
       viols[0] = 0;
 
     // add Bardeen potentials to BSSN fields map
@@ -129,10 +138,13 @@ public:
     bssn->fields["Bardeen_G1"] = & G1;
     bssn->fields["Bardeen_G2"] = & G2;
     bssn->fields["Bardeen_G3"] = & G3;
-    
     bssn->fields["Bardeen_C1"] = & C1;
     bssn->fields["Bardeen_C2"] = & C2;
     bssn->fields["Bardeen_C3"] = & C3;
+    bssn->fields["Bardeen_dt_C1"] = & dt_C1;
+    bssn->fields["Bardeen_dt_C2"] = & dt_C2;
+    bssn->fields["Bardeen_dt_C3"] = & dt_C3;
+    bssn->fields["Bardeen_Vmag"] = & Vmag;
 
     bssn->fields["Bardeen_D11"] = & D11;
     bssn->fields["Bardeen_D12"] = & D12;
@@ -147,9 +159,70 @@ public:
     // anything to do?
   }
 
-  void setUseMatterScaleFactor(bool use)
+
+  void useMLScaleFactor(real_t Omega_L_I_in)
   {
-    use_matter_scale_factor = use;
+    if(Omega_L_I_in < 0 || Omega_L_I_in > 1)
+    {
+      std::cout << "Invalid Omega_Lambda specified." << std::endl;
+      throw -1;
+    }
+
+    Omega_L_I = Omega_L_I_in;
+  }
+
+  void setUseMLScaleFactor(bool use)
+  {
+    use_mL_scale_factor = use;
+  }
+
+  /**
+   * @brief      Gets the matter+Lambda universe initial time.
+   *  Assumes units H_I = 1, a_I = 1.
+   */
+  real_t getMLInitialTime()
+  {
+    if(Omega_L_I == 0)
+    {
+      return 2.0/3.0;
+    }
+    else
+    {
+      real_t sqrt_Omega_L_I = std::sqrt(Omega_L_I);
+      return std::log1p(
+          2.0/(1.0 - sqrt_Omega_L_I) * sqrt_Omega_L_I
+        ) / (3.0*sqrt_Omega_L_I);
+    }
+  }
+
+  real_t getMLScaleFactor(real_t elapsed_sim_time)
+  {
+    if(Omega_L_I == 0)
+    {
+      real_t tI = getMLInitialTime();
+      real_t t = tI + elapsed_sim_time;
+      return std::pow(t/tI, 2.0/3.0);
+    }
+    else
+    {
+      return std::pow(
+          std::cosh(3.0*std::sqrt(Omega_L_I) * elapsed_sim_time / 2.0 )
+          + (std::sinh(3.0*std::sqrt(Omega_L_I) * elapsed_sim_time / 2.0 ) / std::sqrt(Omega_L_I))
+        , 2.0/3.0);
+    }
+  }
+
+  real_t getMLHubbleFactor(real_t elapsed_sim_time)
+  {
+    real_t a = getMLScaleFactor(elapsed_sim_time);
+    return std::sqrt( (1 - Omega_L_I)*std::pow(a, -3.0) + Omega_L_I );
+  }
+
+  real_t getMLd2adt2Factor(real_t elapsed_sim_time)
+  {
+    real_t a = getMLScaleFactor(elapsed_sim_time);
+    real_t H = getMLHubbleFactor(elapsed_sim_time);
+    return a*H*H - (1.0 - Omega_L_I)*3.0/2.0/a/a;
   }
 
   void setPotentials(real_t elapsed_sim_time);

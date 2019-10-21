@@ -18,6 +18,13 @@
 #define STRINGIFY_EVALUATOR(function) STRINGIFY_STRINGIFIER(function)
 #define STRINGIFY(function) (STRINGIFY_EVALUATOR(function))
 
+#if USE_LONG_DOUBLES
+# define H5T_TO_USE H5T_NATIVE_LDOUBLE
+# define H5T_ALLOC H5T_NATIVE_LDOUBLE
+#else
+# define H5T_TO_USE H5T_NATIVE_DOUBLE
+# define H5T_ALLOC H5T_IEEE_F64LE
+#endif
 
 namespace cosmo
 {
@@ -161,6 +168,7 @@ void io_bssn_fields_powerdump(IOData *iodata, idx_t step,
   map_t & bssn_fields, Fourier *fourier)
 {
   bool output_step = ( std::stoi(_config("IO_powerspec_interval", "0")) > 0 );
+  if(!output_step) return;
   bool output_this_step = (0 == step % std::stoi(_config("IO_powerspec_interval", "1")));
   if( output_step && output_this_step )
   {
@@ -175,6 +183,8 @@ void io_bssn_fields_powerdump(IOData *iodata, idx_t step,
 void io_bssn_constraint_violation(IOData *iodata, idx_t step, BSSN * bssnSim)
 {
   bool output_step = ( std::stoi(_config("IO_constraint_interval", "0")) > 0 );
+  if(!output_step) return;
+
   bool output_this_step = (0 == step % std::stoi(_config("IO_constraint_interval", "1")));
 
   // whether dump 1D constraint everywhere
@@ -332,6 +342,8 @@ void io_bssn_dump_statistics(IOData *iodata, idx_t step,
   map_t & bssn_fields, FRW<real_t> *frw)
 {
   bool output_step = ( std::stoi(_config("IO_bssnstats_interval", "0")) > 0 );
+  if(!output_step) return;
+
   bool output_this_step = (0 == step % std::stoi(_config("IO_bssnstats_interval", "1")));
   if( !output_step || !output_this_step )
     return;
@@ -592,6 +604,46 @@ void io_sheets_snapshot(IOData *iodata, idx_t step, Sheet * sheets)
   
 }
 
+/**
+ * @brief      Read full 3D slice from a file.
+ *
+ * @param      iodata    initialized IOData
+ * @param      field     Field to real
+ * @param[in]  filename  filename to read (minus suffix)
+ */
+bool io_read_3dslice(IOData *iodata, arr_t & field, std::string filename)
+{
+  std::string dump_filename = filename + ".3d_grid.h5.gz";
+  hid_t file_id = H5Fopen(dump_filename.c_str(), H5F_ACC_RDWR, H5P_DEFAULT);
+
+  if(file_id < 0) return false;
+
+  hid_t temp;
+
+  temp = H5Dopen(file_id, "DS1", H5P_DEFAULT);
+
+  if( temp < 0 ) {
+    std::cout << "Dataset DS1 does not exist." << std::endl;
+    return false;
+  }
+  H5Dclose(temp);
+
+  hid_t dset_id = H5Dopen(file_id, "DS1", H5P_DEFAULT);
+  std::cout << "Dataset DS1 exists!" << std::endl << std::flush;
+
+  herr_t status;
+
+  // hsize_t dims[3] = {(hsize_t) field.nx, (hsize_t) field.ny, (hsize_t) field.nz},
+  //   maxdims[3] = {H5S_UNLIMITED, H5S_UNLIMITED, H5S_UNLIMITED},
+  //   chunk[3] = {6, 6, 6};
+
+  status = H5Dread(dset_id, H5T_TO_USE, H5S_ALL, H5S_ALL, H5P_DEFAULT, field._array);
+  status = status; // suppress unused variable warning
+  
+  return true;
+}
+
+  
   
 /**
  * @brief      Write full 3D slice to a file.
@@ -616,9 +668,9 @@ void io_dump_3dslice(IOData *iodata, arr_t & field, std::string filename)
   dcpl = H5Pcreate (H5P_DATASET_CREATE);
   status = H5Pset_deflate (dcpl, 9);
   status = H5Pset_chunk (dcpl, 3, chunk);
-  dset = H5Dcreate2 (file, "DS1", H5T_IEEE_F64LE, space, H5P_DEFAULT, dcpl, H5P_DEFAULT);
+  dset = H5Dcreate2 (file, "DS1", H5T_ALLOC, space, H5P_DEFAULT, dcpl, H5P_DEFAULT);
 
-  status = H5Dwrite (dset, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, field._array);
+  status = H5Dwrite (dset, H5T_TO_USE, H5S_ALL, H5S_ALL, H5P_DEFAULT, field._array);
 
   status = H5Pclose (dcpl);
   status = H5Dclose (dset);
@@ -652,9 +704,9 @@ void io_dump_2dslice(IOData *iodata, arr_t & field, std::string filename)
   dcpl = H5Pcreate (H5P_DATASET_CREATE);
   status = H5Pset_deflate (dcpl, 9);
   status = H5Pset_chunk (dcpl, 2, chunk);
-  dset = H5Dcreate2 (file, "Dataset1", H5T_IEEE_F64LE, space, H5P_DEFAULT, dcpl, H5P_DEFAULT);
+  dset = H5Dcreate2 (file, "Dataset1", H5T_ALLOC, space, H5P_DEFAULT, dcpl, H5P_DEFAULT);
 
-  status = H5Dwrite (dset, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, field._array);
+  status = H5Dwrite (dset, H5T_TO_USE, H5S_ALL, H5S_ALL, H5P_DEFAULT, field._array);
 
   status = H5Pclose (dcpl);
   status = H5Dclose (dset);
@@ -803,9 +855,9 @@ void io_dump_2d_array(IOData *iodata, real_t * array, idx_t n_x, idx_t n_y,
   dcpl = H5Pcreate (H5P_DATASET_CREATE);
   status = H5Pset_deflate (dcpl, 9);
   status = H5Pset_chunk (dcpl, 2, chunk);
-  dset = H5Dcreate2 (file, dataset_name.c_str(), H5T_IEEE_F64LE, space, H5P_DEFAULT, dcpl, H5P_DEFAULT);
+  dset = H5Dcreate2 (file, dataset_name.c_str(), H5T_ALLOC, space, H5P_DEFAULT, dcpl, H5P_DEFAULT);
 
-  status = H5Dwrite (dset, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, array);
+  status = H5Dwrite (dset, H5T_TO_USE, H5S_ALL, H5S_ALL, H5P_DEFAULT, array);
 
   status = H5Pclose (dcpl);
   status = H5Dclose (dset);
@@ -819,6 +871,8 @@ void io_dump_2d_array(IOData *iodata, real_t * array, idx_t n_x, idx_t n_y,
 void io_print_particles(IOData *iodata, idx_t step, Particles *particles)
 {
   bool output_step = ( std::stoi(_config("IO_particles", "0")) > 0 );
+  if(!output_step) return;
+
   bool output_this_step = (0 == step % std::stoi(_config("IO_particles", "1")));
   bool output_phase_diagram = (0 == step % std::stoi(_config("IO_particles_diagram", "1")));
 
@@ -1063,20 +1117,59 @@ void io_svt_violation(IOData *iodata, idx_t step, Bardeen * bardeen, real_t t)
 {
   // potentials should be set per sim call to prepBSSNOutput
   bool output_step = ( std::stoi(_config("SVT_constraint_interval", "0")) > 0 );
+  if(!output_step) return;
+
   bool output_this_step = (0 == step % std::stoi(_config("SVT_constraint_interval", "1")));
   if( output_step && output_this_step )
   {
-    real_t SVT_calcs[7] = {0};
+    real_t SVT_calcs[NUM_BARDEEN_VIOLS] = {0};
     bardeen->getSVTViolations(SVT_calcs);
 
-    io_dump_value(iodata, SVT_calcs[0], "SVT_violations", "\t");
-    io_dump_value(iodata, SVT_calcs[1], "SVT_violations", "\t");
-    io_dump_value(iodata, SVT_calcs[2], "SVT_violations", "\t");
-    io_dump_value(iodata, SVT_calcs[3], "SVT_violations", "\t");
-    io_dump_value(iodata, SVT_calcs[4], "SVT_violations", "\t");
-    io_dump_value(iodata, SVT_calcs[5], "SVT_violations", "\t");
-    io_dump_value(iodata, SVT_calcs[6], "SVT_violations", "\n");
+    for(int i=0; i<NUM_BARDEEN_VIOLS-1; ++i)
+      io_dump_value(iodata, SVT_calcs[i], "SVT_violations", "\t");
+    io_dump_value(iodata, SVT_calcs[NUM_BARDEEN_VIOLS-1], "SVT_violations", "\n");
   }
+}
+
+
+void io_raysheet_dump(IOData *iodata, idx_t step,
+  Sheet * raySheet, BSSN *bssnSim, Lambda * lambda)
+{
+  bool output_step = ( std::stoi(_config("IO_raysheet_interval", "0")) > 0 );
+  if(!output_step) return;
+
+  bool output_this_step = (0 == step % std::stoi(_config("IO_raysheet_interval", "1")));
+  bool output_minimalwrite = !!std::stoi(_config("IO_raysheet_minimalwrite", "1"));
+  if( output_step && output_this_step )
+  {
+    // output misc. info about simulation here.
+    char data[35];
+    std::string dump_filename = iodata->dir() + "raysheet.dat.gz";
+
+    gzFile datafile = gzopen(dump_filename.c_str(), "ab");
+    if(datafile == Z_NULL) {
+      iodata->log("Error opening file: " + dump_filename);
+      return;
+    }
+
+    for(idx_t r=0; r<raySheet->ns1; ++r)
+    {
+      std::vector<real_t> sheet_data = raySheet->getRayDataAtS(r,bssnSim,lambda);
+      idx_t size = (idx_t) sheet_data.size();
+      idx_t i;
+      for(i=output_minimalwrite?6:0; i<size; ++i)
+      {
+        sprintf(data, "%.15g\t", (double) sheet_data[i]);
+        gzwrite(datafile, data, strlen(data));        
+      }
+    }
+
+    sprintf(data, "\n");
+    gzwrite(datafile, data, strlen(data));
+    gzclose(datafile);
+  }
+
+  return;
 }
 
 

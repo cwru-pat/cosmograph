@@ -1,5 +1,6 @@
 #include "bardeen.h"
 #include "../../utils/math.h"
+#include <iomanip>
 
 namespace cosmo
 {
@@ -44,18 +45,16 @@ void Bardeen::setPotentials(real_t elapsed_sim_time)
   real_t phi_avg = conformal_average(DIFFphi_a, DIFFphi_a, 0.0);
 
 #if USE_Z4c_DAMPING
-  K_avg += conformal_average(theta_a, DIFFphi_a, 0.0);
+  K_avg += 2.0*conformal_average(theta_a, DIFFphi_a, 0.0);
 #endif
   
   real_t a, dadt, H, d2adt2;
-  if(use_matter_scale_factor)
+  if(use_mL_scale_factor)
   {
-    real_t tI = 2.0/3.0; // t_I = 2/(3H) = 2/3 in units where H_I = 1 (sim units)
-    real_t t = tI + elapsed_sim_time;
-    a = std::pow(t/tI, 2.0/3.0);
-    H = 2.0/3.0/t;
+    a = getMLScaleFactor(elapsed_sim_time);
+    H = getMLHubbleFactor(elapsed_sim_time);
     dadt = H*a;
-    d2adt2 = a*(H*H - 2.0/3.0/t/t);
+    d2adt2 = getMLd2adt2Factor(elapsed_sim_time);
   }
   else
   {
@@ -136,22 +135,22 @@ void Bardeen::setPotentials(real_t elapsed_sim_time)
     d2t_g33[idx] = D2T_g(3, 3);
 
     // stores d^2/dt^2 phi
-    #if USE_Z4c_DAMPING
+#if USE_Z4c_DAMPING
     d2t_phi[idx] = -1.0/6.0*( dtalpha*(bd.K + 2.0 * bd.theta) + bd.alpha*(bssn->ev_DIFFK(&bd) + 2.0 * bssn->ev_theta(&bd)))
       + dt_beta1[idx]*bd.d1phi + dt_beta2[idx]*bd.d2phi + dt_beta3[idx]*bd.d3phi
       + bd.beta1*derivative(i,j,k,1,dt_phi) + bd.beta2*derivative(i,j,k,2,dt_phi) + bd.beta3*derivative(i,j,k,3,dt_phi)
       + 1.0/6.0*dkdtbetak;
-    #else
-    d2t_phi[idx] = -1.0/6.0*( dtalpha*(bd.K + 2.0 * bd.theta) + bd.alpha*(bssn->ev_DIFFK(&bd)))
+#else
+    d2t_phi[idx] = -1.0/6.0*( dtalpha*bd.K + bd.alpha*bssn->ev_DIFFK(&bd))
       + dt_beta1[idx]*bd.d1phi + dt_beta2[idx]*bd.d2phi + dt_beta3[idx]*bd.d3phi
       + bd.beta1*derivative(i,j,k,1,dt_phi) + bd.beta2*derivative(i,j,k,2,dt_phi) + bd.beta3*derivative(i,j,k,3,dt_phi)
       + 1.0/6.0*dkdtbetak;    
-    #endif
+#endif
     
   }
   // set second derivative of a
   // a'' ~ H*a' + a*2\phi''
-  if(!use_matter_scale_factor)
+  if(!use_mL_scale_factor)
     d2adt2 = H*dadt + 2.0*a*conformal_average(d2t_phi, DIFFphi_a, 0.0);
 
   // construct h_ij, h_0i components, time derivatives
@@ -208,9 +207,11 @@ void Bardeen::setPotentials(real_t elapsed_sim_time)
     h03[idx] = DT_h0I(3);
 
     // "E" SVT scalar
+    // h_00 = g_00 - (-1) = -E
+    // E = -g_00 - 1 = alpha^2 - beta^2 - 1
     E[idx] = bd.alpha*bd.alpha - 1.0
-      + bd.gamma11*bd.beta1*bd.beta1 + bd.gamma22*bd.beta2*bd.beta2 + bd.gamma33*bd.beta3*bd.beta3
-      + 2.0*(bd.gamma12*bd.beta1*bd.beta2 + bd.gamma13*bd.beta1*bd.beta3 + bd.gamma23*bd.beta2*bd.beta3 );
+      - bd.gamma11*bd.beta1*bd.beta1 - bd.gamma22*bd.beta2*bd.beta2 - bd.gamma33*bd.beta3*bd.beta3
+      - 2.0*(bd.gamma12*bd.beta1*bd.beta2 + bd.gamma13*bd.beta1*bd.beta3 + bd.gamma23*bd.beta2*bd.beta3 );
   }
 
 
@@ -351,19 +352,41 @@ void Bardeen::setPotentials(real_t elapsed_sim_time)
 
     // d^2 C_i
     C1[idx] = ( derivative(i,j,k,2,h12) + derivative(i,j,k,3,h13)
-      - derivative(i,j,k,1,h22) - derivative(i,j,k,1,h33) )/a/a 
+      - derivative(i,j,k,1,h22) - derivative(i,j,k,1,h33) )/a/a
       + 2.0*derivative(i,j,k,1,A);
     C2[idx] = ( derivative(i,j,k,1,h12) + derivative(i,j,k,3,h23)
-      - derivative(i,j,k,2,h11) - derivative(i,j,k,2,h33) )/a/a 
+      - derivative(i,j,k,2,h11) - derivative(i,j,k,2,h33) )/a/a
       + 2.0*derivative(i,j,k,2,A);
     C3[idx] = ( derivative(i,j,k,1,h13) + derivative(i,j,k,2,h23)
-      - derivative(i,j,k,3,h11) - derivative(i,j,k,3,h22) )/a/a 
+      - derivative(i,j,k,3,h11) - derivative(i,j,k,3,h22) )/a/a
       + 2.0*derivative(i,j,k,3,A);
+
+    // d^2 d_t C_i
+    dt_C1[idx] = ( derivative(i,j,k,2,dt_h12) + derivative(i,j,k,3,dt_h13)
+        - derivative(i,j,k,1,dt_h22) - derivative(i,j,k,1,dt_h33) )/a/a
+      - 2.0*H*( C1[idx] - 2.0*derivative(i,j,k,1,A) ) + 2.0*derivative(i,j,k,1,dt_A);
+    dt_C2[idx] = ( derivative(i,j,k,1,dt_h12) + derivative(i,j,k,3,dt_h23)
+        - derivative(i,j,k,2,dt_h11) - derivative(i,j,k,2,dt_h33) )/a/a
+      - 2.0*H*( C2[idx] - 2.0*derivative(i,j,k,2,A) ) + 2.0*derivative(i,j,k,2,dt_A);
+    dt_C3[idx] = ( derivative(i,j,k,1,dt_h13) + derivative(i,j,k,2,dt_h23)
+        - derivative(i,j,k,3,dt_h11) - derivative(i,j,k,3,dt_h22) )/a/a
+      - 2.0*H*( C3[idx] - 2.0*derivative(i,j,k,3,A) ) + 2.0*derivative(i,j,k,3,dt_A);
   }
   fourier->inverseLaplacian <idx_t, real_t> (C1._array);
   fourier->inverseLaplacian <idx_t, real_t> (C2._array);
   fourier->inverseLaplacian <idx_t, real_t> (C3._array);
-
+  fourier->inverseLaplacian <idx_t, real_t> (dt_C1._array);
+  fourier->inverseLaplacian <idx_t, real_t> (dt_C2._array);
+  fourier->inverseLaplacian <idx_t, real_t> (dt_C3._array);
+#pragma omp parallel for default(shared) private(i, j, k)
+  LOOP3(i,j,k)
+  {
+    idx_t idx = NP_INDEX(i,j,k);
+    // G - a \dot{C}
+    Vmag[idx] = std::sqrt( pw2(G1[idx] - a*dt_C1[idx])
+      + pw2(G2[idx] - a*dt_C2[idx])
+      + pw2(G3[idx] - a*dt_C3[idx]) );
+  }
 
   // Construct tensor potentials.
 #pragma omp parallel for default(shared) private(i, j, k)
@@ -390,6 +413,9 @@ void Bardeen::setPotentials(real_t elapsed_sim_time)
     lin_viol[idx] = E[idx] + A[idx] - a*a*d2t_B[idx] - 3.0*a*dadt*dt_B[idx]
       + 2.0*a*dt_F[idx] + 4.0*dadt*F[idx];
 
+    lin_viol_mag[idx] = std::sqrt( pw2(E[idx]) + pw2(A[idx]) + pw2(a*a*d2t_B[idx])
+      + pw2(3.0*a*dadt*dt_B[idx]) + pw2(2.0*a*dt_F[idx]) + pw2(4.0*dadt*F[idx]) );
+
     lin_viol_der_mag[idx] = abs_dder(i,j,k,E) + abs_dder(i,j,k,A)
       + a*a*abs_dder(i,j,k,d2t_B) + std::abs(3.0*a*dadt)*abs_dder(i,j,k,dt_B)
       + 2.0*a*abs_dder(i,j,k,dt_F) + std::abs(4.0*dadt)*abs_dder(i,j,k,F);
@@ -401,18 +427,36 @@ void Bardeen::setPotentials(real_t elapsed_sim_time)
     lin_viol_der[idx] = abs_dder(i,j,k,lin_viol);
   }
 
-  real_t mean_viol = average(lin_viol_der);
-  real_t viol_scale = average(lin_viol_der_mag);
-  real_t max_viol = max(lin_viol_der);
-  real_t std_viol = standard_deviation(lin_viol_der, mean_viol);
+  real_t mean_viol_der = average(lin_viol_der);
+  real_t viol_scale_der = average(lin_viol_der_mag);
+  real_t max_viol_der = max(lin_viol_der);
+  real_t std_viol_der = standard_deviation(lin_viol_der, mean_viol_der);
 
-  viols[0] = mean_viol / viol_scale;
-  viols[1] = std_viol / viol_scale;
-  viols[2] = max_viol / viol_scale;
-  viols[3] = max_viol;
-  viols[4] = a / exp( 2.0*phi_avg );
-  viols[5] = dadt / (-1.0/3.0*a*alpha_avg*K_avg);
-  viols[6] = d2adt2 / ( H*dadt + 2.0*a*conformal_average(d2t_phi, DIFFphi_a, 0.0) );
+  real_t mean_viol = average(lin_viol);
+  real_t viol_scale = average(lin_viol_mag);
+  real_t max_viol = max(lin_viol);
+  real_t std_viol = standard_deviation(lin_viol, mean_viol);
+
+  viols[0] = mean_viol_der / viol_scale_der;
+  viols[1] = std_viol_der / viol_scale_der;
+  viols[2] = max_viol_der / viol_scale_der;
+  viols[3] = max_viol_der;
+  viols[4] = mean_viol / viol_scale;
+  viols[5] = std_viol / viol_scale;
+  viols[6] = max_viol / viol_scale;
+  viols[7] = max_viol;
+  // conformally-weighted averaging
+  viols[8] = 1.0 - getMLScaleFactor(elapsed_sim_time) / exp( 2.0*phi_avg );
+  viols[9] = 1.0 - getMLHubbleFactor(elapsed_sim_time) / (-1.0/3.0*a*alpha_avg*K_avg);
+  viols[10] = 1.0 - getMLd2adt2Factor(elapsed_sim_time) / ( H*dadt + 2.0*a*conformal_average(d2t_phi, DIFFphi_a, 0.0) );
+  // coordinate-weighted averaging
+  viols[11] = 1.0 - getMLScaleFactor(elapsed_sim_time) / exp( 2.0*average(DIFFphi_a) );
+  viols[12] = 1.0 - getMLHubbleFactor(elapsed_sim_time) / (-1.0/3.0*a*alpha_avg*average(DIFFK_a));
+  viols[13] = 1.0 - getMLd2adt2Factor(elapsed_sim_time) / ( H*dadt + 2.0*a*average(d2t_phi) );
+  // vector mode behavior
+  viols[14] = average(Vmag);
+  viols[15] = standard_deviation(Vmag, viols[14]);
+  viols[16] = max(Vmag);
 
   // TODO: Does ( G - a*dt_C ) ~ 1/a^2 ? (vector modes)
 }
@@ -420,7 +464,7 @@ void Bardeen::setPotentials(real_t elapsed_sim_time)
 
 void Bardeen::getSVTViolations(real_t * viols_copyto)
 {
-  for(int i=0; i<7; ++i)
+  for(int i=0; i<NUM_BARDEEN_VIOLS; ++i)
     viols_copyto[i] = viols[i];
 }
 

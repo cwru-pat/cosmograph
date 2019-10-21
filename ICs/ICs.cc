@@ -4,31 +4,6 @@
 namespace cosmo
 {
 
-ICsData cosmo_get_ICsData()
-{
-  ICsData icd = {0};
-
-  icd.rho_K_matter = 3.0/PI/8.0; // matter density term from FRW equation
-
-  real_t rho_K_lambda_frac = (real_t) stold(_config("rho_K_lambda_frac","0.0")); // DE density
-  icd.rho_K_lambda = rho_K_lambda_frac*icd.rho_K_matter;
-
-  // power spectrum amplitude as a fraction of the density
-  real_t peak_amplitude_frac = (real_t) stold(_config["peak_amplitude_frac"]); // fluctuation amplitude
-  real_t peak_amplitude = peak_amplitude_frac*(1.0e-15); // scaling in arb. units
-
-  real_t ic_spec_cut = (real_t) stold(_config["ic_spec_cut"]); // power spectrum cutoff parameter
-
-  /* (peak scale in hubble units) * (to pixel scale) */
-  icd.peak_k = (1.0/0.07)*H_LEN_FRAC;
-  icd.peak_amplitude = peak_amplitude;
-  icd.ic_spec_cut = ic_spec_cut; // cut spectrum off around p ~ ic_spec_cut
-
-  icd.viol_amp = stold(_config["IC_viol_amp"]);
-
-  return icd;
-}
-
 /**
  * @brief A cosmologically-motivated power spectrum for the conformal factor
  * @details Return the power spectrum amplitude for a particular wavenumber.
@@ -45,29 +20,35 @@ ICsData cosmo_get_ICsData()
  *  Which after additional scalings, this function returns.
  * 
  * @param k wavenumber of interest
- * @param icd initial condition data structre
  * 
  * @return power spectrum amplitude
  */
-real_t cosmo_power_spectrum(real_t k, ICsData *icd)
+real_t cosmo_power_spectrum(real_t k, real_t A, real_t k0)
 {
-  real_t pre = icd->peak_amplitude;
-  return pre/(1.0 + pow(fabs(k)/icd->peak_k, 4.0)/3.0)/pow(fabs(k)/icd->peak_k, 3.0);
+  return A/(1.0 + pow(fabs(k)/k0, 4.0)/3.0)/pow(fabs(k)/k0, 3.0);
+}
+
+void set_gaussian_random_Phi_N(arr_t & field, Fourier *fourier,
+  real_t A, real_t p0, real_t p_cut)
+{
+  set_gaussian_random_Phi_N(field, fourier, A, p0, p_cut, false);
 }
 
 // set a field to an arbitrary gaussian random field
-
-void set_gaussian_random_field(arr_t & field, Fourier *fourier, ICsData *icd)
+void set_gaussian_random_Phi_N(arr_t & field, Fourier *fourier,
+  real_t A, real_t p0, real_t p_cut, bool fix_amplitude)
 {
   idx_t i, j, k;
-  real_t px, py, pz, pmag;
+  real_t px, py, pz, p_mag;
   real_t scale;
+  real_t signA = A<0.0?-1:1;
+  real_t absA = A<0.0?-A:A;
 
   // populate "field" with random values
   std::random_device rd;
   const real_t seed = stod(_config("mt19937_seed", "9"));
   std::mt19937 gen(seed);
-  std::normal_distribution<real_t> gaussian_distribution;
+  std::normal_distribution<real_t> gaussian_distribution; // zero mean, unit variance
   std::uniform_real_distribution<double> angular_distribution(0.0, 2.0*PI);
    // calling these here before looping suppresses a warning (bug)
   gaussian_distribution(gen);
@@ -89,6 +70,11 @@ void set_gaussian_random_field(arr_t & field, Fourier *fourier, ICsData *icd)
 
         // generate the same random modes for all resolutions (up to NMAX)
         real_t rand_mag = gaussian_distribution(gen);
+        // fix power spectrum amplitude
+        if(fix_amplitude)
+        {
+          rand_mag = 1.0;
+        }
         real_t rand_phase = angular_distribution(gen);
 
         // only store momentum values for relevant bins
@@ -107,19 +93,15 @@ void set_gaussian_random_field(arr_t & field, Fourier *fourier, ICsData *icd)
             fft_index = max_fft_index;
           }
 
-          pmag = sqrt(
-            pw2(px)
-             + pw2(py)
-             + pw2(pz)
-            );
+          p_mag = sqrt( pw2(px) + pw2(py) + pw2(pz) );
 
           // Scale by power spectrum
           // don't want much power on scales smaller than ~3 pixels
           // Or scales p > 1/(3*dx)
           real_t cutoff = 1.0 / (
-              1.0 + exp(10.0*(pmag - icd->ic_spec_cut))
+              1.0 + exp(10.0*(p_mag - p_cut))
           );
-          scale = cutoff*sqrt(cosmo_power_spectrum(pmag, icd));
+          scale = signA*cutoff*std::sqrt(cosmo_power_spectrum(p_mag, absA, p0));
 
           (fourier->f_field)[fft_index][0] = scale*rand_mag*cos(rand_phase);
           (fourier->f_field)[fft_index][1] = scale*rand_mag*sin(rand_phase);
@@ -134,7 +116,19 @@ void set_gaussian_random_field(arr_t & field, Fourier *fourier, ICsData *icd)
 
   // FFT back; 'field' array should now be populated with a gaussian random
   // field and power spectrum given by cosmo_power_spectrum.
-  fftw_execute_dft_c2r(fourier->p_c2r, fourier->f_field, field._array);
+#if USE_LONG_DOUBLES
+  long double * double_field = new long double[POINTS];
+  fftwl_execute_dft_c2r(fourier->p_c2r, fourier->f_field, double_field);
+  for(idx_t i=0; i<POINTS; ++i)
+    field._array[i] = (real_t) double_field[i];
+  delete [] double_field;
+#else
+  double * double_field = new double[POINTS];
+  fftw_execute_dft_c2r(fourier->p_c2r, fourier->f_field, double_field);
+  for(idx_t i=0; i<POINTS; ++i)
+    field._array[i] = (real_t) double_field[i];
+  delete [] double_field;
+#endif
 
   return;
 }

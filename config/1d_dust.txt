@@ -1,0 +1,35 @@
+steps = 8000
+dt_frac = 0.2
+
+KO_damping_coefficient = 0
+
+lapse = Static
+simulation_type = dust
+ic_type = semianalytic
+peak_amplitude = 0.005
+Omega_L =  1.63e-05
+
+stop_at_expansion_goal = 1
+expansion_goal = 51.0
+
+
+output_dir = dust_SVT_test
+
+IO_bssnstats_interval = 100
+dump_file = calculated
+
+IO_1D_grid_interval = 1000
+IO_1D_DIFFr_a = 1
+IO_1D_DIFFphi_a = 1
+IO_1D_DIFFS_a = 1
+IO_1D_DIFFalpha_a = 1
+IO_1D_DIFFK_a = 1
+
+IO_3D_grid_interval = 1000
+
+IO_constraint_interval = 1000
+
+
+use_bardeen = 1
+SVT_constraint_interval = 1000
+use_ML_scale_factor = 0

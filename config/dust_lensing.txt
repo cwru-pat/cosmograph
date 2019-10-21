@@ -1,51 +1,32 @@
-steps = 1600
+steps = 10
+
+lapse = Harmonic
 
 simulation_type = dust
-peak_amplitude_frac = 5.0
-rho_K_lambda_frac = 0.07008
-ic_spec_cut = 17
-IC_viol_amp = 0.0
 mt19937_seed = 7
 
-ray_integrate = 1
-ray_flip_step = 800
-IO_raytrace_interval = 1
-ray_ic_type = healpix
+Omega_L = 0.00175
+p0 = 7.0
+P = 0.13
+p_cut = 50.0
+
+rescale_metric = 1.0
+rescale_sheet = 0
+
+raysheet_flip_step = 5
+
 healpix_vecs_file = ../config/healpix_vecs/nside_16.vecs
+follow_null_geodesics = 1
+observers_per_dim = 1
+nside = 16
+ns1 = 3072
+ns2 = 3
+ns3 = 1
+ray_bundle_epsilon = 1.0e-6
 
 output_dir = dust_lensing
 dump_file = calculated
 
 IO_constraint_interval = 10
 IO_bssnstats_interval = 10
-
-use_bardeen = 1
-
-IO_3D_grid_interval = 100
-
-IO_3D_DIFFphi_a = 1
-IO_3D_DIFFK_a = 1
-
-IO_3D_DIFFgamma11_a = 1
-IO_3D_DIFFgamma12_a = 1
-IO_3D_DIFFgamma13_a = 1
-IO_3D_DIFFgamma22_a = 1
-IO_3D_DIFFgamma23_a = 1
-IO_3D_DIFFgamma33_a = 1
-
-IO_3D_A11_a = 1
-IO_3D_A12_a = 1
-IO_3D_A13_a = 1
-IO_3D_A22_a = 1
-IO_3D_A23_a = 1
-IO_3D_A33_a = 1
-
-IO_3D_Bardeen_Phi = 1
-IO_3D_Bardeen_Psi = 1
-IO_3D_Bardeen_A = 1
-IO_3D_Bardeen_dt_A = 1
-IO_3D_Bardeen_d2t_A = 1
-IO_3D_Bardeen_B = 1
-IO_3D_Bardeen_dt_B = 1
-IO_3D_Bardeen_d2t_B = 1
-
+IO_raysheet_interval = 1

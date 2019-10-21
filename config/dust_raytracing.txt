@@ -1,0 +1,31 @@
+steps = 2560000
+dt_frac = 0.4
+
+KO_damping_coefficient = 0.01
+
+simulation_type = dust
+ic_type = sinusoid
+peak_amplitude_frac = 0.000025
+rho_K_lambda_frac = 0.0
+ic_spec_cut = 2
+
+ray_integrate = 1
+simple_raytrace = 0
+ray_flip_step = 2560000
+IO_raytrace_interval = 100
+ray_ic_type = healpix
+healpix_vecs_file = ../config/healpix_vecs/nside_16.vecs
+
+output_dir = dust_raytracing
+dump_file = calculated
+
+IO_constraint_interval = 100
+IO_bssnstats_interval = 100
+
+IO_1D_grid_interval = 100
+IO_1D_DIFFr_a = 1
+IO_1D_DIFFphi_a = 1
+IO_1D_DIFFK_a = 1
+
+use_bardeen = 1
+SVT_constraint_interval = 1000

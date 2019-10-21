@@ -111,10 +111,26 @@
   function(STF23);                      \
   function(STF33);
 
-#define BSSN_APPLY_TO_GEN1_EXTRAS(function) \
-  function(ricci);                          \
-  function(AijAij);                         \
+#if USE_GENERALIZED_NEWTON
+#define BSSN_APPLY_TO_GEN1_EXTRAS(function)              \
+  function(ricci);                                       \
+  function(AijAij);                                      \
+  function(K0);                                          \
+  function(GNricciTF11);                                 \
+  function(GNricciTF22);                                 \
+  function(GNricciTF33);                                 \
+  function(GNricciTF12);                                 \
+  function(GNricciTF13);                                 \
+  function(GNricciTF23);                                 \
+  function(GND2Alpha);                                   \
+  function(GNDiDjRijTFoD2);
+#else
+#define BSSN_APPLY_TO_GEN1_EXTRAS(function)     \
+  function(ricci);                              \
+  function(AijAij);                             \
   function(K0);
+#endif
+
 
 #define BSSN_APPLY_TO_IJ_PERMS(function) \
   function(1, 1);                        \
@@ -737,5 +753,21 @@
 #define STF21 STF12
 #define STF31 STF13
 #define STF32 STF23
+
+#if USE_GENERALIZED_NEWTON
+#define ricciTF21 ricciTF12
+#define ricciTF31 ricciTF13
+#define ricciTF32 ricciTF23
+
+#define GNTensor21 GNTensor12
+#define GNTensor31 GNTensor13
+#define GNTensor32 GNTensor23
+
+#define GNTensor21_a GNTensor12_a
+#define GNTensor31_a GNTensor13_a
+#define GNTensor32_a GNTensor23_a
+
+
+#endif
 
 #endif

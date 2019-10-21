@@ -41,10 +41,18 @@ private:
   // Harmonic gauge lapse
   real_t HarmonicLapse(BSSNData *bd);
 
+  // Conformal FLRW-like lapse (~comoving synchronous with non-constant timestep)
+  real_t ConformalFLRWLapse(BSSNData *bd);
+
   // 1+log gauge slicing
   real_t gd_c; ///< Tunable gauge parameter
+  real_t exp_sync_gauge_c;
   real_t OnePlusLogLapse(BSSNData *bd);
 
+  // Generalized Newtonian
+  real_t GN_eta;
+  real_t GeneralizedNewton(BSSNData *bd);
+  
   // Untested/experimental lapses
   real_t AnharmonicLapse(BSSNData *bd);
   real_t ConformalSyncLapse(BSSNData *bd);
@@ -87,6 +95,11 @@ private:
     // Lapse functions
     lapse_gauge_map["Static"] = &BSSNGaugeHandler::Static;
     lapse_gauge_map["Harmonic"] = &BSSNGaugeHandler::HarmonicLapse;
+    lapse_gauge_map["ConformalFLRW"] = &BSSNGaugeHandler::ConformalFLRWLapse;
+#if USE_GENERALIZED_NEWTON
+    // shouldn't be using this gauge w/o extra fields
+    lapse_gauge_map["GeneralizedNewton"] = &BSSNGaugeHandler::GeneralizedNewton;
+#endif
     lapse_gauge_map["Anharmonic"] = &BSSNGaugeHandler::AnharmonicLapse;
     lapse_gauge_map["OnePlusLog"] = &BSSNGaugeHandler::OnePlusLogLapse;
     lapse_gauge_map["DampedWave"] = &BSSNGaugeHandler::DampedWaveLapse;
@@ -129,9 +142,13 @@ private:
     dw_p = std::stod((*config)("dw_p", "0.0"));
     gd_c = std::stod((*config)("gd_c", "1.0"));
 
+    exp_sync_gauge_c = std::stod((*config)("exp_sync_gauge_c", "1.0"));
+    
     k_driver_coeff = std::stod((*config)("k_driver_coeff", "0.04"));
-  }
 
+    GN_eta = std::stod((*config)("GN_eta", "0.001"));
+  }
+  
 public:
 
   /**
@@ -151,12 +168,13 @@ public:
    */
   BSSNGaugeHandler(ConfigParser *config, BSSN *bssnSim)
   {
+    bssn = bssnSim;
+        
     _initGaugeMaps();
     _initDefaultParameters(config);
     setLapseFn((*config)("lapse", "Static"));
     setShiftFn((*config)("shift", "Static"));
 
-    bssn = bssnSim;
   }
 
   /**
@@ -172,8 +190,10 @@ public:
 
     std::cout << "Using lapse: `" << name << "`.\n";
     lapse_fn = lapse_gauge_map[name];
-  }
 
+  }
+  
+  
   /**
    * @brief Set the shift function
    */

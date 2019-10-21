@@ -119,13 +119,13 @@ void scalar_ic_set_semianalytic_test(BSSN * bssn, Scalar * scalar,
   for(i = 0; i < NX; i++)
   {
     if(2.0 * i <= NX)
-      temp[i] = std::sqrt(std::fabs(
+      temp[i] = std::sqrt(fabs(
       (pw2(4.0 * PI) * 0.01  *  std::sin(4.0 * PI *( (real_t)i / NX - 0.125) )
        +(-2.0 * PI * Lambda + pw2(K_a[INDEX(i,0,0)])/12.0 )*
        std::pow(phi_a[INDEX(i,0,0)], 5.0) )
       /(PI * phi_a[INDEX(i,0,0)] ) )) ;
     else
-      temp[i]= -  std::sqrt(std::fabs(
+      temp[i]= -  std::sqrt(fabs(
       (pw2(4.0 * PI) * 0.01  *  std::sin(4.0 * PI *( (real_t)i / NX - 0.125) )
        +(-2.0 * PI * Lambda + pw2(K_a[INDEX(i,0,0)])/12.0 )*
        std::pow(phi_a[INDEX(i,0,0)], 5.0) )
@@ -134,7 +134,7 @@ void scalar_ic_set_semianalytic_test(BSSN * bssn, Scalar * scalar,
     for(j = 0; j < NY; j++)
       for(k = 0; k < NZ; k++)
   phi[INDEX(i,j,k)] = temp[i];
-    lap_dif = std::max(lap_dif, std::fabs(double_derivative(i,0,0,1,1,phi_p)
+    lap_dif = std::max( lap_dif, (real_t) fabs(double_derivative(i,0,0,1,1,phi_p)
             +pw2(4.0 * PI) * 0.01  *  std::sin(4.0 * PI *( (real_t)i / NX - 0.125) ) ) );
   }
 
@@ -142,8 +142,8 @@ void scalar_ic_set_semianalytic_test(BSSN * bssn, Scalar * scalar,
   Fourier * fourier;
   fourier = new Fourier();
 
-  fourier->Initialize_1D(NX, temp);
-  fourier->execute_f_r2c(0);
+  fourier->Initialize_1D(NX);
+  fourier->execute_f_r2c();
 
   for(i = 0; i < NX/2 +1; i++)
   {
@@ -160,7 +160,7 @@ void scalar_ic_set_semianalytic_test(BSSN * bssn, Scalar * scalar,
       fourier->f_field[i][0] = fourier->f_field[i][1] = 0;
     }
   }
-  fourier->execute_f_c2r(0);
+  fourier->execute_f_c2r();
 
   LOOP3(i,j,k)
   {
@@ -173,7 +173,7 @@ void scalar_ic_set_semianalytic_test(BSSN * bssn, Scalar * scalar,
 
   for(i = 0; i < NX; i++)
   {
-    max_deviation = std::max(max_deviation, std::fabs( derivative(i,0,0,1,phi) - der_bak[i]));
+    max_deviation = std::max(max_deviation, (real_t) fabs( derivative(i,0,0,1,phi) - der_bak[i]));
   }
   iodata->log("The maximum deviation of the numerical and analytic solution of phi using odx"
     + stringify(STENCIL_ORDER) + " stencils is: " + stringify(max_deviation));
